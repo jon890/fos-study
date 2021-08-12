@@ -51,11 +51,3 @@
 - 오른쪽 자식 : 2N + 2
 
 ![heap_index2](https://user-images.githubusercontent.com/36876250/129120894-8bedae5e-cde2-47ff-ad87-4a437c3ba379.png)
-
-## 힙 / 최소힙 / 최대힙 구현코드
-
-```
-class Heap {
-
-}
-```

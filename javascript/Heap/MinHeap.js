@@ -50,9 +50,16 @@ class MinHeap extends Heap {
 
     // 부모노드와 비교해서 더 작다면 값을 위로 올린다
     // 부모노드가 크거나 루트노드에 도달할 때 까지 반복한다
-    while (this.getParent(index) && this.getParent(index) > this.items[index]) {
-      this.swap(index, this.getParentIndex(index));
-      index = this.getParentIndex(index);
+    while (true) {
+      const parentValue = this.getParent(index);
+      const parentIndex = this.getParentIndex(index);
+      const currentValue = this.items[index];
+
+      if (!parentValue) break;
+      if (currentValue > parentValue) break;
+
+      this.swap(index, parentIndex);
+      index = parentIndex;
     }
   }
 
@@ -62,19 +69,27 @@ class MinHeap extends Heap {
 
     // 아래 자식들과 비교해서 값이 크면
     // 자식노드의 제일 작은값과 교환한다
-    while (
-      this.getLeftChild(index) &&
-      (this.getLeftChild(index) < this.items[index] ||
-        this.getRightChild(index) < this.items[index])
-    ) {
-      let smallerIndex = this.getLeftChildIndex(index);
+    while (true) {
+      const currentValue = this.items[index];
+      const leftChildValue = this.getLeftChild(index);
+      const leftChildIndex = this.getLeftChildIndex(index);
+      const rightChildValue = this.getRightChild(index);
+      const rightChildIndex = this.getRightChildIndex(index);
 
+      // 왼쪽 자식이 존재하지 않으면 종료
+      if (!leftChildValue) break;
+      // 이미 내가 자식 노드보다 작으면 종료
       if (
-        this.getRightChild(index) &&
-        this.getRightChild(index) < this.items[smallerIndex]
-      ) {
-        smallerIndex = this.getRightChildIndex(index);
-      }
+        currentValue < leftChildValue ||
+        (rightChildValue && currentValue < rightChildValue)
+      )
+        break;
+
+      // 더 값이 작은 노드와 교체한다
+      let smallerIndex =
+        rightChildValue && rightChildValue < leftChildValue
+          ? rightChildIndex
+          : leftChildIndex;
 
       this.swap(index, smallerIndex);
       index = smallerIndex;
