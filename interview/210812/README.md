@@ -61,6 +61,14 @@
 
 - 굉장한 기술질문들을 쏟아 내주심, 많이 대답을 잘 못했다..
 
+- <b>HTML은 무엇의 약자인지 말해보세요</b>
+
+  - Hyper Text Markup Language라고 대답
+
+  - <b>그렇다면 Markup은 무엇인가요?</b>
+
+  - 생각이 안남.. 모르겠다고 대답
+
 - <b>Brower Event에서 Capturing, Bubbling의 차이점을 아시나요?</b>
 
   - Bubbling은 이벤트가 하위노드에 상위노드로 전달되는 것
