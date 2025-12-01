@@ -62,3 +62,22 @@
 - 메시지는 반드시 한 번 publish 되도록 처리
 - Outbox 패턴을 사용하여, 전송 실패 시 재전송 할 수 있도록 처리했습니다.
 - Consumer에대해서는 중복 발생 가능성이 열려있는 상태인 것 같은데, 이는 매 스핀마다 spinId를 부여했고, 해당 id를 통해서 중복된 메시지인지 구분할 수 있도록은 처리해두었습니다.
+
+## 데이터베이스 샤딩을 해본적이 있나요?
+
+- 유저 ID기반, mod 방식 샤딩을 적용해본 경험이 있습니다.
+- 공통 DB에서 account 테이블을 관리하고, 각 유저에 대한 shard 번호를 DB에 관리하도록 했습니다.
+- 이 때, 트랜잭션을 사용하기전에 ThreadLocal 스토리지를 활용하여 shard 번호를 설정하도록 하도록하여 동작하도록 했습니다.
+
+### 그럼 Spring 트랜잭션에서 DataSource를 선택하는 흐름은 어떻게 되나요?
+
+- 메서드를 호출하면
+- AOP Proxy에서 @Transactional를 감지하게 되고
+- PlatformTransactionManager.begin()을 호출하게 됩니다.
+- 이 때 DataSourceTransactionManager.getConnection()을 호출하여 DataSource를 가져오게 됩니다.
+- DataSource(=RoutingDataSource)에서 determineCurrentLookupKey()를 호출하게 되고
+- 이 때 ThreadLocal에 저장된 shardKey를 활용하여 데이터 소스를 선택할 수 있도록 했습니다.
+
+### 그럼 샤딩 라우팅을 어떻게 하면 최적화 할 수 있을까요?
+
+- 샤드 내부 트랜잭션만 허용하고, 샤드 간 정합성은 이벤트 기반 Eventually Consistent 패턴을 활용하여 결과적으로 정합성을 유지하는 방식을 택할 것 같습니다.
