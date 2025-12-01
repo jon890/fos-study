@@ -133,3 +133,73 @@ try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 - 스케줄링 방식 자체가 경량
   - OS 스레드는 preemptive shheduling(선점형), 가상스레드는 cooperative scheduling(협력형) 성격이 강함
   - IO에서 자연스럽게 yield가 발생하기 때문에 스케줄러 부담이 적다.
+
+### Platform Thread와 Virtual Thread는 무엇인가?
+
+- Platform Thread
+  - 우리가 자바에서 알던 기존 쓰레드 = `java.lang.Thread`
+  - 내부적으로 OS 스레드 1:1 매핑
+  - 스레드를 많이 만들수록 커널 스레드가 늘어나서 문맥 전환비용, 메모리 비용이 커짐
+- Virtual Thread
+
+  - Java 21에서 정식으로 들어온 경량 스레드
+  - JMV이 관리하는 유저 레벨 스레드
+  - 내부적으로는 여러 Virtual Thread가 소수의 Platform Thread 위에서 multiplexing 됨
+  - 구조적으로는 Go의 goroutine, Kotlin coroutine과 비슷한 개념
+
+### Virtual Thread는 어떻게 스케줄링 되는가?
+
+- Virtual Thread = 작업단위 / 사용자 코드 스택을 잡고 있다가
+
+  - 실행해야 할 때 Platform Thread위에 붙었다가 = run
+  - I/O 블로킹, `park()`같은 지점에서 떨어져 나왔다가 = unmount
+  - 다시 실행 가능할 떄 다른 Platform Thread에 다시 붙는다 = remount
+
+- 예를 들어, Virtual Thread에서 JDBC 호출 같은 블로킹 I/O를 호출하면, JVM은 해당 Virtual Thread의 스택과 상태를 저장해두고 Platform Thread를 다른 작업에 재사용합니다.
+- I/O가 완료되면 Virtual Thread는 다시 어떤 Platform Thread 위에서 재개됩니다.
+- 이렇게 해서 OS 스레드 수를 최소화하면서도 수많은 동시 요청을 처리할 수 있는 구조가 됩니다.
+
+### 그렇다면 Platform Thread를 Blocking 시키면 어떻게 되는가?
+
+- 라이브러리가 내부에서 OS-level blocking call을 호출하면, 가볍게 동작할 수 없다
+- virtual thread는 사용하는 라이브러리가 논블로킹 친화적일 때만 고성능이다.
+- Platform thread를 블락하는 호출은 어떤 것이 있는가?
+  - Socket I/O (read, write, accept)
+    - InputStream.read(), SocketChannel.read(), ServerSocket.accept() 등이 해당
+    - Virtual Thread는 이 호출을 만나면 Carrier Thread를 점유하게 됨
+  - File I/O
+    - POSIX file I/O syscall은 기본적으로 블로킹
+    - Java의 Files.readAllBytes() 등이 해당
+  - Lock 경합
+    - synchronized 블록 안에서 오래 기다리면
+    - Virtual thread가 Park -> Unpark 흐름으로 전환되지만 경합이 심한 경우 carrier thread 점유 시간이 늘어남
+- 그렇다면 Virtual Thread는 블로킹 I/O에서 어떻게 최적화하는가?
+  - 블로킹을 만나면 그 지점을 스케줄러가 파악하고 carrier thread에서 떼어냄 (PARK)
+  - 다른 Virtual Thread가 carrier thread를 사용함
+  - 이 기능을 제공하는게 continuation 이다.
+- 단 조건이 있는데..
+  - JVM이 파킹 지점을 알아야 한다
+  - 라이브러리가 native blocking syscall을 감추고 있을 경우 JVM은 파킹 지점을 잡지 못함
+  - 대표적으로 문제 되는 라이브러리 : DB Driver
+  - 기본적으로 블로킹 소켓 I/O 기반
+  - MySQL Driver는 Loom 대응이 되었을까?
+    - 아직 완전한 대응을 하지 않음
+    - 내부 I/O가 기본적으로 blocking socket
+    - JVM이 continuation을 삽입할 수 없는 native 호출 흐름이 있음
+- 핵심 요약
+  - Virtual Thread는 블로킹처럼 보이지만 실제는 논블로킹을 만들기 위한 기술
+  - 하지만 라이브러리가 블로킹 syscall을 숨기고 있으면 Carrier Thread 블로킹이 발생해 성능이 저하된다
+
+### 자바 소켓 라이브러리가 NIO로 동작하도록 개선되지 않았는가?
+
+- Java 8
+  - 전통적 object 소켓
+- Java 11
+  – 일부 NIO 기반 내부 변경
+- Java 14
+  - 내부 리팩토링 / 최적화
+- Java 21
+
+  - 블라킹 되나, Virtual Thread가 park됨
+
+- 내부적으로 NIO 채널 구현을 일부 재사용하는 수준
