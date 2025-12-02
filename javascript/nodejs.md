@@ -72,3 +72,142 @@
   - **4. 생태계와 속도**
     - NPM 생태계 폭발적
   - 빠른 실험/PoC, API 게이트웨이, 엣지 컴퓨팅 등에 적합
+
+## Node.js 운영시 주의해야하는 핵심 포인트 10가지
+
+### 1. CPU-bound 작업을 메인 스레드에서 돌리지 말 것
+
+- Node는 JS 실행이 싱글 스레드라서 CPU를 많이 쓰는 코드를 돌리면 이벤트 루프가 막힌다
+- 막히면?
+  - 전체 요청이 지연됨
+  - 서버가 죽은 것 처럼 보임
+  - TPS 급락
+- 해결책
+  - worker thread
+  - child process
+  - Redis queue / Kafka 등으로 다른 프로세스로 오프로딩
+  - WebAssembly(특정 경우)
+  - 서버를 분리 (API 서버, 배치 서버 역할 분리)
+- 체크해야할 패턴 예
+  - bcrypt 패스워드 해싱 -> CPU Heavy
+  - 이미지 처리, PDF 생성 등
+  - 10만 건 이상 배열 sort, map, reduce
+  - 복잡한 JSON 변환
+  - 암호화 연산
+
+### 2. 큰 객체/배열/Buffer를 오래 들고 있지 않기
+
+- V8 힙은 기본적으로 1.5~2GB 정도 크기 제한이 걸려있음
+  - 큰 배열/버퍼를 오래 잡고 있으면
+    - Old Generation으로 승격됨
+    - GC 비용 올라감
+    - latency spike 발생
+    - OOM 위험
+  - 실제로 발생하는 케이스
+    - DB에서 20MB JSON 결과를 한 번에 들고 있음
+    - 이미지 / 파일 버퍼를 메모리에 다 올림
+    - 파일을 chunk 처리 안하고 전체 read 함
+  - 해결책
+    - stream 방식 처리
+    - chunk 단위 분할
+    - Buffer pooling
+    - 압축/압축해제 과정에서도 스트림 사용
+
+### 3. JSON.parse / stringify 과사용 피하기
+
+- Node.js에서 JSON 처리 비용이 생각보다 큼
+- 문제
+  - JSON.parse는 full parsing + deep copy 수준의 비용
+  - stringify는 메모리 재할당 잦음
+  - deep clone을 반복하면 GC 압박
+- 해결 방법
+  - 변환 횟수 최소화
+  - 객체 복제할 떄 structruedClone 또는 shallow copy
+  - 대용량 JSON을 stream 기반 파싱 (JSONStream 등)
+
+### 4. Promise 폭주 / 메모리 누수 주의
+
+- 비동기 leak이 실무에서 진짜 많이 발생함
+
+  - 예시
+
+    - ```ts
+      setInterval(() => {
+        // ...
+      }, 1000); // clear 안함
+
+      async function loop() {
+        while (true) {
+          await doSomething(); // break 없음
+        }
+      }
+      ```
+
+  - Promise가 계속 쌓이고 GC가 회수할 타이밍 놓치면
+    - 메모리 점점 증가
+    - 이벤트 루프 압박
+    - 서버가 뻗음
+  - 해결책
+    - setInterval 대신 setTimeout chain 사용
+    - Promise.all 남발 주의
+    - 끝없는 await 루프 금지
+    - async resource leak을 추 적 (AsyncLocalStorage, autocannon 테스팅 등)
+
+### 5. EventEmitter 리스너 누수 주의
+
+- 이것도 실무에서 은근히 흔함
+
+  - 예시
+
+  - ```ts
+    emitter.on('event', handler);
+    ```
+  - 핸들러를 계속 등록하는데 제거 안하면 메모리 누수 발생
+  - Node가 다음 경고를 띄움
+    - MaxListenersExceededWarning
+  - 해결
+    - emitter.removeListener
+    - emitter.once
+    - 리스너 개수 확인
+
+### 6. 클러스터링 / 다중 프로세스 활용
+
+- Node는 싱글 스레드라 CPU 코어를 하나만 씀, 인스턴스를 늘리지 않으면 성능 제대로 나오지 않음
+- 대안
+  - PM2 cluster mode
+  - Node cluster API
+  - Docker/K8s 에서 복수 replica
+  - Worker Threads로 CPU offload 패턴
+
+### 7. 동시성 제어 필요할 떄 Lock/Mutex 개념 의식하기
+
+- Node는 싱글 스레드지만 I/O 비동기기 때문에 race condition은 존재함
+- Node의 싱글 스레드는 공유 메모리 문제는 적지만, 공유 리소스(DB/Redis/S3)을 다룰 떄는 여전히 race condition 생김
+- 해결
+  - Redis distributed lock
+  - DB optimistic lock
+  - queue 기반 처리
+  - Atomic operation 적극 사용
+
+### 8. 메모리 프로파일링 / CPU 프로파일링을 할 줄 알아야 함
+
+- 필수 도구
+  - Chrome DevTools (Profiler)
+  - Clinic.js
+  - 0x
+  - Node heap snapshot
+  - flamegraph
+- 특히 메모리 누수와 CPU block은 Node 운영의 큰 이슈
+
+### 9. GC Pause 고려
+
+- Node는 GC가 자동이라 편하지만, latency-sensitive 서비스에서는 중요한 문제
+- 문제 시나리오
+  - API에서 대용량 JSON 한번에 처리
+  - 서버 내부에서 캐시 객체 overly large
+  - 자주 생성 / 버려지는 작은 객체가 많음
+- 해결
+  - 객체 재사용
+  - 버퍼 풀링
+  - stream 기반 IO
+  - GC 옵션 조정 (`--max-old-space-size`, `expose-gc` 등)
