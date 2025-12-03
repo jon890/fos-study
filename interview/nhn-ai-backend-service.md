@@ -72,5 +72,92 @@
 - 학습 데이터의 무결성을 확보하기 위한 방법
 - LLM의 환각 현상을 보완하기 위한 방법 중 하나
 - LLM이 답변을 생성하기 전에 외부의 학습 데이터 소스를 참조하여 답변의 정확도를 높이는 방식
+- 작동 방식
+  - 외부 데이터 생성
+    - API, 데이터베이스, 문서 등의 다양한 소스에서 원하는 데이터를 가져온다.
+    - LLM이 이해할 수 있도록 복잡한 데이터를 임베딩 언어 모델을 사용하여 벡터 형태로 변환한다
+    - 변환된 벡터 데이터를 벡터 데이터베이스에 저장하여 LLM이 이해할 수 있는 지식 라이브러리를 생성한다
+  - 관련 정보 검색
+    - 사용자가 프롬프트를 입력하면, 질의 인코더가 사용자 프롬프트를 벡터 형태로 인코딩한다
+    - 인코딩된 프롬프트와 관련된 정보를 벡터 데이터베이스에서 검색하여 가져온다
+    - 검색 키워드가 많이 포함된 문서를 찾는 키워드 검색, 의미를 분석하여 벡터 간의 유사도를 검색하는 시맨틱 검색, 두 방법을 결합한 하이브리드 검색 방법 등이 있다
+  - LLM 프롬프트 확장
+    - 검색된 데이터를 컨텍스트에 추가하여 사용자 프롬프트를 보강한다.
+    - 확장된 프롬프트를 LLM에 전달하면, LLM이 검색된 데이터를 활용하여 답변을 생성한다
+  - 외부 데이터 업데이트
+    - 최신 데이터를 유지하기 위해 문서를 비동기적으로 업데이트한다
 
 ### 벡터 데이터베이스
+
+## 아키텍처 설계
+
+### RAG/AI 백엔드 설계
+
+- 목표
+  - 사내/서비스 문서를 기반으로 RAG 구성
+  - 여러 모델(OpenAI, Claude, HuggingFace, 사내용 모델 서버)을 붙일 수 있음
+  - 외부 클라이언트(웹/앱)는 하나의 통합 API만 호출
+  - 우리는 Spring(Kotlin) 기반의 RAG/Orchestration 백엔드를 설계
+- 핵심 역할
+
+  > 문서 수집/벡터화 -> 벡터 스토어 관리 -> 쿼리 시 검색 -> 적절한 모델 선택/호출 -> 응답 조립 후 반환
+
+#### 1. 아키텍처
+
+- ```
+  [Client(App/Web)]
+          |
+          v
+  [API Gateway / Spring RAG API]  --(Auth, Rate Limit)
+          |
+          |---> [RAG Orchestrator(Service Layer)]
+          |        |
+          |        |---> [Vector Store (pgvector / Redis / Pinecone)]
+          |        |---> [Document Store (RDB / S3)]
+          |        |---> [Model Router]
+          |                |---> [LLM Provider 1 (OpenAI, Claude, etc)]
+          |                |---> [LLM Provider 2 (HuggingFace Inference)]
+          |                |---> [Internal Model Server (Python, gRPC/HTTP)]
+          |
+          |---> [Monitoring/Logging (OTel, Prometheus, ELK)]
+          |
+  [Offline Ingestion Pipeline]
+          |
+          +---> [Document Collector/Parser]
+              [Chunker + Embedder]
+              [Vector Store Writer]
+  ```
+
+#### 2. Ingestion 파이프라인 설계 (문서 -> 벡터 DB)
+
+- 컴포넌트
+  - Document Collector
+    - S3, DB, Notion, Git Repo, 파일 업로드 등에서 원문 수집
+    - 결과를 raw_document 테이블/스토리지에 저장
+  - Parser / Normalizer
+    - PDF, HTML, Markdown, Word 등을 텍스트로 추출
+    - 공통 포맷 : `Document(id, title, body, metadata)`
+  - Chunker
+    - 문서를 RAG용 청크로 분리
+    - 전략 : sentence-aware + length + overlap (300 ~ 800 tokens, 50 ~ 100 overlap)
+  - Embedder
+    - EmbeddingClient로 chunk를 embedding vector로 변환
+    - 예 : OpenAI `text-embedding-3-small`
+  - Vector Store Writer
+    - VectorStore에 (id, embedding, metadata) upsert
+    - 예 : PostgreSQL + pgvector
+- Ingestion은 배치(Spring Batch)나, 이벤트 기반(Kafka)로 돌리면 된다
+
+#### 3. Query 파이프라인 설계 (질문 -> 검색 -> 모델 호출 -> 응답)
+
+- 고수준 플로우
+  - 클라이언트 요청
+  - 인증/인가, Rate Limit
+  - RAG Orchestrator가 :
+    - Query Normalization (언어 감지, 길이 제한 등)
+    - Vector Store에서 유사 청크 검색
+    - ModelRouter를 통해 적절한 모델 선택
+    - Prompt 구성 (reterieved context + user query)
+    - LLM 호출
+    - 응답 post-processing (필요하면 출처 하이라이트)
+    - 응답 + 사용된 메타데이터 반환
