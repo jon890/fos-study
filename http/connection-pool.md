@@ -94,3 +94,101 @@
   - connection pool을 유지한다
 - 그래서 fetch(Node 18+) = undici 기반 -> keep-alive 활성화됨
 - ky = fetch 기반 -> undici 덕분에 keep-alive 사용
+
+## 그럼 Keep-Alive 사용이 무조건 좋은 것 일까?
+
+### 단점 1 : 커넥션 고갈 (Connection exhaustion)
+
+- 서버 포트가 고갈됨(에퍼메럴 포트 고갈)
+- 외부 API 서버가 동시 연결 제한을 초과
+- Nginx/ELB 같은 로드밸런서가 연결 폭주로 장애 발생
+- TIME_WAIT 상태 소켓이 폭증함
+
+### 단점 2 : 커넥션이 장애 상태로 '고착'되는 문제
+
+- 외부 API 서버가 timeout 상태
+- 서버 내부에서 작업이 중단되거나 느림
+- 중간 로드밸런서가 연결을 죽였는데 Node는 연결이 살아 있다고 인식함
+  - 이 때 keep-alive 커넥션이 **겉보기에는 살아있지만 사실 죽어버린(dead connection)** 상태가 될 수 있다
+- 이 상황에서 문제
+  - Node는 이미 열린 keep-alive 커넥션을 계속 재사용
+  - 하지만 서버는 이미 close 해버림
+  - 요청을 보내면 `ECONNRESET`, `socket hang up`, `broken pipe` 발생
+  - retry에서 또 같은 죽은 연결을 재사용
+  - 전체 서비스가 순간적으로 대량 오류 발생
+- 해결
+  - agent timeout 짧게 설정 (idle timeout)
+  - request timeout + body timeout 적극 사용
+  - socket keepalive 옵션 활성화
+  - undici 사용 (dead-connection detection 구현됨)
+
+### 단점 3 : 메모리 사용 증가
+
+- 많은 keep-alive 커넥션은 다음을 계속 잡고 있음
+  - socket 버퍼
+  - TLS 세션 메모리
+  - 이벤트 핸들러
+  - context 정보
+- 특히 Node는 GC 기반이라 대량 커넥션 유지 시 메모리 usage가 눈에 띄게 올라가고 힙 압박(GC Pause)가 증가함
+- 해결
+  - 커넥션 풀 개수 제한
+  - idle timeout 적절히 설정
+  - 프로세스 메모리 모니터링
+
+### 단점 4 : 장애 시 빠르게 recover되지 않는다 (장애 전파 가능)
+
+- 빠른 실패가 불가능해짐
+  - 장애 시 회복이 늦어지고 서비스 전체가 엉망이 될 수 있음
+- 해결
+  - 회로 차단기(Circuit Breaker) 도입
+  - dead-connection detection
+  - retry + backoff
+  - fallback 처리
+
+### 단점 5 : 로드밸런서 / NAT의 idle timeout이 관여함
+
+- AWS ALB, Azure LB, GCP LB 대부분은 idle timeout이 있다
+- 예
+  - AWS ALB : 기본 idle timeout 60초
+  - Cloudflare : 100초
+  - NGINX : keepalive_timeout 75초
+- 만약 Node keep-alive timeout이 5분인데, LB idle timeout이 1분이라면?
+  - LB가 먼저 연결을 끊음
+  - Node는 연결이 살아 있다고 생각
+  - 요청 -> ECONNRESET
+  - retry loop 발생
+  - 시스템 전체 불안정
+- 해결
+  - Node의 keepAliveTimeout <= LB idle timeout으로 설정
+  - 통상 30초 내외로 맞춤
+
+### 단점 6 : HTTP/1.1의 Head-of-Line Blocking 문제
+
+- HTTP/1.1 keep-alive는 **동시에 다중 요청을 같은 커넥션으로 보낼 수 없다**
+- 즉, 하나의 요청이 느리면, 뒤의 요청이 전부 블록 됨
+- 이걸 Head-of-Line Blocking 이라고 한다
+- HTTP/2에서는 multiplexing으로 해결되지만, Node fetch/undici/axios 대부분 HTTP/1.1이 기본이라 이 문제를 완전히 해결하지 못함
+- 해결
+  - 커넥션 풀 크기를 적절히 설정
+  - 느린 요청을 별도 agent로 분리
+  - HTTP/2 client 사용 고려 (undici 일부 지원 가능)
+
+### Keep-Alive 운영시 넣어야 할 설정들
+
+- **1. inbound/outbound timeout 정확히 설정**
+  - request timeout : 5초
+  - idle timeout : 30초 이하
+  - headers timeout: 2~5초
+- **2. connection pool 크기 제한**
+  - 인스턴스당 10 ~ 100 (코어 수 \* 10 정도)
+- **3. retry + backoff**
+  - exponential backoff
+  - jitter 추가
+- **4. Circuit breaker**
+  - opossum
+  - half-open 처리
+- **5. dead-connection detection**
+  - undici Agent가 자동 감지
+- **6. 대량 장애 전파 방지**
+  - 빠른 실패
+  - fallback / degrade 모드
