@@ -63,3 +63,34 @@
 > -> 따라서 TCP handshake + TLS handshake를 다시 하지 않아도 된다.
 
 즉, **재요청 시 매우 작은 비용으로 바로 HTTP 요청을 보낼 수 있다.**
+
+## HTTP/1.0 vs HTTP1.1 Keep-Alive 사양
+
+### HTTP/1.0
+
+- 기본 : 모든 요청 후 연결을 닫는다
+- 지속 연결을 원할 떄만 Connection: keep-alive 헤더를 명시해야 했다
+- 이게 없으면 반드시 Connection close
+
+### HTTP/1.1
+
+- 기본 : 지속 연결 (persistent connection)
+  - 즉 연결을 유지하려고 시도함
+- HTTP/1.1 명세(RFC 2068, RFC 2616)에서 이렇게 정의됨
+  - 기본적으로 keep-alive 상태
+  - 명시적으로 종료하고 싶은 경우만 Connection: close
+
+### 그런데 왜 Node, axios, undici는 keep-alive 설ㅈ어이 필요한 것처럼 느껴질까?
+
+- 실제로는 **HTTP 사양과 Node의 구현이 완전히 동일하게 작동하지 않는다**
+- Node의 기본 http/https Agent는 keep-alive가 "비활성화" 되어 있음
+  - Node의 기본 fetch/axios 요청은 내부적으로 Node의 http.Agent를 사용하는데 이 Agent는 직접 keepAlive: true 옵션을 줘야만 연결 재사용을 한다
+- 그렇지 않으면 HTTP/1.1 이더라도 Node는 내부적으로 socket을 닫아버린다
+
+### 그렇다면 undici는?
+
+- undici는 Node 팀이 만든 고성능 HTTP 엔진이고 여기서는 HTTP/1.1 규격을 반영한다
+  - keep-alive를 기본으로 사용한다
+  - connection pool을 유지한다
+- 그래서 fetch(Node 18+) = undici 기반 -> keep-alive 활성화됨
+- ky = fetch 기반 -> undici 덕분에 keep-alive 사용
