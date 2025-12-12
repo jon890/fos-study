@@ -81,4 +81,4 @@ HNSW는 그래프를 이용해 "빠르게 후보를 좁히는 구조"를 사용�
 - `engine: faiss` -> Facebook FAISS 사용 (가장 빠른 엔진 중 하나)
 - `space_type: cosinesimil` -> 코사인 유사도로 계산
 
-> 즉, OpenSearch는 내부적으로 kNN을 ANN 방식으로 최적화한 그래프 탐색을 한다"
+> 즉, OpenSearch는 내부적으로 kNN을 ANN 방식으로 최적화한 그래프 탐색을 한다
