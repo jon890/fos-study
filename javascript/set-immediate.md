@@ -124,3 +124,32 @@ timeout
 - I/O 이후 후처리
 - 이벤트 루프 양보
 - CPU-heavy 작업을 쪼갤 떄
+
+## setImmediate vs Promise 실행 순서
+
+핵심 규칙
+
+> Promise (`then`, `finally`)는 setImmediate보다 항상 먼저 실행된다
+
+이유:
+
+- Promise -> Microtask Queue
+- setImmediate -> Check phase (Macrotask)
+
+실행 우선순위 요약
+
+```text
+현재 콜스택
+↓
+Microtask Queue
+  - Promise.then
+  - Promise.finally
+  - queueMicrotask
+↓
+(Event loop phase 이동)
+↓
+Check phase
+  - setImmediate
+```
+
+> Microtask는 이벤트 루프 phase를 건너뛰고 즉시 실행
