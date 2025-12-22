@@ -115,3 +115,48 @@ Server1   Server2     Server3
 | 관계   | VIP는 L4가 바인딩하여 서비스 트래픽을 받는 주소 |
 
 > 그래서 실무에서 자주 이렇게 말함 "VIP는 L4가 가지고 있는 서비스 대표 IP이다"
+
+## Rserver(Real Server)란?
+
+- 로드밸런더 뒤에서 실제 요청을 처리하는 서버를 말함
+- VIP나 로드밸런서는 입구이고, Rserver는 일하는 주체
+- 네트워크/로드밸런서 문맥에서 쓰이는 **약어성 용어**
+
+```text
+  [클라이언트]
+        |
+        v
+    [ VIP ]
+        |
+    [ L4 Load Balancer ]
+        |
+  -------------------------
+  |         |            |
+RServer1   RServer2     RServer3
+
+```
+
+### 왜 "Real" Server라고 부를까?
+
+- VIP는 가상(IP) 이고, Rserver는 **실제 물리/가상 서버**이기 떄문
+- 그래서 로드밸런서 설정 문서나 장비(F5, A10등)에서 "VIP <-> Rserver Pool" 이라는 표현을 많이 씀
+
+### 어디에서 주로 쓰이는 용어인가?
+
+- **전통적인 L4/L7 로드밸런서 계열**에서 많이 등장
+  - F5 BIG-IP
+  - A10 Networks
+  - LVS(Linux Virtual Server)
+- 반면에 요즘 클라우드/쿠버네티스 쪽에서는 다른 이름을 더 많이 씀
+  - Backend Server
+  - Target
+  - Endpoint
+  - Pod
+  - Instance
+
+### Rserver의 공통 특징
+
+- Private IP를 가짐
+- 외부에서 직접 접근하지 않음
+- Health Check 대상
+- 장애 시 Pool에서 자동 제외됨
