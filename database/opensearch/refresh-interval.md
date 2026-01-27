@@ -81,3 +81,9 @@ OpenSearch의 모든 인덱스 설정(`_settings`)은 동적으로 변경 가능
 - **과거 데이터(Log Data)**:
   - 어제 자 로그 인덱스(오늘 더 이상 데이터가 안 들어옴)라면?
   - Action: 아예 끄거나 길게 설정
+
+<br>
+
+참고
+
+- [Optimize Refresh Interval](https://opensearch.org/blog/optimize-refresh-interval/)
