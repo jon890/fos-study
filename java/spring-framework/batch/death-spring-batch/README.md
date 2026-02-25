@@ -16,8 +16,7 @@
 - **2. 다양한 데이터 소스를 처리하는 법**
   - [2.1. 파일을 읽어보자 - FlatFileItemReader](./2.1-flat-file-item-reader.md)
   - [2.2. 파일에 써보자 - FlatFileItemWriter](./2.2-flat-file-item-writer.md)
-- **4. 고급 스텝 기법**
-  - [4. 고급 스텝 기법이란?](./4-step-advanced.md)
+- **4. 고급 스텝 기법 - 스텝을 해부해보자**
   - [4.1. 아이템 스트림](./4.1-item-stream.md)
   - [4.2. 아이템 프로세서](./4.2-item-processor.md)
   - [4.3. 내결함성](./4.3-fault-tolerant.md)
