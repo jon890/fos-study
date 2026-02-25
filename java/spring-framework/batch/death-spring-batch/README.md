@@ -10,5 +10,6 @@
   - [1-2. JobParameter](./1.2-job-parameters.md.md)
   - [1-3. Listener](./1.3-listener.md.md)
 - [2. Spring Batch 실전](./2-real-batch.md)
-  - [2-1. FlatFileItemReader](2.1-flat-file-item-reader.md)
-  - [2-2. FlatFileItemWriter](2.2-flat-file-item-writer.md)
+  - [2-1. FlatFileItemReader](./2.1-flat-file-item-reader.md)
+  - [2-2. FlatFileItemWriter](./2.2-flat-file-item-writer.md)
+- [4. Advanced Step](./4-step-advanced.md)

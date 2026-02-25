@@ -57,7 +57,7 @@
 
 ### A. Java 21 Virtual Threads (강력 추천)
 
-만약 프로젝트가 **Java 21 + Spring Boot 3.2 이상**이라면, 복잡한 스레드 풀 튜닝 없이 **가상 스레드(Virtual Threads)**를 쓰자. <br>
+만약 프로젝트가 **Java 21 + Spring Boot 3.2 이상**이라면, 복잡한 스레드 풀 튜닝 없이 **가상 스레드(Virtual Threads)**를 쓰자. </br>
 I/O Bound 작업에서 압도적인 효율을 보여준다.
 
 ```kotlin

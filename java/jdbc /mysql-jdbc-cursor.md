@@ -13,4 +13,4 @@ MySQL과 JDBC Cursor 방식
 
 - 위와 같이 동작하게 하려면 MySQL 드라이버에게 스트리밍 모드로 동작하라고 명시적으로 알려줘야 함
 - JDBC 연결 URL에 옵션을 준다
-  - URL : `jdbc:mysql://localhost:3306/database?useCursorFetch=true
+  - URL : jdbc:mysql://localhost:3306/database?useCursorFetch=true
