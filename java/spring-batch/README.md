@@ -1,10 +1,15 @@
-# 죽음의 스프링 배치
+# Spring Batch 공부 내용 모음
 
-- 인프런 강의
-  - https://www.inflearn.com/course/%EC%A3%BD%EC%9D%8C%EC%9D%98-spring-batch/dashboard
-  - https://github.com/jon890/spring-batch-study
+스프링 배치 레퍼런스 문서와, 강의를 통해 학습 후 Spring Batch의 기본 개념과 실전에 대해서 정리해보고자 합니다.
+
+- 2025.11.20 - Spring Batch 6이 출시되며 Spring Boot 4 버전과 완전하게 통합되었습니다.
+  - 해당 문서는 Spring Batch 6은 다루지 않고 5버전을 다룰 예정입니다.
+  - 레퍼런스 문서 : [https://docs.spring.io/spring-batch/reference/5.2/index.html](https://docs.spring.io/spring-batch/reference/5.2/index.html)
+  - 참고한 강의 : [죽음의 스프링 배치](https://www.inflearn.com/course/%EC%A3%BD%EC%9D%8C%EC%9D%98-spring-batch)
 
 ## 목차
+
+### 죽음의 스프링 배치
 
 - **0. 배치란 무엇인가?, Spring Batch 시작해보기**
   - [0.1. 배치란 무엇인가?](./0.1-introduce.md)
@@ -20,3 +25,8 @@
   - [4.1. 아이템 스트림](./4.1-item-stream.md)
   - [4.2. 아이템 프로세서](./4.2-item-processor.md)
   - [4.3. 내결함성](./4.3-fault-tolerant.md)
+
+### 다양한 기법들
+
+- **비동기 아이템 프로세서**
+  - [AsyncItemProcessor](./async-item-processor.md)
