@@ -29,4 +29,4 @@
 ### 다양한 기법들
 
 - **비동기 아이템 프로세서**
-  - [AsyncItemProcessor](./async-item-processor.md)
+  - [AsyncItemProcessor](async-item-processor.md)
