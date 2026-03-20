@@ -287,56 +287,112 @@ Skill: auto-docstring
 
 ## 6. 실제 사용 사례 - 내가 만든 Skill들
 
-### 사례 1: commit-message-generator
+### 사례 1: blog-post-writer
 
-모든 Git 커밋 메시지를 conventional commit 형식으로 자동 생성.
-
-```
-/commit-message-generator
-```
-
-**작동 원리:**
-1. `git diff` 실행해서 변경 사항 분석
-2. 변경 파일들을 카테고리화 (feat, fix, refactor, docs, test)
-3. 각 변경의 영향도 분석
-4. conventional commit 형식의 메시지 자동 생성
-5. 커밋 실행
-
-**효과:** 커밋 메시지 작성에 소비하던 시간 80% 단축
-
-### 사례 2: api-docs-generator
-
-REST API 엔드포인트들로부터 OpenAPI 문서 자동 생성.
+업무에서 다룬 기술 내용을 개인 블로그 마크다운 포스팅으로 자동 변환.
 
 ```
-/api-docs-generator
+/blog-post-writer
 ```
 
 **작동 원리:**
-1. 프로젝트에서 라우터 파일들 검색
-2. 각 엔드포인트의 요청/응답 타입 분석
-3. 주석과 코드로부터 설명 추출
-4. OpenAPI 3.0 스펙 생성
-5. Swagger UI 자동 배포
+1. 현재 대화/작업 내용에서 기술 주제 파악
+2. 블로그 디렉토리 구조 확인 후 적절한 위치 결정
+3. 회사 내부 정보(내부 URL, 서비스 코드, 시스템 이름 등) 제거/대체
+4. 자연스러운 문체로 마크다운 작성 (AI 티 나지 않게)
+5. 파일 저장 후 경로 안내
 
-**효과:** API 문서 작성 시간 완전 제거 + 항상 최신 상태 유지
+**효과:** 업무 중 쌓은 기술 노하우를 블로그 글로 남기는 시간이 거의 0에 가까워짐. 민감 정보 실수로 올리는 위험도 사전 차단.
 
-### 사례 3: performance-profiler
+> 이 글도 사실 이 Skill로 작성 흐름을 잡았다.
 
-코드의 성능 병목을 찾아서 최적화 제안.
+### 사례 2: cmux-browser (사내 SSO 인증 자동화)
+
+WebFetch로 접근 불가한 SSO/IAM 인증 필요 내부 시스템을 cmux 내장 브라우저로 자동화.
 
 ```
-/performance-profiler "database" (선택사항: 분석 범위)
+/cmux-browser
 ```
+
+**배경:**
+회사 내부 시스템들은 SSO 세션 없이는 접근이 막혀 있다. `WebFetch`는 단순 HTTP 요청이라 인증을 통과하지 못한다. 반면 cmux의 내장 브라우저는 이미 로그인된 세션을 유지하고 있어서, 이걸 활용하면 복잡한 인증 게이트웨이 뒤의 페이지도 자동화할 수 있다.
 
 **작동 원리:**
-1. 지정된 범위의 함수들 분석
-2. 알고리즘 복잡도 계산
-3. N+1 쿼리, 불필요한 루프 등 패턴 감지
-4. 최적화 제안
-5. 성능 개선 코드 자동 작성
+1. `cmux browser open <URL>` 로 브라우저 열기 (surface ID 메모)
+2. `wait --load-state complete` 로 페이지 로드 대기
+3. `snapshot --interactive` 로 DOM 구조 파악
+4. CSS selector 또는 `eval`로 JS 직접 실행해서 폼 조작
+5. `screenshot` 으로 결과 확인
 
-**효과:** 코드 리뷰에서 보통 찾아내던 성능 이슈를 사전에 차단
+```bash
+# 핵심 패턴: ref보다 eval이 안정적
+cmux browser surface:16 eval "document.querySelector('#search').value = '검색어';"
+cmux browser surface:16 click "button:has-text('검색')"
+cmux browser surface:16 screenshot --out /tmp/result.png
+```
+
+**효과:** 반복적인 내부 시스템 작업을 Claude에게 위임 가능. 특히 cross-origin iframe 처리, JS 콜백 직접 호출 등 일반적인 방법으로 안 되는 폼들도 해결.
+
+### 사례 3: 결재 시스템 폼 자동화
+
+사내 결재 시스템에서 반복적으로 작성하는 서식을 자동 제출.
+
+```
+/권한신청-자동화 "서버 목록: host-1, host-2, host-3"
+```
+
+**배경:**
+권한 신청이나 서버 접근 요청같은 결재 서식은 구조는 매번 같은데, 입력할 항목이 많고 폼이 jQuery/JS 기반이라 일반적인 DOM 조작이 안 된다. 특히 autocomplete가 걸려 있는 필드는 `fill` + Enter로 선택이 안 되고, 내부 JS 콜백 함수를 직접 eval로 호출해야 한다.
+
+**작동 원리:**
+1. 서식 URL로 직접 navigate
+2. 폼의 JS 콜백 함수 구조 파악 (autocomplete, hidden field 등)
+3. `eval`로 콜백 함수 직접 호출해서 값 설정
+4. 대량 입력이 필요하면 textarea에 줄바꿈 구분으로 한번에 입력
+5. 상신 버튼 클릭 후 URL로 성공 여부 확인
+
+```bash
+# 일반적인 fill + Enter가 안 될 때 → 내부 콜백 직접 호출
+cmux browser surface:N eval "
+callBackSelectItem({
+  id: 'item-123',
+  name: '선택값',
+  category: '카테고리'
+});
+"
+```
+
+**효과:** 서버가 20대든 50대든 입력 시간은 동일. 실수 없이 일관된 형식으로 제출 가능.
+
+### 사례 4: 월별 공수 입력 자동화
+
+매월 마감이 있는 공수 입력 시스템을 자동화.
+
+```
+/공수입력
+```
+
+**배경:**
+공수 입력 시스템은 Toast UI Grid 기반이라 일반 CSS selector나 fill 명령으로는 값 설정이 안 된다. Grid 인스턴스를 직접 찾아서 API를 호출해야 한다. 거기에 더해 이번 달 내가 어떤 업무를 했는지 이슈 트래커에서 조회해서 배분 비율까지 제안받는다.
+
+**작동 원리:**
+1. SSO 인증 확보 (연관 페이지 먼저 열기)
+2. 공수 입력 페이지 열기 + Grid 인스턴스 접근
+3. 이슈 트래커 MCP로 이번 달 담당 업무 조회
+4. 업무 목록을 카테고리별로 분류해서 배분 비율 제안
+5. 사용자 확인 후 Grid API로 값 설정 + 저장
+
+```bash
+# Toast UI Grid API로 직접 값 설정
+cmux browser surface:N eval "
+const grid = gridInstance.core.publicInstance;
+const rows = grid.getRowList();
+const target = rows.find(r => r.categoryName.includes('키워드'));
+grid.setValue(target.rowKey, 'workRate', 60);
+"
+```
+
+**효과:** 업무 목록 조회부터 입력까지 수동 작업 시간을 대폭 단축. 합계가 100%인지 검증도 자동화.
 
 ---
 
