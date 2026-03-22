@@ -25,7 +25,7 @@
 | 2025.08 ~ 2025.10 | 시뮬레이터 공통 템플릿 도입 (8종 전환) | [simulator-template.md](simulator-template.md) |
 | 2025.09 | 전역 개인화 데이터 구조 설계 | [global-personal-data.md](global-personal-data.md) |
 | 2025.09 ~ 2025.10 | 슬롯 엔진 추상화 및 구조 개선 | [slot-engine-abstraction.md](slot-engine-abstraction.md) |
-| 2025.09 ~ 2025.10 | 슬롯 테스트 공통 템플릿 구축 | [slot-test-template.md](slot-test-template.md) |
+| 2024.06 ~ 2025.10 | 슬롯 테스트 공통 템플릿 구축 | [slot-test-template.md](slot-test-template.md) |
 
 ---
 
