@@ -1,6 +1,6 @@
 # NSC 슬롯팀 업무 기록
 
-슬롯 게임 플랫폼에서 진행한 주요 업무를 정리한 문서 모음. (2024.06 합류)
+슬롯 게임 플랫폼에서 진행한 주요 업무를 정리한 문서 모음. (2024.06 ~ 2025.11)
 
 ---
 
@@ -15,6 +15,7 @@
 | 2024.10 ~ 2024.12 | Slot 33 (Wanted) — 링크게임, 디스크 배수, 텀블링                 | [slot-33-wanted.md](slot-33-wanted.md)                                   |
 | 2024.12           | BuyFeature 티켓 & 시나리오 스핀 — 플랫폼 공통 기능               | [buyfeature-ticket-scenario-spin.md](buyfeature-ticket-scenario-spin.md) |
 | 2025.02 ~ 2025.08 | 신규 슬롯 5종 (Slot 36, 38, 41, 44, 47) — AI 에이전트 협업 포함  | [new-slot-games.md](new-slot-games.md)                                   |
+| 2025.07 ~ 2025.10 | RCC (RTP Cache Control) — 스핀 결과 사전 캐시 시스템              | [rcc-rtp-cache-control.md](rcc-rtp-cache-control.md)                     |
 
 ### 아키텍처 개선
 
@@ -22,7 +23,6 @@
 | ----------------- | ------------------------------------------------------------------ | -------------------------------------------------------- |
 | 2024.06 ~ 2025.10 | 슬롯 테스트 공통 템플릿 — 단위→통합 전환, AbstractSlotTest         | [slot-test-template.md](slot-test-template.md)           |
 | 2025.04 ~ 2025.11 | AI 개발 도구 도입 — Cursor Rules 20종 이상, 에이전트 협업          | [ai-tool-adoption.md](ai-tool-adoption.md)               |
-| 2025.07 ~ 2025.10 | RCC (RTP Cache Control) — 스핀 결과 사전 캐시 시스템               | [rcc-rtp-cache-control.md](rcc-rtp-cache-control.md)     |
 | 2025.08 ~ 2025.10 | 시뮬레이터 공통 템플릿 — ReactiveSimulator, 8종 전환               | [simulator-template.md](simulator-template.md)           |
 | 2025.09           | 전역 개인화 데이터 — 베팅 인덱스 독립 구조 설계                    | [global-personal-data.md](global-personal-data.md)       |
 | 2025.09 ~ 2025.10 | 슬롯 엔진 추상화 — SlotTemplate, BaseSlotService, ExtraConfig 분리 | [slot-engine-abstraction.md](slot-engine-abstraction.md) |
