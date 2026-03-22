@@ -25,6 +25,7 @@
 | 2025.08 ~ 2025.10 | 시뮬레이터 공통 템플릿 도입 (8종 전환) | [simulator-template.md](simulator-template.md) |
 | 2025.09 | 전역 개인화 데이터 구조 설계 | [global-personal-data.md](global-personal-data.md) |
 | 2025.09 ~ 2025.10 | 슬롯 엔진 추상화 및 구조 개선 | [slot-engine-abstraction.md](slot-engine-abstraction.md) |
+| 2025.09 ~ 2025.10 | 슬롯 테스트 공통 템플릿 구축 | [slot-test-template.md](slot-test-template.md) |
 
 ---
 
@@ -52,6 +53,7 @@
 - **시뮬레이터 공통 템플릿**: 8종 전환, 잭팟풀 스레드 버그 수정
 - **전역 개인화 데이터**: 베팅 인덱스 독립 구조 설계 + 마이그레이션
 - **슬롯 엔진 추상화**: SlotTemplate, BaseSlotService, ExtraConfig 분리, BuyFeature 파싱 통합
+- **테스트 공통 템플릿**: AbstractSlotTest, JUnit5 Extension, 치트 데이터 기반 확정적 테스트
 
 ---
 
