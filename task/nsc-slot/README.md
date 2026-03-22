@@ -33,6 +33,7 @@
 | ----------------- | --------------------------------------------------------------------- | ---------------------------------------------------------- |
 | 2025.01 ~ 2025.02 | 스핀 성능 최적화 — AliasMethod O(1), SecureRandom → ThreadLocalRandom | [slot-spin-performance.md](slot-spin-performance.md)       |
 | 2025.02           | 시뮬레이터 OOM — List<Long> 제거, Welford's Online Algorithm 도입      | [slot-simulator-oom.md](slot-simulator-oom.md)             |
+| 2025.09           | 시뮬레이터 잭팟 풀 ThreadLocal 버그 — 공유 상태를 AtomicReference로 전환 | [slot-simulator-jackpot-pool.md](slot-simulator-jackpot-pool.md) |
 
 ---
 
