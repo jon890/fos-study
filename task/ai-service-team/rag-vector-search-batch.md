@@ -1,5 +1,7 @@
 # Confluence 문서를 OpenSearch에 벡터 색인하기 — Spring Batch 파이프라인 설계기
 
+**진행 기간**: 2026.01 ~ 2026.03
+
 사내 AI 서비스에 RAG 기능을 붙이기 위해 Confluence 문서를 벡터 DB에 색인하는 배치 파이프라인을 처음부터 설계하고 구현했다. 단순히 텍스트를 긁어 넣는 것부터 시작해서, 댓글·첨부파일 처리, 삭제 동기화, 다중 스페이스 지원까지 점진적으로 확장한 과정을 정리했다.
 
 ---
@@ -81,7 +83,7 @@ Reader → Processor → Writer
 
 **Writer**: 임베딩된 문서를 OpenSearch에 벌크로 색인한다.
 
-### AsyncItemProcessor를 쓴 이유
+### AsyncItemProcessor를 쓴 이유 ([Spring Batch AsyncItemProcessor 정리](../../java/spring-batch/async-item-processor.md))
 
 임베딩 API 호출은 네트워크 I/O다. 페이지 하나를 처리할 때 임베딩 API 응답을 기다리는 시간이 대부분이다. 동기 방식이면 이 구조가 된다.
 
@@ -287,7 +289,7 @@ public class ConfluencePageItemEmbeddingProcessor implements ItemProcessor<Confl
 
 ---
 
-## @StepScope 빈 충돌 문제
+## @StepScope 빈 충돌 문제 ([Spring Batch @StepScope 정리](../../java/spring-batch/step-scope.md))
 
 두 배치 잡이 같은 타입의 `@StepScope` 빈을 각자 등록하면서 Spring이 어느 것을 주입해야 할지 몰라 `NoUniqueBeanDefinitionException`이 발생했다.
 
@@ -384,5 +386,5 @@ public @interface BatchComponentTest {}
 - **검색엔진**: OpenSearch (벡터 색인)
 - **외부 API**: Confluence Cloud REST API, 문서 파싱 서비스, 임베딩 서비스
 - **테스트**: JUnit 5, MockRestServiceServer, spring-batch-test, Testcontainers
-- **CI/CD**: GitHub Actions, Dependabot, Renovate
+- **CI/CD**: GitHub Actions
 - **빌드**: Gradle
