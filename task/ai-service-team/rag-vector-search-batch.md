@@ -197,9 +197,7 @@ Confluence Cloud는 페이지 본문을 기본적으로 **Atlas Doc Format(ADF)*
   "content": [
     {
       "type": "paragraph",
-      "content": [
-        { "type": "text", "text": "안녕하세요" }
-      ]
+      "content": [{ "type": "text", "text": "안녕하세요" }]
     }
   ]
 }
@@ -230,17 +228,25 @@ DocumentParseResponse response = documentParseClient.parse(inputStream, fileName
 
 ## 삭제 동기화
 
-배치가 문서를 색인만 하면 Confluence에서 삭제된 페이지가 OpenSearch에 계속 남아서 검색 결과에 노이즈가 생긴다. 배치 실행마다 삭제 동기화가 필요하다.
+배치가 문서를 색인만 하면 Confluence에서 삭제된 페이지가 OpenSearch에 계속 남아서 검색 결과에 노이즈가 생긴다.
 
-방법은 간단하다. 배치 실행 시점에 Confluence에서 전체 문서 ID 목록을 가져오고, OpenSearch에 있는 ID 목록과 비교해서 차집합을 삭제한다.
+다행히 Confluence API는 삭제 상태(`DELETED`, `TRASHED`)의 문서를 직접 조회하는 `status` 파라미터를 제공한다. 별도로 ID 집합을 비교할 필요 없이, API에서 삭제된 문서만 바로 가져올 수 있다.
 
 ```
-Confluence ID 목록 = {A, B, C, D}
-OpenSearch ID 목록 = {A, B, C, D, E, F}  ← E, F는 Confluence에서 삭제됨
-삭제 대상 = {E, F}
+Confluence API → status=DELETED,TRASHED 조회 → 삭제 대상 목록 반환
+→ OpenSearch에서 해당 문서 제거
 ```
 
-삭제 Step도 Reader → Writer 패턴으로 구현했다. Reader에서 삭제 대상 ID 목록을 읽고, Writer에서 OpenSearch 벌크 삭제 API를 호출한다. 페이지·댓글·첨부파일 각각 별도 Step으로 분리했다.
+삭제 Step도 Reader → Writer 패턴으로 구현했다. 페이지·댓글은 색인 시에 쓰던 `ConfluencePageReader`, `ConfluenceCommentItemReader`를 `status=DELETED,TRASHED`로 재사용한다. 따로 Reader를 만들지 않고 status 파라미터만 바꿔서 주입하면 됐다.
+
+```java
+// 삭제된 페이지 조회: 기존 Reader에 DELETED, TRASHED status만 전달
+new ConfluencePageReader(..., List.of(ConfluencePageStatus.DELETED, ConfluencePageStatus.TRASHED), ...)
+```
+
+첨부파일은 페이지 단위로 조회해야 하는 API 구조 때문에 별도 `ConfluenceDeletedAttachmentItemReader`를 만들었다. 앞서 `confluencePageIdCollectStep`에서 수집한 페이지 ID 목록을 순회하면서, 각 페이지의 `TRASHED` 상태 첨부파일을 커서 기반으로 페이지네이션해서 읽는다.
+
+Writer는 Reader에서 받은 삭제 대상 문서 ID로 OpenSearch 벌크 삭제를 수행하고, 원본 컨텐츠(FullContent)도 함께 정리한다. 페이지·댓글·첨부파일 각각 별도 Step으로 분리했다.
 
 ---
 
