@@ -166,4 +166,4 @@ boolean canEnterLinkGame(SpinContext context, int diskMultiplierSum) {
 ## 사용 기술
 
 - Java 17, Spring Boot 3.x
-- JUnit 5, Spock
+- JUnit 5

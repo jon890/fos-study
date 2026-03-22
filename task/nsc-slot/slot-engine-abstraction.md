@@ -181,4 +181,4 @@ this.staticData = newData; // 참조 교체는 원자적
 
 - Java 17, Spring Boot 3.x
 - JPA (Hibernate), QueryDSL
-- JUnit 5, Spock
+- JUnit 5

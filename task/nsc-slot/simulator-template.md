@@ -118,4 +118,4 @@ if (stage == SlotStageType.BASE || stage == SlotStageType.BUY_FEATURE_ENTRY) { .
 
 - Java 17, Spring Boot 3.x
 - Project Reactor (`Flux`, `Mono`, `Schedulers.parallel()`)
-- JUnit 5, Spock
+- JUnit 5
