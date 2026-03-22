@@ -39,7 +39,7 @@
 
 ### 2025 상반기 (1월 ~ 6월)
 
-- **Slot 36 (Magic Circus)** 개발: 코인 레벨링 시스템, 시뮬레이터
+- **Slot 36 (Clown Coin)** 개발: 코인 레벨링 시스템, 시뮬레이터
 - **Slot 38 (Classic Diamonds)** 개발: 페이라인, AnyBar 심볼
 - **Slot 44 (Fortune Blessing)** 개발: 프리스핀/리트리거, AI 에이전트 협업
 - **Slot 41 (Bingoing)** 개발: 빙고 메커니즘, AI 에이전트 협업

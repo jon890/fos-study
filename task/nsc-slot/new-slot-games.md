@@ -10,7 +10,7 @@
 
 | 슬롯 | 이름 | 당첨 방식 | AI 에이전트 활용 |
 |------|------|---------|----------------|
-| Slot 36 | Magic Circus | 라인(Line) | - |
+| Slot 36 | Clown Coin | 라인(Line) | - |
 | Slot 38 | Classic Diamonds | 라인(Line) | - |
 | Slot 41 | Bingoing | 빙고 | ✓ (구현 전체) |
 | Slot 44 | Fortune Blessing | 라인(Line) | ✓ (구현 전체) |
@@ -20,7 +20,7 @@
 
 ---
 
-## Slot 36 (Magic Circus)
+## Slot 36 (Clown Coin)
 
 **진행 기간**: 2025.02 ~ 2025.08
 
