@@ -1,10 +1,21 @@
 # NSC 슬롯팀 업무 기록
 
-슬롯 게임 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
+슬롯 게임 플랫폼에서 진행한 주요 업무를 정리한 문서 모음. (2024.06 합류)
 
 ---
 
 ## 업무 목록
+
+### 2024년
+
+| 기간 | 업무 | 문서 |
+|------|------|------|
+| 2024.06 ~ 2024.12 | Slot 21 (Magical Fortune) 개발 | [slot-21-magical-fortune.md](slot-21-magical-fortune.md) |
+| 2024.07 ~ 2024.12 | Admin 슬롯 비교/복사 기능 개발 | [admin-slot-compare-copy.md](admin-slot-compare-copy.md) |
+| 2024.10 ~ 2024.12 | Slot 33 (Wanted) 개발 | [slot-33-wanted.md](slot-33-wanted.md) |
+| 2024.12 | BuyFeature 티켓 & 시나리오 스핀 구현 | [buyfeature-ticket-scenario-spin.md](buyfeature-ticket-scenario-spin.md) |
+
+### 2025년
 
 | 기간 | 업무 | 문서 |
 |------|------|------|
@@ -18,6 +29,13 @@
 ---
 
 ## 기간별 주요 업무
+
+### 2024 하반기 (6월 ~ 12월) — 합류 첫 해
+
+- **Slot 21 (Magical Fortune)** 개발: 텀블링, 와일드 스프레드, 보너스 랜덤 트리거
+- **Admin 슬롯 비교/복사**: Alpha ↔ Real 환경 데이터 비교 및 복사 기능
+- **Slot 33 (Wanted)** 개발: 링크게임, 디스크 배수, 텀블링
+- **BuyFeature 티켓**: 티켓 기반 피처 구매, 시나리오 스핀 플랫폼 통합
 
 ### 2025 상반기 (1월 ~ 6월)
 
