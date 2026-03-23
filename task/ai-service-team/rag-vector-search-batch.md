@@ -168,7 +168,7 @@ public AsyncItemWriter<EmbeddedConfluenceDocuments> confluenceAsyncWriter(...) {
 
 ### CompositeItemProcessor로 처리 단계 체이닝
 
-Processor 안에는 두 단계가 있다. ADF(Atlas Doc Format) → 텍스트 변환, 그리고 텍스트 → 임베딩 벡터 변환이다. 이걸 `CompositeItemProcessor`로 체이닝했다.
+Processor 안에는 두 단계가 있다. ADF(Atlas Doc Format) → Markdown 변환, 그리고 Markdown → 임베딩 벡터 변환이다. 이걸 `CompositeItemProcessor`로 체이닝했다.
 
 ```java
 @Bean
@@ -190,8 +190,8 @@ public ItemProcessor<ConfluencePageItem, EmbeddedConfluenceDocuments> confluence
 Reader
   ↓ ConfluencePageItem
 CompositeItemProcessor
-  ├─ BodyConvertProcessor     (ADF → plaintext)
-  └─ EmbeddingProcessor       (텍스트 + 첨부파일 → 임베딩)
+  ├─ BodyConvertProcessor     (ADF → Markdown)
+  └─ EmbeddingProcessor       (Markdown + 첨부파일 → 임베딩)
   ↓ EmbeddedConfluenceDocuments (Future로 감싸짐)
 AsyncItemProcessor (parallelChunkExecutor 스레드풀)
   ↓ Future<EmbeddedConfluenceDocuments>
@@ -226,9 +226,9 @@ public class ConfluencePageItemReader implements ItemReader<ConfluencePageItem>,
 
 ---
 
-## Atlas Doc Format 파싱
+## Atlas Doc Format → Markdown 변환
 
-Confluence Cloud는 페이지 본문을 기본적으로 **Atlas Doc Format(ADF)** 으로 반환한다. JSON 기반의 트리 구조 포맷인데, 그냥 저장하면 RAG 검색에 쓸 수 없다. 임베딩 모델에는 평문 텍스트가 들어가야 한다.
+Confluence Cloud는 페이지 본문을 기본적으로 **Atlas Doc Format(ADF)** 으로 반환한다. JSON 기반의 트리 구조 포맷인데, 그냥 저장하면 RAG 검색에 쓸 수 없다. 임베딩 모델에는 구조화된 텍스트가 들어가야 하는데, Markdown으로 변환하면 문서의 계층 구조와 의미론적 정보를 보존할 수 있어서 검색 품질에 유리하다.
 
 ```json
 // ADF 예시
@@ -243,7 +243,28 @@ Confluence Cloud는 페이지 본문을 기본적으로 **Atlas Doc Format(ADF)*
 }
 ```
 
-ADF 트리를 순회하면서 텍스트 노드를 추출하는 컨버터를 구현하고, `BodyConverter` 인터페이스로 추상화해서 포맷별로 교체할 수 있게 했다. API 요청 시 `bodyFormat` 파라미터로 `atlas_doc_format` 을 명시해야 ADF로 응답이 온다.
+`ConfluenceAtlasDocFormatConverter` 클래스가 ADF JSON을 Markdown으로 변환한다. 지원하는 변환 목록은 다음과 같다.
+
+- **헤딩**: `# heading` (level 1~6)
+- **텍스트 스타일**: 볼드(`**text**`), 이탤릭(`*text*`), 취소선(`~~text~~`), 인라인 코드(`` `code` ``)
+- **링크**: `[text](url)`
+- **리스트**: 불릿 리스트(`- item`, 중첩 지원 들여쓰기 2칸), 순서 리스트(`1. item`, 중첩 지원)
+- **블록 요소**: 블록쿼트(`> text`), 코드 블록(` ```language\ncode\n``` ` 언어 명시)
+- **패널**: blockquote 형식으로 변환되며, `> **INFO/NOTE/WARNING/TIP/ERROR**` 형태의 레이블 포함
+- **테이블**: Markdown 표 형식 (`| col | col |`, `|---|---|`)
+- **미디어/이미지**: `![alt](url)`
+- **Expand/NestedExpand**: 제목을 `**bold**`로 표현하고 내용 펼쳐서 출력
+- **인라인 카드**: `[url](url)`
+- **멘션**: 표시 텍스트 유지
+- **날짜**: `yyyy-MM-dd` 형식 (Asia/Seoul 기준)
+- **Status**: `[STATUS_TEXT]`
+- **이모지**: 텍스트/shortName
+- **Extension 매크로**: 제목+URL 있으면 `[title](url)`, 없으면 스킵
+- **수평선**: `---`
+
+`BodyConverter` 인터페이스(`ConfluenceBodyConverter`)로 추상화되어 있어서 포맷별로 교체할 수 있다. `ConfluenceBodyConverterProvider`가 `ConfluenceBodyFormat` 파라미터 값(예: `atlas_doc_format`)을 기준으로 적절한 구현체를 선택한다. API 요청 시 `bodyFormat` 파라미터로 `atlas_doc_format`을 명시해야 ADF로 응답이 온다.
+
+변환 후에는 `normalizeMarkdown()`으로 연속 3개 이상 줄바꿈을 2개로 정규화해서 과도한 공백을 제거한다.
 
 ---
 
