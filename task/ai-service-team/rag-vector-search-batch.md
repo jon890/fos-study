@@ -168,21 +168,29 @@ public AsyncItemWriter<EmbeddedConfluenceDocuments> confluenceAsyncWriter(...) {
 
 ### CompositeItemProcessor로 처리 단계 체이닝
 
-Processor 안에는 두 단계가 있다. ADF(Atlas Doc Format) → Markdown 변환, 그리고 Markdown → 임베딩 벡터 변환이다. 이걸 `CompositeItemProcessor`로 체이닝했다.
+Processor는 `CompositeItemProcessor`로 체이닝한 4단계로 구성된다.
 
 ```java
-@Bean
-public ItemProcessor<ConfluencePageItem, EmbeddedConfluenceDocuments> confluenceCompositeProcessor(
-    ConfluenceBodyConvertProcessor<?> bodyConvertProcessor,
-    @Qualifier("confluencePageItemEmbeddingProcessor") ConfluencePageItemEmbeddingProcessor embeddingProcessor
-) {
-    CompositeItemProcessor<ConfluencePageItem, EmbeddedConfluenceDocuments> compositeProcessor = new CompositeItemProcessor<>();
-    compositeProcessor.setDelegates(List.of(bodyConvertProcessor, embeddingProcessor));
-    return compositeProcessor;
-}
+compositeProcessor.setDelegates(List.of(
+    changeFilter,        // 변경 감지
+    enrichmentProcessor, // 데이터 보강
+    bodyConvertProcessor,// ADF → Markdown
+    embeddingProcessor   // Markdown → 임베딩
+));
 ```
 
-체이닝하면 각 Processor가 단일 책임을 가진다. `BodyConvertProcessor`는 포맷 변환만, `EmbeddingProcessor`는 임베딩 + 첨부파일 처리만 담당한다. 나중에 처리 단계를 추가하거나 교체할 때 다른 코드를 건드리지 않아도 된다.
+**ChangeFilterProcessor**: 매번 전체 문서를 임베딩하면 비용이 크다. OpenSearch에 색인된 문서의 `version` 필드와 Confluence API가 반환한 `version`을 비교해서, 변경이 없으면 `null`을 반환한다. Spring Batch는 Processor가 `null`을 반환하면 해당 아이템을 스킵한다. 덕분에 실제로 수정된 문서만 임베딩 API를 호출한다. 추가로, 이전 실행에서 반복적으로 실패한 문서는 실패 횟수 임계치를 초과하면 자동으로 건너뛴다.
+
+**EnrichmentProcessor**: ChangeFilter를 통과한 문서에 필요한 데이터를 보강한다. 세 가지를 채운다.
+- **첨부파일 목록**: 페이지 ID로 첨부파일 API를 커서 기반 페이지네이션하면서 전체 조회
+- **작성자 이름**: `authorId`(계정 ID)를 Confluence 사용자 API로 `displayName`으로 변환
+- **멘션된 사용자 이름**: ADF body에서 `mention` 노드의 `accountId`를 추출하고 `displayName`으로 변환해서 `referrerNames`로 저장
+
+**BodyConvertProcessor**: ADF → Markdown 변환 (앞서 설명)
+
+**EmbeddingProcessor**: Markdown 텍스트 + 첨부파일 내용을 임베딩 API에 넘겨 벡터 생성
+
+체이닝하면 각 Processor가 단일 책임을 가진다. 나중에 처리 단계를 추가하거나 교체할 때 다른 코드를 건드리지 않아도 된다.
 
 전체 Processor 구성을 그림으로 보면 이렇다.
 
@@ -190,6 +198,8 @@ public ItemProcessor<ConfluencePageItem, EmbeddedConfluenceDocuments> confluence
 Reader
   ↓ ConfluencePageItem
 CompositeItemProcessor
+  ├─ ChangeFilterProcessor    (version 비교 → 미변경 스킵)
+  ├─ EnrichmentProcessor      (첨부파일·작성자·멘션 보강)
   ├─ BodyConvertProcessor     (ADF → Markdown)
   └─ EmbeddingProcessor       (Markdown + 첨부파일 → 임베딩)
   ↓ EmbeddedConfluenceDocuments (Future로 감싸짐)
@@ -388,31 +398,6 @@ private ConfluencePageItemEmbeddingProcessor processor;
 @StepScope
 public class ConfluencePageItemWriter extends AbstractConfluenceStepComponent implements ItemWriter<EmbeddedConfluenceDocuments> {
     // 어느 잡에서든 동일한 빈을 주입받아 쓴다
-}
-```
-
----
-
-## Confluence Cloud URL 버그
-
-색인된 문서의 원본 링크가 잘못된 경우가 있었다. 접근해보면 404.
-
-원인은 Confluence Cloud API의 `_links.webui` 응답에 있다. 응답이 이렇게 온다.
-
-```json
-"_links": {
-  "webui": "/spaces/MYSPACE/pages/12345/제목"
-}
-```
-
-실제 접근 가능한 URL은 `/wiki/spaces/MYSPACE/pages/12345/제목`인데, 응답에 `/wiki`가 없다. 그냥 붙이면 잘못된 URL이 된다.
-
-```java
-// before: 조건 분기 + null 체크 + fallback이 섞여 있던 코드
-// after: webui는 항상 존재하고 항상 /wiki가 없으므로 단순하게
-private static String buildPageUrl(ConfluencePage page, String baseUrl) {
-    String cleanBaseUrl = baseUrl.replace("/api", "");
-    return cleanBaseUrl + "/wiki" + page.getWebuiLink();
 }
 ```
 
