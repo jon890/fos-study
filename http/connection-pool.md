@@ -1,7 +1,7 @@
 # HTTP Connection Pool
 
 - 요약 :
-  > HTTP는 TCP/TLS 연결 비용이 크기 때문에, 매 요청마다 새 연결을 새엇ㅇ하면 latency와 CPU 부하가 커진다</br>
+  > HTTP는 TCP/TLS 연결 비용이 크기 때문에, 매 요청마다 새 연결을 생성하면 latency와 CPU 부하가 커진다</br>
   > 그래서 Node.js에서는 keep-alive 기반의 connection pool을 사용해 연결을 재사용하는 것이 필수</br>
   > 보통 1개의 외부 API 서버에 대해 인스턴스당 10~100개의 커넥션 풀을 유지하는 것이 가장 안정적이며,</br>
   > Node 공식 undici client는 이 pool을 기본적으로 잘 지원합니다.
@@ -11,7 +11,6 @@
 ### 이유 1 - TCP 연결 비용이 생각보다 매우 비싸다
 
 - HTTP 요청 1번을 하기 위해 실제로는
-
   - TCP 3-way handshake
   - TLS handshake(HTTPS 일 떄)
   - 이후 요청 전송
@@ -28,10 +27,13 @@
 ### 이유 2 - 외부 API는 대부분 Keep-Alive(지속 연결)을 지원한다
 
 - HTTP/1.1은 기본적으로
-  - ```text
+
+  ```text
     Connection: keep-alive
-    ```
+  ```
+
   - 이어서 같은 TCP 연결을 계속 재사용함
+
 - > TCP 커넥션 하나가 여러 HTTP 요청을 처리할 수 있다
 - 그런데 Node의 기본 HTTP client는 요청마다 기본적으로 새 연결을 열어버리는 경우가 있다
   - 특히 fetch, axios에서 agent 옵션 안 주면!
@@ -39,7 +41,7 @@
 ### 이유 3 - 서버 또는 외부 API도 connection 제한이 있다
 
 - 외부 API 서버는 다음과 같은 제한을 건다
-  - IP당 ㅇ녀결 개수 제한
+  - IP당 연결 개수 제한
   - Too many connections 보호
   - Rate limit - concurrency limit
 - 한 인스턴스가 수백 개의 연결을 계속 만든다면 타 서버 입장에서는 DOS 처럼 보일 수 있음
