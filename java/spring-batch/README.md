@@ -28,5 +28,7 @@
 
 ### 다양한 기법들
 
-- **비동기 아이템 프로세서**
-  - [AsyncItemProcessor](async-item-processor.md)
+- **성능 최적화**
+  - [AsyncItemProcessor — 비동기 아이템 프로세서](async-item-processor.md)
+- **빈 스코프와 생명주기**
+  - [@StepScope / @JobScope — Step·Job 실행마다 새로운 빈을 만드는 이유](step-scope.md)
