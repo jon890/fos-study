@@ -69,6 +69,44 @@ completeIndexingJobStep       ← 색인 작업 완료 기록
 
 ---
 
+## Step 간 데이터 공유: `@JobScope` 인메모리 홀더 ([Spring Batch @StepScope / @JobScope 정리](../../java/spring-batch/step-scope.md))
+
+앞 Step이 수집한 데이터를 뒤 Step에서 사용해야 하는 경우가 있다. 스페이스 정보(`confluenceSpaceCollectStep`)와 페이지 ID 목록(`confluencePageIdCollectStep`)이 대표적이다.
+
+처음에는 `JobExecutionContext`에 저장했다.
+
+```java
+// ❌ JobExecutionContext에 도메인 데이터 저장
+jobExecution.getExecutionContext().put("pageIds", pageIds);
+```
+
+`JobExecutionContext`는 청크 커밋마다 `BATCH_JOB_EXECUTION_CONTEXT` 테이블에 직렬화된다. 수천 개의 페이지 ID를 매 커밋마다 DB에 읽고 쓰는 건 불필요한 부하다. `JobExecutionContext`는 재시작을 위한 커서 위치 같은 **경량 상태** 전용이다.
+
+`@JobScope` 빈 `ConfluenceJobDataHolder`로 옮겼다.
+
+```java
+@Getter
+@Component
+@JobScope
+public class ConfluenceJobDataHolder {
+    private ConfluenceSpaceInfo space;
+    private List<String> pageIds = new ArrayList<>();
+
+    public @Nonnull ConfluenceSpaceInfo getSpace() {
+        if (space == null) {
+            throw new IllegalStateException("ConfluenceGetSpaceInfoStep이 실행되었는지 확인하세요");
+        }
+        return space;
+    }
+}
+```
+
+`@JobScope`는 내부적으로 `proxyMode = ScopedProxyMode.TARGET_CLASS`를 포함해서 싱글톤 빈에 안전하게 주입할 수 있다. 주입되는 것은 CGLIB 프록시이고, 실제 호출 시 현재 Job 스코프의 인스턴스로 위임된다.
+
+**재시작 시 주의**: Job이 실패해서 재시작하면 새로운 `JobExecution`이 생성되고 `@JobScope` 빈도 새 인스턴스로 초기화된다. 상태를 채우는 Step들이 `COMPLETED` 처리된 채로 스킵되면 빈이 빈 상태로 남아서 NPE가 발생한다. `allowStartIfComplete(true)`를 설정해서 재시작 시에도 상태 로더 Step이 반드시 재실행되게 했다.
+
+---
+
 ## 핵심 Step: 페이지/댓글 색인 파이프라인
 
 색인 Step의 내부 구조가 가장 복잡하다. Spring Batch의 청크 지향 처리를 쓴다.
@@ -319,6 +357,17 @@ public ConfluencePageItemEmbeddingProcessor confluencePageItemEmbeddingProcessor
 @Autowired
 @Qualifier("confluencePageItemEmbeddingProcessor")  // 이걸 빠뜨리면 테스트 실패
 private ConfluencePageItemEmbeddingProcessor processor;
+```
+
+반대로, **두 잡에서 완전히 동일하게 쓰는 컴포넌트**라면 각 Config에서 `@Bean @StepScope`로 따로 정의하는 대신 `@Component @StepScope`로 전역 등록하면 중복이 없어진다. `ConfluencePageIdCollectTasklet`, `ConfluencePageItemWriter`가 이 패턴으로 통합됐다.
+
+```java
+// 잡 Config에서 @Bean으로 각각 정의하던 것을
+@Component
+@StepScope
+public class ConfluencePageItemWriter extends AbstractConfluenceStepComponent implements ItemWriter<EmbeddedConfluenceDocuments> {
+    // 어느 잡에서든 동일한 빈을 주입받아 쓴다
+}
 ```
 
 ---
