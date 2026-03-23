@@ -82,7 +82,7 @@
   - 기본적으로 keep-alive 상태
   - 명시적으로 종료하고 싶은 경우만 Connection: close
 
-### 그런데 왜 Node, axios, undici는 keep-alive 설ㅈ어이 필요한 것처럼 느껴질까?
+### 그런데 왜 Node, axios, undici는 keep-alive 설정이 필요한 것처럼 느껴질까?
 
 - 실제로는 **HTTP 사양과 Node의 구현이 완전히 동일하게 작동하지 않는다**
 - Node의 기본 http/https Agent는 keep-alive가 "비활성화" 되어 있음
