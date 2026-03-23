@@ -24,7 +24,9 @@
 - **4. 고급 스텝 기법 - 스텝을 해부해보자**
   - [4.1. 아이템 스트림](/java/spring-batch/4.1-item-stream.md)
   - [4.2. 아이템 프로세서](/java/spring-batch/4.2-item-processor.md)
-  - [4.3. 내결함성](/java/spring-batch/4.3-fault-tolerant.md)
+  - [4.3. 내결함성 (작성중..)](/java/spring-batch/4.3-fault-tolerant.md)
+- **5. 스프링 배치 정복**
+  - [5.1. Job과 메타데이터 저장소](/java/spring-batch/5.1-job-and-metadata-repository.md)
 
 ### 다양한 기법들
 
