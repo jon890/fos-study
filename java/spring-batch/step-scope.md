@@ -72,6 +72,140 @@ public StartIndexingJobTasklet startIndexingJobTasklet(
 }
 ```
 
+### @JobScope 빈으로 Job 단위 인메모리 상태 관리하기
+
+`@JobScope`의 더 강력한 활용은 **Job 실행 중 여러 Step이 공유하는 도메인 데이터를 인메모리로 관리하는 것**이다.
+
+예를 들어 배치 Job이 이런 흐름으로 실행된다고 하자.
+
+```
+1. getSpaceInfoStep  → Space 정보 수집
+2. pageIdCollectStep → 전체 페이지 ID 수집
+3. pageIndexingStep  → 페이지 인덱싱 (2에서 수집한 ID 사용)
+4. commentIndexingStep → 댓글 인덱싱 (1에서 수집한 Space 정보 사용)
+```
+
+초기 구현에서는 Step 간 데이터를 `JobExecutionContext`에 저장하기 쉽다.
+
+```java
+// ❌ JobExecutionContext에 도메인 데이터 저장
+jobExecution.getExecutionContext().put("pageIds", pageIds);       // 수백 KB
+jobExecution.getExecutionContext().put("pageTitles", pageTitles); // 수 MB
+```
+
+`JobExecutionContext`는 매 청크 커밋마다 `BATCH_JOB_EXECUTION_CONTEXT` 테이블에 직렬화된다. 도메인 데이터가 크면 매 커밋마다 수 MB를 DB에 read/write하게 된다. `JobExecutionContext`는 재시작을 위한 커서 위치 같은 **경량 상태**를 저장하는 용도로 설계된 것이다.
+
+`@JobScope` 빈으로 옮기면 이 문제가 해결된다.
+
+```java
+@Getter
+@Component
+@JobScope
+public class BatchJobDataHolder {
+
+    private SpaceInfo space;
+    private List<String> pageIds = new ArrayList<>();
+    private Map<String, String> pageTitles = new HashMap<>();
+
+    public @Nonnull SpaceInfo getSpace() {
+        if (space == null) {
+            throw new IllegalStateException(
+                "Space가 로드되지 않았습니다. getSpaceInfoStep이 실행되었는지 확인하세요.");
+        }
+        return space;
+    }
+
+    public void updateSpace(SpaceInfo space) { this.space = space; }
+
+    public void updatePageIdsAndTitles(List<String> pageIds, Map<String, String> pageTitles) {
+        this.pageIds = pageIds;
+        this.pageTitles = pageTitles;
+    }
+}
+```
+
+이 빈을 싱글톤 `@Configuration`에 주입해도 안전하다. `@JobScope`는 내부적으로 `proxyMode = ScopedProxyMode.TARGET_CLASS`를 포함하기 때문이다. 싱글톤에 주입되는 것은 CGLIB 프록시이고, 실제 호출 시 현재 Job 스코프의 인스턴스로 위임된다.
+
+```java
+// Spring Batch 소스
+@Scope(value = "job", proxyMode = ScopedProxyMode.TARGET_CLASS)
+public @interface JobScope { }
+```
+
+### 재시작 시 @JobScope 빈 초기화 문제
+
+`@JobScope` 빈을 사용할 때 반드시 챙겨야 할 함정이 있다. Job이 중간에 실패해서 재시작하면, Spring Batch는 **새로운 JobExecution**을 생성한다. 즉 `@JobScope` 빈도 **새 인스턴스로 초기화**된다.
+
+```
+1차 실행: JobExecution #1 → BatchJobDataHolder 인스턴스 A (pageIds 로드됨)
+실패 발생
+재시작:   JobExecution #2 → BatchJobDataHolder 인스턴스 B (pageIds 비어있음!)
+```
+
+이미 `COMPLETED` 처리된 Step들은 재시작 시 스킵된다. 상태를 로드하는 Step들이 스킵되면 인메모리 빈이 빈 상태로 남아 이후 Step에서 NPE나 `IllegalStateException`이 발생한다.
+
+해결책은 `allowStartIfComplete(true)`다. 상태 로더 역할을 하는 Step에 이 옵션을 설정하면, 이전 실행에서 `COMPLETED`가 되었어도 재시작 시 반드시 다시 실행된다.
+
+```java
+@Bean
+public Step getSpaceInfoStep(GetSpaceInfoTasklet tasklet) {
+    return new StepBuilder("getSpaceInfoStep", jobRepository)
+        .tasklet(tasklet, transactionManager)
+        .listener(tasklet)
+        .allowStartIfComplete(true)  // 재시작 시에도 반드시 재실행
+        .build();
+}
+
+@Bean
+public Step pageIdCollectStep(PageIdCollectTasklet tasklet) {
+    return new StepBuilder("pageIdCollectStep", jobRepository)
+        .tasklet(tasklet, transactionManager)
+        .listener(tasklet)
+        .allowStartIfComplete(true)  // 재시작 시에도 반드시 재실행
+        .build();
+}
+```
+
+인메모리 상태를 초기화하는 Step들은 멱등성을 갖도록 구현하는 것도 중요하다.
+
+```java
+@Override
+public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
+    // 이미 로드된 경우 스킵 (allowStartIfComplete로 재실행되어도 이중 로드 방지)
+    if (!jobDataHolder.getPageIds().isEmpty()) {
+        log.info("이미 수집된 pageIds가 있습니다. ({} 개)", jobDataHolder.getPageIds().size());
+        return RepeatStatus.FINISHED;
+    }
+    // ... 수집 로직
+}
+```
+
+### JobExecutionContext 직렬화 버그
+
+`JobExecutionContext`를 쓸 때 `ExecutionContext`를 값으로 중첩 저장하면 Jackson이 제대로 직렬화하지 못하는 버그가 있다.
+
+```java
+// ❌ ExecutionContext를 ExecutionContext 안에 저장
+jobExecution.getExecutionContext().put("SHARED_CONTEXT", new ExecutionContext(map));
+// → DB에 {"dirty":true,"empty":false} 로만 저장됨
+```
+
+`ExecutionContext`는 `isDirty()`, `isEmpty()` getter만 노출되기 때문에 Jackson이 실제 데이터를 직렬화하지 못한다. 재시작 시 값을 읽으면 빈 컨텍스트가 반환된다.
+
+`Map<String, Object>`로 저장하고, 읽을 때 `ExecutionContext`로 변환하는 방식으로 해결한다.
+
+```java
+// ✅ Map으로 저장
+Map<String, Object> innerMap = new HashMap<>(data);
+jobExecution.getExecutionContext().put("SHARED_CONTEXT", innerMap);
+
+// 읽을 때 변환
+Object value = jobExecution.getExecutionContext().get("SHARED_CONTEXT");
+if (value instanceof Map<?, ?> map) {
+    return new ExecutionContext((Map<String, Object>) map);
+}
+```
+
 ## 여러 Job이 같은 타입의 @StepScope 빈을 등록할 때
 
 두 Job Config가 각각 같은 타입의 `@StepScope` 빈을 정의하면 문제가 생긴다.
@@ -137,10 +271,10 @@ private ConfluencePageItemEmbeddingProcessor processor;
 
 ## 정리
 
-| 스코프 | 인스턴스 생성 시점 | 소멸 시점 | 주 용도 |
-|---|---|---|---|
-| `singleton` (기본) | 애플리케이션 시작 | 애플리케이션 종료 | 상태 없는 공용 서비스 |
-| `@JobScope` | Job 시작 | Job 종료 | Job Parameter 주입, Job 수준 공유 상태 |
-| `@StepScope` | Step 시작 | Step 종료 | Job Parameter 주입, Step 컴포넌트 상태 격리 |
+| 스코프             | 인스턴스 생성 시점 | 소멸 시점         | 주 용도                                     |
+| ------------------ | ------------------ | ----------------- | ------------------------------------------- |
+| `singleton` (기본) | 애플리케이션 시작  | 애플리케이션 종료 | 상태 없는 공용 서비스                       |
+| `@JobScope`        | Job 시작           | Job 종료          | Job Parameter 주입, Job 수준 공유 상태      |
+| `@StepScope`       | Step 시작          | Step 종료         | Job Parameter 주입, Step 컴포넌트 상태 격리 |
 
 Reader, Processor, Writer처럼 Step 실행 중 상태를 가지는 컴포넌트, 또는 Job Parameter를 생성 시점에 받아야 하는 컴포넌트라면 `@StepScope`를 붙이는 게 원칙이다.
