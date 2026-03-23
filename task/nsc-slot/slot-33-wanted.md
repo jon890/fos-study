@@ -33,19 +33,19 @@ Wanted는 **링크게임(Link Game)** 이 핵심인 슬롯이다.
   나머지: BLANK
 ```
 
-이 구분이 중요한 이유가 있다. 링크게임의 종료 조건은 **"새로 링크 심볼이 나오지 않는 스핀이 3연속"** 이다. 고정된 심볼과 새로운 심볼을 구분하지 않으면 매 스핀마다 기존 심볼을 새 심볼로 오인해서 종료 조건을 못 만족하게 된다.
+이 구분이 중요한 이유가 있다. 링크게임 종료 조건은 **이번 스핀에서 새로 등장한 링크 심볼이 없는 것**이다. 고정 심볼과 새 심볼을 구분하지 않으면 기존 심볼을 매 스핀마다 새 심볼로 오인해서 종료 조건을 만족할 수 없다.
+
+코드에서는 이걸 `addedLinkSymbolCount`로 처리한다. 이번 스핀에 새로 생긴 링크 심볼과 하이 심볼만 따로 집계하고, 그 합이 0이면 리트리거 없이 종료된다.
 
 ```java
-// 링크게임 상태를 명시적으로 추적
-Set<Position> fixedLinkPositions = new HashSet<>(); // 이전 스핀에서 고정된 심볼
-Set<Position> newLinkPositions = new HashSet<>();    // 이번 스핀에서 새로 등장한 심볼
-
-// 새 심볼이 없으면 카운터 증가
-if (newLinkPositions.isEmpty()) {
-    noNewLinkCount++;
-} else {
-    noNewLinkCount = 0; // 리셋
-    fixedLinkPositions.addAll(newLinkPositions);
+Triggers checkTriggers(int addedLinkSymbolCount, int totalReelSize, int currentLinkSymbolCount) {
+    if (totalReelSize == currentLinkSymbolCount) {
+        triggers.satisfyConditions(LINK_SYMBOL_IS_FULL);  // Grand Jackpot
+    }
+    if (addedLinkSymbolCount > 0) {
+        triggers.satisfyConditions(LINK_RE_TRIGGER_KEY);  // 새 심볼 있으면 계속
+    }
+    return triggers;
 }
 ```
 
@@ -53,7 +53,7 @@ if (newLinkPositions.isEmpty()) {
 
 베이스에서 링크게임으로 진입할 때 윈도우 설정도 주의해야 한다.
 
-링크게임 진입 시 다음 상태의 릴에서 링크 심볼이 없는 자리는 BLANK로 채워야 한다. 처음 구현에서는 링크 심볼 위치를 제외하지 않고 전체를 BLANK로 초기화해버렸다. 베이스에서 모은 링크 심볼이 사라지는 버그였다.
+링크게임 진입 시 링크 심볼이 없는 자리는 BLANK로 채워야 한다. 처음 구현에서는 링크 심볼 위치를 제외하지 않고 전체를 BLANK로 초기화해버렸다. 베이스에서 모은 링크 심볼이 사라지는 버그였다.
 
 ```java
 // 잘못된 초기화
@@ -71,65 +71,108 @@ for (Position pos : window.allPositions()) {
 
 ## 2. 종료 조건 검사 순서
 
-### 스핀 결과 처리 전에 먼저 검사해야 한다
+링크 심볼이 윈도우를 가득 채우면 즉시 Grand Jackpot이 발생한다. 이 검사를 보상 계산 **이후**에 하면 문제가 생긴다.
 
-링크 심볼이 윈도우를 가득 채우면 즉시 종료(Grand Jackpot)가 발생한다. 이 검사를 스핀 결과 처리 **이후**에 하면 문제가 생긴다.
+스핀 결과를 반영한 뒤 보상을 누적하고, 그 다음에 Grand Jackpot 여부를 판단하면 일반 보상과 잭팟 보상이 중복으로 계산될 수 있다.
 
-시나리오를 생각해보면:
-
-```
-[스핀 결과 처리]
-  새 링크 심볼 4개 추가
-  → fixedLinkPositions 업데이트
-  → noNewLinkCount = 0 리셋
-  → RTP 누적 로직 실행 ...
-
-[종료 조건 검사] ← 이미 상태가 바뀐 후
-  윈도우 가득 참 → Grand Jackpot?
-```
-
-RTP 누적이 먼저 실행된 후 Grand Jackpot을 선언하면, 누적된 일반 보상과 잭팟 보상이 중복으로 계산될 수 있다.
-
-종료 조건 검사를 스핀 결과 처리 **전**으로 앞당겼다.
+종료 조건 검사를 보상 계산보다 먼저 실행하도록 순서를 앞당겼다.
 
 ```java
 // 새 링크 심볼 반영
 fixedLinkPositions.addAll(newLinkPositions);
 
-// 먼저 종료 조건 검사
+// 먼저 종료 조건 검사 (check-before-mutate)
 if (isFullyFilled(window, fixedLinkPositions)) {
     return LinkGameResult.grandJackpot(fixedLinkPositions);
 }
 
-// 그 다음에 보상 계산 및 상태 업데이트
+// 그 다음에 보상 계산
 accumulateRewards(newLinkPositions);
 ```
 
 ---
 
-## 3. 베이스 → 링크 전환 시 windowHeight 문제
+## 3. 텀블링 중 링크 심볼 위치 추적 — 이벤트 리스너 패턴
 
-베이스 스핀과 링크게임은 윈도우 높이(`windowHeight`)가 다를 수 있다.
+베이스 스핀에서 텀블링이 일어나면 심볼이 아래로 낙하(캐스케이딩)한다. 링크 심볼도 예외가 아니다. 링크 심볼이 이동하면, 나중에 링크게임으로 가져갈 위치 정보도 함께 업데이트해야 한다.
 
-베이스는 3x5 윈도우를 쓰고, 링크게임은 4x5 윈도우를 쓰는 구조였다. 진입 시점에 windowHeight 계산 로직이 달라서 클라이언트가 잘못된 크기로 윈도우를 렌더링하는 현상이 있었다.
+처음에는 캐스케이딩이 끝난 뒤 전체 윈도우를 다시 스캔해서 링크 심볼 위치를 재수집했다. 동작은 했지만, 캐스케이딩 로직과 링크 심볼 추적 로직이 타이밍으로 결합되어 있었다.
 
-원인은 두 곳에서 windowHeight를 각자 계산하고 있었기 때문이다. 링크게임 진입 시점에 명시적으로 windowHeight를 링크게임 기준값으로 덮어쓰도록 처리했다.
+이를 이벤트 리스너로 분리했다.
+
+```java
+final CascadingEventListener cascadingEventListener =
+    (currentX, currentY, nextY, symbolCode) -> {
+        if (SymbolEnum.isLinkSymbol(symbolCode, BASE.getCode())) {
+            final LinkSymbol linkSymbol = resultLinkSymbols.getLinkSymbol(currentPosition);
+            resultLinkSymbols.remove(currentPosition);
+            resultLinkSymbols.add(cascadingPosition, linkSymbol);  // 위치 변경 추적
+        }
+    };
+```
+
+캐스케이딩 로직은 심볼이 어디서 어디로 이동했는지 이벤트를 발행하고, 링크 심볼 추적은 그 이벤트를 구독해서 위치를 갱신한다. 캐스케이딩 로직이 링크 심볼의 존재를 알 필요가 없다.
 
 ---
 
-## 4. 바이피처 진입 조건 처리
+## 4. 하이 심볼 개수 제한 — 밸런싱을 코드로 강제하기
 
-일반적으로 링크게임 진입에는 **최소 디스크 배수** 조건이 있다. 베이스 스핀에서 모은 링크 심볼의 배수 합이 일정 기준을 넘어야 링크게임에 진입할 수 있다.
+링크게임에서 하이 심볼(H01, H02, H03)은 디스크 배수를 크게 올리는 고가치 심볼이다. 확률 테이블만으로 이를 조절하면 기댓값은 맞출 수 있지만, 특정 스핀에서 하이 심볼이 몰려 나오는 극단적인 경우를 막을 수 없다.
 
-바이피처(BuyFeature)는 이 조건을 다르게 적용해야 했다. 유저가 직접 돈을 내고 링크게임에 바로 진입하는 것이기 때문에, 최소 디스크 배수 조건을 완화하거나 우회해야 했다.
+**하드 캡(hard cap)** 을 추가했다.
 
 ```java
-// 진입 조건 검사
-boolean canEnterLinkGame(SpinContext context, int diskMultiplierSum) {
-    if (context.isBuyFeature()) {
-        return diskMultiplierSum >= BUY_FEATURE_MIN_DISK_MULTIPLIER; // 완화된 조건
+if (SymbolEnum.isHighSymbol(decidedSymbol)) {
+    final int current = currentHighSymbolCounts.getOrDefault(decidedSymbol, 0);
+    final int max = linkHighSymbolMaxCounts.getOrDefault(decidedSymbol, Integer.MAX_VALUE);
+
+    // 최대 개수 초과 시 링크 심볼로 강제 치환
+    if (current >= max) {
+        decidedSymbol = SymbolEnum.LINK.getCode();
     }
-    return diskMultiplierSum >= BASE_MIN_DISK_MULTIPLIER;
+}
+```
+
+확률로 조절하기 어려운 극단값을 코드 레벨 상한선으로 막는다. 밸런싱 의도가 런타임에서 보장된다.
+
+---
+
+## 5. 뱃지 심볼별 디스크 배수 증가 방식
+
+베이스 스핀에서 H01, H02, H03 심볼이 나오면 디스크 배수가 올라간다. 세 심볼의 증가 방식이 서로 다르다.
+
+- **H01**: 고정값으로 증가. 예측 가능한 안정적인 상승.
+- **H02**: 알리아스 테이블에서 랜덤으로 증가량을 결정.
+- **H03**: 어느 릴(열)에서 나왔느냐에 따라 올라가는 디스크가 다르다.
+
+```java
+switch (symbolEnum) {
+    case H01 -> increments = personalData.incrementByH01(diskMaxMultiplier);
+    case H02 -> {
+        final int count = h02DiskIncrementAliasTable.pickToInt();
+        increments = personalData.incrementByH02(randomUtil, count, diskMaxMultiplier);
+    }
+    case H03 -> {
+        final int reelIndex = visibleWindowPosition.x();
+        increments = personalData.incrementByH03(reelIndex, diskMaxMultiplier);
+    }
+}
+```
+
+심볼마다 다른 증가 방식은 게임 내 전략 요소다. 동일한 목적(디스크 배수 증가) 뒤에 다른 전략을 두는 구조다.
+
+---
+
+## 6. 바이피처 진입 조건 처리
+
+일반적으로 링크게임 진입에는 **최소 디스크 배수** 조건이 있다. 바이피처(BuyFeature)는 유저가 직접 돈을 내고 링크게임에 바로 진입하는 것이기 때문에, 이 조건을 완화해야 했다.
+
+바이피처 진입 시 디스크 테이블을 최소 배수값으로 초기화하는 방식으로 처리했다.
+
+```java
+void handleBuyFeatureOption1(final int totalDiskValue, final int minimumDiskValue, ...) {
+    // 모든 릴을 최소 배수로 초기화 → 조건 자동 충족
+    Arrays.fill(buyFeatureDiskTable, minimumDiskValue);
 }
 ```
 
@@ -137,7 +180,7 @@ boolean canEnterLinkGame(SpinContext context, int diskMultiplierSum) {
 
 ---
 
-## 5. 시뮬레이터
+## 7. 시뮬레이터
 
 링크게임은 베이스 스핀과 별도 루프로 진행된다. 시뮬레이터도 이 구조를 따라야 한다.
 
@@ -157,9 +200,13 @@ boolean canEnterLinkGame(SpinContext context, int diskMultiplierSum) {
 
 ## 배운 것
 
-**링크게임처럼 스테이지 간 상태가 이어지는 구조는 "무엇이 어느 스테이지에서 만들어진 것인가"를 항상 추적해야 한다.** 고정된 심볼과 새로운 심볼을 구분하지 않으면 종료 조건, 보상 계산, 윈도우 초기화 모든 곳에서 버그가 생긴다. 심볼의 출처를 명시적으로 관리하는 코드 구조가 훨씬 안전하다.
+**스테이지 간 상태가 이어지는 구조는 심볼의 출처를 명시적으로 관리해야 한다.** 고정된 심볼과 새로운 심볼을 구분하지 않으면 종료 조건, 보상 계산, 윈도우 초기화 모든 곳에서 버그가 생긴다.
 
-**상태 전이 시점에 검사 순서가 결과를 바꾼다.** 종료 조건을 언제 검사하느냐에 따라 보상 중복 계산이 생길 수 있다. 상태를 바꾸기 전에 먼저 조건을 확인하는 "check-before-mutate" 패턴이 여기서 맞다.
+**상태를 바꾸기 전에 조건을 먼저 확인해야 한다.** 종료 조건 검사를 보상 계산 이후로 미루면 중복 계산이 생긴다. check-before-mutate 순서가 여기서 중요하다.
+
+**확률 테이블만으로는 극단값을 막을 수 없다.** 기댓값은 확률로 조절하되, 허용할 수 없는 극단값은 코드 레벨 상한선으로 보장하는 것이 안전하다.
+
+**로직 간 결합은 이벤트로 끊는다.** 캐스케이딩 로직이 링크 심볼을 직접 알 필요가 없다. 이벤트 리스너로 분리하면 각 로직이 자기 책임에만 집중할 수 있다.
 
 ---
 
