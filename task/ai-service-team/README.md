@@ -16,4 +16,4 @@ AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
 
 ## 기술 키워드
 
-`Spring Boot 3.x` `Java 17` `Spring Batch` `OpenSearch` `RAG` `Vector Search`
+`Spring Boot 3.x` `Java 21` `Spring Batch` `OpenSearch` `RAG` `Vector Search`
