@@ -1,10 +1,14 @@
-# 임베딩 메타데이터 전략 패턴: Blocklist에서 Allowlist로
+# 임베딩 메타데이터 구성 방식 개선 — Blocklist에서 Allowlist로
 
-RAG 파이프라인에서 여러 소스의 문서를 벡터 색인할 때, 임베딩 API에 전달할 메타데이터를 구성하는 방식이 코드 복잡도에 직접 영향을 미친다는 걸 깨달았다. blocklist 방식에서 allowlist 방식으로 전환하면서 전략 패턴을 실제로 적용한 경험을 정리했다.
+**진행 기간**: 2026.03
+
+RAG 파이프라인에서 임베딩 API에 전달할 메타데이터를 구성하는 방식을 blocklist(remove)에서 allowlist(provider) 방식으로 전환했다. 전략 패턴을 실제로 적용한 리팩터링 경험을 정리했다.
+
+> 전략 패턴 개념 정리: [디자인 패턴 - 전략 패턴](../../architecture/design-pattern.md)
+
+---
 
 ## 문제 상황: Blocklist의 한계
-
-### 초기 구조
 
 RAG 파이프라인은 Confluence, 사내 협업 도구의 Task/Wiki/Drive 등 다양한 소스에서 문서를 수집해 OpenSearch에 벡터 색인한다. 임베딩 API에 전달할 때는 content 외에 문맥을 보완하는 메타데이터를 함께 보낸다.
 
@@ -37,10 +41,6 @@ if (createdTime != null) {
 // ... 이하 생략
 ```
 
-### 왜 문제였나?
-
-처음에는 이 방식이 충분했다. 하지만 시간이 지나면서 문제가 드러났다.
-
 **1. 새로운 DocumentType이 추가될 때마다 분기가 늘어난다**
 
 ```java
@@ -53,19 +53,13 @@ if (documentType == DocumentType.TASK) {
 }
 ```
 
-코드는 점점 길어지고 복잡해진다.
-
 **2. 어떤 필드가 포함되는지 파악하기 어렵다**
 
 "임베딩에 실제로 어떤 필드들이 포함되나?"에 답하려면 remove 목록을 역산해야 했다.
 
 **3. 불필요한 메서드가 생겨난다**
 
-이 패턴을 위해서만 존재하는 메서드들이 누적됐다.
-
-- `Document.cloneMetadata()` — 메타데이터 전체 복사
-- `getMetadataValue(String)` — 단순 조회
-- `putMetadata(String)` — 단순 삽입
+이 패턴을 위해서만 존재하는 메서드들이 누적됐다: `Document.cloneMetadata()`, `getMetadataValue(String)`, `putMetadata(String)`.
 
 **4. OCP 원칙 위반**
 
@@ -73,9 +67,7 @@ if (documentType == DocumentType.TASK) {
 
 ---
 
-## 해결: 전략 패턴으로 Allowlist 방식 전환
-
-### 인터페이스 정의
+## 해결: EmbeddingMetadataProvider 도입
 
 핵심 아이디어는 단순했다. **"제거할 필드를 관리하지 말고, 포함할 필드를 명시적으로 관리하자"**
 
@@ -143,7 +135,7 @@ protected Map<String, Object> createResultWithCommonFields(Document document) {
 }
 ```
 
-### 구체적 구현체: Task
+### 구현체: Task
 
 Task는 공통 필드 외에 마감일(`due_date`)과 완료 여부(`closed`)가 추가된다.
 
@@ -167,9 +159,9 @@ public class TaskEmbeddingMetadataProvider extends AbstractCollabToolEmbeddingMe
 }
 ```
 
-### 구체적 구현체: Wiki
+### 구현체: Wiki
 
-Wiki는 공통 필드만 필요해서 구현이 한 줄이다.
+Wiki는 공통 필드만 필요해서 한 줄이다.
 
 ```java
 @Component
@@ -186,8 +178,6 @@ public class WikiEmbeddingMetadataProvider extends AbstractCollabToolEmbeddingMe
     }
 }
 ```
-
-한 줄짜리 구현체가 가능해진 게 이 패턴의 장점이다. 복잡한 로직은 추상 클래스에 숨겨지고, 구현체는 "내가 무엇을 포함하는가"만 표현한다.
 
 ---
 
@@ -223,20 +213,9 @@ before의 14개 remove 블록과 if-else 분기가 모두 사라졌다.
 
 ---
 
-## 적용 후 달라진 것
+## 결과
 
-**가독성**: "어떤 필드가 임베딩에 포함되나?"를 구현체를 보면 바로 알 수 있다. remove 목록을 역산할 필요 없음.
-
-**OCP 준수**: 새 DocumentType을 추가할 때 `EmbeddingService` 코드를 건드리지 않는다. `@Component` 구현체 하나만 추가하면 자동으로 반영된다.
-
-**불필요한 코드 제거**: `Document.cloneMetadata()`, `getMetadataValue(String)`, `putMetadata(String)` — 이 패턴을 위해서만 존재하던 메서드들이 모두 삭제됐다.
-
-**테스트 용이성**: 구현체별로 독립적으로 테스트할 수 있다. 각 provider의 책임이 명확하므로 단위 테스트도 간결해진다.
-
----
-
-## 마무리
-
-blocklist 방식의 근본 문제는 마음속 모델(mental model)과 코드가 맞지 않았다는 것이다. 생각하는 건 "포함할 필드를 결정한다"인데, 코드는 "제거할 필드를 나열한다"고 표현했다.
-
-전략 패턴으로 바꾸면서 코드가 의도를 정확하게 표현하게 됐다. 각 구현체가 "나는 이런 필드들을 포함한다"고 명시적으로 선언한다. Spring의 자동 등록과 결합하면 확장성도 덤으로 얻는다. 새 소스가 추가되더라도 기존 코드는 건드리지 않는다.
+- **가독성**: 구현체를 보면 어떤 필드가 포함되는지 바로 알 수 있다
+- **OCP 준수**: 새 DocumentType 추가 시 `EmbeddingService` 수정 없이 `@Component` 구현체만 추가
+- **불필요한 코드 제거**: `cloneMetadata()`, `getMetadataValue(String)`, `putMetadata(String)` 삭제
+- **테스트 용이성**: 구현체별 독립 단위 테스트 가능
