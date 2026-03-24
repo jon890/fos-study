@@ -16,6 +16,27 @@
 
 ---
 
+## 저장소 전체 폴더 배치 기준
+
+업무 기록은 `task/` 안에 두지만, 기술 개념 문서는 아래 기준으로 적절한 폴더에 배치한다.
+
+| 폴더 | 배치 기준 | 예시 |
+|------|-----------|------|
+| `task/<팀명>/` | 특정 시점의 구현 경험, 의사결정 기록 | `rag-vector-search-batch.md` |
+| `architecture/` | 언어·기술 독립적 설계 개념 | `design-pattern.md` |
+| `database/` | 데이터를 저장·검색하는 스토어 전반 | `opensearch/`, `redis/`, `mysql/` |
+| `java/` | Java 언어 및 Spring 생태계 | `spring-batch/`, `spring/` |
+| `devops/` | 인프라, 배포, 모니터링 | `docker/`, `k8s/`, `monitoring/` |
+| `kafka/` | 메시지 브로커 (database 아닌 최상위 유지) | — |
+| `network/` | HTTP, 프로토콜 개념 | — |
+
+**architecture/ vs task/ 구분 원칙**
+- 개념 설명(언제 읽어도 유효) → `architecture/`
+- 실제 적용 사례(코드·배경 포함) → `task/<팀명>/`
+- `architecture/` 문서에서 실제 사례가 있으면 `task/`로 링크만 걸기
+
+---
+
 ## 업무 기록 문서 작성 가이드
 
 새 업무 기록 문서를 작성하거나 기존 문서를 수정할 때 아래 규칙을 따른다.
