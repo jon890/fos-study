@@ -17,7 +17,7 @@
 | 2024.10 ~ 2024.12 | Slot 33 (Wanted) — 링크게임, 디스크 배수, 텀블링                 | [slot-33-wanted.md](slot-33-wanted.md)                                   |
 | 2024.12           | BuyFeature 티켓 & 시나리오 스핀 — 플랫폼 공통 기능               | [buyfeature-ticket-scenario-spin.md](buyfeature-ticket-scenario-spin.md) |
 | 2025.02 ~ 2025.08 | 신규 슬롯 5종 (Slot 36, 38, 41, 44, 47) — AI 에이전트 협업 포함  | [new-slot-games.md](new-slot-games.md)                                   |
-| 2025.07 ~ 2025.10 | RCC (RTP Cache Control) — 스핀 결과 사전 캐시 시스템              | [rcc-rtp-cache-control.md](rcc-rtp-cache-control.md)                     |
+| 2025.07 ~ 2025.10 | RCC (RTP Cache Control) — 스핀 결과 사전 캐시 시스템             | [rcc-rtp-cache-control.md](rcc-rtp-cache-control.md)                     |
 
 ### 아키텍처 개선
 
@@ -31,10 +31,10 @@
 
 ### 트러블슈팅
 
-| 기간              | 업무                                                                  | 문서                                                       |
-| ----------------- | --------------------------------------------------------------------- | ---------------------------------------------------------- |
-| 2025.01 ~ 2025.02 | 스핀 성능 최적화 — AliasMethod O(1), SecureRandom → ThreadLocalRandom | [slot-spin-performance.md](slot-spin-performance.md)       |
-| 2025.02           | 시뮬레이터 OOM — List<Long> 제거, Welford's Online Algorithm 도입      | [slot-simulator-oom.md](slot-simulator-oom.md)             |
+| 기간              | 업무                                                                     | 문서                                                             |
+| ----------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| 2025.01 ~ 2025.02 | 스핀 성능 최적화 — AliasMethod O(1), SecureRandom → ThreadLocalRandom    | [slot-spin-performance.md](slot-spin-performance.md)             |
+| 2025.02           | 시뮬레이터 OOM — List<Long> 제거, Welford's Online Algorithm 도입        | [slot-simulator-oom.md](slot-simulator-oom.md)                   |
 | 2025.09           | 시뮬레이터 잭팟 풀 ThreadLocal 버그 — 공유 상태를 AtomicReference로 전환 | [slot-simulator-jackpot-pool.md](slot-simulator-jackpot-pool.md) |
 
 ---
