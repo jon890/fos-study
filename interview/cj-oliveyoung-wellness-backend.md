@@ -2,7 +2,6 @@
 
 > 공고 URL: https://recruit.cj.net/recruit/ko/recruit/recruit/bestDetail.fo?zz_jo_num=J20260122036765
 > 작성일: 2026-03-21
-> 지원 경로: 사내 추천 (지인)
 
 ---
 
