@@ -132,9 +132,9 @@ public class Slot47Service extends BaseSlotService {
 
 ## 5. StaticDataLoader 개선
 
-### refreshAll 후 일시적 NPE
+### refreshAll 후 일시적 NPE — StampedLock 도입
 
-`StaticDataLoader.refreshAll()`은 슬롯의 정적 데이터(릴 테이블, 심볼 설정 등)를 전부 새로 로드하는 메서드다. 운영 중 설정이 바뀌면 이 메서드를 호출해서 갱신한다.
+`SlotStaticDataLoaderImpl`은 슬롯의 정적 데이터(릴 테이블, 심볼 설정, Alias 테이블 등)를 메모리에 올려 관리한다. 운영 중 어드민에서 설정이 바뀌면 RabbitMQ 메시지를 수신해 해당 슬롯 데이터를 갱신한다.
 
 문제는 갱신 도중 다른 스레드가 데이터에 접근하면 NPE가 났다는 점이다.
 
@@ -145,12 +145,27 @@ public class Slot47Service extends BaseSlotService {
 스레드2: 스핀 요청 → 데이터 접근 → NPE (이미 clear됨)
 ```
 
-갱신이 완전히 완료된 새 데이터를 원자적으로 교체하는 방식으로 수정했다.
+StampedLock을 도입해 해결했다. 갱신 시 writeLock으로 읽기 스레드를 차단하고, 조회 시에는 tryReadLock에 2.5초 타임아웃을 걸어 갱신이 완료될 때까지 대기하도록 했다.
 
 ```java
-// 수정 후: 새 데이터를 미리 만들고 교체
-Map<GameId, StaticData> newData = loadAll();
-this.staticData = newData; // 참조 교체는 원자적
+// 초기화/갱신: writeLock으로 읽기 차단
+final long writeStamp = stampedLock.writeLock();
+try {
+    clearAllStaticData();
+    // ... 데이터 로드
+} finally {
+    stampedLock.unlockWrite(writeStamp);
+}
+
+// 조회: tryReadLock으로 갱신 완료까지 대기
+private <T> T getDataWithReadLock(Supplier<T> getDataFunction) {
+    final long readStamp = stampedLock.tryReadLock(2500, TimeUnit.MILLISECONDS);
+    try {
+        return getDataFunction.get();
+    } finally {
+        stampedLock.unlockRead(readStamp);
+    }
+}
 ```
 
 ### Alias 테이블 일괄 조회
@@ -173,7 +188,7 @@ this.staticData = newData; // 참조 교체는 원자적
 
 **추상화는 반복을 충분히 경험한 뒤에.** SlotTemplate, BaseSlotService 모두 슬롯을 직접 여러 개 만들고 나서야 올바른 공통점이 보였다. 처음에 추상화하면 잘못된 경계를 그을 가능성이 높다.
 
-**원자적 교체 패턴은 락 없이도 안전하다.** `refreshAll` 수정처럼, 새 데이터를 완성한 뒤 참조만 교체하면 읽기 스레드와의 동기화 없이도 일관성을 유지할 수 있다.
+**StampedLock은 읽기 성능을 포기하지 않으면서도 갱신 중 일관성을 보장한다.** writeLock으로 갱신 구간을 보호하고, tryReadLock에 타임아웃을 걸면 갱신이 완료될 때까지 조회가 대기한다. 갱신 빈도가 낮고 읽기가 압도적으로 많은 캐시 구조에 적합하다.
 
 ---
 
