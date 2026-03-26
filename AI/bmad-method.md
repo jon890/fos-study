@@ -78,9 +78,47 @@ Day 5-14: Developer + QA 루프
 
 전통적인 방식에서 "요구사항 문서 먼저 → 개발"이 시간이 많이 걸리는 이유는 문서 작성이 사람에게 부담되기 때문이다. BMAD에서는 AI 에이전트가 문서 초안을 만들고 사람이 검토/보완하는 방식이라 훨씬 빠르다.
 
+## BMAD의 한계 — 솔직하게
+
+장점만 있는 건 아니다. GitHub 이슈([#2003](https://github.com/bmad-code-org/BMAD-METHOD/issues/2003))에서도 구조적 모순이 지적되고 있다.
+
+| 한계 | 내용 |
+|---|---|
+| **컨텍스트 비용** | PRD + Architecture doc만 해도 수만 토큰. 작은 모델이나 컨텍스트 제한 환경에서는 버티기 어렵다 |
+| **소규모 프로젝트엔 과도함** | 에이전트 7개, YAML 워크플로우, 문서 세트... 간단한 기능 추가에 이 셋업을 다 갖추는 건 배보다 배꼽이 크다 |
+| **학습 곡선** | 단순 프롬프트 → 에이전트 역할/핸드오프/YAML 설정 이해까지 진입장벽이 있다 |
+| **설계 역설** | "비개발자도 쓸 수 있다"고 홍보하지만, AI가 생성한 대량의 코드를 추적·검토하려면 결국 개발 경험이 필요하다 |
+
+## 대안 비교
+
+BMAD 말고 다른 선택지도 있다.
+
+| 도구/방법론 | 성격 | BMAD 대비 |
+|---|---|---|
+| **[CrewAI](https://github.com/crewAIInc/crewAI)** | 역할 기반 멀티에이전트 실행 프레임워크 | BMAD는 방법론, CrewAI는 실행 엔진. 상호보완 가능 |
+| **[AutoGen](https://github.com/microsoft/autogen)** | 멀티에이전트 대화 프레임워크 | 오픈엔디드 문제 해결에 강함. BMAD보다 유연하지만 구조가 약함 |
+| **[LangGraph](https://github.com/langchain-ai/langgraph)** | 그래프 기반 워크플로우 | 복잡한 조건 분기에 강함. 엔지니어링 비용이 높아서 팀 규모가 있어야 효과적 |
+| **Vibe Coding** | 그냥 프롬프트로 바로 코딩 | 속도는 빠르지만 BMAD가 해결하려는 "블랙박스 코드" 문제를 그대로 안고 간다 |
+| **Spec Kit / OpenSpec** | 가벼운 스펙 문서 방식 | BMAD보다 오버헤드가 적고 실용적. 체계는 덜하지만 소규모 팀엔 오히려 맞을 수 있다 |
+
+> CrewAI vs AutoGen 선택 기준: "어떻게 풀지 이미 알고 자동화하고 싶다" → CrewAI, "AI가 스스로 해법을 찾게 하고 싶다" → AutoGen
+
+## 어떻게 접근하면 좋을까
+
+풀 BMAD 워크플로우를 처음부터 다 적용하면 셋업 비용이 크다. **BMAD의 핵심 아이디어만 먼저 차용**하는 게 현실적이다:
+
+1. 코드 전에 PRD/Brief를 AI로 초안 생성 → 사람이 검토·보완
+2. 각 에이전트 역할을 명시한 시스템 프롬프트 준비
+3. 산출물(기획 문서, 아키텍처 결정 등)을 Git에 커밋하는 습관
+
+팀이 이 흐름에 익숙해지면 그때 YAML 워크플로우나 정식 에이전트 구조로 확장하는 방향이 낮은 리스크로 도입하는 방법이다.
+
 ## 참고
 
 - [BMAD-METHOD GitHub](https://github.com/bmad-code-org/BMAD-METHOD)
 - [공식 문서](https://docs.bmad-method.org/)
 - [What is the BMad Method? — AngelHack DevLabs](https://devlabs.angelhack.com/blog/bmad-method/)
 - [Applied BMAD — Reclaiming Control in AI Development](https://bennycheung.github.io/bmad-reclaiming-control-in-ai-dev)
+- [BMAD Structural Issues #2003](https://github.com/bmad-code-org/BMAD-METHOD/issues/2003)
+- [Vibe Coding vs BMAD Method](https://xantygc.medium.com/vibe-coding-vs-bmad-method-the-clash-of-titans-in-ai-development-f5ba2c0a5dcc)
+- [Open-Source AI Agents 2026: CrewAI vs AutoGen vs OpenDevin](https://www.houseoffoss.com/post/open-source-ai-agents-in-2026-crewai-vs-autogen-vs-opendevin)
