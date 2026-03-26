@@ -1,7 +1,7 @@
 ---
 id: workflow-blog-post-writer
 name: blog-post-writer
-description: 업무에서 다룬 기술 내용을 개인 블로그 마크다운 포스팅으로 변환. "블로그 포스팅", "블로그 글 써줘", "블로그에 정리", "TIL", "기술 블로그", "개발 블로그", "개발 정리", "blog post", "fos-study", "업무 내용 블로그", "이력 문서", "포트폴리오 정리", "작업 정리" 같은 요청 시 이 스킬 사용. 민감 정보(회사명, 내부 URL, IP 등) 자동 제거 후 /Users/nhn/personal/fos-study에 저장. git log 기반으로 본인 기여 범위를 먼저 파악한 후 작성.
+description: 업무 경험이나 기술 스터디 내용을 개인 블로그 마크다운 포스팅으로 변환해 /Users/nhn/personal/fos-study에 저장. "블로그 포스팅", "블로그 글 써줘", "블로그에 정리", "TIL", "기술 블로그", "개발 블로그", "개발 정리", "blog post", "fos-study", "업무 내용 블로그", "이력 문서", "포트폴리오 정리", "작업 정리", "스터디 정리", "공부한 거 정리", "개념 정리해줘" 같은 요청 시 반드시 이 스킬 사용. 업무 경험은 git log 기반 기여 범위 파악 후 민감 정보 제거, 외부 기술 스터디는 WebSearch로 정보 수집 후 작성. 사용자가 이메일/문서/채팅에서 기술 내용을 공유하며 블로그 글을 요청하는 경우도 포함.
 source: conversation
 triggers:
   - "블로그 포스팅"
@@ -17,6 +17,10 @@ triggers:
   - "이력 문서"
   - "포트폴리오 정리"
   - "작업 정리"
+  - "스터디 정리"
+  - "공부한 거 정리"
+  - "개념 정리해줘"
+  - "블로그 글 작성"
 quality: high
 ---
 
@@ -46,15 +50,18 @@ quality: high
 팀 프로젝트를 블로그로 정리할 때 가장 중요한 첫 단계다. **내가 실제로 한 것만 써야 한다.**
 
 ```bash
-# 본인 커밋만 필터링 (author 이름은 git config에서 확인)
-git log --author="김병태\|bifos" --oneline | head -30
+# git config에서 author 이름 먼저 확인
+git config user.name
+
+# 본인 커밋만 필터링
+git log --author="$(git config user.name)" --oneline | head -30
 
 # 진행 기간 추출: 첫 커밋과 마지막 커밋 날짜
-git log --author="김병태\|bifos" --format="%ad" --date=short | tail -1  # 시작일
-git log --author="김병태\|bifos" --format="%ad" --date=short | head -1  # 종료일
+git log --author="$(git config user.name)" --format="%ad" --date=short | tail -1  # 시작일
+git log --author="$(git config user.name)" --format="%ad" --date=short | head -1  # 종료일
 
-# 특정 주제(예: Confluence) 관련 커밋만 필터링
-git log --author="김병태\|bifos" --oneline --grep="confluence" -i
+# 특정 주제 관련 커밋만 필터링
+git log --author="$(git config user.name)" --oneline --grep="키워드" -i
 ```
 
 이 결과를 바탕으로 블로그 내용을 구성한다. 다른 팀원이 한 작업은 포함하지 않는다.
@@ -248,15 +255,70 @@ ls /Users/nhn/personal/fos-study/java/spring-batch/
 
 중복 방지: 저장 전 같은 주제의 기존 파일이 있는지 확인.
 
+### 10. 외부 개념/방법론 스터디 글 — 웹 자료 참고
+
+업무 경험 기록이 아닌 **외부 기술/방법론을 공부한 내용**을 글로 쓸 때는 웹 검색으로 정확한 정보를 먼저 수집한다.
+
+**적용 케이스:**
+- 새로운 방법론, 프레임워크, 오픈소스 프로젝트 스터디 기록
+- git 커밋이 없는 주제 (본인 코드베이스 없음)
+- "공부해야 한다", "스터디", "개념 정리" 같은 맥락
+
+**웹 검색 방식:**
+```
+# 1. 공식 소스부터 확인
+WebSearch: "<기술명> official documentation site:github.com OR site:docs.*"
+
+# 2. 실용적인 적용 사례 검색
+WebSearch: "<기술명> how it works workflow agents 2025"
+
+# 3. 한계/비판적 시각도 포함
+WebSearch: "<기술명> limitations tradeoffs when to use"
+```
+
+**웹 자료 활용 규칙:**
+- 공식 GitHub/공식 docs를 1순위로 참고
+- 블로그 글은 여러 소스를 교차 검증 후 사용
+- 글 하단에 **참고 링크 섹션** 반드시 포함 (URL 명시)
+- 검색 결과를 그대로 번역하지 않는다 — 핵심만 추려서 본인 언어로 재해석
+
+**저장 위치:** 개인 경험이 없는 순수 개념 스터디는 `task/` 가 아닌 해당 기술 폴더에 저장
+- 예: AI 방법론 → `AI/bmad-method.md`
+- 예: 새 DB 기술 → `database/<기술명>.md`
+
 ## 실행 단계
 
-1. 현재 대화/작업 내용에서 기술 주제 파악
-2. **기여 정도 파악** — "엄청 기여한 건 아닌데", "내가 직접 한 건 아니고" 같은 맥락이 있으면 탐구/기록 톤으로 작성
-3. **git log `--author`로 본인 커밋만 필터링** → 기여 범위 및 진행 기간 확인
-4. **코드 검증** — 클래스명, 메서드명, 필드명을 코드에서 Read/Grep으로 직접 확인 (기억에 의존 금지)
-5. `ls /Users/nhn/personal/fos-study/` 로 폴더 구조 확인 → 적절한 위치 결정
-6. 민감 정보 목록 파악 후 제거/대체
-7. 관련 상세 문서 존재 여부 확인 (`java/spring-batch/` 등) → 링크 결정
-8. 마크다운 작성 (자연스러운 문체, AI 티 제거, 1인칭 단수)
-9. 파일 저장
-10. 저장한 경로 사용자에게 알려주기
+### Step 0. 케이스 판단 (필수)
+
+먼저 어떤 유형인지 판단한다:
+
+| 판단 기준 | 케이스 |
+|---|---|
+| 본인이 직접 구현/작업한 코드가 있음, git 커밋 추적 가능 | → **A. 업무 경험 기록** |
+| 외부 기술/방법론/개념을 공부한 내용, 코드베이스 없음 | → **B. 스터디/개념 정리** |
+
+애매할 때는 "이게 본인 코드인가요, 아니면 외부 기술을 공부한 건가요?"를 먼저 물어본다.
+
+---
+
+### A. 업무 경험 기록 (git 커밋 있음)
+
+1. **기여 정도 파악** — "엄청 기여한 건 아닌데", "내가 직접 한 건 아니고" 같은 맥락이 있으면 탐구/기록 톤으로 작성
+2. **git log `--author=$(git config user.name)`으로 본인 커밋만 필터링** → 기여 범위 및 진행 기간 확인
+3. **코드 검증** — 클래스명, 메서드명, 필드명을 코드에서 Read/Grep으로 직접 확인 (기억에 의존 금지)
+4. `ls /Users/nhn/personal/fos-study/` 로 폴더 구조 확인 → 적절한 위치 결정
+5. 민감 정보 목록 파악 후 제거/대체
+6. 관련 상세 문서 존재 여부 확인 (`java/spring-batch/` 등) → 링크 결정
+7. 마크다운 작성 (자연스러운 문체, AI 티 제거, 1인칭 단수)
+8. 파일 저장 후 경로 알려주기
+
+---
+
+### B. 스터디/개념 정리 (외부 기술, git 커밋 없음)
+
+1. **WebSearch로 정보 수집** — 공식 docs/GitHub → 실용 사례 → 한계/비판 순으로 검색
+2. `ls /Users/nhn/personal/fos-study/` 로 저장 위치 결정 (`task/` 아닌 해당 기술 폴더)
+3. 저장소 내 관련 기존 문서 확인 → 링크 연결
+4. 마크다운 작성 — 검색 결과 번역 말고, 본인이 이해한 방식으로 재해석
+5. 글 하단에 **참고 링크 섹션** 포함 (URL 명시)
+6. 파일 저장 후 경로 알려주기
