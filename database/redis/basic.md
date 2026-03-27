@@ -383,6 +383,14 @@ Sentinel 3 │
 
 ## 관련 문서
 
+**사용 사례별 상세 문서:**
+- [실시간 랭킹 (Leaderboard)](./leaderboard.md) — Sorted Set 기반 랭킹 구현, 기간별/카테고리별 패턴
+- [분산 락 (Distributed Lock)](./distributed-lock.md) — SET NX, Redisson, Redlock 알고리즘
+- [Pub/Sub & Stream](./pub-sub.md) — 실시간 브로드캐스트 vs 신뢰성 이벤트 큐 비교
+- [Rate Limiting](./rate-limiting.md) — 고정 윈도우, 슬라이딩 윈도우, 토큰 버킷
+- [세션 저장소 (Session Store)](./session.md) — Spring Session 연동, JWT vs 세션 비교
+
+**기타:**
 - [캐시 설계 전략 총정리](../../architecture/cache-strategies.md) — Look-Aside, Read-Through, Write-Through, Write-Behind 등 캐시 패턴 상세
 - [Redis 영속성과 클러스터](./backup.md) — RDB/AOF 설정, Cluster 구성 상세
 - [Redis Lua 스크립트](./lua-script.md) — Hash + Lua로 원자적 잭팟 누적/당첨 처리 구현 사례
