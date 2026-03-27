@@ -391,6 +391,7 @@ Sentinel 3 │
 - [세션 저장소 (Session Store)](./session.md) — Spring Session 연동, JWT vs 세션 비교
 
 **기타:**
+- [Redis 운영 가이드](./operations.md) — 성능 벤치마크, 메모리 설계, 장애 대응, 모니터링 지표
 - [캐시 설계 전략 총정리](../../architecture/cache-strategies.md) — Look-Aside, Read-Through, Write-Through, Write-Behind 등 캐시 패턴 상세
 - [Redis 영속성과 클러스터](./backup.md) — RDB/AOF 설정, Cluster 구성 상세
 - [Redis Lua 스크립트](./lua-script.md) — Hash + Lua로 원자적 잭팟 누적/당첨 처리 구현 사례
