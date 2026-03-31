@@ -110,7 +110,7 @@ Java · Spring MVC · Oracle · TCP/IP Socket
 
 | 분류 | 기술 |
 |---|---|
-| 언어 | Java 17/21, TypeScript, Kotlin (학습 중) |
+| 언어 | Java 17/21, TypeScript |
 | 프레임워크 | Spring Boot 3.5, Spring Batch, JPA/Hibernate, QueryDSL, NestJS |
 | 데이터 & 메시징 | MySQL, Redis (Streams/JSON/Search), OpenSearch, RabbitMQ, Azure Service Bus |
 | 동시성 & 테스트 | ReentrantReadWriteLock, AtomicReference, JMH, JUnit 5, spring-batch-test |
