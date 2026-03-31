@@ -1,7 +1,7 @@
 ---
 id: workflow-blog-post-writer
 name: blog-post-writer
-description: 업무 경험이나 기술 스터디 내용을 개인 블로그 마크다운 포스팅으로 변환해 /Users/nhn/personal/fos-study에 저장. "블로그 포스팅", "블로그 글 써줘", "블로그에 정리", "TIL", "기술 블로그", "개발 블로그", "개발 정리", "blog post", "fos-study", "업무 내용 블로그", "이력 문서", "포트폴리오 정리", "작업 정리", "스터디 정리", "공부한 거 정리", "개념 정리해줘" 같은 요청 시 반드시 이 스킬 사용. 업무 경험은 git log 기반 기여 범위 파악 후 민감 정보 제거, 외부 기술 스터디는 WebSearch로 정보 수집 후 작성. 사용자가 이메일/문서/채팅에서 기술 내용을 공유하며 블로그 글을 요청하는 경우도 포함.
+description: 업무 경험이나 기술 스터디 내용을 개인 블로그 마크다운 포스팅으로 변환해 /Users/kbt/personal/fos-study에 저장. "블로그 포스팅", "블로그 글 써줘", "블로그에 정리", "TIL", "기술 블로그", "개발 블로그", "개발 정리", "blog post", "fos-study", "업무 내용 블로그", "이력 문서", "포트폴리오 정리", "작업 정리", "스터디 정리", "공부한 거 정리", "개념 정리해줘" 같은 요청 시 반드시 이 스킬 사용. 업무 경험은 git log 기반 기여 범위 파악 후 민감 정보 제거, 외부 기술 스터디는 WebSearch로 정보 수집 후 작성. 사용자가 이메일/문서/채팅에서 기술 내용을 공유하며 블로그 글을 요청하는 경우도 포함.
 source: conversation
 triggers:
   - "블로그 포스팅"
@@ -69,11 +69,11 @@ git log --author="$(git config user.name)" --oneline --grep="키워드" -i
 ### 1. 폴더 구조 파악
 
 ```bash
-ls /Users/nhn/personal/fos-study/
+ls /Users/kbt/personal/fos-study/
 ```
 
 ```
-/Users/nhn/personal/fos-study/
+/Users/kbt/personal/fos-study/
 ├── task/           # 회사 업무/프로젝트 관련 포스팅
 │   └── <팀명>/    # 예: ai-service-team, platform-team
 ├── devops/
@@ -179,7 +179,7 @@ grep -n "methodName" /path/to/file.java
 
 링크 걸기 전에 해당 파일이 실제로 존재하는지 확인:
 ```bash
-ls /Users/nhn/personal/fos-study/java/spring-batch/
+ls /Users/kbt/personal/fos-study/java/spring-batch/
 ```
 
 없는 파일에 링크를 걸지 않는다. 상세 문서가 없으면 링크 없이 섹션 제목만 쓴다.
@@ -248,7 +248,7 @@ ls /Users/nhn/personal/fos-study/java/spring-batch/
 ### 9. 파일 저장
 
 ```
-/Users/nhn/personal/fos-study/<카테고리>/<주제>/<파일명>.md
+/Users/kbt/personal/fos-study/<카테고리>/<주제>/<파일명>.md
 ```
 
 파일명: `kebab-case`, 한글 제목은 영문으로. ex) `prometheus-k8s-remote-write.md`
@@ -306,7 +306,7 @@ WebSearch: "<기술명> limitations tradeoffs when to use"
 1. **기여 정도 파악** — "엄청 기여한 건 아닌데", "내가 직접 한 건 아니고" 같은 맥락이 있으면 탐구/기록 톤으로 작성
 2. **git log `--author=$(git config user.name)`으로 본인 커밋만 필터링** → 기여 범위 및 진행 기간 확인
 3. **코드 검증** — 클래스명, 메서드명, 필드명을 코드에서 Read/Grep으로 직접 확인 (기억에 의존 금지)
-4. `ls /Users/nhn/personal/fos-study/` 로 폴더 구조 확인 → 적절한 위치 결정
+4. `ls /Users/kbt/personal/fos-study/` 로 폴더 구조 확인 → 적절한 위치 결정
 5. 민감 정보 목록 파악 후 제거/대체
 6. 관련 상세 문서 존재 여부 확인 (`java/spring-batch/` 등) → 링크 결정
 7. 마크다운 작성 (자연스러운 문체, AI 티 제거, 1인칭 단수)
@@ -317,7 +317,7 @@ WebSearch: "<기술명> limitations tradeoffs when to use"
 ### B. 스터디/개념 정리 (외부 기술, git 커밋 없음)
 
 1. **WebSearch로 정보 수집** — 공식 docs/GitHub → 실용 사례 → 한계/비판 순으로 검색
-2. `ls /Users/nhn/personal/fos-study/` 로 저장 위치 결정 (`task/` 아닌 해당 기술 폴더)
+2. `ls /Users/kbt/personal/fos-study/` 로 저장 위치 결정 (`task/` 아닌 해당 기술 폴더)
 3. 저장소 내 관련 기존 문서 확인 → 링크 연결
 4. 마크다운 작성 — 검색 결과 번역 말고, 본인이 이해한 방식으로 재해석
 5. 글 하단에 **참고 링크 섹션** 포함 (URL 명시)
