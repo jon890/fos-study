@@ -217,6 +217,164 @@ project/
 
 ---
 
+## 실제 사례 — 개인 블로그 프로젝트에서 본 하네스
+
+이론을 쌓고 나면 자연스럽게 이런 질문이 생긴다. "내가 만든 것에는 하네스가 얼마나 있는가?"
+
+개인 프로젝트 하나를 분석해봤다. GitHub에서 마크다운을 가져와 MySQL에 캐싱하고 렌더링하는 Next.js 블로그다. AI 에이전트가 직접 코딩에 참여했고, 그 결과물을 하네스 엔지니어링 관점에서 평가했다.
+
+**종합 점수: 72 / 100**
+
+### 잘 된 것들
+
+**1. 계층형 AGENTS.md — 컨텍스트 엔지니어링의 정석**
+
+프로젝트 루트부터 모든 서브 디렉터리에 `AGENTS.md`가 있다.
+
+```
+fos-blog/
+├── CLAUDE.md           ← 전체 프로젝트 맥락 (기술 스택, 환경변수, 컨벤션)
+├── AGENTS.md           ← 데이터 흐름, 디렉터리 안내
+└── src/
+    ├── AGENTS.md       ← 레이어 아키텍처 상세
+    ├── services/
+    │   └── AGENTS.md   ← 서비스 레이어 규칙
+    └── infra/
+        ├── db/
+        │   └── AGENTS.md   ← DB 스키마, 레포지터리 패턴
+        └── github/
+            └── AGENTS.md   ← GitHub API 클라이언트 설명
+```
+
+에이전트가 `src/services/`를 작업할 때 `src/services/AGENTS.md`가 정확히 그 레이어에 필요한 맥락을 제공한다. 전체 프로젝트를 다 읽지 않아도 된다.
+
+CLAUDE.md의 마지막 섹션에는 우선순위까지 명시돼 있다:
+
+```markdown
+**Agents should prioritize:**
+1. Schema integrity (Drizzle types)
+2. Sync idempotency (no duplicate/lost data)
+3. Markdown fidelity (GFM, mermaid, links)
+4. Type safety across API boundaries
+```
+
+**2. 의존성 주입으로 구현된 교체 가능한 하네스**
+
+`SyncService`는 모든 외부 의존성을 생성자로 받는다. GitHub API를 실제 구현체 대신 mock으로 교체할 수 있어 테스트가 쉽다.
+
+```typescript
+export class SyncService {
+  constructor(
+    private postSyncService: PostSyncService,
+    private metadataSyncService: MetadataSyncService,
+    private postRepo: PostRepository,
+    private syncLogRepo: SyncLogRepository,
+    private githubApi: GithubApi,  // ← 인터페이스 타입, mock 교체 가능
+  ) {}
+}
+```
+
+에이전트가 이 코드를 수정할 때 "새 의존성을 추가하려면 생성자에 주입하라"는 패턴이 강제된다. 하네스가 코드 구조를 통해 제약을 만드는 예시다.
+
+**3. 상태 외부화와 멱등성**
+
+sync가 실패하거나 재실행됐을 때 중복 처리를 막는 체크포인트가 DB에 있다.
+
+```typescript
+const headSha = await this.githubApi.getCurrentHeadSha();
+const lastSyncedSha = (await this.syncLogRepo.getLatest())?.commitSha;
+
+if (lastSyncedSha === headSha) {
+  return { upToDate: true };  // 이미 최신 → 재처리 없음
+}
+```
+
+SHA 비교로 멱등성을 보장하는 구조다. cron이 매 시간 실행돼도 변경 없으면 아무것도 하지 않는다.
+
+**4. 폴백 전략**
+
+증분 sync(빠름)가 실패하면 전체 sync(안전)로 자동 폴백한다. 하네스의 복구 경로가 코드에 내장돼 있다.
+
+```typescript
+const changedFiles = await this.githubApi.getChangedFilesSince(lastSyncedSha, headSha);
+if (changedFiles === null) {
+  // 증분 불가 → 전체 sync로 폴백
+  ({ added, updated, deleted } = await this.performFullSync());
+} else {
+  ({ added, updated, deleted } = await this.performIncrementalSync(changedFiles));
+}
+```
+
+**5. 파일 필터를 통한 범위 제어**
+
+`shouldSyncFile()`이 동기화 범위를 명확히 정의한다. AGENTS.MD, CLAUDE.MD 같은 에이전트 컨텍스트 파일이 블로그 포스트로 발행되는 것을 명시적으로 막는다.
+
+```typescript
+export const EXCLUDED_FILENAMES = new Set([
+  "AGENTS.MD", "CLAUDE.MD", "GEMINI.MD", "CURSOR.MD", ...
+]);
+
+export function shouldSyncFile(filename: string): boolean {
+  if (!filename.endsWith(".md") && !filename.endsWith(".mdx")) return false;
+  if (parts.some((p) => p.startsWith("."))) return false;
+  if (EXCLUDED_FILENAMES.has(basename)) return false;
+  return true;
+}
+```
+
+---
+
+### 부족한 것들
+
+**1. 핵심 오케스트레이터에 테스트가 없다**
+
+`MetadataSyncService.test.ts`와 `PostService.test.ts`는 잘 작성돼 있다. 하지만 "전체 sync vs 증분 sync 결정" 같은 가장 복잡한 로직이 담긴 `SyncService.ts`에는 테스트 파일 자체가 없다. 테스트가 계약(contract) 역할을 하려면 가장 중요한 흐름부터 커버해야 한다.
+
+```
+src/services/
+├── SyncService.ts             ← 테스트 없음
+├── PostSyncService.ts         ← parsePath만 테스트 (upsert 미검증)
+├── PostService.test.ts        ← 잘 됨
+└── MetadataSyncService.test.ts ← 잘 됨
+```
+
+**2. 평가자(Evaluator)가 없다**
+
+sync가 완료되면 `{ added: 3, updated: 0, deleted: 0 }` 을 반환하고 끝난다. 3개가 실제로 올바른 내용으로 저장됐는지, 렌더링에 문제는 없는지 검증하는 단계가 없다. "생성자와 평가자를 분리하라"는 하네스의 핵심 원칙이 여기서는 적용되지 않았다.
+
+**3. API 레이어가 서비스 조합 규칙을 알고 있다**
+
+```typescript
+// api/sync/route.ts
+const syncResult = await syncGitHubToDatabase();
+const retitleResult = await retitleExistingPosts();  // ← 왜 여기에?
+```
+
+"sync할 때 retitle도 해야 한다"는 비즈니스 규칙이 API 레이어에 노출돼 있다. 이 규칙은 `SyncService` 안에 있어야 한다. 다른 진입점에서 sync를 호출하면 retitle을 빼먹을 수 있다.
+
+**4. GitHub API 재시도 없음**
+
+`getDirectoryContents`는 전체 sync 시 수십 번 호출된다. 여기에 재시도 로직이 없으면 429 하나에 sync 전체가 실패한다.
+
+---
+
+### 평가 요약
+
+| 항목 | 점수 |
+|------|------|
+| 컨텍스트 엔지니어링 (계층형 AGENTS.md) | 9/10 |
+| 아키텍처 제약 (레이어 규칙, TypeScript strict) | 8/10 |
+| 상태 외부화 (SyncLog, SHA 멱등성) | 8/10 |
+| 폴백/복구 전략 | 7/10 |
+| 테스트 커버리지 (계약으로서의 테스트) | 4/10 |
+| 평가자 분리 | 3/10 |
+| 엔트로피 관리 | 3/10 |
+| **종합** | **72/100** |
+
+컨텍스트 엔지니어링은 잘 됐다. 에이전트가 이 저장소에서 작업할 때 방향을 잃지 않는다. 반면 "생성 후 평가"하는 루프와 핵심 로직의 테스트 커버리지가 약하다. 하네스 점수를 올리려면 SyncService 테스트와 Evaluator 레이어가 먼저다.
+
+---
+
 ## 모델이 좋아질수록 하네스는 어떻게 되는가
 
 흥미로운 관찰이 있다. Rajasekaran은 Claude Opus 4.6으로 테스트하면서 하네스 컴포넌트를 하나씩 제거해봤다.
