@@ -6,7 +6,7 @@
 
 ArgoCD는 웹 UI가 있는 툴처럼 보이지만, 기술적으로는 **K8s Custom Controller**이다.
 
-- **CRD(Custom Resource Definition)**: K8s에는 기본적으로 `Pod`, `Deployment`같은 리소스가 있다.
+- **CRD**(Custom Resource Definition): K8s에는 기본적으로 `Pod`, `Deployment`같은 리소스가 있다.
   - ArgoCD를 설치하면 **Application**과 **AppProject**라는 새로운 리소스 타입이 생긴다.
 - **동작 원리**: 우리가 YAML 파일로 `Application` 객체를 생성하면, ArgoCD 컨트롤러가 이를 감지한다.
   - "이 Git 주소에 있는 내용을 저 클러스터에 배포하라는 거구나"라고 해석해서 일을 시작한다.

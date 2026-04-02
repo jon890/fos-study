@@ -1,6 +1,6 @@
 # Redis 실시간 랭킹 (Leaderboard)
 
-실시간 랭킹은 Redis의 **Sorted Set(ZSet)**이 가장 빛을 발하는 사용 사례다. RDB에서 `ORDER BY score DESC` 쿼리를 매번 날리는 것과 달리, Sorted Set은 score 기반 정렬 상태를 항상 유지하므로 **순위 조회가 O(log N)**이다.
+실시간 랭킹은 Redis의 **Sorted Set**(ZSet)이 가장 빛을 발하는 사용 사례다. RDB에서 `ORDER BY score DESC` 쿼리를 매번 날리는 것과 달리, Sorted Set은 score 기반 정렬 상태를 항상 유지하므로 **순위 조회가 O(log N)**이다.
 
 ---
 

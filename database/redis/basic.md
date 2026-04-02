@@ -118,7 +118,7 @@ SCARD user:1:tags                # 크기
 
 ### Sorted Set (ZSet)
 
-각 멤버에 **score(실수)**를 부여해 정렬 상태를 유지하는 집합. score 기준 범위 조회가 O(log N).
+각 멤버에 **score**(실수)를 부여해 정렬 상태를 유지하는 집합. score 기준 범위 조회가 O(log N).
 
 ```
 ZADD leaderboard 1500 "user:alice"

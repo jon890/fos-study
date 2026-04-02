@@ -37,7 +37,7 @@ InnoDB는 성능을 위해 데이터 변경을 바로 데이터 파일에 쓰지
    ← 이 시점이 Checkpoint
 ```
 
-Redo Log File은 **링 버퍼(circular)** 구조다. 가득 차면 checkpoint를 강제로 진행해서 공간을 확보한다.
+Redo Log File은 **링 버퍼**(circular) 구조다. 가득 차면 checkpoint를 강제로 진행해서 공간을 확보한다.
 
 ---
 

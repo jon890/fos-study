@@ -2,7 +2,7 @@
 
 ## 1. 아키텍처 및 Executor 구성
 
-이 구조의 핵심은 **읽기는 동기, 처리는 비동기, 쓰기는 동기(Future Unwrapping)**이다.
+이 구조의 핵심은 **읽기는 동기, 처리는 비동기, 쓰기는 동기**(Future Unwrapping)이다.
 
 - **1. ItemReader (Main Thread)**:
   - 단일 스레드에서 Chunk Size만큼 데이터를 순차적으로 읽는다.
@@ -57,7 +57,7 @@
 
 ### A. Java 21 Virtual Threads (강력 추천)
 
-만약 프로젝트가 **Java 21 + Spring Boot 3.2 이상**이라면, 복잡한 스레드 풀 튜닝 없이 **가상 스레드(Virtual Threads)**를 쓰자. </br>
+만약 프로젝트가 **Java 21 + Spring Boot 3.2 이상**이라면, 복잡한 스레드 풀 튜닝 없이 **가상 스레드**(Virtual Threads)를 쓰자. </br>
 I/O Bound 작업에서 압도적인 효율을 보여준다.
 
 ```kotlin
