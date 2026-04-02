@@ -375,6 +375,55 @@ const retitleResult = await retitleExistingPosts();  // ← 왜 여기에?
 
 ---
 
+## gstack — 역할 기반 하네스의 실용 구현
+
+Y Combinator CEO Garry Tan이 자신의 실제 Claude Code 개발 환경을 오픈소스로 공개한 것이 **gstack**이다.
+
+> "The model is commodity. The harness is moat."
+
+모델 자체보다 모델을 감싸는 구조가 경쟁력이라는 하네스 엔지니어링의 핵심 명제를 그대로 실천한 프로젝트다.
+
+### 아이디어: 만능 어시스턴트 대신 역할 조직
+
+하나의 AI에게 모든 걸 맡기는 대신, 실제 엔지니어링 조직의 역할 구조를 하네스로 투영한다. Claude라는 동일한 모델이지만 각 커맨드마다 독립된 시스템 프롬프트를 가진 다른 "역할"로 동작한다.
+
+```
+/plan-ceo-review      ← CEO 페르소나로 전략 검토
+/plan-eng-review      ← 엔지니어링 매니저로 기술 계획 검토
+/review               ← 코드 리뷰어
+/qa                   ← QA 리드
+/ship                 ← 릴리스 매니저
+```
+
+개발 사이클 전체를 커버한다: Think → Plan → Build → Review → Test → Ship → Retro
+
+### 하네스 원칙과의 대응
+
+| gstack 커맨드 | 하네스 원칙 |
+|--------------|------------|
+| `/qa`, `/qa-only` | **생성자-평가자 분리** — 만든 사람과 검증하는 사람을 분리 |
+| `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review` | **역할별 평가자** — 관점이 다른 독립 평가자 |
+| `/learn` | **상태 외부화** — 프로젝트별 패턴을 세션 간 누적 |
+| `/guard`, `/careful` | **아키텍처 제약** — 에이전트가 경계를 벗어나지 않도록 제어 |
+| `/investigate` | **컨텍스트 엔지니어링** — 작업 전 충분한 맥락 수집 |
+| `/retro` | **엔트로피 관리** — 반복 패턴 인식 및 개선 |
+
+### 주목받는 이유
+
+실제 검증된 워크플로우다. YC CEO가 자신의 일상 개발에 쓰는 설정을 그대로 공개했다. 한 CTO는 gstack의 코드 리뷰 기능이 팀이 발견하지 못한 XSS 취약점을 잡아냈다고 보고했다.
+
+`/learn` 커맨드는 프로젝트별 패턴을 세션을 넘어 누적한다. 사용할수록 해당 코드베이스에 맞는 하네스로 진화한다. 하네스가 고정된 구조가 아니라 **적응하는 구조**가 될 수 있다는 걸 보여준다.
+
+Google Gemini 환경으로 포팅한 파생 프로젝트까지 등장했다. 아이디어 자체가 모델에 종속되지 않는다는 뜻이다.
+
+```bash
+# 설치
+git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
+cd ~/.claude/skills/gstack && ./setup
+```
+
+---
+
 ## 모델이 좋아질수록 하네스는 어떻게 되는가
 
 흥미로운 관찰이 있다. Rajasekaran은 Claude Opus 4.6으로 테스트하면서 하네스 컴포넌트를 하나씩 제거해봤다.
@@ -407,3 +456,4 @@ LangChain은 모델 교체 없이 하네스 엔지니어링만으로 14퍼센트
 - [Harness engineering: leveraging Codex in an agent-first world (OpenAI)](https://openai.com/index/harness-engineering/)
 - [2025 Was Agents. 2026 Is Agent Harnesses (Aakash Gupta / Medium)](https://aakashgupta.medium.com/2025-was-agents-2026-is-agent-harnesses-heres-why-that-changes-everything-073e9877655e)
 - [Building AI Coding Agents for the Terminal (arXiv)](https://arxiv.org/html/2603.05344v1)
+- [gstack — Garry Tan의 역할 기반 Claude Code 하네스 (GitHub)](https://github.com/garrytan/gstack)
