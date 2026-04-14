@@ -1,8 +1,3 @@
-Here is the final markdown draft:
-
----
-
-```markdown
 # [초안] MySQL EXPLAIN / EXPLAIN ANALYZE 완전 정복 — 실행 계획 읽기부터 Aurora 인터뷰 대비까지
 
 ## 1. 왜 알아야 하는가
@@ -453,5 +448,4 @@ ANALYZE TABLE orders;
 [ ] 카디널리티가 낮은 컬럼의 인덱스 한계와 복합 인덱스로의 대안을 설명할 수 있다
 [ ] Aurora readOnly 트랜잭션이 Reader 인스턴스로 라우팅됨을 알고 성능 분석 시 활용한다
 [ ] ANALYZE TABLE을 언제 실행해야 하는지 설명할 수 있다
-```
 ```
