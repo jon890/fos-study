@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>이력서 — 토스뱅크 Server Developer (Product)</title>
+  <title>이력서 — 김병태 Server Developer</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -198,7 +198,7 @@
       <div>jon89071@gmail.com</div>
       <div>010-2753-2647</div>
       <div><a href="https://github.com/jon890">github.com/jon890</a></div>
-      <div style="margin-top:4px;font-size:8pt;color:#999">토스뱅크 Server Developer (Product) 지원</div>
+      <div style="margin-top:4px;font-size:8pt;color:#999">Server Developer</div>
     </div>
   </header>
 
@@ -332,7 +332,7 @@
       <ul>
         <li><strong>금액 정밀 연산</strong>: 전체 체결 연산에 Decimal.js 적용 — 부동소수점 오차로 인한 금액 불일치 원천 차단. "미세한 숫자 하나가 유저 신뢰를 무너뜨린다"는 금융 시스템 원칙을 직접 체득</li>
         <li><strong>동시성을 구조로 해결</strong>: DB Lock·트랜잭션 대신 Redis Streams 순서 보장 + Redis 플래그 직렬화 게이트 — 락 경합 자체를 발생하지 않는 구조. 호가창과 체결 상태의 정합성 보장</li>
-        <li><strong>CQRS</strong>: 주문 접수(Pub) → 체결(Sub) → 호가창 조회(캐시) 3레이어 분리. 체결 처리 지연이 주문 접수 HTTP 응답에 무영향. 토스뱅크 코어뱅킹의 동기/비동기 분리 패턴과 유사한 설계</li>
+        <li><strong>CQRS</strong>: 주문 접수(Pub) → 체결(Sub) → 호가창 조회(캐시) 3레이어 분리. 체결 처리 지연이 주문 접수 HTTP 응답에 무영향. 코어뱅킹의 동기/비동기 분리 패턴과 유사한 설계</li>
         <li><strong>왜 Redis Streams인가</strong>: Kafka 대비 단순한 인프라. Consumer Group으로 미전달 메시지 보장, 스트림 자체가 주문 이력 로그. 단일 Redis로 큐·저장·검색을 통합해 인프라 복잡도 최소화</li>
         <li>RDB 영속성 구성으로 프로세스 재시작 시 거래 주문 데이터 유실 방지</li>
       </ul>
