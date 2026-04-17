@@ -1,546 +1,677 @@
-# [초안] Strategy Pattern — 백엔드 설계의 핵심, 조건 분기를 전략으로 바꾸는 법
-
-## 왜 이 패턴이 중요한가
-
-코드를 오래 운영하다 보면 반드시 마주치는 장면이 있다. `if (type.equals("KAKAO")) { ... } else if (type.equals("NAVER")) { ... } else if (type.equals("PAYCO")) { ... }`. 처음에는 두 개였다. 다음 분기에 하나 더 붙었다. 반년 뒤에 그 메서드는 200줄짜리 조건 덩어리가 되어 있고, 아무도 건드리고 싶어하지 않는다.
-
-Strategy Pattern은 이 문제를 "조건"이 아닌 "교체 가능한 행동"으로 다루는 설계다. 인터페이스 하나로 행동을 추상화하고, 각 구현체가 자신의 전략을 캡슐화한다. 호출부는 어떤 전략인지 알 필요 없이 그냥 실행만 한다.
-
-백엔드 실무에서 이 패턴이 등장하는 지점은 정해져 있다. 결제 수단, 할인 정책, 알림 채널, 파싱 포맷, 외부 API 연동 방식. 공통적으로 "같은 입력에 대해 처리 방법이 달라지는" 지점이다. 면접에서는 이 패턴을 단순히 "OCP를 지키는 방법"으로 소개하는 사람이 많다. 그러나 시니어 레벨에서 기대하는 답변은 한 단계 더 들어간다. 언제 쓰고, 언제 쓰지 말고, 테스트 관점에서 어떤 이점이 있는지, 그리고 실제로 코드가 어떻게 바뀌는지까지 설명할 수 있어야 한다.
+# [초안] Strategy Pattern — 분기문을 없애는 설계, 시니어 백엔드 인터뷰 핵심 패턴
 
 ---
 
-## 핵심 개념 — 패턴의 구조와 의도
+## 왜 지금 이 패턴인가
 
-GoF(Gang of Four)가 정의한 Strategy Pattern의 의도는 다음과 같다.
+코드를 오래 작성하다 보면 반드시 만나는 장면이 있다. 결제 수단이 하나 추가될 때마다 `if-else` 블록이 늘어나는 `PaymentService`, 할인 정책 종류가 바뀔 때마다 손대야 하는 `DiscountCalculator`, 알림 채널이 추가될 때마다 재배포해야 하는 `NotificationDispatcher`. 이 구조는 처음엔 단순해 보이지만, 결국 수백 줄의 거대한 분기문과 테스트 불가능한 메서드, 그리고 "저 코드는 아무도 건드리면 안 됩니다"라는 팀 규칙으로 귀결된다.
 
-> "알고리즘 군을 정의하고, 각각을 캡슐화하여 교환 가능하게 만든다. 전략 패턴을 사용하면 알고리즘을 사용하는 클라이언트와 독립적으로 알고리즘을 변경할 수 있다."
+Strategy Pattern은 그 분기문을 없애는 대신, **알고리즘(행동)을 독립된 클래스로 캡슐화하고 런타임에 교체 가능**하게 만드는 패턴이다. GoF(Gang of Four)가 정의한 23가지 패턴 중 가장 실무 친화적인 것 중 하나이며, 특히 Java/Spring 백엔드에서 도메인 로직의 복잡도를 관리하는 핵심 수단이다.
 
-구조는 세 요소로 이루어진다.
+시니어 백엔드 면접에서 이 패턴을 물어보는 이유는 단순히 패턴 이름을 알고 있는지 확인하는 게 아니다. **OCP(개방-폐쇄 원칙)를 실제로 코드에 적용할 수 있는지, 테스트 가능한 구조를 의도적으로 설계할 수 있는지**를 보는 것이다.
 
-1. **Strategy 인터페이스**: 모든 전략이 따르는 계약. 메서드 시그니처를 통일한다.
-2. **ConcreteStrategy**: 실제 알고리즘을 구현하는 클래스들.
-3. **Context**: Strategy를 주입받아 사용하는 객체. 어떤 ConcreteStrategy인지 모른다.
+---
 
-UML보다 코드로 보는 편이 직관적이다.
+## 핵심 개념: 전략을 행동으로 분리한다
 
-```java
-// Strategy 인터페이스
-public interface DiscountPolicy {
-    int calculate(int originalPrice);
-}
+Strategy Pattern의 구조는 세 요소로 구성된다.
 
-// ConcreteStrategy A
-public class FixedAmountDiscount implements DiscountPolicy {
-    private final int discountAmount;
+- **Strategy 인터페이스**: 알고리즘의 계약(contract)을 정의한다.
+- **ConcreteStrategy**: 인터페이스를 구현하는 각각의 알고리즘 클래스.
+- **Context**: Strategy를 보유하고 위임(delegation)을 통해 실행한다.
 
-    public FixedAmountDiscount(int discountAmount) {
-        this.discountAmount = discountAmount;
-    }
+핵심은 Context가 ConcreteStrategy를 직접 알지 않는다는 것이다. Context는 오직 Strategy 인터페이스만 의존한다. 어떤 구체 구현이 주입되는지는 Context 외부에서 결정된다.
 
-    @Override
-    public int calculate(int originalPrice) {
-        return Math.max(0, originalPrice - discountAmount);
-    }
-}
-
-// ConcreteStrategy B
-public class RateDiscount implements DiscountPolicy {
-    private final double discountRate;
-
-    public RateDiscount(double discountRate) {
-        this.discountRate = discountRate;
-    }
-
-    @Override
-    public int calculate(int originalPrice) {
-        return (int) (originalPrice * (1 - discountRate));
-    }
-}
-
-// Context
-public class Order {
-    private final DiscountPolicy discountPolicy;
-
-    public Order(DiscountPolicy discountPolicy) {
-        this.discountPolicy = discountPolicy;
-    }
-
-    public int finalPrice(int originalPrice) {
-        return discountPolicy.calculate(originalPrice);
-    }
-}
+```
+Client → Context ──uses──▶ «interface» Strategy
+                              ▲         ▲         ▲
+                    ConcreteA   ConcreteB   ConcreteC
 ```
 
-`Order`는 `DiscountPolicy`가 고정 금액인지 비율인지 알지 못한다. 호출부는 전략을 주입할 뿐이다.
+이 구조가 단순 `if-else`와 근본적으로 다른 이유는 **새로운 전략을 추가할 때 기존 코드를 수정하지 않아도 된다**는 점이다. 인터페이스만 구현하면 된다. 이것이 OCP가 말하는 "확장에는 열려 있고, 수정에는 닫혀 있다"의 실체다.
 
 ---
 
-## 어떤 문제를 해결하는가 — if-else 분기와의 결정적 차이
+## 문제 상황: if-else로 가득 찬 결제 서비스
 
-단순 조건 분기와 전략 패턴의 차이는 **변경의 파급 범위**에 있다.
-
-### 조건 분기 방식 (나쁜 예)
+나쁜 예부터 보자. 다음은 결제 수단이 세 가지일 때 흔히 볼 수 있는 구조다.
 
 ```java
+// BAD: 분기가 비즈니스 로직과 뒤섞인 구조
+@Service
 public class PaymentService {
 
-    public void pay(String method, int amount) {
-        if ("KAKAO_PAY".equals(method)) {
-            // 카카오페이 API 호출
+    public PaymentResult pay(PaymentRequest request) {
+        String method = request.getPaymentMethod();
+
+        if ("CARD".equals(method)) {
+            // 카드 결제 로직
+            CardGateway gateway = new CardGateway();
+            gateway.authorize(request.getCardNumber(), request.getAmount());
+            return new PaymentResult("CARD", request.getAmount(), "SUCCESS");
+
+        } else if ("KAKAO_PAY".equals(method)) {
+            // 카카오페이 로직
             KakaoPayClient client = new KakaoPayClient();
-            client.requestPayment(amount);
+            client.requestPayment(request.getUserId(), request.getAmount());
+            return new PaymentResult("KAKAO_PAY", request.getAmount(), "SUCCESS");
+
         } else if ("NAVER_PAY".equals(method)) {
-            // 네이버페이 API 호출
-            NaverPayClient client = new NaverPayClient();
-            client.charge(amount, NaverPayOptions.DEFAULT);
-        } else if ("TOSS".equals(method)) {
-            // 토스 API 호출
-            TossPaymentApi api = new TossPaymentApi(API_KEY);
-            api.execute(amount);
+            // 네이버페이 로직
+            NaverPayApi api = new NaverPayApi();
+            api.charge(request.getNaverPayToken(), request.getAmount());
+            return new PaymentResult("NAVER_PAY", request.getAmount(), "SUCCESS");
+
         } else {
-            throw new IllegalArgumentException("Unknown payment method: " + method);
+            throw new IllegalArgumentException("지원하지 않는 결제 수단: " + method);
         }
     }
 }
 ```
 
-이 코드의 문제점은 다음과 같다.
+이 코드의 문제점을 열거하면:
 
-- **새 결제 수단 추가 = `PaymentService` 수정 필요**. 서비스 클래스가 계속 커진다.
-- **단위 테스트가 어렵다**. 특정 수단만 테스트하려 해도 `PaymentService` 전체를 인스턴스화해야 한다.
-- **의존성이 숨어 있다**. `KakaoPayClient`, `NaverPayClient`, `TossPaymentApi`가 메서드 내부에서 직접 생성된다. 목(Mock) 교체 불가.
-- **OCP 위반**. 확장 시 기존 클래스를 수정해야 한다.
+1. **결제 수단이 추가될 때마다 이 메서드를 수정해야 한다.** OCP 위반.
+2. **단위 테스트가 불가능하다.** `CardGateway`, `KakaoPayClient`를 직접 `new`로 생성하기 때문에 mock으로 교체할 수 없다.
+3. **하나의 메서드가 모든 결제 로직을 안다.** SRP 위반.
+4. **실수로 조건을 빠뜨리거나 중복되는 분기가 생기기 쉽다.**
 
-### 전략 패턴 방식 (개선된 예)
+---
+
+## 개선: Strategy Pattern 적용
+
+### 1단계: Strategy 인터페이스 정의
 
 ```java
-// 전략 인터페이스
 public interface PaymentStrategy {
-    void pay(int amount);
+    PaymentResult pay(PaymentRequest request);
+    boolean supports(String paymentMethod);
+}
+```
+
+`supports()` 메서드는 어떤 전략이 어떤 결제 수단을 처리할 수 있는지 스스로 판단하게 만드는 핵심 장치다. Context가 분기하는 게 아니라 전략 스스로 자기 적용 범위를 선언한다.
+
+### 2단계: ConcreteStrategy 구현
+
+```java
+@Component
+public class CardPaymentStrategy implements PaymentStrategy {
+
+    private final CardGateway cardGateway;
+
+    public CardPaymentStrategy(CardGateway cardGateway) {
+        this.cardGateway = cardGateway;
+    }
+
+    @Override
+    public PaymentResult pay(PaymentRequest request) {
+        cardGateway.authorize(request.getCardNumber(), request.getAmount());
+        return new PaymentResult("CARD", request.getAmount(), "SUCCESS");
+    }
+
+    @Override
+    public boolean supports(String paymentMethod) {
+        return "CARD".equals(paymentMethod);
+    }
 }
 
-// 각 구현체
-@Component("KAKAO_PAY")
+@Component
 public class KakaoPayStrategy implements PaymentStrategy {
-    private final KakaoPayClient client;
 
-    public KakaoPayStrategy(KakaoPayClient client) {
-        this.client = client;
+    private final KakaoPayClient kakaoPayClient;
+
+    public KakaoPayStrategy(KakaoPayClient kakaoPayClient) {
+        this.kakaoPayClient = kakaoPayClient;
     }
 
     @Override
-    public void pay(int amount) {
-        client.requestPayment(amount);
-    }
-}
-
-@Component("NAVER_PAY")
-public class NaverPayStrategy implements PaymentStrategy {
-    private final NaverPayClient client;
-
-    public NaverPayStrategy(NaverPayClient client) {
-        this.client = client;
+    public PaymentResult pay(PaymentRequest request) {
+        kakaoPayClient.requestPayment(request.getUserId(), request.getAmount());
+        return new PaymentResult("KAKAO_PAY", request.getAmount(), "SUCCESS");
     }
 
     @Override
-    public void pay(int amount) {
-        client.charge(amount, NaverPayOptions.DEFAULT);
+    public boolean supports(String paymentMethod) {
+        return "KAKAO_PAY".equals(paymentMethod);
     }
 }
+```
 
-// Context
+각 ConcreteStrategy는 `@Component`로 Spring Bean으로 등록된다. 의존하는 게이트웨이/클라이언트는 생성자 주입으로 받아 테스트 시 mock으로 교체 가능하다.
+
+### 3단계: Context — Strategy 목록을 주입받아 위임
+
+```java
 @Service
 public class PaymentService {
-    private final Map<String, PaymentStrategy> strategies;
 
-    public PaymentService(Map<String, PaymentStrategy> strategies) {
+    private final List<PaymentStrategy> strategies;
+
+    // Spring이 PaymentStrategy 구현체 전부를 리스트로 자동 주입
+    public PaymentService(List<PaymentStrategy> strategies) {
         this.strategies = strategies;
     }
 
-    public void pay(String method, int amount) {
-        PaymentStrategy strategy = strategies.get(method);
-        if (strategy == null) {
-            throw new IllegalArgumentException("Unknown payment method: " + method);
-        }
-        strategy.pay(amount);
+    public PaymentResult pay(PaymentRequest request) {
+        PaymentStrategy strategy = strategies.stream()
+            .filter(s -> s.supports(request.getPaymentMethod()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException(
+                "지원하지 않는 결제 수단: " + request.getPaymentMethod()
+            ));
+
+        return strategy.pay(request);
     }
 }
 ```
 
-Spring에서 `Map<String, PaymentStrategy>`에 Bean 이름을 키로 주입받는 방식은 실무에서 가장 많이 쓰이는 패턴이다. 새로운 결제 수단이 생기면 구현체 하나를 `@Component("NEW_METHOD")`로 등록하기만 하면 된다. `PaymentService`는 건드리지 않는다.
+이제 `PaymentService`는 결제 수단 추가와 완전히 분리됐다. 새 결제 수단 `TossPay`가 추가된다면 `TossPayStrategy`를 `@Component`로 만들면 된다. `PaymentService`는 건드릴 필요가 없다.
 
 ---
 
-## 실무 백엔드 적용 사례
+## 백엔드 실무 적용 패턴 5가지
 
-### 1. 알림 채널 전략
+### 1. 할인 정책 (Discount Policy)
+
+이커머스, 헬스케어 플랫폼에서 할인 구조는 시간이 지날수록 복잡해진다.
+
+```java
+public interface DiscountPolicy {
+    int calculate(Order order);
+    boolean applicable(Order order);
+}
+
+@Component
+public class MemberGradeDiscountPolicy implements DiscountPolicy {
+    @Override
+    public int calculate(Order order) {
+        return switch (order.getMemberGrade()) {
+            case VIP -> (int) (order.getTotalAmount() * 0.1);
+            case GOLD -> (int) (order.getTotalAmount() * 0.05);
+            default -> 0;
+        };
+    }
+
+    @Override
+    public boolean applicable(Order order) {
+        return order.getMemberGrade() != null;
+    }
+}
+
+@Component
+public class CouponDiscountPolicy implements DiscountPolicy {
+    @Override
+    public int calculate(Order order) {
+        return order.getCoupon().getDiscountAmount();
+    }
+
+    @Override
+    public boolean applicable(Order order) {
+        return order.getCoupon() != null && order.getCoupon().isValid();
+    }
+}
+```
+
+할인이 중첩 적용되어야 한다면 `List<DiscountPolicy>`를 모두 순회하며 합산하는 방식으로 확장할 수 있다.
+
+### 2. 알림 채널 (Notification Channel)
 
 ```java
 public interface NotificationStrategy {
-    void send(String recipient, String message);
-}
-
-@Component("EMAIL")
-public class EmailNotificationStrategy implements NotificationStrategy {
-    @Override
-    public void send(String recipient, String message) {
-        // JavaMailSender 사용
-    }
-}
-
-@Component("SMS")
-public class SmsNotificationStrategy implements NotificationStrategy {
-    @Override
-    public void send(String recipient, String message) {
-        // SMS API 호출
-    }
-}
-
-@Component("PUSH")
-public class PushNotificationStrategy implements NotificationStrategy {
-    @Override
-    public void send(String recipient, String message) {
-        // FCM 호출
-    }
-}
-```
-
-사용자 설정에 따라 `EMAIL`, `SMS`, `PUSH` 중 하나를 선택하는 로직이 서비스 레이어에 들어올 때, 전략 패턴으로 분리하면 각 채널을 독립적으로 테스트하고 관리할 수 있다.
-
-### 2. 파일 파싱 전략
-
-외부 파트너사마다 주문 파일 포맷이 다른 경우가 있다. CSV, Excel, JSON, XML. 이때 파서를 전략으로 분리한다.
-
-```java
-public interface OrderFileParser {
-    List<OrderDto> parse(InputStream inputStream);
-}
-
-@Component("CSV")
-public class CsvOrderParser implements OrderFileParser { ... }
-
-@Component("EXCEL")
-public class ExcelOrderParser implements OrderFileParser { ... }
-
-@Component("JSON")
-public class JsonOrderParser implements OrderFileParser { ... }
-```
-
-파일 포맷 코드를 요청 파라미터로 받아 전략을 선택한다. 새 파트너사가 XML 형식을 요구하면 `XmlOrderParser`만 추가하면 된다.
-
-### 3. 슬롯 엔진 / 핸들러 분리 패턴
-
-슬롯 머신처럼 게임 엔진이나 이벤트 처리 시스템을 설계할 때, 각 이벤트 타입(예: `SPIN`, `BONUS`, `FREE_GAME`)에 대한 처리 로직이 다를 수 있다. 이때 핸들러를 전략으로 등록하면 새로운 이벤트 타입 추가 시 엔진 코어 로직을 건드리지 않는다.
-
-```java
-public interface GameEventHandler {
-    GameResult handle(GameContext context);
-    GameEventType supportedType();
+    void send(NotificationMessage message);
+    NotificationChannel channel();
 }
 
 @Component
-public class SpinHandler implements GameEventHandler {
+public class PushNotificationStrategy implements NotificationStrategy {
     @Override
-    public GameResult handle(GameContext context) {
-        // 릴 스핀 로직
+    public void send(NotificationMessage message) {
+        // Firebase FCM 연동 로직
     }
 
     @Override
-    public GameEventType supportedType() {
-        return GameEventType.SPIN;
+    public NotificationChannel channel() {
+        return NotificationChannel.PUSH;
     }
 }
 
-// 엔진 코어
-@Service
-public class SlotEngine {
-    private final Map<GameEventType, GameEventHandler> handlers;
+@Component
+public class EmailNotificationStrategy implements NotificationStrategy {
+    @Override
+    public void send(NotificationMessage message) {
+        // SES 또는 SMTP 발송 로직
+    }
 
-    public SlotEngine(List<GameEventHandler> handlerList) {
-        this.handlers = handlerList.stream()
+    @Override
+    public NotificationChannel channel() {
+        return NotificationChannel.EMAIL;
+    }
+}
+```
+
+### 3. 파싱 전략 (File Format Parsing)
+
+배치나 데이터 수집 파이프라인에서 파일 포맷이 다양한 경우:
+
+```java
+public interface FileParsingStrategy {
+    List<ProductData> parse(InputStream inputStream);
+    boolean supports(String fileExtension);
+}
+
+@Component
+public class CsvParsingStrategy implements FileParsingStrategy {
+    @Override
+    public List<ProductData> parse(InputStream inputStream) {
+        // CSV 파싱 로직 (OpenCSV 등)
+        return new ArrayList<>();
+    }
+
+    @Override
+    public boolean supports(String fileExtension) {
+        return "csv".equalsIgnoreCase(fileExtension);
+    }
+}
+
+@Component
+public class ExcelParsingStrategy implements FileParsingStrategy {
+    @Override
+    public List<ProductData> parse(InputStream inputStream) {
+        // Apache POI 로직
+        return new ArrayList<>();
+    }
+
+    @Override
+    public boolean supports(String fileExtension) {
+        return "xlsx".equalsIgnoreCase(fileExtension) || "xls".equalsIgnoreCase(fileExtension);
+    }
+}
+```
+
+### 4. 슬롯 엔진 / 핸들러 분리 (본인 경험과의 연결)
+
+슬롯 게임 엔진처럼 **게임 타입별로 다른 처리 로직**이 필요한 경우가 있다. 각 게임 유형(클래식 슬롯, 멀티라인, 보너스 슬롯 등)이 공통 인터페이스를 구현하는 ConcreteStrategy가 된다.
+
+```java
+public interface SlotGameHandler {
+    SpinResult process(SpinRequest request);
+    boolean supports(GameType gameType);
+}
+
+@Component
+public class ClassicSlotHandler implements SlotGameHandler {
+    @Override
+    public SpinResult process(SpinRequest request) {
+        // 3릴 클래식 슬롯 처리
+        return new SpinResult();
+    }
+
+    @Override
+    public boolean supports(GameType gameType) {
+        return GameType.CLASSIC == gameType;
+    }
+}
+
+@Component
+public class BonusSlotHandler implements SlotGameHandler {
+    @Override
+    public SpinResult process(SpinRequest request) {
+        // 보너스 게임 처리
+        return new SpinResult();
+    }
+
+    @Override
+    public boolean supports(GameType gameType) {
+        return GameType.BONUS == gameType;
+    }
+}
+
+@Service
+public class SlotEngineService {
+    private final List<SlotGameHandler> handlers;
+
+    public SlotEngineService(List<SlotGameHandler> handlers) {
+        this.handlers = handlers;
+    }
+
+    public SpinResult spin(SpinRequest request) {
+        return handlers.stream()
+            .filter(h -> h.supports(request.getGameType()))
+            .findFirst()
+            .orElseThrow(() -> new GameNotFoundException(request.getGameType()))
+            .process(request);
+    }
+}
+```
+
+이 구조의 장점은 게임 타입이 수십 개로 늘어나도 `SlotEngineService` 코드를 한 줄도 수정하지 않아도 된다는 것이다. 이것이 바로 실무에서 Strategy Pattern이 갖는 진짜 가치다.
+
+### 5. 외부 API 연동 추상화 (Provider Abstraction)
+
+헬스케어 플랫폼에서 여러 물류사, 배송 추적 API를 연동할 때:
+
+```java
+public interface ShippingTrackingStrategy {
+    TrackingResult track(String trackingNumber);
+    ShippingCarrier carrier();
+}
+
+// CJ대한통운, 롯데택배, 우체국 등 각각 @Component로 등록
+```
+
+---
+
+## 흔한 실수 패턴
+
+### 실수 1: Context가 여전히 분기문을 가진다
+
+```java
+// BAD: 전략을 도입했지만 여전히 분기
+public PaymentResult pay(PaymentRequest request) {
+    if ("CARD".equals(request.getPaymentMethod())) {
+        return cardStrategy.pay(request);
+    } else if ("KAKAO_PAY".equals(request.getPaymentMethod())) {
+        return kakaoPayStrategy.pay(request);
+    }
+    throw new IllegalArgumentException("...");
+}
+```
+
+이렇게 되면 Strategy Pattern을 도입한 의미가 없다. `supports()` 메서드나 `Map<String, Strategy>` 기반 디스패치로 완전히 분기를 제거해야 한다.
+
+### 실수 2: 전략을 enum이나 상수로 결정한다
+
+```java
+// BAD: 외부에서 전략 타입을 직접 결정
+public PaymentResult pay(PaymentRequest request) {
+    PaymentStrategyType type = PaymentStrategyType.from(request.getPaymentMethod());
+    PaymentStrategy strategy = strategyFactory.get(type); // switch inside factory
+    return strategy.pay(request);
+}
+```
+
+Factory 안에 다시 switch가 생긴다. 이 구조에서 새 전략을 추가하려면 Factory도, enum도 수정해야 한다. 분기가 이동했을 뿐이다.
+
+**개선**: `supports()` 기반 선형 탐색 또는 `Map<String, PaymentStrategy>` 사전 조립.
+
+```java
+// IMPROVED: Map으로 사전 조립
+@Configuration
+public class PaymentStrategyConfig {
+
+    @Bean
+    public Map<String, PaymentStrategy> paymentStrategyMap(List<PaymentStrategy> strategies) {
+        return strategies.stream()
             .collect(Collectors.toMap(
-                GameEventHandler::supportedType,
+                s -> s.supportedMethod().name(),
                 Function.identity()
             ));
     }
-
-    public GameResult process(GameEventType type, GameContext context) {
-        return Optional.ofNullable(handlers.get(type))
-            .orElseThrow(() -> new UnsupportedEventException(type))
-            .handle(context);
-    }
-}
-```
-
-`List<GameEventHandler>`를 주입받아 직접 맵을 구성하는 방식은 Bean 이름이 아닌 도메인 타입을 키로 쓸 때 유용하다.
-
----
-
-## 테스트 가능성 — 전략 패턴이 주는 가장 큰 실용 이점
-
-전략 패턴이 if-else보다 나은 이유를 "OCP 때문에"라고만 말하면 부족하다. 실무에서 가장 체감되는 이점은 **테스트 격리**다.
-
-```java
-@Test
-void 고정금액_할인이_올바르게_적용된다() {
-    DiscountPolicy policy = new FixedAmountDiscount(1000);
-    Order order = new Order(policy);
-
-    int result = order.finalPrice(5000);
-
-    assertThat(result).isEqualTo(4000);
-}
-
-@Test
-void 비율_할인이_올바르게_적용된다() {
-    DiscountPolicy policy = new RateDiscount(0.1);
-    Order order = new Order(policy);
-
-    int result = order.finalPrice(10000);
-
-    assertThat(result).isEqualTo(9000);
-}
-```
-
-각 전략을 독립적으로 테스트할 수 있다. `Order`를 테스트할 때는 Mock `DiscountPolicy`를 주입한다.
-
-```java
-@Test
-void Order는_전략에_위임한다() {
-    DiscountPolicy mockPolicy = mock(DiscountPolicy.class);
-    when(mockPolicy.calculate(5000)).thenReturn(4500);
-
-    Order order = new Order(mockPolicy);
-    int result = order.finalPrice(5000);
-
-    assertThat(result).isEqualTo(4500);
-    verify(mockPolicy).calculate(5000);
-}
-```
-
-if-else 방식이었다면 `PaymentService` 하나에 세 개의 외부 클라이언트가 결합되어 있어, 한 수단만 테스트하기 위해 나머지 두 개를 어떻게든 초기화해야 한다.
-
----
-
-## 자주 저지르는 실수 패턴
-
-### 실수 1: 전략이 너무 많은 상태를 받는다
-
-```java
-// 나쁜 예 — 전략이 전체 주문 도메인 객체를 알아야 한다
-public interface DiscountPolicy {
-    int calculate(Order order, User user, Coupon coupon, LocalDateTime now);
-}
-```
-
-전략의 시그니처에 너무 많은 파라미터가 들어가면 전략끼리 결합도가 높아지고 테스트가 어렵다. 필요한 값만 계산해서 넘기거나, 가벼운 DTO를 따로 만들어라.
-
-```java
-// 개선된 예
-public interface DiscountPolicy {
-    int calculate(DiscountContext context);
-}
-
-public record DiscountContext(int originalPrice, MemberGrade grade, boolean hasCoupon) {}
-```
-
-### 실수 2: 전략 선택 로직이 다시 거대해진다
-
-전략을 만들어 놓고, 어떤 전략을 고를지 결정하는 `StrategySelector`에 if-else가 그대로 쌓이는 경우가 있다.
-
-```java
-// 나쁜 예 — 선택 로직이 다시 복잡해짐
-public PaymentStrategy select(String method) {
-    if ("KAKAO".equals(method)) return kakaoPayStrategy;
-    else if ("NAVER".equals(method)) return naverPayStrategy;
-    else if ("TOSS".equals(method)) return tossStrategy;
-    ...
-}
-```
-
-Spring의 Bean 이름 기반 Map 주입, 또는 각 전략이 자신이 지원하는 조건을 직접 알고 있는 `supports()` 메서드 방식으로 해결한다.
-
-```java
-public interface PaymentStrategy {
-    void pay(int amount);
-    boolean supports(String method);
 }
 
 @Service
-public class PaymentStrategyResolver {
-    private final List<PaymentStrategy> strategies;
+public class PaymentService {
+    private final Map<String, PaymentStrategy> strategyMap;
 
-    public PaymentStrategyResolver(List<PaymentStrategy> strategies) {
-        this.strategies = strategies;
+    public PaymentService(Map<String, PaymentStrategy> strategyMap) {
+        this.strategyMap = strategyMap;
     }
 
-    public PaymentStrategy resolve(String method) {
-        return strategies.stream()
-            .filter(s -> s.supports(method))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown: " + method));
+    public PaymentResult pay(PaymentRequest request) {
+        return Optional.ofNullable(strategyMap.get(request.getPaymentMethod()))
+            .orElseThrow(() -> new UnsupportedPaymentMethodException(request.getPaymentMethod()))
+            .pay(request);
     }
 }
 ```
 
-### 실수 3: 전략을 stateful하게 만든다
+`Map` 기반은 O(1) 조회로 성능도 더 낫고, 분기가 완전히 제거된다.
 
-Spring Bean은 기본이 싱글톤이다. 전략 구현체를 Bean으로 등록할 때 상태를 필드로 가지면 동시 요청 시 데이터가 섞인다.
+### 실수 3: 전략 클래스에 상태(state)를 저장한다
 
 ```java
-// 위험한 예 — 상태를 필드로 갖는 전략 Bean
+// BAD: 상태를 가진 전략 (thread-safe 하지 않음)
 @Component
-public class KakaoPayStrategy implements PaymentStrategy {
-    private int lastAmount; // 위험!
+public class CardPaymentStrategy implements PaymentStrategy {
+    private PaymentRequest currentRequest; // 위험!
 
     @Override
-    public void pay(int amount) {
-        this.lastAmount = amount; // 스레드 불안전
-        ...
+    public PaymentResult pay(PaymentRequest request) {
+        this.currentRequest = request; // 동시 요청 시 덮어써짐
+        return doProcess();
     }
 }
 ```
 
-전략 구현체는 가능한 한 **무상태(stateless)**로 만들어야 한다. 필요한 상태는 메서드 파라미터로 전달하라.
+Spring `@Component`로 등록된 Bean은 기본이 싱글턴이다. 동시 요청이 들어오면 인스턴스 변수를 공유한다. 전략 클래스는 **무상태(stateless)**여야 한다. 필요한 데이터는 메서드 파라미터로 전달해야 한다.
 
-### 실수 4: 2개짜리 분기에 전략 패턴을 강요한다
+### 실수 4: 전략이 너무 많아지는 Over-Engineering
 
-전략이 단 2개이고 앞으로도 늘어날 가능성이 없다면, 인터페이스와 구현체 3개를 만드는 것은 오버엔지니어링이다. boolean 파라미터나 enum 분기가 더 읽기 쉽다. 패턴은 목적이 아니라 도구다.
+전략 패턴은 **알고리즘의 변형이 명확히 구분되고, 앞으로도 추가될 가능성이 있을 때** 써야 한다. 두 개의 경우가 있고 앞으로도 거의 바뀌지 않을 거라면 단순 `if-else`나 `switch`가 더 읽기 좋다. 패턴은 복잡도를 관리하는 도구이지, 복잡도를 추가하는 도구가 아니다.
 
 ---
 
-## 언제 쓰고 언제 쓰지 않는가
+## 테스트 가능성: 전략 패턴의 숨은 장점
 
-| 상황 | 판단 |
-|---|---|
-| 분기 타입이 3개 이상이고 앞으로 늘어날 것이 확실 | 전략 패턴 적용 |
-| 각 분기의 처리 로직이 독립적으로 테스트되어야 함 | 전략 패턴 적용 |
-| 분기 처리 로직이 5줄 이하이고 추가될 여지가 없음 | 단순 조건 분기 유지 |
-| 분기가 2개이며 boolean 의미가 명확 | 단순 if-else |
-| 전략이 런타임에 교체되어야 함 (사용자 설정 기반) | 전략 패턴 적용 |
-| 분기 로직이 상태를 공유해야 함 | 전략보다 Template Method 고려 |
+Strategy Pattern의 가장 큰 장점 중 하나는 **각 전략을 독립적으로 테스트**할 수 있다는 것이다.
+
+```java
+class CardPaymentStrategyTest {
+
+    private CardGateway mockGateway;
+    private CardPaymentStrategy strategy;
+
+    @BeforeEach
+    void setUp() {
+        mockGateway = mock(CardGateway.class);
+        strategy = new CardPaymentStrategy(mockGateway);
+    }
+
+    @Test
+    void 카드결제_성공_시_SUCCESS_반환() {
+        // given
+        PaymentRequest request = PaymentRequest.builder()
+            .paymentMethod("CARD")
+            .cardNumber("1234-5678-9012-3456")
+            .amount(50000)
+            .build();
+
+        doNothing().when(mockGateway).authorize(anyString(), anyInt());
+
+        // when
+        PaymentResult result = strategy.pay(request);
+
+        // then
+        assertThat(result.getStatus()).isEqualTo("SUCCESS");
+        assertThat(result.getAmount()).isEqualTo(50000);
+        verify(mockGateway, times(1)).authorize("1234-5678-9012-3456", 50000);
+    }
+
+    @Test
+    void 게이트웨이_실패_시_예외_전파() {
+        PaymentRequest request = PaymentRequest.builder()
+            .paymentMethod("CARD")
+            .cardNumber("0000-0000-0000-0000")
+            .amount(50000)
+            .build();
+
+        doThrow(new GatewayException("카드 거절")).when(mockGateway).authorize(anyString(), anyInt());
+
+        assertThatThrownBy(() -> strategy.pay(request))
+            .isInstanceOf(GatewayException.class)
+            .hasMessageContaining("카드 거절");
+    }
+}
+```
+
+Context인 `PaymentService` 테스트도 간단해진다.
+
+```java
+class PaymentServiceTest {
+
+    @Test
+    void 지원하지_않는_결제수단_요청_시_예외() {
+        PaymentStrategy fakeStrategy = mock(PaymentStrategy.class);
+        when(fakeStrategy.supports(anyString())).thenReturn(false);
+
+        PaymentService service = new PaymentService(List.of(fakeStrategy));
+
+        assertThatThrownBy(() -> service.pay(
+            PaymentRequest.builder().paymentMethod("BITCOIN").build()
+        )).isInstanceOf(IllegalArgumentException.class);
+    }
+}
+```
+
+`if-else` 구조라면 이런 테스트는 내부 구현 전체를 거쳐야 했을 것이다.
+
+---
+
+## Strategy vs 유사 패턴 비교
+
+| 관점 | Strategy | Template Method | Chain of Responsibility | State |
+|------|----------|----------------|------------------------|-------|
+| **변하는 것** | 알고리즘 전체 | 알고리즘의 일부 단계 | 요청 처리 순서 | 객체의 상태 |
+| **구조** | 위임(Delegation) | 상속(Inheritance) | 링크드 핸들러 체인 | 상태별 전략 |
+| **런타임 교체** | 가능 | 불가 | 부분적 | 가능 |
+| **Spring 활용** | Bean List 주입 | abstract class | Filter Chain | State machine |
+| **OCP** | 완전 지원 | 부분 지원 | 지원 | 지원 |
+
+**Template Method와의 차이**: Template Method는 상속 기반이라 클래스 계층을 강제한다. 런타임에 알고리즘을 교체할 수 없다. Strategy는 인터페이스 기반이라 더 유연하고 테스트하기 쉽다. 실무에서는 Strategy를 더 선호하는 추세다.
+
+---
+
+## Strategy Pattern을 쓰면 안 되는 경우
+
+1. **알고리즘 변형이 한두 개뿐이고 미래 확장 가능성이 낮을 때**: `if-else`가 더 명확하다.
+2. **Context와 전략 간 데이터 교환이 매우 복잡할 때**: 파라미터 객체가 비대해지면서 결합도가 오히려 높아질 수 있다.
+3. **알고리즘이 실제로 독립적으로 교체되지 않을 때**: "혹시 나중에 바뀔 수도 있으니까"는 Over-Engineering의 시작이다.
+4. **단순 값 계산 로직**: 함수형 인터페이스(`Function<T, R>`)나 람다로 충분한 경우에 굳이 클래스를 만들 필요 없다.
+
+---
+
+## Java 8+ 함수형 인터페이스와의 결합
+
+간단한 전략은 클래스 없이 람다로 표현할 수 있다.
+
+```java
+// 전략 인터페이스가 함수형이면 람다 사용 가능
+@FunctionalInterface
+public interface PricingStrategy {
+    int calculate(int basePrice, int quantity);
+}
+
+// Context
+public class PriceCalculator {
+    private final PricingStrategy pricingStrategy;
+
+    public PriceCalculator(PricingStrategy pricingStrategy) {
+        this.pricingStrategy = pricingStrategy;
+    }
+
+    public int getTotal(int basePrice, int quantity) {
+        return pricingStrategy.calculate(basePrice, quantity);
+    }
+}
+
+// 사용 측
+PriceCalculator bulkCalculator = new PriceCalculator(
+    (price, qty) -> qty >= 10 ? (int)(price * qty * 0.9) : price * qty
+);
+
+PriceCalculator regularCalculator = new PriceCalculator(
+    (price, qty) -> price * qty
+);
+```
+
+단, 람다는 `supports()` 같은 복잡한 메서드나 의존성 주입이 필요한 경우엔 쓸 수 없다. 상태가 없고 단일 메서드로 표현 가능한 간단한 알고리즘에 적합하다.
 
 ---
 
 ## 로컬 실습 환경 구성
 
-Java 17 + Spring Boot 3.x 환경에서 다음과 같이 바로 실습할 수 있다.
+### 최소 프로젝트 구조
 
-```bash
-# Spring Initializr로 프로젝트 생성
-# Dependencies: Spring Web, Lombok
-
-mkdir strategy-pattern-lab && cd strategy-pattern-lab
+```
+strategy-demo/
+├── src/main/java/com/demo/payment/
+│   ├── PaymentStrategy.java
+│   ├── PaymentService.java
+│   ├── strategy/
+│   │   ├── CardPaymentStrategy.java
+│   │   ├── KakaoPayStrategy.java
+│   │   └── NaverPayStrategy.java
+│   └── dto/
+│       ├── PaymentRequest.java
+│       └── PaymentResult.java
+└── src/test/java/com/demo/payment/
+    ├── PaymentServiceTest.java
+    └── strategy/
+        └── CardPaymentStrategyTest.java
 ```
 
-### 실습 시나리오: 할인 정책 교체
+### Spring Boot 없이 동작 확인하는 최소 Main
 
 ```java
-// 1. 인터페이스 정의
-public interface DiscountPolicy {
-    int apply(int price);
-    String name();
-}
+public class StrategyPatternDemo {
+    public static void main(String[] args) {
+        // 수동 조립 (Spring DI 없이)
+        List<PaymentStrategy> strategies = List.of(
+            new CardPaymentStrategy(new MockCardGateway()),
+            new KakaoPayStrategy(new MockKakaoPayClient())
+        );
 
-// 2. 구현체 3개
-@Component
-public class NoDiscount implements DiscountPolicy {
-    public int apply(int price) { return price; }
-    public String name() { return "NO_DISCOUNT"; }
-}
+        PaymentService service = new PaymentService(strategies);
 
-@Component
-public class SummerSaleDiscount implements DiscountPolicy {
-    public int apply(int price) { return (int)(price * 0.8); }
-    public String name() { return "SUMMER_SALE"; }
-}
+        // 카드 결제
+        PaymentRequest cardRequest = new PaymentRequest("CARD", 30000);
+        System.out.println(service.pay(cardRequest));
 
-@Component
-public class VipDiscount implements DiscountPolicy {
-    public int apply(int price) { return (int)(price * 0.7); }
-    public String name() { return "VIP"; }
-}
+        // 카카오페이
+        PaymentRequest kakaoRequest = new PaymentRequest("KAKAO_PAY", 15000);
+        System.out.println(service.pay(kakaoRequest));
 
-// 3. Resolver
-@Service
-public class DiscountPolicyResolver {
-    private final Map<String, DiscountPolicy> policyMap;
-
-    public DiscountPolicyResolver(List<DiscountPolicy> policies) {
-        this.policyMap = policies.stream()
-            .collect(Collectors.toMap(DiscountPolicy::name, Function.identity()));
-    }
-
-    public DiscountPolicy resolve(String name) {
-        return Optional.ofNullable(policyMap.get(name))
-            .orElseThrow(() -> new IllegalArgumentException("정책 없음: " + name));
-    }
-}
-
-// 4. REST 엔드포인트로 확인
-@RestController
-@RequestMapping("/discount")
-public class DiscountController {
-    private final DiscountPolicyResolver resolver;
-
-    public DiscountController(DiscountPolicyResolver resolver) {
-        this.resolver = resolver;
-    }
-
-    @GetMapping
-    public int calculate(@RequestParam String policy, @RequestParam int price) {
-        return resolver.resolve(policy).apply(price);
+        // 지원하지 않는 수단
+        try {
+            service.pay(new PaymentRequest("BITCOIN", 100));
+        } catch (IllegalArgumentException e) {
+            System.out.println("예외 발생: " + e.getMessage());
+        }
     }
 }
 ```
-
-```bash
-# 실행 후 테스트
-curl "http://localhost:8080/discount?policy=SUMMER_SALE&price=10000"
-# 응답: 8000
-
-curl "http://localhost:8080/discount?policy=VIP&price=10000"
-# 응답: 7000
-```
-
-새로운 정책이 필요하면 `DiscountPolicy`를 구현하는 클래스를 `@Component`로 등록하기만 하면 된다. `DiscountController`도 `DiscountPolicyResolver`도 수정이 필요 없다.
 
 ---
 
-## 면접 답변 프레이밍 — 시니어 레벨 기대치
+## 시니어 면접 답변 프레이밍
 
-### Q. 전략 패턴을 실무에서 적용한 사례를 설명해보세요.
+**Q. Strategy Pattern을 사용한 경험이 있나요?**
 
-**나쁜 답변**: "결제 수단마다 다른 로직이 필요해서 인터페이스를 만들고 각 구현체에 분리했습니다. OCP 원칙을 지킬 수 있었습니다."
+> "네, 슬롯 게임 엔진 개발 시 게임 타입별로 스핀 처리 로직이 달랐는데, 초기엔 `if-else` 구조로 `GameEngine` 클래스 안에서 분기했습니다. 게임 타입이 늘어나면서 클래스가 거대해지고, 특정 타입 수정 시 다른 타입 로직에 영향을 줄 위험이 생겼습니다. 이를 `SlotGameHandler` 인터페이스와 각 게임 타입별 ConcreteStrategy로 분리했고, Spring `@Component` + `List<SlotGameHandler>` 주입 패턴으로 Core 엔진 코드 수정 없이 새 게임 타입을 추가할 수 있게 됐습니다. 이후 단위 테스트도 각 핸들러 별로 독립적으로 작성할 수 있었고, 테스트 커버리지가 유의미하게 올라갔습니다."
 
-**좋은 답변 구조**:
-1. **문제 상황 먼저**: "서비스에 결제 수단이 3개였는데 서비스 레이어에 if-else가 쌓이면서 단위 테스트 커버리지가 특정 수단만 검증되고, 신규 수단 추가 시 기존 코드 회귀 위험이 있었습니다."
-2. **선택 이유**: "전략 패턴을 선택한 이유는 각 수단의 클라이언트 초기화 방식이 달라 Mock을 주입해서 격리 테스트를 하려면 구조가 필요했기 때문입니다."
-3. **구체적 구조**: "Spring Map 주입으로 Bean 이름을 키로 전략을 등록했고, 서비스는 Map에서 꺼내서 실행만 합니다."
-4. **트레이드오프**: "전략이 적을 때는 오버헤드가 있습니다. 2개 이하일 때는 단순 조건이 오히려 읽기 쉽습니다. 저희는 초기부터 5개 이상을 예상했기 때문에 선택했습니다."
+**Q. 단순 if-else와 Strategy Pattern의 차이는?**
 
-### Q. 전략 패턴과 팩토리 패턴의 차이가 무엇인가요?
+> "분기 책임이 어디에 있느냐입니다. `if-else`는 Context가 모든 알고리즘의 존재를 알아야 하고, 새 알고리즘 추가 시 Context를 수정해야 합니다. Strategy Pattern에서는 각 알고리즘이 자신의 적용 조건(`supports()`)을 스스로 선언합니다. Context는 전략 목록을 순회하거나 Map에서 찾을 뿐, 개별 알고리즘의 존재를 알지 못합니다. 결과적으로 Context는 새 알고리즘 추가 시 수정이 불필요하고, 알고리즘들은 독립적으로 테스트할 수 있습니다."
 
-팩토리 패턴은 **객체 생성** 책임을 분리한다. 어떤 객체를 만들지 캡슐화하는 것이다. 전략 패턴은 **행동**을 교체 가능하게 만든다. 두 패턴이 함께 쓰이는 경우가 많다. 팩토리가 전략 구현체를 생성해서 반환하고, Context가 그것을 실행하는 구조다.
+**Q. OCP를 어떻게 Strategy Pattern으로 구현했나요?**
 
-### Q. 전략이 많아지면 어떻게 관리하나요?
+> "OCP는 '기존 코드 수정 없이 기능을 확장할 수 있어야 한다'는 원칙입니다. Strategy Pattern에서 새 알고리즘은 인터페이스를 구현하는 새 클래스(확장)로 추가됩니다. 기존의 Context나 다른 ConcreteStrategy는 전혀 수정할 필요가 없습니다. Spring의 경우 `@Component`로 등록만 하면 DI 컨테이너가 자동으로 리스트에 포함시켜 줍니다. 이것이 OCP가 실제로 코드에 실현되는 방식입니다."
 
-실무에서 전략이 10개가 넘으면 관리 비용이 생긴다. 몇 가지 접근이 있다.
-- **패키지 분리**: `payment/strategy/` 하위에 모아서 탐색 비용을 줄인다.
-- **인터페이스에 메타데이터 추가**: `supports()` 메서드로 선택 로직을 전략 내부에 둔다.
-- **문서화**: 어떤 전략이 어떤 조건에서 활성화되는지 명세를 남긴다. 신규 입사자가 전략 추가 시 기존 전략과 충돌하지 않도록.
+**Q. Strategy Pattern의 단점은?**
+
+> "클래스 수가 증가합니다. 알고리즘 변형이 10개면 10개의 클래스가 생깁니다. 그리고 Context와 전략 사이에 주고받아야 하는 데이터가 많아지면 파라미터 객체가 비대해질 수 있습니다. 또한 전략 패턴은 알고리즘이 런타임에 교체될 때 의미가 있는데, 실제로 교체되지 않는 전략을 패턴으로 설계하면 과잉 설계가 됩니다. 판단 기준은 '이 알고리즘의 변형이 앞으로도 독립적으로 추가/수정될 것인가'입니다."
 
 ---
 
 ## 체크리스트
 
-- [ ] Strategy 인터페이스는 단일 행동 메서드를 갖는가?
-- [ ] ConcreteStrategy는 무상태(stateless)인가? Spring Bean으로 안전한가?
-- [ ] Context는 특정 ConcreteStrategy를 직접 참조하지 않는가?
-- [ ] 전략 선택 로직이 다시 if-else 덩어리가 되지 않았는가?
-- [ ] 각 전략을 독립적으로 단위 테스트했는가?
-- [ ] 새로운 전략 추가 시 기존 클래스를 수정하지 않아도 되는가?
-- [ ] 전략이 2개 이하이고 변경 가능성이 없는 경우, 단순 조건을 선택했는가?
-- [ ] 전략 파라미터가 도메인 전체 객체가 아닌 필요한 값만 받는가?
-- [ ] 면접에서 문제 상황 → 선택 이유 → 구조 → 트레이드오프 순서로 설명할 수 있는가?
+- [ ] Strategy 인터페이스를 인식하고, Context가 해당 인터페이스만 의존하도록 설계했는가?
+- [ ] `supports()` 또는 `Map` 기반 디스패치로 Context 내부에 분기가 없는가?
+- [ ] ConcreteStrategy가 무상태(stateless)인가? (인스턴스 변수로 상태 저장 없음)
+- [ ] 각 ConcreteStrategy가 독립적인 단위 테스트로 검증 가능한가?
+- [ ] Spring에서 `List<Strategy>` 또는 `Map<String, Strategy>` 주입 패턴을 쓰고 있는가?
+- [ ] 새 전략 추가 시 기존 코드(Context, 다른 전략들)를 수정하지 않아도 되는가?
+- [ ] 패턴 사용 여부를 결정할 때 "알고리즘 변형의 빈도"와 "독립적 확장 필요성"을 기준으로 판단했는가?
+- [ ] Template Method, Chain of Responsibility와 Strategy의 차이를 설명할 수 있는가?
+- [ ] 람다/함수형 인터페이스로 표현 가능한 단순 전략과, 클래스 기반 전략이 필요한 복잡한 경우를 구분할 수 있는가?
+- [ ] 면접에서 자신의 실무 경험(슬롯 엔진 핸들러 분리 등)을 구체적 사례로 연결할 수 있는가?
