@@ -13,7 +13,7 @@ AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
 | 기간              | 업무                                                                 | 문서                                                     |
 | ----------------- | -------------------------------------------------------------------- | -------------------------------------------------------- |
 | 2026.01 ~ 2026.03 | Confluence 벡터 색인 배치 — RAG 파이프라인, Spring Batch, OpenSearch | [rag-vector-search-batch.md](rag-vector-search-batch.md) |
-| 2026.04           | AI 웹툰 제작 도구 MVP — Next.js + Gemini + 하네스 기반 10일 풀스택    | [webtoon-maker-ai-pipeline.md](webtoon-maker-ai-pipeline.md) |
+| 2026.04           | AI 웹툰 제작 도구 MVP — Next.js + Gemini + 하네스 기반 12일 풀스택    | [webtoon-maker-ai-pipeline.md](webtoon-maker-ai-pipeline.md) |
 
 ### 트러블슈팅
 
@@ -37,10 +37,14 @@ AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
   - ADF → Markdown 변환, 임베딩 비동기 처리(`AsyncItemProcessor`), 삭제 동기화, 다중 스페이스 지원
   - 변경 감지(version 비교), 데이터 보강(첨부파일·작성자·멘션), 전략 패턴 기반 메타데이터 확장
 - **임베딩 메타데이터 구성 개선**: blocklist(remove) → allowlist(provider) 방식 전환, `EmbeddingMetadataProvider` 인터페이스 도입으로 OCP 준수
-- **AI 웹툰 제작 도구 MVP**: 사내 TF 차출, 10일 단독 풀스택 — 웹소설 → 세계관/캐릭터/각색/글콘티 → 60컷 이미지 6단계 파이프라인
-  - Claude Code 하네스 기반 4인 에이전트 팀으로 10일/167 plan/555 커밋
-  - Gemini 모델 전략(퀄리티 우선 + 429 fallback + 전역 Rate Limit Tracking)
-  - 통합 분석으로 토큰 75% 절감, Promise.allSettled 기반 60컷 부분성공 생성, Zod 단일 소스 전환
+- **AI 웹툰 제작 도구 MVP**: 12일 단독 풀스택 — 웹소설 → 세계관/캐릭터/각색/글콘티 → 60컷 이미지 6단계 파이프라인
+  - Claude Code 하네스 기반 4인 에이전트 팀(planner/critic/executor/docs-verifier)으로 12일/199 plan/760 커밋
+  - vibe 코딩 → spec 기반 코딩 진화: `/planning` → `/plan-and-build` → `/build-with-teams`, 디자이너 통합용 `/integrate-ux` 스킬화
+  - Gemini 모델 전략(퀄리티 우선 + 429 fallback + 전역 Rate Limit Tracking), 통합 분석으로 토큰 75% 절감
+  - 글콘티 환각 차단: Grounding 블록 + Continuation 재주입 + Project 단위 Context Cache (ADR-132)
+  - 캐릭터 외형 고정: 텍스트 anti-drift 한계 → mode 분기 + 기본 시트 이미지 자동 레퍼런스 prepend (ADR-133/134)
+  - 디자이너 협업: Container/Presenter + Layout Primitives + 파일 소유권 매트릭스로 git conflict 해소 (ADR-129/130)
+  - 타입 시스템: Zod ↔ Prisma 레이어별 분리(Action=Zod / Repository=Prisma) + mapper로 경계 정리 (ADR-131)
 
 ---
 
