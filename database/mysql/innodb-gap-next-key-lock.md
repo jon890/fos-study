@@ -1,6 +1,6 @@
 # [초안] InnoDB Gap Lock & Next-Key Lock 심층 분석 — 구간 의미론부터 실무 디버깅까지
 
-> 이 문서는 **락의 '의미론'** 에 집중한다. MVCC 일반론은 `database/mysql/innodb-mvcc.md`, 데드락 해결/재시도/컨슈머 운영은 `database/mysql/deadlock-analysis.md`를 참고한다. 여기서는 "왜 이 범위가 잠기는가", "어떤 락이 어떤 락과 충돌하는가", "로그의 어떤 표현이 어떤 상태인가"를 끝까지 파고든다.
+> 이 문서는 **락의 '의미론'** 에 집중한다. MVCC 일반론은 [InnoDB MVCC](./innodb-mvcc.md), 데드락 해결/재시도/컨슈머 운영은 [Deadlock Analysis](./deadlock-analysis.md)를 참고한다. 여기서는 "왜 이 범위가 잠기는가", "어떤 락이 어떤 락과 충돌하는가", "로그의 어떤 표현이 어떤 상태인가"를 끝까지 파고든다.
 
 ---
 
@@ -200,7 +200,7 @@ INSERT INTO coupon(user_id, ...) VALUES (15, ...);
 -- → 사이클 성립. InnoDB가 한 쪽을 데드락 희생자로 롤백
 ```
 
-RR + "없는 키를 `FOR UPDATE`로 확인 후 INSERT" 패턴이 만드는 가장 흔한 데드락. 해법은 `deadlock-analysis.md` 5장 참고(`ON DUPLICATE KEY UPDATE` 원자화, RC 전환, unique index + 예외 처리 중 선택).
+RR + "없는 키를 `FOR UPDATE`로 확인 후 INSERT" 패턴이 만드는 가장 흔한 데드락. 해법은 [Deadlock Analysis 5장](./deadlock-analysis.md) 참고(`ON DUPLICATE KEY UPDATE` 원자화, RC 전환, unique index + 예외 처리 중 선택).
 
 ### 6-4. 로그 판별
 
@@ -384,7 +384,7 @@ FROM performance_schema.data_lock_waits;
 
 ### 11-3. `SHOW ENGINE INNODB STATUS`
 
-`LATEST DETECTED DEADLOCK` 섹션의 의미는 `deadlock-analysis.md` 4장 참조. 이 문서 관점에서는 **각 트랜잭션이 보유/대기 중인 락의 인덱스명, 구간 표기, 모드**를 확인하는 데 집중한다.
+`LATEST DETECTED DEADLOCK` 섹션의 의미는 [Deadlock Analysis 4장](./deadlock-analysis.md) 참조. 이 문서 관점에서는 **각 트랜잭션이 보유/대기 중인 락의 인덱스명, 구간 표기, 모드**를 확인하는 데 집중한다.
 
 ### 11-4. `EXPLAIN`과 연계
 
@@ -613,4 +613,4 @@ UPDATE point SET amount = amount + 100 WHERE user_id BETWEEN 1000 AND 2000;
 
 ---
 
-*작성 기준: MySQL 8.0, InnoDB 스토리지 엔진, 기본 격리 수준 REPEATABLE READ. 연계 문서: `database/mysql/innodb-mvcc.md`(MVCC/Read View), `database/mysql/deadlock-analysis.md`(데드락 분석·재시도·컨슈머 운영).*
+*작성 기준: MySQL 8.0, InnoDB 스토리지 엔진, 기본 격리 수준 REPEATABLE READ. 연계 문서: [InnoDB MVCC](./innodb-mvcc.md)(MVCC/Read View), [Deadlock Analysis](./deadlock-analysis.md)(데드락 분석·재시도·컨슈머 운영).*
