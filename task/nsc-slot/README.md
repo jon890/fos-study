@@ -32,6 +32,8 @@
 | 2025.09           | 전역 개인화 데이터 — 베팅 인덱스 독립 구조 설계                    | [global-personal-data.md](global-personal-data.md)       |
 | 2025.09 ~ 2025.10 | 슬롯 엔진 추상화 — SlotTemplate, BaseSlotService, ExtraConfig 분리 | [slot-engine-abstraction.md](slot-engine-abstraction.md) |
 | 2024.06 ~ 2025.11 | 슬롯 아키텍처 점진 정리 — SpinOperationHandler 도입 + static 해체 1년 여정 | [slot-architecture-evolution.md](slot-architecture-evolution.md) |
+| 2025 하반기       | 슬롯 페이 조건 체크 Factory — 제네릭 체커 + 런타임 타입 디스패치       | [slot-payment-factory.md](slot-payment-factory.md)       |
+| 2025 하반기       | 슬롯 당첨 계산 Decorator 체인 — 우선순위 기반 누적 변환                | [slot-win-decorator-chain.md](slot-win-decorator-chain.md) |
 
 ### 트러블슈팅
 

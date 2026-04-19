@@ -7,6 +7,7 @@
 - [디자인 패턴 허브](./design-pattern.md) — 패턴 전체 빠른 포인터
 - [전략 패턴 (Strategy Pattern)](./strategy-pattern.md) — 런타임에 알고리즘 교체
 - [템플릿 메서드 패턴](./template-method-pattern.md) — 처리 골격 고정, 변형은 서브클래스
+- [Decorator & Chain of Responsibility](./decorator-chain-of-responsibility.md) — 행동을 체인으로 조립하는 두 방식
 
 ## 분산 시스템
 

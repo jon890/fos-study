@@ -675,3 +675,17 @@ public class StrategyPatternDemo {
 - [ ] Template Method, Chain of Responsibility와 Strategy의 차이를 설명할 수 있는가?
 - [ ] 람다/함수형 인터페이스로 표현 가능한 단순 전략과, 클래스 기반 전략이 필요한 복잡한 경우를 구분할 수 있는가?
 - [ ] 면접에서 자신의 실무 경험(슬롯 엔진 핸들러 분리 등)을 구체적 사례로 연결할 수 있는가?
+
+---
+
+## 실제 사례
+
+- [어드민 슬롯 에셋 비동기 일괄 동기화](../task/nsc-slot/admin-asset-async-sync.md) — 전략 인터페이스 + `@ConditionalOnProperty` 기반 환경별 활성화
+- [슬롯 페이 조건 체크 Factory](../task/nsc-slot/slot-payment-factory.md) — Strategy + Factory로 런타임 타입 디스패치 구현
+- [슬롯 당첨 계산 Decorator 체인](../task/nsc-slot/slot-win-decorator-chain.md) — Decorator 안에 Strategy(`Function<PostSpinData, Integer>`)를 품은 조합 사례
+- [임베딩 메타데이터 구성 방식 개선](../task/ai-service-team/embedding-metadata-provider.md) — `EmbeddingMetadataProvider`로 DocumentType별 메타데이터 구성 분리
+
+## 관련 문서
+
+- [Decorator & Chain of Responsibility](./decorator-chain-of-responsibility.md) — Strategy와 체인 구조의 구별
+- [템플릿 메서드 패턴](./template-method-pattern.md) — 골격 고정 vs 알고리즘 교체
