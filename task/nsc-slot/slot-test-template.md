@@ -177,13 +177,13 @@ public abstract class SlotGameStaticDataLoaderExtension extends GameStaticDataLo
 }
 
 // 슬롯별 구현체 — slotGame() 하나만 구현
-public class WantedOutlawsHoldAndSpinSlotGameStaticDataLoaderExtension
+public class LinkGameSlotStaticDataLoaderExtension
     extends SlotGameStaticDataLoaderExtension {
 
   @Override
   SlotGame slotGame() {
-    return new WantedOutlawsHoldAndSpinModelTest().createWithJson(
-        WantedOutlawsHoldAndSpinSlotExtra.class
+    return new LinkGameSlotModelTest().createWithJson(
+        LinkGameSlotExtra.class
     );
   }
 }
@@ -193,9 +193,9 @@ public class WantedOutlawsHoldAndSpinSlotGameStaticDataLoaderExtension
 
 ```java
 @NscSpringBootTest
-@ExtendWith(WantedOutlawsHoldAndSpinSlotGameStaticDataLoaderExtension.class)
-class WantedOutlawsHoldAndSpinBaseReelHelperTest
-    extends AbstractSlotTest<WantedOutlawsHoldAndSpinSlotExtra> {
+@ExtendWith(LinkGameSlotStaticDataLoaderExtension.class)
+class LinkGameBaseReelHelperTest
+    extends AbstractSlotTest<LinkGameSlotExtra> {
 
   @Override protected String getSlotId() { return ...; }
   @Override protected Class<...> getSlotExtraClass() { return ...; }
