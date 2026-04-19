@@ -797,3 +797,12 @@ GROUP BY event_type;
 - [ ] Saga의 보상 트랜잭션 예시를 직접 설계할 수 있는가
 - [ ] CAP 정리를 실제 기술 선택에 연결해 설명할 수 있는가
 - [ ] 멱등성 키 구현 방법을 코드 수준에서 설명할 수 있는가
+
+---
+
+## 관련 문서
+
+- [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md) — 2PC 대안, Outbox 테이블 설계
+- [Resilience 패턴](./resilience-patterns.md) — Timeout·Retry·Circuit Breaker·Bulkhead·Backpressure
+- [분산 트랜잭션](./distributed-transaction.md) — 기본 개념과 1차 방어
+- [MSA 서비스 간 통신](./msa-service-communication.md) — Cache-Aside × Kafka 이벤트

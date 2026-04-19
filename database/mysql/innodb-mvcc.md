@@ -647,4 +647,14 @@ COMMIT;
 
 ---
 
+## 관련 문서
+
+- [Gap Lock & Next-Key Lock 심층 분석](./innodb-gap-next-key-lock.md) — 구간 락 의미론, RR에서의 함정
+- [InnoDB 트랜잭션과 잠금](./transaction-lock.md) — Lock 전체 개관
+- [Deadlock Analysis](./deadlock-analysis.md) — 데드락 로그 해석
+- [Redo Log](./redo-log.md) — WAL과 Undo Log의 관계
+- [Spring 트랜잭션 전파·격리수준·AFTER_COMMIT](../../java/spring/transaction-propagation-isolation-after-commit.md) — 애플리케이션 경계에서의 격리 수준
+
+---
+
 *작성 기준: MySQL 8.0, InnoDB 스토리지 엔진, 기본 격리 수준 REPEATABLE READ*

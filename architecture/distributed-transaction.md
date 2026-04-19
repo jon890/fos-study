@@ -70,3 +70,11 @@ Tip: Kafka나 RabbitMQ와 같은 메시지 브로커를 활용하고, **Transact
   - 단일 DB 트랜잭션에 비해 응답 속도가 현저히 느려지며, 동시 접속자가 몰릴 경우 네트워크 I/O 비용이 서비스의 전체 처리량을 깎아 먹게된다.
 
 ## 1차적으로 우리가 방어한 것 : Resilience4j를 통해 장애 전파 차단, 멱등성 처리
+
+---
+
+## 관련 문서
+
+- [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md) — 2PC를 피하고 대신 쓸 방법
+- [Resilience 패턴](./resilience-patterns.md) — Timeout, Retry, Circuit Breaker, Bulkhead 상세
+- [MSA 서비스 간 통신](./msa-service-communication.md) — Cache-Aside × Kafka 이벤트 하이브리드

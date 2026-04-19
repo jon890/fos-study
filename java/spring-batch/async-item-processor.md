@@ -76,3 +76,11 @@ fun taskExecutor(): TaskExecutor {
 병렬 처리를 극대화하면 Confluence API나 임베딩 서버에서 `429 Too Many Requests`를 뱉을 수 있다.
 
 - **Resilience4j**의 `RateLimiter`나 `Retry`를 Processor 내부 로직에 적용하여, 요청 실 패 시 잠깐 대기했다가 재시도하도록 안전장치를 마련하자.
+
+---
+
+## 관련 문서
+
+- [Virtual Thread와 Project Loom](../virtual-thread.md) — I/O 바운드 작업에서 경량 스레드의 위력
+- [Resilience 패턴](../../architecture/resilience-patterns.md) — RateLimiter/Retry/Bulkhead 상세
+- [Confluence 벡터 색인 배치](../../task/ai-service-team/rag-vector-search-batch.md) — AsyncItemProcessor 실전 사례

@@ -294,3 +294,12 @@ services:
 - [ ] 재고 차감을 왜 동기로 두는지, 알림을 왜 비동기로 두는지 한 문장으로 정리할 수 있다.
 - [ ] DLQ는 왜 자동 재처리 대상이 아닌지 설명할 수 있다.
 - [ ] StampedLock optimistic read가 ReentrantLock보다 유리한 상황을 예시로 들 수 있다.
+
+---
+
+## 관련 문서
+
+- [캐시 설계 전략 총정리](./cache-strategies.md) — Cache-Aside 상세 패턴과 Stampede 대응
+- [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md) — `AFTER_COMMIT` + Outbox 구현 디테일
+- [Resilience 패턴](./resilience-patterns.md) — Circuit Breaker, Bulkhead, Backpressure
+- [Java StampedLock](../java/stamped-lock.md) — 읽기 폭주 대응 락

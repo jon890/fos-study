@@ -64,3 +64,11 @@ fun process(data: String) {
 ```
 
 이 방식은 `producer.beginTransaction()`과 `commitTransaction()`을 사용하여, DB와 Kafka로의 전송이 원자적으로 처리되도록 한다. (다만, 성능 오버헤드가 있으므로 데이터 중요도에 따라 선택해야 한다)
+
+---
+
+## 관련 문서
+
+- [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md) — 왜 Kafka 트랜잭션 대신 Outbox를 쓰는가
+- [메시지 전달 신뢰성](./message-delivery-semantics.md) — Exactly-once 의미와 한계
+- [Kafka 실전 설계](./kafka-design.md) — 파티션/컨슈머 그룹/재시도 트레이드오프

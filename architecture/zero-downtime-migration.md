@@ -465,3 +465,11 @@ public boolean isEnabledFor(String key, String userId) {
 - [ ] Refresh token이 발급자별로 올바르게 라우팅되는가
 - [ ] 플래그 cleanup 티켓이 만들어져 있는가
 - [ ] 롤백 시나리오가 문서화되어 있고 실제 drill로 검증되었는가
+
+---
+
+## 관련 문서
+
+- [Resilience 패턴](./resilience-patterns.md) — Timeout/Retry/CircuitBreaker 체인 상세
+- [Observability 입문](./observability-basics.md) — Shadow 경로 모니터링
+- [대규모 커머스 트래픽 처리 패턴](./high-traffic-commerce-patterns.md) — 피크 트래픽 대응과의 결합

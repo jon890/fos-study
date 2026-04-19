@@ -391,3 +391,11 @@ public class FailedNotificationRetryJob {
 - [ ] 진짜 정합성이 요구되는 도메인은 Outbox 패턴 도입 검토가 진행됐는가
 - [ ] afterCommit 콜백이 호출되는 트랜잭션 매니저가 실제 운영 환경의 트랜잭션 매니저와 동일한지 확인했는가 (멀티 데이터소스 환경 주의)
 - [ ] 비동기 처리(`@Async`, 별도 스레드)로 넘긴 작업 안에서 부모 트랜잭션의 afterCommit을 기대하고 있지는 않은가
+
+---
+
+## 관련 문서
+
+- [트랜잭션 전파·격리수준·AFTER_COMMIT 실전](./transaction-propagation-isolation-after-commit.md) — `@TransactionalEventListener` 기본
+- [분산 트랜잭션과 Outbox 패턴](../../architecture/distributed-transaction-outbox-pattern.md) — afterCommit의 다음 단계
+- [Spring Data JPA 트랜잭션 실수 모음](./jpa-transaction.md)

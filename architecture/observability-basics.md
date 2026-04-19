@@ -432,3 +432,11 @@ public class OrdersController {
 - [ ] 최근 장애 1건에 대해 "탐지 → 판단 → 원인 → 회복 → 회고"를 한 문단으로 설명할 수 있다.
 - [ ] Histogram과 Summary의 차이, 여러 인스턴스 p99 계산 방식을 말로 설명할 수 있다.
 - [ ] Symptom alert와 cause alert의 차이, 왜 symptom을 우선하는지 설명할 수 있다.
+
+---
+
+## 관련 문서
+
+- [Resilience 패턴](./resilience-patterns.md) — Circuit Breaker 상태와 Observability 연결
+- [Datadog APM 실전 투입 가이드](../observability/datadog-apm-observability.md) — Java/Spring 관측성 스택
+- [OpenTelemetry (Java)](../java/opentelemetry/README.md) — traceId 생성과 전파

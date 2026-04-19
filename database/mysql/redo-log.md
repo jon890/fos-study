@@ -433,4 +433,5 @@ mysql_global_status_innodb_buffer_pool_pages_dirty
 
 - [InnoDB MVCC 완전 분석](./innodb-mvcc.md) — Undo Log 내부 구조, 버전 체인, Read View 가시성, 격리 수준, Gap/Next-Key Lock
 - [InnoDB 트랜잭션과 잠금](./transaction-lock.md)
+- [Gap Lock & Next-Key Lock 심층 분석](./innodb-gap-next-key-lock.md) — 구간 락 의미론과 실무 디버깅
 - [fsync — 리눅스 파일 동기화 시스템 콜](../../linux/fsync.md)

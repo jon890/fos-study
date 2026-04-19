@@ -207,4 +207,7 @@ Lock 관련 성능 문제가 생기면 실행 계획(EXPLAIN)에서 인덱스를
 
 ## 관련 문서
 
+- [InnoDB MVCC 완전 분석](./innodb-mvcc.md) — Read View, 버전 체인, 격리 수준
+- [Gap Lock & Next-Key Lock 심층 분석](./innodb-gap-next-key-lock.md) — 구간 락 의미론, RR에서의 함정
+- [Deadlock Analysis](./deadlock-analysis.md) — 데드락 로그 해석, 재시도 전략
 - [Spring Data JPA 트랜잭션 실수 모음](../../java/spring/jpa-transaction.md)

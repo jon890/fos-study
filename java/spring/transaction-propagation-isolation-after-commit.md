@@ -435,3 +435,13 @@ logging:
 - [ ] 장시간 트랜잭션을 청크 단위로 쪼갰는가
 - [ ] 배포 시 graceful shutdown으로 진행 중인 outbox/컨슈머 작업이 안전하게 마무리되는가
 - [ ] 트랜잭션 로그(TRACE)로 실제 전파 동작(Creating/Participating/Suspending)을 눈으로 확인해본 적이 있는가
+
+---
+
+## 관련 문서
+
+- [TransactionSynchronization 실전](./transaction-synchronization.md) — `registerSynchronization()` 기반 afterCommit 커스터마이징
+- [Spring Data JPA 트랜잭션 실수 모음](./jpa-transaction.md)
+- [분산 트랜잭션과 Outbox 패턴](../../architecture/distributed-transaction-outbox-pattern.md) — 2PC 대안 아키텍처
+- [InnoDB MVCC 완전 분석](../../database/mysql/innodb-mvcc.md) — 격리 수준의 DB 레이어 의미
+- [Gap Lock & Next-Key Lock](../../database/mysql/innodb-gap-next-key-lock.md) — RR에서의 gap lock 교착

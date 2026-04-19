@@ -720,3 +720,5 @@ redis.delete("product:" + id);  // 그 다음 캐시 삭제 (Write-Delete 순서
 - [Redis 기본](./basic.md) — 아키텍처, 자료구조, 사용 사례 전반
 - [Redis 운영 가이드](./operations.md) — 메모리 관리, 모니터링 지표, 장애 대응
 - [분산 락](./distributed-lock.md) — 스탬피드 방어에 활용되는 SET NX EX 패턴
+- [캐시 설계 전략 총정리](../../architecture/cache-strategies.md) — Look-Aside, Read/Write-Through, Cache Stampede 패턴 전체
+- [Resilience 패턴](../../architecture/resilience-patterns.md) — Circuit Breaker로 Redis 장애 격리
