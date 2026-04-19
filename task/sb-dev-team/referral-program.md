@@ -1,188 +1,127 @@
-# 추천 프로그램(Referral) 시스템 설계
+# 블록체인 토큰 기반 추천 프로그램 — 설계와 협업 기록
 
 **진행 기간**: 2023.10 ~ 2024.02
 
-스포츠 베팅 플랫폼에서 추천인 보너스 프로그램을 처음부터 설계하고 구현했다. 단순히 "A가 B를 추천하면 보상"이 아니라, 피추천인의 베팅 실적에 따라 포인트가 쌓이고 미션 달성 시 블록체인 토큰(BYLO)으로 보상받는 구조였다. 그 과정에서 설계 결정들을 정리해둔다.
+스포츠 베팅 플랫폼에서 추천인 보너스 프로그램을 처음부터 설계하고 구현했다. 단순히 "A가 B를 추천하면 보상"이 아니라, 피추천인의 베팅 실적에 따라 포인트가 쌓이고 미션 달성 시 블록체인 토큰으로 보상받는 구조였다. 설계 결정과 팀과의 합 과정을 기록으로 남긴다.
+
+> 내부 엔티티/토큰 고유 명칭은 일반화해서 표기했다.
 
 ---
 
-## 전체 구조
+## 요구사항의 결
 
-추천 시스템은 두 레이어로 구성된다.
+기획 단계에서 정리된 요구는 두 레이어로 나뉘었다.
 
 **1. 기본 추천 (1:1 연결)**
 - A가 B의 닉네임을 입력해 추천인으로 등록
-- A는 등록 즉시 LuckyBall 보상 수령
+- A는 등록 즉시 소량의 즉시 보상 수령
 - B의 베팅 조건 충족 후 A에게 추가 보상
 
 **2. 추천 보너스 프로그램 (미션 기반)**
 - 이벤트 단위로 운영되는 별도 프로그램
-- B(팔로워)의 베팅 실적만큼 A에게 포인트 적립
-- 포인트가 미션 기준치 도달 시 BYLO 토큰 클레임 가능
+- 팔로워의 베팅 실적만큼 추천인에게 포인트 적립
+- 포인트가 미션 기준 도달 시 **블록체인 토큰 클레임** 가능 (지갑 서명 필요)
 
 ```
 A (추천인) ─── 추천 ──▶ B (피추천인)
-     │                       │
+     │                        │
      │  포인트 적립 ◀── B가 베팅할 때마다
      │
      ▼
-미션 달성 → 클레임 생성 → QR 서명 → 완료
+미션 달성 → 클레임 생성 → QR 서명(지갑 앱) → 완료
 ```
+
+레이어 구분이 중요했다. 기본 추천은 즉시 처리(DB 트랜잭션 하나)로 끝나지만, 미션 기반은 **오래 걸리는 상태 기계**(진행 중 → 달성 → 서명 대기 → 완료)라 설계 결이 완전히 달랐다.
 
 ---
 
-## DB 설계
+## 모델링 — 미션 수 상한이 설계를 결정했다
 
-### td_event_recommend (기본 추천 관계)
+미션 완료 여부는 임베디드 객체에 `Long` 컬럼 20개로 저장했다. seq를 하나씩 채우는 방식.
 
-```java
-@Entity
-@Table(name = "td_event_recommend")
-public class UserRecommend extends UserRecommendSchema {
+처음엔 **별도 완료 이력 테이블(1:N)** 도 고려했다. 조인이 늘어나지만 미션 수 제한이 하드코딩되지 않는 장점이 있었다. 결정은 기획과의 질문 하나에 달려 있었다 — **"미션 수가 진짜 고정인가?"** 기획에서 "프로그램당 10개 선, 상한 20개"로 확정해줘서 임베디드로 갔다. 상한이 고정이면 조회 비용과 락 비용을 모두 줄이는 쪽이 맞다.
 
-    @OneToOne(optional = false)
-    @JoinColumn(name = "mbr_no")
-    private UserAccount user;       // 추천 받은 사람
+이 결정이 없었다면 한쪽으로 잘못 가서 나중에 뒤집었을 가능성이 있다. 요구를 받기만 하지 말고 **설계를 좌우하는 한 가지 질문을 찾아서 반드시 답을 받아내는 게** 설계 초반의 일이라는 걸 이때 체감했다.
 
-    @OneToOne
-    @JoinColumn(name = "recommend_mbr_no")
-    private UserAccount recommendUser;  // 추천한 사람
-
-    // recommenderRewardStatus: NOT(한도 초과), YET(대기), OK(완료)
-}
-```
-
-추천인이 받을 수 있는 보상 한도는 이벤트 설정값(`apply3`)으로 관리한다. 팔로워가 한도를 초과하면 `RewardStatus.NOT`으로 처리해 보상이 나가지 않는다.
-
-```java
-Long followerCount = userRecommendRepository.countByRecommendUser(recommendUser);
-if (followerCount > recommendEvent.getApply3()) {
-    userRecommend.setRecommenderRewardStatus(RewardStatus.NOT);
-} else {
-    userRecommend.setRecommenderRewardStatus(RewardStatus.YET);
-}
-```
-
-### td_user_recommend_program (미션 진행 상태)
-
-미션 완료 여부를 `MissionStatus` 임베디드 객체로 저장한다. 미션 seq를 최대 20개 컬럼에 순서대로 기록한다.
-
-```java
-public void completeMission(Long missionSeq) {
-    if (this.missionStatus == null) {
-        this.missionStatus = new MissionStatus();
-    }
-    if (this.missionStatus.getMissionCompleteSeq1() == null) {
-        this.missionStatus.setMissionCompleteSeq1(missionSeq);
-        return;
-    }
-    // ... seq2 ~ seq20 동일
-    throw new IllegalStateException("추천 미션은 최대 20개 까지 수행 가능합니다");
-}
-```
-
-처음에는 별도 완료 테이블을 두는 방식도 고려했는데, 미션 수가 고정적이고 조회 시 조인이 없어도 되는 구조가 낫겠다고 판단해 이 방식으로 정했다. 다만 미션 수 제한이 하드코딩되는 건 아쉬운 부분이다.
+보상 상태는 3단 enum(`NOT`/`YET`/`OK`)으로 관리했다. 추천인이 받을 수 있는 보상 한도는 이벤트 설정값으로 제어해서, 팔로워 수가 한도를 넘으면 이후 등록된 관계는 `NOT`으로 박혀 다음 처리 단계에서 제외된다.
 
 ---
 
-## 캐시 설계
+## 캐시 — 공통 기반 재사용
 
-추천 프로그램 목록은 요청마다 DB를 치지 않도록 인메모리 캐시를 뒀다.
+추천 프로그램 목록은 요청마다 DB를 치지 않도록 인메모리 캐시를 뒀다. 서비스 공통 기반인 **리로드 가능한 정적 캐시 추상 클래스**를 상속해서 만들었다. 캐시·정합성·전파 구조 상세는 [캐시 아키텍처](./cache-architecture.md)에 따로 썼다.
 
-```java
-@Component
-public class RecommendProgramCache extends AbstractStaticKeyReloadable<Event.RecommendProgramEvent, Long> {
-
-    @Override
-    protected List<Event.RecommendProgramEvent> loadFromRepo() {
-        return repository.findAllByTypeAndActiveOrderByEndDateDesc(
-                EventSchema.EventType.RECOMMENDER_BONUS_PROGRAM, ACTIVE)
-                .stream()
-                .map(Event::toRecommendProgramEvent)
-                .collect(Collectors.toList());
-    }
-}
-```
-
-`AbstractStaticKeyReloadable`는 MQ(DataTable) 메시지를 받으면 캐시를 새로 로드하는 구조다. 어드민에서 프로그램을 수정하면 메시지가 발행되고, 백엔드가 이를 수신해 캐시를 갱신한다.
-
-유저에게 프로그램 목록을 내려줄 때는 캐시에서 시작 날짜가 지난 것만 필터링하고, 보상 수령 가능 여부도 함께 계산해서 응답한다.
-
-```java
-List<Event.RecommendProgramEvent> cachedPrograms = recommendProgramCache.list()
-        .stream()
-        .filter(event -> event.getStartDate().isBefore(now) || event.getStartDate().isEqual(now))
-        .collect(Collectors.toList());
-```
+유저에게 프로그램 목록을 내려줄 때는 캐시에서 시작 날짜가 지난 것만 필터링한 뒤 보상 수령 가능 여부를 같이 계산한다. 시간 기반 필터는 요청 시점에 맞춰야 해서 캐시가 아니라 응답 조립 단계에 뒀다.
 
 ---
 
-## 클레임 플로우 (블록체인 연동)
+## 블록체인 클레임 — 3단계 상태 기계
 
-미션 달성 보상은 BYLO 토큰으로 지급되는데, 블록체인 특성상 단순 지급이 아니라 지갑 서명이 필요하다. 그래서 3단계 구조로 설계했다.
+미션 달성 보상은 토큰으로 지급되는데, 블록체인 특성상 단순 API 호출이 아니라 지갑 서명이 필요하다. 3단계로 설계했다.
 
 ```
-1. 클레임 생성 (createIfNotExistClaimForMission)
-   → ByloClaim 레코드 저장 (claimDate = null)
-   → claimId 반환
-
-2. QR 코드 서명 (wemix 지갑)
-   → 프론트에서 claimId로 QR 생성
-   → 유저가 wemix 지갑 앱으로 서명
-
-3. 클레임 완료 (completeMission)
-   → byloClaim.claimDate 가 채워졌는지 확인
-   → 완료 처리 후 program에 미션 seq 기록
+1. 클레임 생성        → 클레임 레코드(서명 완료 플래그 = null) + claimId 반환
+2. QR 서명 (지갑 앱)  → claimId로 prepare → QR → 유저가 지갑 앱에서 서명
+3. 클레임 완료         → 서명 완료 플래그 확인 → 미션 완료 처리 + 포인트 기록
 ```
+
+**유저가 지갑 앱에서 직접 서명하는 시간**이 있으므로 서버는 중간에 "서명 대기" 상태를 유지하다가 서명이 끝난 것만 진행한다. 이 구조에서 두 가지를 단단히 잡아야 했다.
+
+**(1) 멱등성.** 같은 클레임을 두 번 완료 요청해도 보상이 두 번 나가면 안 된다. 완료 단계에서 "이미 처리된 미션이면 재처리 없이 동일 응답을 돌려주는" 분기를 두면 같은 요청이 반복돼도 안전하다.
+
+**(2) 서명 미완료 차단.** 클레임이 생성만 되고 서명이 안 된 상태에서 완료 요청이 들어오면 에러. `claimDate == null`이 이 상태의 시그널이었다.
 
 ```java
-@Transactional
-public void completeMission(Long mbrNo, Long eventSeq, Long missionSeq, Long claimId) {
-    // ...
-    ByloClaim byloClaim = byloClaimRepository.findById(claimId)
-            .orElseThrow(() -> new ContentsException(ErrorCode.NOT_FOUND_CLAIM));
-
-    // claimDate 없으면 QR 서명 미완료
-    if (byloClaim.getClaimDate() == null) {
-        throw new ContentsException(ErrorCode.REMAIN_RECOMMEND_MISSION_REWARD);
-    }
-
-    userRecommendProgram.completeMission(missionSeq);
-    userRecommendProgram.addClaimAmount(mission.getRewardAmount());
+// 개념 설명용 의사코드 — 완료 요청 처리 흐름
+if (claim.alreadyClaimed()) {
+    return new ClaimResponse(claimId, false);   // 중복 지급 방지
 }
+if (claim.getClaimDate() == null) {
+    throw new ContentsException(REMAIN_MISSION_REWARD);  // 서명 미완료
+}
+userProgram.completeMission(missionSeq);
+userProgram.addClaimAmount(mission.getReward());
 ```
 
-중간에 이중 처리 방어 로직을 넣는 게 꽤 신경 쓰였다. 클레임이 이미 완료됐는데 다시 완료 요청이 들어오는 경우를 `createIfNotExistClaimForMission`에서 처리했다.
-
-```java
-// claim이 이미 완료됐는데 다시 요청이 들어올 경우
-if (byloClaim.getClaimDate() != null) {
-    userRecommendProgram.completeMission(missionSeq);
-    userRecommendProgram.addClaimAmount(mission.getRewardAmount());
-    return new RecommendBonusProgramClaimResponseDto(claimId, false);
-}
-```
+지갑 서명 흐름(`prepare`/`token` 엔드포인트) 상세는 [wemix 지갑 연동](./wemix-wallet-integration.md)에 따로 정리했다.
 
 ---
 
-## 샤딩 처리
+## 샤딩 + 락
 
-유저 데이터는 샤딩된 DB에 분산 저장되어 있어서, 유저별 추천 프로그램 데이터 조회 시 항상 샤드 ID를 먼저 확인하고 컨텍스트를 전환해야 했다.
+유저 데이터는 샤딩된 DB에 분산 저장되어 있어서, 유저별 추천 프로그램 데이터를 조회할 때 항상 **샤드 ID를 먼저 확인하고 컨텍스트를 전환**해야 했다. 이걸 잊으면 엉뚱한 샤드를 조회해서 "데이터가 없다"는 오류가 나온다.
 
-```java
-UserAccount user = userService.getUserAccount(mbrNo);
-DatabaseContextHolder.useShardDB(user.getShardId());
+조회 시 비관적 락(`...WithLock`)을 사용했다. 같은 미션을 동시에 완료 처리하려는 요청이 겹치는 경우 — 앱 재시도나 유저 더블 클릭 — 때문이다.
 
-UserRecommendProgram userRecommendProgram =
-    userRecommendProgramRepository.findByEventSeqAndMbrNoWithLock(eventSeq, mbrNo)
-        .orElseThrow(() -> ...);
-```
+> **인사이트.** 멱등성 체크와 비관적 락을 같이 쓰는 이유는 **"읽고 쓰는 사이의 경합"** 때문이다. 멱등성만으로는 "둘 다 완료되지 않은 상태에서 읽기" → "둘 다 완료로 쓰기"가 발생할 수 있다. 락이 있어야 이 윈도우가 닫힌다.
 
-락을 잡고 조회하는 이유는 동시에 같은 미션을 완료 처리하는 경우를 막기 위해서다.
+---
+
+## 협업이 이 기능을 만들었다
+
+이 기능은 나 혼자 만들 수 있는 게 아니었다. 관여한 팀이 셋이었고, 각각에서 받은 것이 설계를 결정했다.
+
+**기획팀**에서 받은 것: 미션 수 상한 확정. 위에서 쓴 대로 이 한 줄이 엔티티 스키마(임베디드 vs 1:N)를 결정했다. "정책을 먼저 묻고 나서 구조를 짠다"는 습관이 여기서 붙었다.
+
+**어드민팀**과의 계약: 프로그램 등록/수정 시 MQ로 백엔드 캐시를 갱신하는 흐름이었다. 계약을 **"테이블 이름 + 리로드 명령"** 한 묶음으로 단순화해서, 이후 캐시 종류가 늘어나도 계약을 바꿀 필요가 없게 뒀다. 이 덕에 어드민팀이 캐시 구현 내부를 전혀 몰라도 됐다.
+
+**프론트팀**과의 논의: 지갑 연결 + QR 서명 흐름을 같이 설계했다. 핵심 질문은 **"서명이 끝난 시점을 누가 어떻게 알리는지"**. 최종적으로는 클레임 레코드의 `claimDate`를 DB 플래그로 두고 프론트가 완료 API를 다시 호출하는 방식으로 단순화했다 — 웹훅을 새로 붙이지 않아도 됐다.
+
+백엔드 전 구간 구현은 내가 맡았다. 추천 관련 다국어·UI 적용은 프론트 담당자가 진행했고, 인터페이스 계약만 맞췄다. 리뷰 단계에서는 상태 기계가 섞인 PR에 **상태 전이 다이어그램을 PR 설명에 그려** 올렸다. 리뷰어가 다이어그램으로 전이를 짚어보게 하니 엣지 케이스가 리뷰 단계에서 거의 다 걸러졌다.
+
+---
+
+## 지금 보면
+
+2024년 초 작업이라 지금이라면 두 가지 각도로 다시 봤을 것이다.
+
+하나는 **임베디드 미션 컬럼 20개**. 고정이라는 전제를 받아들고 설계한 건 옳았지만, 운영이 길어진 뒤에도 그 전제가 지켜졌는지 추적하지 않았다. 스키마 결정은 **"그 전제가 깨졌을 때 마이그레이션 비용이 얼마인가"**까지 포함해 평가했어야 한다. 지금 보면 배열 타입(`jsonb`)으로 갔을 것 같고, 그랬다면 상한이 바뀌어도 마이그레이션이 거의 없었다.
+
+다른 하나는 **클레임 완료 신호**. "프론트가 완료 API를 다시 호출"하는 방식은 편했지만, 유저가 지갑 앱을 닫고 복귀하지 않으면 영원히 완료 처리가 안 된다. 실제로 이 케이스 때문에 나중에 배치로 주기적 claim 상태 체크를 붙였다. 설계 단계에서 **"클라이언트가 영원히 돌아오지 않을 경로"를 고려했다면** 처음부터 서버 사이드 폴링을 넣었을 것이다. 낙관 경로만 설계하고 비낙관 경로를 운영에서 복구한 셈이다.
 
 ---
 
 ## 관련 문서
 
-- [wemix 지갑 연동](./wemix-wallet-integration.md)
-- [Ehcache 캐시 설계](./ehcache-whitelist-cache.md)
+- [wemix 지갑 연동](./wemix-wallet-integration.md) — 블록체인 지갑 SDK 연동과 환경별 빌드
+- [캐시 아키텍처](./cache-architecture.md) — MQ 기반 캐시 전파 구조
