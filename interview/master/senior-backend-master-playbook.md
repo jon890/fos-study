@@ -14,7 +14,7 @@
 
 ## 2. 90초 자기소개 (강약 포인트 한두 개 추가)
 
-> NHN에서 4년간 Java 백엔드 개발을 해온 김병태입니다. 슬롯팀에서는 Spring Boot 멀티모듈 MSA 환경에서 신규 슬롯 게임 5종 이상을 개발했고, 성능·동시성 이슈를 직접 풀었습니다. 다중 서버 인메모리 캐시 정합성 문제에서는 Hibernate `PostCommitUpdateEventListener`로 커밋 후에만 RabbitMQ Fanout Exchange로 변경 ID를 발행하고, 갱신 중 조회 충돌은 StampedLock + 2.5초 tryReadLock 타임아웃으로 해결했습니다. Kafka 쪽에서는 즉시 응답이 필요한 흐름과 후처리 흐름을 분리하고, `@TransactionalEventListener(AFTER_COMMIT)` + `Propagation.REQUIRES_NEW` 기반 Transactional Outbox 패턴으로 메시지 유실을 차단했습니다.
+> NHN에서 4년간 Java 백엔드 개발을 해온 김병태입니다. 슬롯팀에서는 Spring Boot 멀티모듈 MSA 환경에서 신규 슬롯 게임 5종 이상을 개발했고, 성능·동시성 이슈를 직접 풀었습니다. 다중 서버 인메모리 캐시 정합성 문제에서는 Hibernate `PostCommitUpdateEventListener`로 커밋 후에만 RabbitMQ Fanout Exchange로 변경 ID를 발행하고, 갱신 중 조회 충돌은 StampedLock + 2.5초 tryReadLock 타임아웃으로 해결했습니다. Kafka 쪽에서는 즉시 응답이 필요한 흐름과 후처리 흐름을 분리하고, `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 이후에만 발행 + `Propagation.REQUIRES_NEW` 기반 Dead Letter Store + 스케줄러 재시도 구조로 비동기 흐름의 신뢰성을 확보했습니다.
 >
 > AI 서비스팀으로 옮긴 뒤에는 Confluence → OpenSearch RAG 파이프라인을 11개 Step으로 분리해 처음부터 설계·구현했습니다. I/O 바운드인 임베딩 호출은 `AsyncItemProcessor`로 병렬화하고, 메타데이터 차이는 전략 패턴(`EmbeddingMetadataProvider`)으로 흡수해 OCP를 지켰습니다. 최근에는 12일 동안 혼자 Next.js 16 · React 19 · Prisma 7 · Gemini 기반 AI 웹툰 제작 도구 MVP를 만들었는데, Claude Code 하네스 위에서 planner·critic·executor·docs-verifier 4인 에이전트 팀을 조율해 199 plan / 760 커밋을 소화했습니다. Gemini Pro 우선 + 429 fallback 전략, 전역 Rate Limit Tracking, Project 단위 Context Cache, Promise.allSettled 기반 60컷 부분 성공 생성, 글콘티 Grounding 재주입으로 환각을 구조적으로 차단한 게 핵심이었습니다.
 >
@@ -31,7 +31,7 @@
 | 2025.12 ~ | NHN AI 서비스팀 | 백엔드 | OCR 서버 Graceful Shutdown 503 수정, 임베딩 메타데이터 blocklist → allowlist 전환 |
 | 2025.07 ~ 2025.10 | NHN NSC 슬롯팀 | RCC·엔진 추상화 리드 | RTP Cache Control 6종 대응, `SlotTemplate`/`BaseSlotService`/`ExtraConfig` 분리, `StampedLock` 도입으로 refresh 중 NPE 제거, Alias 테이블 `IN`절 일괄 조회 |
 | 2025.02 ~ 2025.08 | NHN NSC 슬롯팀 | 신규 슬롯 5종 | Slot 36/38/41/44/47, Cursor Rules 20+로 AI 에이전트 단독 구현 3종, 스핀 최적화(AliasMethod O(1), `SecureRandom` → `ThreadLocalRandom`), 시뮬레이터 OOM 해결(Welford's Online Algorithm) |
-| 2024.06 ~ 2024.12 | NHN NSC 슬롯팀 | 합류 첫 해 | Slot 21/33 신규 게임, Admin Alpha↔Real 비교/복사, BuyFeature 티켓·시나리오 스핀 플랫폼 기능, 다중 서버 캐시 정합성 (RabbitMQ Fanout + StampedLock), Kafka Transactional Outbox |
+| 2024.06 ~ 2024.12 | NHN NSC 슬롯팀 | 합류 첫 해 | Slot 21/33 신규 게임, Admin Alpha↔Real 비교/복사, BuyFeature 티켓·시나리오 스핀 플랫폼 기능, 다중 서버 캐시 정합성 (RabbitMQ Fanout + StampedLock), Kafka 비동기 발행 (AFTER_COMMIT + Dead Letter Store 재시도) |
 
 ---
 
@@ -41,13 +41,15 @@
 
 - **문제**: 다중 서버가 각자 정적 설정 데이터를 인메모리 캐시로 가지는 상황에서, 어드민 변경 시 갱신 중 조회 요청이 일시적 정합성 오류를 냄.
 - **해결**: `PostCommitUpdateEventListener`로 커밋 후에만 RabbitMQ Fanout Exchange로 변경 ID 발행 → 각 인스턴스가 자신의 큐에서 수신 후 해당 항목만 선택 갱신. 갱신/조회 경합은 `StampedLock` writeLock + `tryReadLock(2500ms)` 타임아웃으로 흡수. `StaticDataManager` 인터페이스로 init/refresh/clear 책임 분리 → 새 캐시 타입 추가해도 기존 코드 무변경.
-- **증거**: [`resume/2603_김병태_이력서_v4.md`](../../resume/2603_김병태_이력서_v4.md) 문항 1, [`task/nsc-slot/slot-engine-abstraction.md`](../../task/nsc-slot/slot-engine-abstraction.md) "StaticDataLoader 개선".
+- **커머스 전이 관점**: 상품 캐시로 확장할 때는 Caffeine(L1) + Redis(L2) **2-tier 구조**로 피크 TPS를 흡수하고, 인스턴스 수가 수십~백 대 규모로 늘어나면 RabbitMQ Fanout 대신 Kafka 토픽(인스턴스마다 독립 consumer group)이나 Redis Pub/Sub이 더 적합하다는 점을 인지하고 있습니다. Cache Stampede는 핫키에 대한 probabilistic early expiration + single-flight로 대응.
+- **증거**: [`resume/2603_김병태_이력서_v4.md`](../../resume/2603_김병태_이력서_v4.md) 문항 1, [`task/nsc-slot/slot-engine-abstraction.md`](../../task/nsc-slot/slot-engine-abstraction.md) "StaticDataLoader 개선", [`architecture/cache-strategies.md`](../../architecture/cache-strategies.md) 개인 학습 기록.
 
-### 4-2. Kafka 비동기 + Transactional Outbox를 직접 설계·운영했다
+### 4-2. Kafka 비동기 흐름의 신뢰성을 구조로 확보했다
 
 - 금액/레벨처럼 즉시 응답이 필요한 로직은 DB 트랜잭션 내, 미션·통계·알림 후처리는 Kafka로 분리.
-- `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 후 발행 보장. 전송 실패 시 `Propagation.REQUIRES_NEW` 별도 트랜잭션으로 실패 메시지를 DB에 저장하고 스케줄러가 재전송. traceId 동반 저장으로 실패 원인 추적.
-- 증거: [`resume/2603_김병태_이력서_v4.md`](../../resume/2603_김병태_이력서_v4.md) 문항 1.
+- `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 이후에만 발행해 롤백된 트랜잭션 이벤트의 외부 유출을 차단. 전송 실패 시 `Propagation.REQUIRES_NEW` 별도 트랜잭션으로 실패 메시지를 DB에 저장하고 스케줄러가 재전송하는 **Dead Letter Store + 재시도 구조**. traceId 동반 저장으로 실패 원인 추적.
+- **정식 Transactional Outbox와의 차이 인지**: AFTER_COMMIT과 Kafka 발행 사이의 짧은 구간(JVM 크래시·SIGKILL)에 대한 유실 가능성이 남음. 해당 도메인(통계·알림)의 특성상 수용 가능한 수준으로 판단한 설계 선택이며, 커머스처럼 정합성이 더 엄격한 도메인에서는 이벤트를 비즈니스 데이터와 같은 트랜잭션에 저장 후 relay하는 **정식 Outbox 구조**로 강화할 계획입니다.
+- 증거: [`resume/2603_김병태_이력서_v4.md`](../../resume/2603_김병태_이력서_v4.md) 문항 1, [`architecture/distributed-transaction-outbox-pattern.md`](../../architecture/distributed-transaction-outbox-pattern.md) 개인 학습 기록.
 
 ### 4-3. 대용량 배치 파이프라인을 처음부터 설계했다
 
@@ -85,7 +87,10 @@
 ### 5-1. 초대형 트래픽 환경의 "운영" 경험 폭
 
 - 슬롯/AI 서비스 모두 사내·B2C 환경이긴 하지만, **초 단위 수만 TPS 수준의 커머스 피크 트래픽**을 내가 직접 튜닝하며 살려낸 경험은 아직 부족합니다.
-- 보완: 최근에는 올리브영 기술 블로그의 MSA 데이터 연동 전략, 무중단 OAuth2 전환(Feature Flag + Shadow Mode + Resilience4j 3단 보호 + ±30s Jitter로 Peak TPS 40% 감소) 글을 정독하며, 내가 슬롯에서 푼 캐시 정합성 문제가 커머스 상품·전시 도메인에 어떻게 매핑되는지 역산 중입니다.
+- 보완: 최근 올리브영 기술 블로그의 MSA 데이터 연동 전략, 무중단 OAuth2 전환(Feature Flag + Shadow Mode + Resilience4j 3단 보호 + ±30s Jitter로 Peak TPS 40% 감소) 글을 정독하며, 슬롯에서 푼 캐시 정합성 문제가 커머스 상품·전시 도메인에 어떻게 매핑되는지 역산 중입니다. 관련 개념을 개인 블로그에 사전 학습으로 정리해뒀습니다:
+  - [`architecture/cache-strategies.md`](../../architecture/cache-strategies.md) — 캐시 패턴 전체 + Cache Stampede 대응
+  - [`architecture/resilience-patterns.md`](../../architecture/resilience-patterns.md) — Timeout/Retry/CB/Bulkhead/Backpressure
+  - [`architecture/high-traffic-commerce-patterns.md`](../../architecture/high-traffic-commerce-patterns.md) — 1,600만 고객 + 올영세일 대비 설계
 - 입사 후에는 관찰 기간을 짧게 가져가되 Datadog APM과 기존 장애 리포트를 먼저 읽고 병목·핫 쿼리 가설을 수립한 뒤 말하는 방식으로 접근하겠습니다.
 
 ### 5-2. Kotlin
@@ -97,6 +102,12 @@
 
 - 반복이 충분히 쌓일 때까지 추상화를 미루는 성향이 있어, **조기에 공통 계층을 세팅했어야 했다**는 반성이 남은 경우가 있었습니다 (예: `SlotTemplate`/`BaseSlotService`는 신규 슬롯 5종을 만든 후에야 정돈).
 - 보완: 팀 합류 시에는 "현재 반복의 단계(1~2회 / 3회 이상)"를 명시적으로 체크리스트화해, 3회 이상 반복이 보일 때 즉시 ADR 후보로 올리는 리듬을 갖추려 합니다.
+
+### 5-4. 무중단 배포·점진 전환 경험 부재
+
+- 게임 도메인은 **월 단위 배포 주기**로 움직였기에, 라이브 서비스 리팩토링을 **완전 대체 마이그레이션**으로 수행한 경험만 있습니다. Feature Flag 기반 런타임 전환, Shadow Mode로 신·구 양쪽 결과 비교, Canary 배포로 트래픽 일부만 전환하는 실전 경험은 아직 없습니다.
+- 대신 이 공백은 **테스트 안전망**으로 메워왔습니다. Spring Test Execution Listener 기반 게임 데이터 프리로딩 + 게임 플레이 시뮬레이션 테스트 + QA 협업 시나리오(일반·튜토리얼·치트)로 배포 전 회귀를 차단했습니다.
+- 보완: 커머스의 실시간 배포 + 무중단 요구가 다른 차원의 문제임을 인지하고, CJ 올리브영 **무중단 OAuth2 전환기**(Feature Flag + Shadow Mode + Resilience4j 3단 + Jitter) 사례를 정독하며 [`architecture/zero-downtime-migration.md`](../../architecture/zero-downtime-migration.md)에 스터디 기록을 남겼습니다. 입사 후 1개월 내 실 사례에 체득하는 것이 목표입니다.
 
 ---
 
@@ -193,12 +204,13 @@
 - **측정 가능한 결과**: 갱신 중 NPE/정합성 오류 제거, 읽기 성능 유지, 신규 캐시 타입 추가 시 기존 코드 무변경.
 - **기술적 핵심**: JPA 이벤트 리스너, RabbitMQ Fanout, StampedLock, Alias 테이블 `IN`절 일괄 조회로 init/refresh 쿼리 수 감소.
 
-### 8-4. Kafka Transactional Outbox (슬롯팀)
+### 8-4. Kafka 비동기 발행 + Dead Letter Store (슬롯팀)
 
 - **문제 정의**: 금액·레벨 등 즉시 응답 로직과 미션·통계·알림 후처리가 한 트랜잭션 안에 얽혀 지연·실패 전파.
-- **해결 접근**: 동기/비동기 분리. `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 이후 발행 보장, 전송 실패 시 `Propagation.REQUIRES_NEW` 별도 트랜잭션으로 실패 메시지 + traceId를 DB에 저장 → 스케줄러 재전송.
-- **측정 가능한 결과**: 메시지 유실 0, 실패 원인 추적 가능, 핵심 API 응답 시간 단축.
-- **기술적 핵심**: Spring AOP 기반 이벤트 리스너, Outbox 테이블, 스케줄러 재시도, traceId 전파.
+- **해결 접근**: 동기/비동기 분리. `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 이후에만 발행해 롤백된 이벤트의 외부 유출 차단. 전송 실패 시 `Propagation.REQUIRES_NEW` 별도 트랜잭션으로 실패 메시지 + traceId를 DB에 저장하는 **Dead Letter Store** → 스케줄러 재전송.
+- **측정 가능한 결과**: 전송 실패 복구 가능, 실패 원인 추적 가능, 핵심 API 응답 시간 단축.
+- **기술적 핵심**: Spring AOP 기반 이벤트 리스너, Dead Letter 테이블, 스케줄러 재시도, traceId 전파.
+- **한계 인지**: AFTER_COMMIT과 Kafka 발행 사이의 JVM 크래시·SIGKILL 구간은 유실 가능성이 남음. 해당 도메인(통계·알림)에선 수용 가능한 수준으로 판단했고, 정합성이 더 엄격한 도메인에서는 이벤트를 비즈니스 데이터와 같은 트랜잭션에 저장하는 **정식 Transactional Outbox** 구조로 강화가 필요합니다.
 
 ### 8-5. 스핀 성능 최적화 & 시뮬레이터 OOM (2025 상반기)
 
@@ -215,21 +227,34 @@
 
 ---
 
-## 9. 왜 이직하는가 / 왜 이 회사 / 왜 이 역할
+## 9. 지원동기 — 왜 이 회사, 왜 이 역할, 왜 지금
 
-### 9-1. 왜 이직하는가 (진짜 이유 기반)
+### 9-1. 한 문단 통합 서사 (면접 "왜 우리 회사?" 답변용, 약 90초)
 
-- 지난 4년간 다룬 기술(캐시 정합성, Kafka 이벤트, 대용량 배치, 도메인 추상화, AI 파이프라인)을 **대규모 B2C 커머스 트래픽 환경**에서 실제로 작동시키는 경험을 하고 싶습니다. 슬롯 도메인에서 풀어본 동시성·정합성 패턴이 상품·전시·주문 도메인에서 어떤 형태로 다시 나타나는지 직접 보고 싶습니다.
-- 또 하나는, **에이전트 기반 개발 방식을 실서비스급 환경에서 체계화**하고 싶습니다. AI 웹툰 MVP에서 혼자 198 plan을 돌려봤지만, 운영 중인 대규모 시스템에서 이 방식이 어떻게 쓰일 수 있는지는 다음 단계에서 검증해야 합니다.
+> 지난 4년간 NHN에서 **동시성·이벤트 드리븐·대용량 배치** 문제를 깊게 풀어오면서, 같은 패턴이 커머스 도메인에서 더 큰 스케일로 어떻게 다시 나타나는지에 대한 호기심이 계속 쌓였습니다. 슬롯 도메인에서 다중 서버 캐시 정합성을 RabbitMQ + StampedLock으로 풀고, 메시지 신뢰성을 `AFTER_COMMIT` + Dead Letter Store로 구조화한 경험이, **1,600만 고객 트래픽의 상품·전시·주문 도메인**에서 어떤 형태로 다시 등장하는지 직접 보고 싶습니다. 특히 CJ 올리브영 기술 블로그의 MSA 데이터 연동 전략과 무중단 OAuth2 전환기를 읽으면서 **판단의 결이 저와 같다**는 확신이 들었습니다. 여기에 AI 도구를 단순히 쓰는 게 아니라 파이프라인으로 설계·운영한 경험을 더해, 팀의 개발 사이클을 한 단계 당기는 데 기여하고 싶습니다.
 
-### 9-2. 왜 이 회사 / 이 역할 — CJ OliveYoung 커머스플랫폼유닛 맞춤 블록
+### 9-2. 왜 지금 이직하는가 (타이밍 설명)
 
-- **규모와 도메인 적합성**: 1,600만 고객 온라인몰, 상품·전시·주문·검색·알림이 얽힌 복잡한 커머스 도메인. 제가 NHN에서 풀어온 문제(캐시 정합성, 이벤트 유실, 대용량 배치)가 그대로 다시 등장하는 환경입니다.
-- **기술 블로그에서 본 실제 판단과의 결**:
-  - *MSA 데이터 연동 전략* (2026-03-18) — **데이터의 사용처·변경 빈도·라이프사이클로 Cache-Aside vs Kafka 이벤트 + Redis Key 캐싱**을 선택하는 접근은, 제가 슬롯에서 "정적 데이터는 인메모리 + Fanout, 후처리는 Kafka Outbox"로 나눈 판단과 동일한 결입니다.
-  - *무중단 OAuth2 전환기* (2025-10-28) — Feature Flag(Strategy) + Shadow Mode + Resilience4j 3단(Timeout → Retry → CB) + ±30s Jitter로 Peak TPS 40% 감소, P95 50ms / 성공률 100%. **"안전하게 뒤집는 방법"을 코드 배포 없이도 확보하는 감각**이 저의 "pro 기본 + 429 fallback + 전역 Rate Limit Tracking"과 같은 방향입니다.
-  - *SQS 알림톡 데드락 분석* (2025-12-30), *Spring 트랜잭션 동기화 레거시 개선* (2026-02-23) — 레거시를 **트랜잭션 경계·이벤트 경계로 재설계**하는 접근은 제가 슬롯의 동기/비동기 흐름을 `AFTER_COMMIT` + Outbox로 정리한 것과 동일합니다.
-- **역할과의 정합성**: JD의 담당 업무(상품·전시·검색·ORM·RESTful API·MSA·성능 개선, Kafka/캐싱/컨테이너 우대)와 제 경험(JPA 도메인 모델링, Kafka Outbox, 다중 서버 캐시, Spring Batch/OpenSearch 대용량 색인, Cursor Rules·하네스 기반 개발)이 직접적으로 맞닿아 있습니다. Kotlin은 입사 초기에 빠르게 병용 수준까지 올리겠습니다.
+- **충분한 축적**: 슬롯·AI 서비스에서 4년간 캐시 정합성, Kafka 이벤트, Spring Batch 대용량 처리, 도메인 추상화, AI 파이프라인까지 풀스펙트럼으로 경험을 쌓았습니다.
+- **스펙트럼 확장**: AI 웹툰 MVP를 12일간 단독 리드하면서 설계부터 운영까지의 의사결정 속도가 한 단계 올라갔습니다. 이제 그 속도를 더 큰 규모의 시스템에 적용해볼 단계입니다.
+- **검증 필요성**: 슬롯은 사내·B2C 도메인, AI 서비스는 사내 도구 중심이었습니다. 지금까지의 패턴이 **초 단위 수만 TPS 실서비스 트래픽**에서 얼마나 버티는지는 다음 단계에서 검증해야 합니다. 그 검증 환경으로 CJ 올리브영 커머스플랫폼이 가장 적합하다고 판단했습니다.
+
+### 9-3. 왜 이 회사 — 기술 블로그에서 본 결
+
+- **MSA 데이터 연동 전략** (2026-03-18) — 데이터의 사용처·변경 빈도·라이프사이클로 Cache-Aside vs Kafka 이벤트 + Redis Key 캐싱을 선택하는 접근은, 제가 슬롯에서 "정적 데이터는 인메모리 + Fanout, 후처리는 Kafka 비동기"로 나눈 판단과 같은 결입니다.
+- **무중단 OAuth2 전환기** (2025-10-28) — Feature Flag(Strategy) + Shadow Mode + Resilience4j 3단(Timeout → Retry → CB) + ±30s Jitter로 Peak TPS 40% 감소, P95 50ms / 성공률 100%. **"안전하게 뒤집는 방법"을 코드 배포 없이도 확보하는 감각**이 제 "Pro 기본 + 429 fallback + 전역 Rate Limit Tracking" 설계와 같은 방향입니다.
+- **SQS 알림톡 데드락 분석** (2025-12-30), **Spring 트랜잭션 동기화 레거시 개선** (2026-02-23) — 레거시를 **트랜잭션 경계·이벤트 경계로 재설계**하는 접근은 슬롯의 동기/비동기 흐름을 `AFTER_COMMIT` + Dead Letter Store로 정리한 것과 같습니다.
+
+### 9-4. 왜 이 역할 — JD × 경험 매핑
+
+- **상품·전시·검색·ORM**: JPA 도메인 모델링 + 이벤트 리스너 + 다중 서버 캐시 정합성 4년 경험이 상품·전시의 실시간 변경·다중 서버 동기화 문제에 직접 매핑됩니다.
+- **MSA·Kafka·캐싱**: `AFTER_COMMIT` 발행 + Dead Letter Store 재시도, RabbitMQ Fanout, Spring Batch 11 Step + AsyncItemProcessor까지 운영 경험이 검색·알림·주문 도메인 간 이벤트 연동에 바로 적용 가능합니다.
+- **AI 도구 도입**: Cursor Rules 20+로 슬롯 도메인 컨텍스트 문서화 → 신규 게임 3종 에이전트 단독 구현, AI 웹툰 MVP 4인 에이전트 팀 운영 경험을 팀에 들여와 반복 개발 사이클을 단축하는 데 쓰고 싶습니다.
+- **Kotlin**: 초기 학습 필요. 공고의 Java/Kotlin 병용 요건에 맞춰 1~2주 안에 실무 생산성 수준까지 끌어올리겠습니다.
+
+### 9-5. 기여 포지셔닝 — 한 줄 클로징
+
+> "저는 기능을 빨리 만드는 사람이기보다, **팀이 같은 기능을 더 빠르고 안전하게 다시 만들 수 있는 구조를 남기는 사람**으로 일해왔습니다. 오늘 이야기한 경험들을 이 팀의 상품·전시·주문 도메인에 다시 적용해 보고 싶습니다."
 
 ---
 
@@ -252,7 +277,7 @@
   3. 쓰기는 청크 단위 트랜잭션 + 멱등 키로 중복 실행 방어.
   4. **Shadow 이행** (구 → 신 병기 기록) 단계로 운영 데이터와 이행 데이터를 비교한 뒤, Feature Flag로 읽기 경로만 점진 전환(올리브영 OAuth2 전환 사례와 같은 결).
   5. 실패 메시지는 `REQUIRES_NEW` 별도 트랜잭션 + traceId로 저장, 재처리 큐로 흘려보냄.
-- 실제 근거: `AsyncItemProcessor` + 커서 재시작([`task/ai-service-team/rag-vector-search-batch.md`](../../task/ai-service-team/rag-vector-search-batch.md)), `REQUIRES_NEW` 기반 Outbox(`resume 문항 1`).
+- 실제 근거: `AsyncItemProcessor` + 커서 재시작([`task/ai-service-team/rag-vector-search-batch.md`](../../task/ai-service-team/rag-vector-search-batch.md)), `REQUIRES_NEW` 기반 Dead Letter Store 재시도(`resume 문항 1`).
 
 ### Q3. "주니어가 합류하면 리뷰 정책은 어떻게 세팅하시겠어요?"
 
@@ -271,7 +296,8 @@
 
 ### Q5. "Kafka에서 메시지 유실을 막는 구조를 어떻게 설계하시나요?"
 
-- **Transactional Outbox**: 비즈니스 트랜잭션 안에서 outbox 테이블에 메시지 기록 → `@TransactionalEventListener(AFTER_COMMIT)`에서 발행. 발행 실패 시 `Propagation.REQUIRES_NEW`로 실패 기록 + traceId 저장 → 스케줄러 재시도.
+- **정식 Transactional Outbox**: 비즈니스 트랜잭션 안에서 outbox 테이블에 이벤트를 함께 기록하고, relay(스케줄러 또는 CDC)가 outbox를 읽어 Kafka로 발행. 커밋 자체에 메시지 저장이 포함되므로 JVM 크래시 상황에서도 유실이 구조적으로 차단됩니다.
+- **슬롯팀에서 한 구현과의 차이**: 저는 `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 이후 발행 + 전송 실패 시 `Propagation.REQUIRES_NEW`로 Dead Letter Store + 스케줄러 재시도 구조로 구현했습니다. AFTER_COMMIT과 Kafka 발행 사이의 크래시 구간은 유실 가능성이 남는 한계가 있고, 통계·알림 도메인에선 수용 가능한 수준으로 판단한 선택이었습니다. 정합성이 엄격한 도메인이면 정식 Outbox로 강화해야 합니다.
 - 컨슈머 쪽: 멱등 키 + 수동 커밋 + DLQ. "한 번 이상 도착" 모델을 전제로 설계.
 - 회고: producer는 유실 방지, consumer는 중복 방어가 분업. 이 경계를 흐리면 retry 폭주/순환이 생깁니다.
 
@@ -282,7 +308,7 @@
 
 ### Q7. "실패 원인 추적(Observability)을 어떻게 설계하세요?"
 
-- MDC/traceId 전파를 트랜잭션 경계·메시징 경계 모두에서 유지. Outbox 실패 레코드에도 traceId를 함께 박아 사후 재현성 확보.
+- MDC/traceId 전파를 트랜잭션 경계·메시징 경계 모두에서 유지. Dead Letter 레코드에도 traceId를 함께 박아 사후 재현성 확보.
 - 비즈니스 실패(예: safety filter 차단, AI 환각)는 **기술 예외와 다른 채널**로 기록. AI 웹툰에서는 컷별로 `lastGenerationStatus`, `lastGenerationError`, `lastGeneratedAt`을 DB에 박아 UI에 구체적 사유를 노출했습니다.
 - Circuit Breaker·Timeout·Retry는 이벤트를 남기지 않으면 "왜 성공했는지/왜 실패했는지"가 사라짐. Resilience4j 사용 시 이벤트 리스너로 상태 전이 로깅 필수.
 
@@ -291,6 +317,37 @@
 - 반대 자체보다 **트레이드오프 표**를 먼저 올립니다. "이걸 택하면 무엇을 잃는가"를 숫자/시나리오로.
 - 단기 의사결정이라면 ADR 초안 1페이지, 장기라면 스파이크/벤치마크로 증거를 모은 뒤 논의. 슬롯 엔진 추상화도 반복 5회 이상을 채운 뒤에야 ADR로 제안했습니다.
 - "내가 틀릴 수 있음"을 명시적으로 남겨두면 논의 비용이 훨씬 내려갑니다.
+
+### Q9. "RabbitMQ Fanout 구조를 Kafka로 전환한다면 consumer group을 어떻게 잡으시겠어요?"
+
+- 핵심은 **"모든 인스턴스가 모든 메시지를 받아야 한다"**는 Fanout 의미론을 Kafka에서 재현하는 것입니다.
+- **같은 consumer group으로 묶으면 안 됨**: Kafka는 같은 group 안에서 파티션을 컨슈머들에게 **분할 할당**합니다. 100대 인스턴스 + 하나의 group이면 각 메시지는 하나의 인스턴스만 받는 **Work Distribution**이 됩니다. 캐시 갱신 브로드캐스트로는 실패.
+- **인스턴스마다 독립 consumer group**: 각 인스턴스가 자기 group을 가지면 각자 모든 파티션을 읽습니다. `group.id`는 `cache-sync-${hostname}` 같은 결정론적 ID로 잡아야 재배포 시 offset이 이어집니다. 랜덤 UUID면 매 배포마다 earliest/latest로 초기화돼 폭주 위험.
+- **파티션 수**: Fanout 구조에선 각 group 내 컨슈머가 1개뿐이므로 **파티션 1개도 충분**. 파티션 수는 "각 group 내 병렬 소비가 필요한가"에 따라 결정. Work Distribution 시나리오와 헷갈리면 안 됩니다.
+- **100대 규모의 운영 이슈**: 100개 group이면 `__consumer_offsets` 토픽 부하 100배. offset commit 주기 튜닝 필요. 대안으로 Redis Streams + consumer group, 혹은 짧은 L1 TTL 기반 이벤트 없는 캐시도 검토 가치가 있습니다.
+
+### Q10. "슬롯 인메모리 캐시를 커머스 상품 캐시로 옮기면 어떻게 설계하시겠어요?"
+
+- **데이터 성격별 저장소 분리가 출발점**:
+  - 재고·가격(실시간 정합성 요구) → Redis single source of truth
+  - 상품 상세·노출 순위(느린 변경) → 인메모리 + 이벤트 무효화
+- **2-tier 구조로 확장**: Caffeine(L1, 프로세스 내, 수 초 TTL) + Redis(L2, 공유, 장기 TTL). L1이 L2를 방어하고, L2가 DB를 방어. 이벤트로 L1 무효화 전파.
+- **Cache Stampede 대응**: 핫키 만료 순간 DB 폭주 방지를 위한 3중 방어 — probabilistic early expiration(만료 전 확률적 갱신), single-flight(request coalescing으로 한 번만 DB 조회), Redis 분산 락.
+- **TTL에 Jitter**: 같은 시각 대량 만료로 cliff가 생기는 걸 막기 위해 TTL에 ±10% 난수 가감.
+- **전파 채널 선택**: 인스턴스 수가 적으면 RabbitMQ Fanout, 많아지면 Kafka 토픽(인스턴스마다 독립 group) 또는 Redis Pub/Sub. 메시지 보장이 필요한지가 선택 기준.
+- 근거: [`architecture/cache-strategies.md`](../../architecture/cache-strategies.md), [`architecture/high-traffic-commerce-patterns.md`](../../architecture/high-traffic-commerce-patterns.md).
+
+### Q11. "라이브 운영 중인 시스템을 리팩토링하실 때 어떤 전환 방식을 쓰시나요?"
+
+- **정직한 전제**: 슬롯 도메인은 월 단위 배포 주기여서 **완전 대체 마이그레이션** + 테스트 안전망(게임 플레이 시뮬레이션 + QA 시나리오 검증) + 팀 QA 협업으로 풀어왔습니다. Feature Flag/Shadow Mode/Canary 같은 실시간 무중단 전환 경험은 아직 없습니다.
+- **커머스 환경의 필요성 인지**: 1,600만 고객 + 실시간 배포 환경에선 다른 차원의 전환 전략이 필요하다는 걸 알고 있고, CJ 올리브영 무중단 OAuth2 전환기(Feature Flag + Shadow Mode + Resilience4j 3단 + Jitter)를 정독하며 [`architecture/zero-downtime-migration.md`](../../architecture/zero-downtime-migration.md)에 스터디 기록을 남겼습니다.
+- **커머스에서 쓸 접근 순서** (도입 시):
+  1. **Feature Flag**로 신·구 로직을 런타임 전환 가능하게 (배포 없이 30초 내 반영)
+  2. **Shadow Mode**로 신 로직을 read-only로 병행 실행 → 결과 비교 대시보드(diff rate 알람)
+  3. **Canary 배포**로 hash(userId) 기반 결정론적 10% → 30% → 100% 점진 확대
+  4. **Resilience4j 3단**(Timeout → Retry → CircuitBreaker) 체인으로 외부 의존 실패 격리
+  5. 플래그 cleanup 티켓 + 롤백 drill 문서화
+- "경험 없음을 숨기지 않고, 학습한 범위를 구체적으로 제시하는" 프레이밍으로 답변합니다.
 
 ---
 
@@ -345,7 +402,7 @@
 ### 시간 배분 (60분 기준)
 
 - 자기소개 60초 (§1 그대로).
-- 이력·경험 설명 10~15분: 슬롯 캐시 정합성 / Kafka Outbox / RAG 배치 / AI 웹툰 MVP 중 **면접관이 관심 보이는 축을 빠르게 감지**해 거기에 무게.
+- 이력·경험 설명 10~15분: 슬롯 캐시 정합성 / Kafka 비동기 발행 / RAG 배치 / AI 웹툰 MVP 중 **면접관이 관심 보이는 축을 빠르게 감지**해 거기에 무게.
 - 기술 심화 QnA 20~25분: §10의 프레이밍 그대로 사용.
 - 라이브 코딩/화이트보드 10~15분.
 - 역질문 5분: §11에서 **기술 1 + 팀 1 + 회사 방향 1** 세 개 우선.
