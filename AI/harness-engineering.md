@@ -217,161 +217,127 @@ project/
 
 ---
 
-## 실제 사례 — 개인 블로그 프로젝트에서 본 하네스
+## 실제 사례 — 내 하네스 v1에서 v2로의 진화
 
-이론을 쌓고 나면 자연스럽게 이런 질문이 생긴다. "내가 만든 것에는 하네스가 얼마나 있는가?"
+이론을 쌓고 나면 자연스럽게 이런 질문이 생긴다. "내가 만든 것에는 하네스가 얼마나 있는가?" 그런데 더 중요한 질문은 "내 하네스는 어떻게 자라고 있는가"다. 하네스는 한 번 만들고 끝이 아니라 프로젝트 규모·기간·실패 경험에 따라 진화하는 구조다.
 
-개인 프로젝트 하나를 분석해봤다. GitHub에서 마크다운을 가져와 MySQL에 캐싱하고 렌더링하는 Next.js 블로그다. AI 에이전트가 직접 코딩에 참여했고, 그 결과물을 하네스 엔지니어링 관점에서 평가했다.
+개인 프로젝트 두 개를 비교해봤다. v1은 CLI 도구(**dooray-cli**), v2는 웹툰 생성 Next.js 앱(**webtoon-maker-v1**)이다. 둘 다 내가 Claude Code와 함께 만들었고, 나중에 만든 쪽이 앞 프로젝트에서 얻은 실패 경험을 하네스에 명시적으로 녹여낸다.
 
-**종합 점수: 72 / 100**
+### v1 — 최소 하네스 (dooray-cli)
 
-### 잘 된 것들
-
-**1. 계층형 AGENTS.md — 컨텍스트 엔지니어링의 정석**
-
-프로젝트 루트부터 모든 서브 디렉터리에 `AGENTS.md`가 있다.
+TypeScript CLI 하나짜리 프로젝트다. 하네스라고 부를 만한 것은 거의 전부 루트 `CLAUDE.md` 한 장에 담겨 있다.
 
 ```
-fos-blog/
-├── CLAUDE.md           ← 전체 프로젝트 맥락 (기술 스택, 환경변수, 컨벤션)
-├── AGENTS.md           ← 데이터 흐름, 디렉터리 안내
-└── src/
-    ├── AGENTS.md       ← 레이어 아키텍처 상세
-    ├── services/
-    │   └── AGENTS.md   ← 서비스 레이어 규칙
-    └── infra/
-        ├── db/
-        │   └── AGENTS.md   ← DB 스키마, 레포지터리 패턴
-        └── github/
-            └── AGENTS.md   ← GitHub API 클라이언트 설명
+dooray-cli/
+├── CLAUDE.md            # 60줄 — 스택, 디렉터리, 컨벤션, 주의사항
+├── .claude/skills/      # plan-and-build, release 2개
+├── skills/              # 공개 스킬 (다른 사용자용)
+├── prompts/             # task-create.md 한 장
+└── tasks/               # 3개 (flat 구조, phase 개념 없음)
 ```
 
-에이전트가 `src/services/`를 작업할 때 `src/services/AGENTS.md`가 정확히 그 레이어에 필요한 맥락을 제공한다. 전체 프로젝트를 다 읽지 않아도 된다.
+이 단계에서 하네스의 역할은 단순하다. 에이전트가 "이 프로젝트에서 HTTP는 `ky`를 쓰고 에러는 `DoorayCliError`로 통일한다"는 규칙만 알면 된다. ADR도 없고, 아키텍처 레이어도 없고, 모델 라우팅도 없다. 프로젝트가 작고 기능 축적 속도가 빠르지 않으니 이 정도로 충분했다.
 
-CLAUDE.md의 마지막 섹션에는 우선순위까지 명시돼 있다:
+하지만 몇 달 지나면서 드러난 한계는 있었다.
+
+- **실패 경험이 쌓이지 않는다** — "이 라이브러리는 이렇게 쓰면 안 된다"는 교훈이 커밋 메시지로만 남고, 다음 세션의 에이전트는 같은 함정을 밟는다.
+- **규칙이 강제되지 않는다** — "상대경로 금지"가 `CLAUDE.md` 문장으로만 존재하면 에이전트는 잊어버린다.
+- **phase가 비워져 있으면 에이전트가 컨텍스트를 폭식한다** — task가 "dooray-cli 구현" 한 덩어리면 세션당 범위가 너무 커진다.
+
+### v2 — 성숙한 하네스 (webtoon-maker-v1)
+
+Next.js + Prisma + Gemini API 풀스택 앱이다. v1에서 겪은 한계가 그대로 v2 하네스의 설계 요구사항이 됐다.
+
+**1. 컨텍스트 문서를 용도별로 쪼갠다 — 상황별 컨텍스트 엔지니어링**
+
+v1은 `CLAUDE.md` 한 장에 모든 걸 썼다. v2는 루트 `CLAUDE.md`를 **라우터**로 만들고, 실제 사실 정보는 7개 문서로 분산한다.
+
+```
+webtoon-maker-v1/
+├── CLAUDE.md                      # 규칙과 라우팅만 — 사실은 docs/ 참조
+└── docs/
+    ├── prd.md                     # 새 기능 추가 전
+    ├── adr.md                     # 기술 결정 시
+    ├── data-schema.md             # API 연동/타입 정의 시
+    ├── flow.md                    # UI/UX 수정 시
+    ├── code-architecture.md       # 코드 작성 시 항상
+    ├── ai-strategy.md             # AI 호출/프롬프트 수정 시
+    └── collaboration.md           # 컴포넌트 신규/수정 시
+```
+
+`CLAUDE.md` 상단에는 "언제 어떤 문서를 읽어야 하는지" 테이블이 있다. 에이전트가 `docs/adr.md`(713줄) 같은 대형 문서를 통째로 읽지 않아도, 작업 종류에 따라 필요한 섹션만 집어 읽을 수 있다. 이게 v1에 없던 **컨텍스트 라우팅**이다.
+
+**2. 실패 패턴을 ADR로 축적 — 상황별 필수 참조**
+
+v1에서 놓쳤던 "실패 경험 축적"을 v2는 **상황 ↔ ADR 매핑 테이블**로 해결한다.
 
 ```markdown
-**Agents should prioritize:**
-1. Schema integrity (Drizzle types)
-2. Sync idempotency (no duplicate/lost data)
-3. Markdown fidelity (GFM, mermaid, links)
-4. Type safety across API boundaries
+| 상황                                            | 필수 확인 ADR                              |
+| ----------------------------------------------- | ------------------------------------------ |
+| Base UI Select 사용                             | ADR-121 — items prop 없으면 id가 노출됨    |
+| 인터랙티브 버튼 추가                            | ADR-122 — native <button> 금지             |
+| Gemini LLM 호출 추가                            | ADR-043 + ADR-047 + ADR-072                |
+| API route / Application layer 수정              | ADR-135 — 3-tier 경계 + ESLint 4종         |
+| useEffect 작성                                  | ADR-115 — setState 금지, 파생 계산만       |
 ```
 
-**2. 의존성 주입으로 구현된 교체 가능한 하네스**
+이건 Fowler가 말한 **엔트로피 관리**의 실제 구현이다. 같은 버그가 두 번 일어나면 ADR로 결정론적으로 기록하고, 에이전트는 해당 상황에 진입하기 전에 강제로 그 ADR을 읽는다. v1에는 "주의사항" 섹션에 bullet 몇 줄로 녹아 있었을 내용이, v2에서는 명시적 검색 인덱스로 올라왔다.
 
-`SyncService`는 모든 외부 의존성을 생성자로 받는다. GitHub API를 실제 구현체 대신 mock으로 교체할 수 있어 테스트가 쉽다.
+**3. 아키텍처 제약을 ESLint로 강제 — 말에서 코드로**
 
-```typescript
-export class SyncService {
-  constructor(
-    private postSyncService: PostSyncService,
-    private metadataSyncService: MetadataSyncService,
-    private postRepo: PostRepository,
-    private syncLogRepo: SyncLogRepository,
-    private githubApi: GithubApi,  // ← 인터페이스 타입, mock 교체 가능
-  ) {}
-}
+v1의 "상대경로 금지"는 문장이다. v2의 3-tier 경계는 ESLint 규칙이다.
+
+| 레이어 | 담당 | 금지 |
+|--------|------|------|
+| `actions/` | Controller — `"use server"`, Zod 파싱 | 비즈니스 로직, 트랜잭션 |
+| `app/api/**/route.ts` | Controller — HTTP 파싱, SSE 래핑 | `@/actions/*`·`@/lib/db/*` 직접 import |
+| `lib/application/` | 트랜잭션 경계, 2+ domain 조합 | `next/server`·`next/navigation` |
+| `lib/ai/` | 모델 호출, 프롬프트 조립 | DB 접근, revalidate |
+| `lib/db/` | Prisma 쿼리, 순수 반환 | revalidate, 비즈니스 정책 |
+
+에이전트가 경계를 넘어가면 `pnpm run ci`가 실패한다. 이게 Fowler의 **아키텍처 제약**이다. v1은 규칙을 "기억해 달라"고 부탁했고, v2는 규칙을 **결정론적으로 실행**한다.
+
+**4. task phase 원자화 — 컨텍스트 저하 대응**
+
+v1 task는 flat 3개였다. v2 task는 80개 이상이고, 각 plan은 여러 phase로 쪼개져 있다. 핵심 규칙은 다음과 같다.
+
+- 각 phase는 원자적 단일 책임
+- **작업 항목 5개 이하** 엄수
+- 각 phase 프롬프트는 자기완결적(이전 대화 없이 독립 실행 가능)
+- task 파일 생성 즉시 git commit, 완료 즉시 git commit
+
+이건 Anthropic 글의 **Initializer-Executor 패턴**과 정확히 같은 해결책이다. "교대 근무하는 엔지니어"에게 이전 교대의 기억이 없어도 git log와 phase 프롬프트만 읽으면 작업을 재개할 수 있다. v1에서 "task 하나가 너무 커서 세션 중간에 컨텍스트가 불안해지는" 경험이 v2의 phase 제한 규칙으로 환원됐다.
+
+**5. 모델 라우팅 — 비용까지 하네스로 본다**
+
+v2는 한 발 더 나간다. 같은 작업이라도 어떤 모델로 돌리느냐를 하네스가 지정한다.
+
+```markdown
+- 논의·계획·docs 작성: main 세션 (opus 허용)
+- task phase 실행: sonnet 기본 — rename, 리팩토링, 다중 파일 수정도 sonnet
+- task phase에서 opus 사용 예외:
+  - 새 아키텍처 설계가 phase 안에 있는 경우
+  - 복잡 알고리즘 설계 (AI 파이프라인 신규 설계)
+- 기계적 작업은 opus 금지
 ```
 
-에이전트가 이 코드를 수정할 때 "새 의존성을 추가하려면 생성자에 주입하라"는 패턴이 강제된다. 하네스가 코드 구조를 통해 제약을 만드는 예시다.
+Rajasekaran이 "강력한 모델에서는 플래너가 불필요해진다"고 관찰한 것의 반대 면이다. 모델이 좋아져도 **어떤 작업에 어떤 모델을 쓸지는 여전히 하네스가 결정**해야 한다. v1에는 없던 축이다.
 
-**3. 상태 외부화와 멱등성**
+### 진화의 관찰
 
-sync가 실패하거나 재실행됐을 때 중복 처리를 막는 체크포인트가 DB에 있다.
+두 프로젝트를 Fowler의 세 축에 맞춰 놓으면 진화의 방향이 보인다.
 
-```typescript
-const headSha = await this.githubApi.getCurrentHeadSha();
-const lastSyncedSha = (await this.syncLogRepo.getLatest())?.commitSha;
+| 축 | v1 (dooray-cli) | v2 (webtoon-maker-v1) |
+|------|----------------|----------------------|
+| 컨텍스트 엔지니어링 | 단일 `CLAUDE.md` | 7개 docs + 상황별 라우팅 테이블 |
+| 아키텍처 제약 | 문장으로만 명시 | 3-tier + ESLint 경계 + `pnpm run ci` |
+| 엔트로피 관리 | 없음 (커밋 메시지에만) | ADR + 상황↔ADR 매핑 테이블 |
+| 실행 단위 | flat task 3개 | phase 원자화 + 5개 제한 + 자기완결 |
+| 모델 라우팅 | 없음 | opus/sonnet 규칙 명시 |
 
-if (lastSyncedSha === headSha) {
-  return { upToDate: true };  // 이미 최신 → 재처리 없음
-}
-```
+핵심은 v2의 규칙들이 전부 **v1에서 겪은 구체적 실패에 대응**한다는 점이다. 하네스는 위에서 내려찍는 설계가 아니라 아래에서 쌓이는 것이다. 에이전트가 반복해서 막히는 지점이 곧 하네스에 다음으로 추가해야 할 컴포넌트다.
 
-SHA 비교로 멱등성을 보장하는 구조다. cron이 매 시간 실행돼도 변경 없으면 아무것도 하지 않는다.
-
-**4. 폴백 전략**
-
-증분 sync(빠름)가 실패하면 전체 sync(안전)로 자동 폴백한다. 하네스의 복구 경로가 코드에 내장돼 있다.
-
-```typescript
-const changedFiles = await this.githubApi.getChangedFilesSince(lastSyncedSha, headSha);
-if (changedFiles === null) {
-  // 증분 불가 → 전체 sync로 폴백
-  ({ added, updated, deleted } = await this.performFullSync());
-} else {
-  ({ added, updated, deleted } = await this.performIncrementalSync(changedFiles));
-}
-```
-
-**5. 파일 필터를 통한 범위 제어**
-
-`shouldSyncFile()`이 동기화 범위를 명확히 정의한다. AGENTS.MD, CLAUDE.MD 같은 에이전트 컨텍스트 파일이 블로그 포스트로 발행되는 것을 명시적으로 막는다.
-
-```typescript
-export const EXCLUDED_FILENAMES = new Set([
-  "AGENTS.MD", "CLAUDE.MD", "GEMINI.MD", "CURSOR.MD", ...
-]);
-
-export function shouldSyncFile(filename: string): boolean {
-  if (!filename.endsWith(".md") && !filename.endsWith(".mdx")) return false;
-  if (parts.some((p) => p.startsWith("."))) return false;
-  if (EXCLUDED_FILENAMES.has(basename)) return false;
-  return true;
-}
-```
-
----
-
-### 부족한 것들
-
-**1. 핵심 오케스트레이터에 테스트가 없다**
-
-`MetadataSyncService.test.ts`와 `PostService.test.ts`는 잘 작성돼 있다. 하지만 "전체 sync vs 증분 sync 결정" 같은 가장 복잡한 로직이 담긴 `SyncService.ts`에는 테스트 파일 자체가 없다. 테스트가 계약(contract) 역할을 하려면 가장 중요한 흐름부터 커버해야 한다.
-
-```
-src/services/
-├── SyncService.ts             ← 테스트 없음
-├── PostSyncService.ts         ← parsePath만 테스트 (upsert 미검증)
-├── PostService.test.ts        ← 잘 됨
-└── MetadataSyncService.test.ts ← 잘 됨
-```
-
-**2. 평가자(Evaluator)가 없다**
-
-sync가 완료되면 `{ added: 3, updated: 0, deleted: 0 }` 을 반환하고 끝난다. 3개가 실제로 올바른 내용으로 저장됐는지, 렌더링에 문제는 없는지 검증하는 단계가 없다. "생성자와 평가자를 분리하라"는 하네스의 핵심 원칙이 여기서는 적용되지 않았다.
-
-**3. API 레이어가 서비스 조합 규칙을 알고 있다**
-
-```typescript
-// api/sync/route.ts
-const syncResult = await syncGitHubToDatabase();
-const retitleResult = await retitleExistingPosts();  // ← 왜 여기에?
-```
-
-"sync할 때 retitle도 해야 한다"는 비즈니스 규칙이 API 레이어에 노출돼 있다. 이 규칙은 `SyncService` 안에 있어야 한다. 다른 진입점에서 sync를 호출하면 retitle을 빼먹을 수 있다.
-
-**4. GitHub API 재시도 없음**
-
-`getDirectoryContents`는 전체 sync 시 수십 번 호출된다. 여기에 재시도 로직이 없으면 429 하나에 sync 전체가 실패한다.
-
----
-
-### 평가 요약
-
-| 항목 | 점수 |
-|------|------|
-| 컨텍스트 엔지니어링 (계층형 AGENTS.md) | 9/10 |
-| 아키텍처 제약 (레이어 규칙, TypeScript strict) | 8/10 |
-| 상태 외부화 (SyncLog, SHA 멱등성) | 8/10 |
-| 폴백/복구 전략 | 7/10 |
-| 테스트 커버리지 (계약으로서의 테스트) | 4/10 |
-| 평가자 분리 | 3/10 |
-| 엔트로피 관리 | 3/10 |
-| **종합** | **72/100** |
-
-컨텍스트 엔지니어링은 잘 됐다. 에이전트가 이 저장소에서 작업할 때 방향을 잃지 않는다. 반면 "생성 후 평가"하는 루프와 핵심 로직의 테스트 커버리지가 약하다. 하네스 점수를 올리려면 SyncService 테스트와 Evaluator 레이어가 먼저다.
+그리고 한 가지 더. v2는 이미 완성형이 아니다. 평가자(Evaluator)를 독립 에이전트로 돌리는 루프는 아직 없고, 엔트로피 관리를 자동화하는 "가비지 컬렉션 에이전트"도 없다. v3가 온다면 아마 이쪽에서 출발할 것이다.
 
 ---
 
