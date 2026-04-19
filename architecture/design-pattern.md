@@ -16,9 +16,9 @@
 - 디자인 패턴을 빠르게 복습하고 싶다
   - 이 문서
 - 전략 패턴을 실무 예시와 인터뷰 관점까지 깊게 보고 싶다
-  - `strategy-pattern.md`
+  - [strategy-pattern.md](./strategy-pattern.md)
 - 시스템 규모 확장, 서비스 분리, 분산 트레이드오프까지 같이 보고 싶다
-  - `distributed-architecture-study-pack.md`
+  - [distributed-architecture-study-pack.md](./distributed-architecture-study-pack.md)
 
 ## 전략 패턴 (Strategy Pattern)
 

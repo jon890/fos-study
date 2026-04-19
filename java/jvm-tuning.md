@@ -147,7 +147,7 @@ G1 로그 예시 한 줄:
 
 ## 실전 사례: 슬롯 시뮬레이터 OOM — 임시 대응 vs 근본 해결
 
-앞 섹션의 `Java heap space` 카테고리에 정확히 들어맞는 실제 사례를 앞서 다룬 개념들로 매핑해본다. 이 케이스는 **"힙을 늘려서 끄기"와 "구조를 바꾸기"의 경계가 어디인지**를 분명하게 보여주는 교과서적 예시다. 참고: `task/nsc-slot/slot-simulator-oom.md`.
+앞 섹션의 `Java heap space` 카테고리에 정확히 들어맞는 실제 사례를 앞서 다룬 개념들로 매핑해본다. 이 케이스는 **"힙을 늘려서 끄기"와 "구조를 바꾸기"의 경계가 어디인지**를 분명하게 보여주는 교과서적 예시다. 참고: [슬롯 시뮬레이터 OOM](../task/nsc-slot/slot-simulator-oom.md).
 
 ### 상황 요약
 
@@ -388,7 +388,7 @@ try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 
 ## StampedLock vs ReentrantReadWriteLock
 
-후보자의 이전 학습 노트(`stamped-lock.md`)에서 다룬 주제의 심화 정리.
+후보자의 이전 학습 노트([StampedLock](./stamped-lock.md))에서 다룬 주제의 심화 정리.
 
 **ReentrantReadWriteLock**. Read가 많고 Write가 적은 워크로드에서 여러 Read가 동시에 진행 가능. 재진입 지원. 하지만 Write가 끼어들면 Read가 블로킹되고, Read 락 자체도 비용이 있다.
 

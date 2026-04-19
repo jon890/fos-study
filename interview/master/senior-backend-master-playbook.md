@@ -2,7 +2,7 @@
 
 > 대상 직무: 시니어 Java 백엔드 (재사용 가능한 공통 자료)
 > 가장 가까운 면접: CJ 올리브영 커머스플랫폼유닛 Back-End (경력) — 2026-04-21
-> 근거: `resume/2603_김병태_이력서_v4.md`, `task/nsc-slot/**`, `task/ai-service-team/**`, `interview/cj-oliveyoung-wellness-backend.md`
+> 근거: [`resume/2603_김병태_이력서_v4.md`](../../resume/2603_김병태_이력서_v4.md), `task/nsc-slot/**`, `task/ai-service-team/**`, [`interview/cj-oliveyoung-wellness-backend.md`](../cj-oliveyoung-wellness-backend.md)
 
 ---
 
@@ -41,13 +41,13 @@
 
 - **문제**: 다중 서버가 각자 정적 설정 데이터를 인메모리 캐시로 가지는 상황에서, 어드민 변경 시 갱신 중 조회 요청이 일시적 정합성 오류를 냄.
 - **해결**: `PostCommitUpdateEventListener`로 커밋 후에만 RabbitMQ Fanout Exchange로 변경 ID 발행 → 각 인스턴스가 자신의 큐에서 수신 후 해당 항목만 선택 갱신. 갱신/조회 경합은 `StampedLock` writeLock + `tryReadLock(2500ms)` 타임아웃으로 흡수. `StaticDataManager` 인터페이스로 init/refresh/clear 책임 분리 → 새 캐시 타입 추가해도 기존 코드 무변경.
-- **증거**: `resume/2603_김병태_이력서_v4.md` 문항 1, `task/nsc-slot/slot-engine-abstraction.md` "StaticDataLoader 개선".
+- **증거**: [`resume/2603_김병태_이력서_v4.md`](../../resume/2603_김병태_이력서_v4.md) 문항 1, [`task/nsc-slot/slot-engine-abstraction.md`](../../task/nsc-slot/slot-engine-abstraction.md) "StaticDataLoader 개선".
 
 ### 4-2. Kafka 비동기 + Transactional Outbox를 직접 설계·운영했다
 
 - 금액/레벨처럼 즉시 응답이 필요한 로직은 DB 트랜잭션 내, 미션·통계·알림 후처리는 Kafka로 분리.
 - `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 후 발행 보장. 전송 실패 시 `Propagation.REQUIRES_NEW` 별도 트랜잭션으로 실패 메시지를 DB에 저장하고 스케줄러가 재전송. traceId 동반 저장으로 실패 원인 추적.
-- 증거: `resume/2603_김병태_이력서_v4.md` 문항 1.
+- 증거: [`resume/2603_김병태_이력서_v4.md`](../../resume/2603_김병태_이력서_v4.md) 문항 1.
 
 ### 4-3. 대용량 배치 파이프라인을 처음부터 설계했다
 
@@ -55,7 +55,7 @@
 - I/O 바운드 임베딩 호출은 `AsyncItemProcessor` + `AsyncItemWriter`로 병렬화. 청크 내 문서를 스레드풀에서 동시 처리.
 - Reader에 `ItemStream` 구현으로 커서 위치를 `ExecutionContext`에 저장 → 중간 실패 후에도 마지막 처리 지점에서 재시작.
 - `@JobScope` 홀더(`ConfluenceJobDataHolder`) 도입으로 `JobExecutionContext` 직렬화 부하 회피 (경량 커서 상태 vs 도메인 데이터 분리 판단).
-- 증거: `task/ai-service-team/rag-vector-search-batch.md`.
+- 증거: [`task/ai-service-team/rag-vector-search-batch.md`](../../task/ai-service-team/rag-vector-search-batch.md).
 
 ### 4-4. 성능 의사결정을 수치 기반으로 한다
 
@@ -63,20 +63,20 @@
 - 시뮬레이터 OOM: `List<Long> winmoneyList` 누적 구조를 Welford's Online Algorithm 기반 1-pass 통계로 교체해 메모리 상수화.
 - Context Cache: 원작 소설(수십만 토큰)을 Gemini Project 단위 cachedContent로 묶어 Analysis/Content-review/Treatment/Conti/Continuation 5단계 공유 → 재결제 비용 제거.
 - 통합 분석: Step1 소설 분석 5개 영역을 단일 Structured Output 호출로 합쳐 토큰 75% 절감, 26.8s → 13.1s.
-- 증거: `task/nsc-slot/slot-spin-performance.md`, `task/nsc-slot/slot-simulator-oom.md`, `task/ai-service-team/webtoon-maker-ai-pipeline.md` (ADR-059, ADR-069).
+- 증거: [`task/nsc-slot/slot-spin-performance.md`](../../task/nsc-slot/slot-spin-performance.md), [`task/nsc-slot/slot-simulator-oom.md`](../../task/nsc-slot/slot-simulator-oom.md), [`task/ai-service-team/webtoon-maker-ai-pipeline.md`](../../task/ai-service-team/webtoon-maker-ai-pipeline.md) (ADR-059, ADR-069).
 
 ### 4-5. 에이전트 파이프라인을 설계·운영하는 엔지니어
 
 - "Cursor Rules를 쓴다"가 아니라 20개 이상 직접 구축해 슬롯 도메인 컨텍스트를 문서화하고, 이 규칙 위에서 신규 게임 3종을 에이전트 단독으로 구현.
 - AI 웹툰 MVP에서는 Claude Code 하네스 위에 **planner → critic → executor → docs-verifier** 4역할 에이전트 팀을 조립. `/planning` → `/plan-and-build` → `/build-with-teams` → `/integrate-ux`로 vibe 코딩을 spec 기반 코딩으로 단계적 전환.
 - 개인 성과에 그치지 않고 팀에 활용 방법을 전파해 반복 개발 사이클 단축.
-- 증거: `task/nsc-slot/ai-tool-adoption.md`(목차), `task/ai-service-team/webtoon-maker-ai-pipeline.md` "하네스 진화".
+- 증거: [`task/nsc-slot/ai-tool-adoption.md`](../../task/nsc-slot/ai-tool-adoption.md)(목차), [`task/ai-service-team/webtoon-maker-ai-pipeline.md`](../../task/ai-service-team/webtoon-maker-ai-pipeline.md) "하네스 진화".
 
 ### 4-6. 테스트 인프라를 안전망으로 만든다
 
 - 슬롯 도메인: 제네릭 추상 테스트 클래스 `AbstractSlotTest`로 게임 타입별 초기화 자동화, 총 447개 테스트 파일에서 핵심 비즈니스 로직 / AOP 검증 / Kafka 이벤트 발행 / Redis 통합 테스트까지 커버.
 - 배치 도메인: `@BatchComponentTest` 커스텀 애노테이션으로 외부 API만 모킹하고 Spring 컨텍스트에서 실제 빈을 엮어 테스트해 `@Qualifier` 충돌·`@StepScope` 빈 중복 같은 실수를 빌드 타임에 차단.
-- 증거: `resume/2603_김병태_이력서_v4.md` 문항 1, `task/ai-service-team/rag-vector-search-batch.md` "테스트 전략".
+- 증거: [`resume/2603_김병태_이력서_v4.md`](../../resume/2603_김병태_이력서_v4.md) 문항 1, [`task/ai-service-team/rag-vector-search-batch.md`](../../task/ai-service-team/rag-vector-search-batch.md) "테스트 전략".
 
 ---
 
@@ -109,7 +109,7 @@
 - 초기: 단가가 낮은 Flash를 기본으로 사용 → 운영자가 결과를 보고 재생성하는 빈도가 높아 **총 호출 횟수·시간 비용 증가**.
 - 재결정 (ADR-072): Pro 기본, 429 발생 시 Flash → Lite로 fallback. 전역 `Rate Limit Tracking`(429 맞은 모델을 일정 시간 skip 대상으로 마킹)으로 다른 요청이 같은 모델을 또 두드리지 않게.
 - 30초 재시도 로직 제거: TPM은 분 단위로 풀리는데 30초는 또 실패만 불러와 즉시 다음 fallback이 더 빠르고 안정.
-- Trade-off: 단가는 오르지만 **"한 번에 만족하는 결과"가 총비용을 낮춘다**는 관점으로 뒤집은 의사결정. 증거: `task/ai-service-team/webtoon-maker-ai-pipeline.md`.
+- Trade-off: 단가는 오르지만 **"한 번에 만족하는 결과"가 총비용을 낮춘다**는 관점으로 뒤집은 의사결정. 증거: [`task/ai-service-team/webtoon-maker-ai-pipeline.md`](../../task/ai-service-team/webtoon-maker-ai-pipeline.md).
 
 ### 사례 2 — 60컷 일괄 생성: SSE → `Promise.allSettled` 구조 전환
 
@@ -252,7 +252,7 @@
   3. 쓰기는 청크 단위 트랜잭션 + 멱등 키로 중복 실행 방어.
   4. **Shadow 이행** (구 → 신 병기 기록) 단계로 운영 데이터와 이행 데이터를 비교한 뒤, Feature Flag로 읽기 경로만 점진 전환(올리브영 OAuth2 전환 사례와 같은 결).
   5. 실패 메시지는 `REQUIRES_NEW` 별도 트랜잭션 + traceId로 저장, 재처리 큐로 흘려보냄.
-- 실제 근거: `AsyncItemProcessor` + 커서 재시작(`task/ai-service-team/rag-vector-search-batch.md`), `REQUIRES_NEW` 기반 Outbox(`resume 문항 1`).
+- 실제 근거: `AsyncItemProcessor` + 커서 재시작([`task/ai-service-team/rag-vector-search-batch.md`](../../task/ai-service-team/rag-vector-search-batch.md)), `REQUIRES_NEW` 기반 Outbox(`resume 문항 1`).
 
 ### Q3. "주니어가 합류하면 리뷰 정책은 어떻게 세팅하시겠어요?"
 
