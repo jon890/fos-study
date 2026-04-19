@@ -1,444 +1,428 @@
-# [초안] JVM 튜닝: 시니어 Java 백엔드를 위한 GC·메모리·동시성 실전 가이드
+# [초안] JVM 튜닝 실전: 메모리 구조부터 Virtual Threads, GC 튜닝, 프로파일링까지
 
-## 왜 이 주제가 중요한가
+## 왜 지금 JVM 튜닝을 다시 공부해야 하는가
 
-실무 백엔드 서비스에서 "느려졌다"는 신고가 들어올 때, 신입은 코드를 본다. 시니어는 GC 로그를 본다. JVM 튜닝은 단순히 플래그 몇 개를 외우는 것이 아니라, **애플리케이션이 CPU/메모리/스레드 자원을 어떻게 쓰는지를 JVM 관점에서 역산하는 능력**이다. 이 능력은 크게 세 가지 상황에서 실전 가치가 폭발한다.
+시니어 Java 백엔드 엔지니어라면 "서비스가 느려졌다"는 장애 리포트를 한 번쯤 받아봤을 것이다. 이때 "GC가 원인인가?"를 10분 안에 판단할 수 있는가, 아니면 로그만 뒤적이다가 한 시간을 보내는가. 이 차이가 시니어와 미드 레벨의 결정적 차이다.
 
-첫째, 레이턴시 SLO가 무너질 때다. p99 응답이 100ms에서 갑자기 1.5s로 튀면, 코드 변경이 없었다면 거의 대부분 GC pause 혹은 Safepoint 지연이 원인이다. 둘째, OOM이 난 뒤 재발 방지 회의에 불려갈 때다. "Heap을 늘렸다"는 답은 중간급 엔지니어의 답이고, "Heap이 아니라 Metaspace였고 클래스로더 누수가 원인이었다"는 답이 시니어의 답이다. 셋째, Java 21 이후 Virtual Threads가 들어오면서 기존 튜닝 상식 중 일부가 무효화되고 있다. 스레드 풀 크기 산정, 블로킹 I/O 재평가, backpressure 전략이 다시 설계 테이블 위에 올라왔다.
+JVM 튜닝은 "옵션 플래그를 외우는 것"이 아니다. 힙이 어떻게 구성되는지, GC가 어떤 규칙으로 객체를 죽이는지, 어떤 지표를 봐야 튜닝 방향이 잡히는지를 이해해야 한다. 특히 Java 17, 21 LTS로 넘어오면서 G1GC가 기본값이 되고, ZGC가 프로덕션 레벨로 올라왔고, Virtual Threads가 등장하면서 "Thread Pool 사이즈를 어떻게 잡는가"라는 오랜 질문 자체가 다시 쓰이고 있다. CJ OliveYoung 규모의 커머스 플랫폼이라면 결제/검색/추천 등 다양한 워크로드가 한 JVM 안에 혼재하고, 초당 수천 건의 요청에서 pause time 100ms가 사용자 경험을 직접 깎아먹는다.
 
-이 문서는 이 세 가지를 한 번에 훑을 수 있는 시니어용 체크포인트다. 개념 → 실습 → 안티패턴 → 면접 답변 순으로 구성했다.
+이 문서는 JVM 메모리 구조 → GC → 튜닝 플래그 → 로그 해석 → OOM 대응 → 프로파일링 → Virtual Threads → 동시성 유틸리티 → JMH 벤치마킹 → 면접 답변 framing까지, 시니어 관점의 JVM 지식을 한 번에 정리한다.
 
----
+## JVM 메모리 구조 복습
 
-## JVM 메모리 구조 다시 보기
+JVM이 프로세스로 올라왔을 때 차지하는 메모리는 크게 네 영역이다.
 
-JVM의 프로세스 메모리는 `-Xmx`에 잡히지 않는 영역이 훨씬 많다. 컨테이너 환경에서 OOMKilled가 나는 대부분의 원인이 여기에 있다.
+**Heap**. 애플리케이션 객체가 사는 곳. `-Xms`(초기값), `-Xmx`(최대값)로 크기를 지정한다. G1GC는 이 Heap을 Region(기본 1MB~32MB 사이 2의 거듭제곱) 단위로 쪼개서 관리한다.
 
-**Heap (`-Xms`, `-Xmx`)**
-- `new`로 만든 객체, 배열이 올라가는 공간.
-- Young Generation(Eden + Survivor S0, S1)과 Old Generation으로 분리된다(G1은 논리적으로만).
-- GC 대상이 되는 거의 유일한 영역.
+**Metaspace**. 클래스 메타데이터(클래스 구조, 메서드 바이트코드, 상수 풀 등)가 들어간다. Java 8에서 PermGen을 대체해서 나왔다. 네이티브 메모리에 잡히고, `-XX:MaxMetaspaceSize`로 상한을 안 걸면 시스템 메모리를 무제한 먹을 수 있다. 동적 클래스 로딩이 많은 애플리케이션(JSP, Groovy, JPA Entity 프록시 대량 생성)은 여기서 터진다.
 
-**Metaspace (`-XX:MaxMetaspaceSize`)**
-- 클래스 메타데이터, 메서드 바이트코드, 상수 풀.
-- Java 8에 PermGen을 대체했고 **기본은 unbounded**다. 누수 시 컨테이너가 통째로 죽는다.
-- 동적 프록시, CGLIB, Groovy, 핫스왑 도구가 많을수록 위험하다.
+**Thread stack**. 각 스레드마다 `-Xss`(기본 1MB 전후)만큼 잡힌다. 스레드 1만 개면 순수 스택으로만 10GB가 날아간다. 이게 바로 Virtual Threads가 풀어야 했던 문제의 본질이다.
 
-**Thread Stack (`-Xss`)**
-- 스레드당 고정(기본 1MB 근처). 스레드가 5,000개면 약 5GB가 힙 바깥에서 사라진다.
-- Virtual Threads는 이 제약을 정면으로 깬다(뒤에서 다룸).
+**Direct memory / Native memory**. `ByteBuffer.allocateDirect()`, Netty, DirectBuffer 기반 I/O, JNI 라이브러리 등이 여기에 잡힌다. `-XX:MaxDirectMemorySize`로 상한을 건다. Heap 모니터링만 하고 있으면 이쪽이 터져도 원인을 못 찾는다.
 
-**Direct Memory / Native Buffer (`-XX:MaxDirectMemorySize`)**
-- `ByteBuffer.allocateDirect()`, Netty, gRPC, Kafka 클라이언트가 사용.
-- Heap dump에 안 보인다. `jcmd <pid> VM.native_memory` 또는 NMT로 본다.
-
-**Code Cache (`-XX:ReservedCodeCacheSize`)**
-- JIT 컴파일된 네이티브 코드. 부족하면 JIT가 멈추고 성능이 조용히 절벽을 탄다.
-
-실무 체크리스트: 컨테이너 memory limit을 `L`이라 할 때, `-Xmx`는 대략 `L * 0.5 ~ 0.7`로 잡는다. 나머지를 Metaspace, Direct, Stack, Code Cache, JVM 자체 오버헤드에 남겨야 한다. `-Xmx = L`로 잡는 설정은 거의 항상 사고를 부른다.
-
----
-
-## GC 기본: Young / Old, 승격, Stop-the-world
-
-**Weak Generational Hypothesis**: 대부분의 객체는 금방 죽는다. 이 가정 위에서 GC는 Young 영역을 자주, 빠르게 훑고, 살아남은 객체만 Old로 승격시킨다.
-
-1. 객체는 Eden에 생성된다.
-2. Eden이 차면 Minor GC(Young GC)가 돈다. 살아남은 객체는 Survivor로 복사.
-3. Survivor를 여러 번 살아남으면(`-XX:MaxTenuringThreshold`, 기본 15) Old로 승격(promotion).
-4. Old가 차면 Major GC / Mixed GC / Full GC가 돈다.
-
-**Stop-the-world(STW)**: GC가 애플리케이션 스레드를 전부 멈추는 구간. Minor GC도 STW가 있지만 보통 수 ms. 문제는 Full GC의 STW로, 초 단위가 나올 수 있다. 시니어가 "GC 튜닝"이라고 할 때 실제로 말하는 것은 **STW의 빈도와 길이를 SLO 이내로 눌러 두는 작업**이다.
-
-**Allocation rate**: 초당 얼마나 많은 바이트가 Eden에 할당되는가. GC 로그의 핵심 지표. 200MB/s를 넘어가면 Young GC가 너무 자주 돌고 p99가 흔들린다. 이때 답은 "힙을 늘린다"가 아니라 "불필요한 객체 할당을 찾아서 줄인다"인 경우가 더 많다.
-
----
-
-## 현대 GC 비교: G1 vs ZGC vs Shenandoah
-
-Java 17/21 기준 실무 선택지는 세 가지다.
-
-### G1GC (기본값, Java 9+)
-- 힙을 고정 크기 Region(`-XX:G1HeapRegionSize`, 기본 1~32MB 자동)으로 쪼개고 "가비지가 많은 Region부터" 수거.
-- `-XX:MaxGCPauseMillis=200`(기본) 같은 **pause 목표**를 주면 G1이 Young 크기를 자동 조정.
-- **언제 쓰나**: 힙 4~32GB, p99 요구가 100~300ms 수준, 워크로드 변동이 큰 일반 API 서버. 사실상 기본값.
-
-### ZGC (Java 15 GA, Java 21 Generational ZGC)
-- 대부분 구간이 동시(concurrent)로 동작. **STW는 거의 항상 1ms 미만**.
-- Colored pointers + Load barrier로 동시 압축(compaction)까지 한다.
-- **언제 쓰나**: 힙 16GB~수 TB, p99.9가 10ms를 요구, 금융·광고 입찰·실시간 피드. 2023년 이후 Generational ZGC가 들어오며 throughput 손실도 많이 줄었다.
-
-### Shenandoah (RedHat, OpenJDK)
-- ZGC와 유사하게 동시 압축. STW pause를 힙 크기와 거의 무관하게 낮게 유지.
-- **언제 쓰나**: 힙이 크면서 저지연이 필요한데 Oracle JDK가 아닌 RedHat/Temurin 라인을 쓰는 경우.
-
-### 실무 선택 트리
-1. 힙 < 4GB, 레이턴시 덜 민감 → G1 기본값으로 충분.
-2. 힙 8~32GB, 일반 API → G1 + `MaxGCPauseMillis` 튜닝.
-3. p99.9 < 10ms가 비즈니스 요건 → ZGC(Generational) 1순위 검토.
-4. throughput이 최우선 → Parallel GC도 여전히 후보(배치 잡).
-
----
-
-## GC 튜닝 기본 플래그와 힙 크기 결정 원리
+컨테이너 환경에서 특히 주의할 점: 컨테이너 메모리 한도가 4GB인데 `-Xmx3g`를 잡았다고 해서 나머지 1GB가 Metaspace + Thread stack + Direct + JVM 자체 오버헤드로 다 쓸 수 있는 건 아니다. 보통 Heap은 컨테이너 메모리의 50~70% 정도로 시작해서 실측으로 조정한다.
 
 ```
--Xms4g -Xmx4g                      # Xms == Xmx 로 고정 (리사이즈 비용 제거)
--XX:+UseG1GC                        # G1 명시
--XX:MaxGCPauseMillis=200            # pause 목표 (soft goal)
--XX:G1HeapRegionSize=8m             # 큰 객체(>Region/2)가 Humongous로 빠지는 것 방지
--XX:InitiatingHeapOccupancyPercent=45  # Old 점유율 이 값에서 Concurrent Marking 시작
+[컨테이너 4GB]
+├── Heap (Xmx=2.5g)
+├── Metaspace (~256MB)
+├── Thread stack (스레드 200개 × 1MB = 200MB)
+├── Direct memory (~256MB)
+├── Code cache (~240MB)
+├── GC overhead, JIT, symbol table (~수백 MB)
+└── OS / 여유
+```
+
+## GC 기본: Young/Old, 승격, Stop-the-world
+
+대부분의 객체는 "금방 죽는다"는 **Weak Generational Hypothesis**가 현대 GC의 출발점이다.
+
+**Young 영역**은 Eden + Survivor 0/1로 구성된다. 새 객체는 Eden에 잡힌다. Eden이 꽉 차면 **Minor GC(Young GC)**가 발동해, 살아남은 객체를 Survivor로 옮긴다. 여러 번 살아남으면(age threshold, 기본 15회) **Old 영역**으로 **승격(promotion)**된다.
+
+**Old 영역**에 객체가 쌓이다가 임계치를 넘으면 **Major GC / Mixed GC / Full GC**가 일어난다. G1GC는 Old까지 포함하는 Mixed GC로 최대한 Full GC를 회피한다.
+
+**Stop-the-world(STW)**란 GC가 힙을 안전하게 스캔하고 객체를 옮기는 동안 애플리케이션 스레드를 전부 멈추는 구간이다. 파라렐 GC는 STW가 길고, G1은 대부분의 작업을 병렬로 하지만 핵심 단계는 여전히 STW이다. ZGC, Shenandoah는 STW를 수 ms 이하로 끌어내린 **concurrent GC**다.
+
+면접에서 "왜 Young/Old로 나누는가"를 물으면: 새 객체의 대부분은 금방 죽으므로 Young만 자주 청소하면 비용이 낮다. Old로 승격된 객체는 이미 오래 살아남은 객체들이고, 그들끼리는 생존률이 높으니 덜 자주 청소한다. 세대 구분은 **"GC 대상 범위를 줄이는 최적화"**의 결과물이다.
+
+## 현대 GC 비교: G1GC / ZGC / Shenandoah
+
+**G1GC**(Java 9+ 기본, Java 11 LTS 이후 완전 기본값). 힙을 Region으로 쪼개고, garbage가 많은 Region부터 우선 청소한다. 목표 pause time을 `-XX:MaxGCPauseMillis`로 지정하면 그 목표를 최대한 지키려고 Region 수를 조절한다. 힙 4GB~수십 GB, pause 100~200ms 목표에서 가장 무난하다.
+
+**ZGC**(Java 15 GA, Java 17부터 프로덕션 권장). pause time이 힙 크기와 거의 무관하게 1ms 이하다. Colored pointer와 load barrier를 써서 mark/relocate를 전부 concurrent하게 돌린다. 수백 GB 힙에서도 pause가 안 늘어난다. 대신 CPU와 메모리 오버헤드가 약간 있고, throughput은 G1보다 살짝 낮다. **지연에 민감한 API 게이트웨이, 결제, 검색**에 적합.
+
+**Shenandoah**(Red Hat, OpenJDK 포함). ZGC와 유사한 목표를 가진 low-pause GC. Brooks pointer 또는 load reference barrier를 사용해 concurrent compaction을 구현한다. Red Hat 기반 배포판에서 자주 쓰인다.
+
+선택 가이드라인:
+
+| 워크로드 | 추천 GC |
+|---|---|
+| 일반 웹/API, Heap 4~32GB, pause 100~200ms OK | G1GC |
+| 결제/검색/실시간, pause 10ms 이하 요구 | ZGC |
+| Heap 100GB 이상 | ZGC |
+| Batch, throughput 최우선 | Parallel GC |
+| 메모리 100MB 이하 초소형 | Serial GC |
+
+커머스 플랫폼에서 결제 API는 ZGC, 어드민 배치는 Parallel, 일반 API는 G1로 다르게 튜닝하는 것이 합리적이다.
+
+## GC 튜닝 기본 플래그
+
+**힙 크기**.
+```bash
+-Xms4g -Xmx4g
+```
+`Xms`와 `Xmx`를 같은 값으로 두는 게 정석이다. 다르게 두면 힙을 늘리고 줄이는 과정 자체가 STW를 유발한다. 서버 JVM에서 힙 크기 변동은 비용만 크고 이득이 거의 없다.
+
+**힙 크기 결정 원리**. 피크 부하 시점의 **Old 영역 실사용량 × 2~3배**가 전체 Heap의 합리적 시작점이다. 피크 때 Old가 1GB를 쓰고 있다면 Heap 3~4GB를 주고, 거기서 GC 로그를 보며 조정한다. 무작정 크게 잡으면 GC 한 번이 더 오래 걸리고, 너무 작게 잡으면 Full GC가 뜬다.
+
+**G1GC 주요 플래그**.
+```bash
+-XX:+UseG1GC
+-XX:MaxGCPauseMillis=200
+-XX:G1HeapRegionSize=16m
+-XX:InitiatingHeapOccupancyPercent=45
+-XX:+ParallelRefProcEnabled
+```
+
+`MaxGCPauseMillis`는 "목표"지 보장이 아니다. 너무 공격적으로(예: 50ms) 잡으면 Young 영역이 과도하게 작아져 오히려 GC 빈도가 올라간다. `G1HeapRegionSize`는 대개 자동 계산에 맡기지만, 큰 객체(humongous object, region 50% 이상)를 자주 만드는 애플리케이션이면 명시적으로 늘리는 게 좋다.
+
+**ZGC 주요 플래그**.
+```bash
+-XX:+UseZGC
+-XX:+ZGenerational   # Java 21+, Generational ZGC
+-Xmx16g
+```
+
+**Metaspace**.
+```bash
+-XX:MetaspaceSize=256m
+-XX:MaxMetaspaceSize=512m
+```
+
+**OOM 덤프 자동 생성**. 프로덕션 필수.
+```bash
 -XX:+HeapDumpOnOutOfMemoryError
--XX:HeapDumpPath=/var/log/app/
--Xlog:gc*,gc+age=trace,safepoint:file=/var/log/app/gc.log:time,level,tags:filecount=10,filesize=50m
+-XX:HeapDumpPath=/var/log/heapdump/
+-XX:+ExitOnOutOfMemoryError
 ```
-
-**힙 크기 결정 원리 (시니어 관점)**:
-1. **Live set size**를 먼저 측정한다. Full GC 직후 Old 점유량 = 진짜 장기 생존 객체. 이게 `L`이면 힙은 `L * 2.5 ~ 3` 정도가 출발점.
-2. Allocation rate가 크면 Young 영역이 커야 Minor GC 빈도가 내려간다. G1에서는 `MaxGCPauseMillis`를 낮추면 Young이 작아지고, 높이면 커진다. 트레이드오프.
-3. 컨테이너 메모리에서 JVM 자체 오버헤드(~512MB 이상) + Metaspace + Direct + Stack 총합을 뺀 나머지가 Heap.
-4. "더 큰 힙 = 항상 좋음"은 거짓. 힙이 커질수록 Concurrent Marking 비용도, Full GC가 한 번 터질 때의 STW도 커진다.
-
----
 
 ## GC 로그 해석
 
-Java 9+에서는 `-Xlog:gc*` 통합 로깅을 쓴다. 예시 로그:
-
-```
-[2.341s][info][gc] GC(12) Pause Young (Normal) (G1 Evacuation Pause) 512M->128M(2048M) 18.234ms
-[2.890s][info][gc] GC(13) Pause Young (Concurrent Start) (G1 Humongous Allocation) 540M->150M(2048M) 22.100ms
-[3.450s][info][gc] GC(14) Concurrent Mark Cycle
-[5.120s][info][gc] GC(15) Pause Mixed (G1 Evacuation Pause) 800M->200M(2048M) 45.600ms
+Java 9+부터는 `-Xlog:gc*`로 통합되었다.
+```bash
+-Xlog:gc*,gc+heap=debug,gc+age=trace:file=/var/log/app/gc.log:time,uptime,level,tags:filecount=10,filesize=64m
 ```
 
-읽는 법:
-- `Pause Young (Normal)` → 일반 Minor GC. 512M에서 128M로 줄었고 18ms 걸렸다. 좋은 상태.
-- `G1 Humongous Allocation` → Region 절반 이상 크기 객체가 할당됨. 큰 배열/버퍼 풀을 의심.
-- `Concurrent Mark Cycle` → Old 마킹 시작. STW 아님.
-- `Pause Mixed` → Young + 일부 Old 동시 수거. G1 후반 단계.
+G1 로그 예시 한 줄:
+```
+[2026-04-19T14:22:11.345+0900][14.345s][info][gc] GC(42) Pause Young (Normal) (G1 Evacuation Pause) 2048M->512M(4096M) 35.4ms
+```
+해석:
+- `GC(42)`: 42번째 GC 이벤트
+- `Pause Young (Normal)`: Young GC(Minor)
+- `2048M->512M(4096M)`: GC 전 힙 사용량 2048M → GC 후 512M, 전체 힙 4096M
+- `35.4ms`: STW 시간
 
-**계산해야 할 3가지 지표**:
-- **Pause time**: 각 GC 이벤트의 ms. p99, max를 본다.
-- **Throughput**: `1 - (GC 총 시간 / 전체 시간)`. 95% 미만이면 의심.
-- **Allocation rate**: `(Young 크기 변화) / 간격`. GCViewer, GCeasy.io에 로그를 올리면 자동 계산.
+세 가지 핵심 지표를 본다.
 
-면접에서 "GC 로그 어떻게 보냐"는 질문이 나오면 반드시 이 세 숫자를 언급하라. 단순히 "pause를 본다"는 답은 주니어 답이다.
+**Pause time**. 개별 GC의 STW. p99 pause가 SLA 이내인가.
 
----
+**Throughput**. `1 - (GC 시간 / 전체 시간)`. 95% 이상이 정상, 90% 이하면 GC 압박이 심하다.
 
-## OOM 4가지 유형과 대응
+**Allocation rate**. `(GC 전 힙 사용량 - 직전 GC 후 힙 사용량) / 경과 시간`. 초당 몇 MB의 객체가 새로 할당되는가. 갑자기 올라가면 메모리 누수 or 불필요한 객체 생성이 의심된다.
 
-### 1. `java.lang.OutOfMemoryError: Java heap space`
-- **원인**: Heap 부족. 진짜 로드가 많거나, 객체 누수(정적 컬렉션, 캐시 미방출, 리스너 등록 후 미해제).
-- **대응**: `-XX:+HeapDumpOnOutOfMemoryError`로 덤프를 받고 **MAT(Eclipse Memory Analyzer)**의 Leak Suspects 리포트를 연다. Dominator Tree로 가장 많이 점유한 루트를 찾는다.
+로그 분석 도구: **GCViewer**, **GCEasy**(https://gceasy.io — 사내망 제약이 있으면 GCViewer 로컬 실행).
 
-### 2. `java.lang.OutOfMemoryError: Metaspace`
-- **원인**: 클래스로더 누수. 보통 동적 클래스 생성(CGLIB, Groovy, reflection 프록시) + 클래스로더가 GC되지 않는 상황.
-- **대응**: `-XX:MaxMetaspaceSize`를 반드시 **명시**한다(무한 성장 방지). `jcmd <pid> VM.classloader_stats`로 누가 클래스를 찍어내는지 본다.
+## OOM 유형과 대응
 
-### 3. `java.lang.OutOfMemoryError: Direct buffer memory`
-- **원인**: Netty 등이 DirectByteBuffer를 해제하지 않음. `-XX:MaxDirectMemorySize` 미설정 시 기본값이 Heap과 비슷해 탐지 지연.
-- **대응**: `-Dio.netty.leakDetection.level=paranoid`, NMT(`-XX:NativeMemoryTracking=detail` + `jcmd VM.native_memory`).
+**`java.lang.OutOfMemoryError: Java heap space`**. Heap이 꽉 찼다. 원인: 메모리 누수(정적 Map에 계속 쌓음), 대용량 데이터 한 번에 로딩(페이징 없이 `findAll()`), 캐시 상한 미설정. 대응: 힙 덤프 받아서 MAT으로 Dominator Tree → Retained Heap 큰 객체 추적.
 
-### 4. `java.lang.OutOfMemoryError: GC overhead limit exceeded`
-- **원인**: 힙이 거의 꽉 찬 상태에서 GC가 98% 시간을 쓰는데 2%도 못 회수. 사실상 heap space OOM의 전조.
-- **대응**: 힙 자체 누수 수사 + 캐시 크기 제한(Caffeine의 `maximumSize`/`maximumWeight`).
+**`java.lang.OutOfMemoryError: Metaspace`**. 클래스 로딩 과다. 원인: 동적 프록시 과생성, 클래스로더 누수(Tomcat redeploy시 고전적 문제), 라이브러리가 런타임 바이트코드 생성 남용. 대응: `jcmd <pid> VM.classloader_stats`, `-XX:MaxMetaspaceSize`로 상한 설정 후 누수 탐지.
 
----
+**`java.lang.OutOfMemoryError: Direct buffer memory`**. Netty, NIO 채널, 이미지/PDF 처리 라이브러리가 의심. 대응: `-XX:MaxDirectMemorySize` 명시, `-Dio.netty.maxDirectMemory=0`으로 Netty가 JVM 한도 따르게 강제.
+
+**`java.lang.OutOfMemoryError: GC overhead limit exceeded`**. 전체 시간의 98% 이상을 GC에 쓰는데 회수량이 2% 미만. 실질적으로는 Heap 부족의 전조. 힙을 늘리거나 누수를 찾는다.
+
+**`java.lang.OutOfMemoryError: unable to create new native thread`**. Heap 문제가 아니라 OS limit(ulimit -u) 또는 Thread stack 합계가 시스템 메모리를 초과. 스레드 수를 줄이거나 `-Xss`를 줄인다(단, StackOverflowError 위험).
 
 ## 프로파일링 도구
 
-**jcmd** — 가장 먼저 쓸 스위스 나이프.
+**jcmd**. JDK 내장, 가장 먼저 손이 가는 도구.
 ```bash
-jcmd <pid> VM.flags                   # 실제 적용된 GC 플래그 확인
-jcmd <pid> GC.heap_info               # 힙 현재 상태
-jcmd <pid> GC.class_histogram          # 클래스별 인스턴스/바이트
-jcmd <pid> VM.native_memory summary    # NMT (미리 -XX:NativeMemoryTracking 필요)
-jcmd <pid> Thread.print                # 스레드 덤프
+jcmd <pid> VM.flags             # 현재 실행 중인 JVM 플래그
+jcmd <pid> GC.heap_info         # 힙 요약
+jcmd <pid> GC.class_histogram   # 클래스별 객체 수/크기
 jcmd <pid> GC.heap_dump /tmp/heap.hprof
+jcmd <pid> Thread.print         # 스레드 덤프
+jcmd <pid> JFR.start duration=60s filename=/tmp/profile.jfr
 ```
 
-**jstat** — GC 1초 단위 모니터링.
+**jstat**. GC 통계 실시간 스트리밍.
 ```bash
 jstat -gcutil <pid> 1000
-#  S0     S1     E      O      M     CCS    YGC    YGCT    FGC    FGCT     GCT
-#  0.00  45.32  67.12  72.45  98.21  95.43   125    2.345    3     0.892    3.237
+#  S0     S1     E      O      M     CCS    YGC    YGCT    FGC    FGCT    GCT
+#  0.00  50.00  80.12  65.30  95.20  92.10   1234   12.34     3    1.50   13.84
 ```
-- YGC 횟수/시간, FGC 횟수/시간을 1초 단위로 본다. 급증하는 구간이 장애 구간.
+`E`(Eden), `O`(Old) 사용률, `YGC`(Young GC 횟수), `FGC`(Full GC 횟수), `GCT`(누적 GC 시간).
 
-**async-profiler** — 샘플링 기반, 거의 오버헤드 없음.
+**async-profiler**. CPU, allocation, lock 프로파일링을 JFR 없이 저렴하게. flame graph 출력이 강력하다.
 ```bash
-./profiler.sh -d 30 -f /tmp/cpu.html <pid>          # CPU Flamegraph
-./profiler.sh -d 30 -e alloc -f /tmp/alloc.html <pid>  # Allocation hotspot
-./profiler.sh -d 30 -e lock -f /tmp/lock.html <pid>    # Lock contention
-```
-실무에서 "allocation rate가 높다"를 진단한 뒤 바로 `-e alloc`으로 어디서 만드는지 찾는 흐름이 표준.
-
-**JFR (Java Flight Recorder)** — Java 11+ 무료, 상시 가동 가능.
-```bash
-jcmd <pid> JFR.start duration=120s filename=/tmp/app.jfr
-# JDK Mission Control(JMC)로 열어서 분석
+./profiler.sh -d 60 -f flame.html <pid>
+./profiler.sh -e alloc -d 60 -f alloc.html <pid>   # allocation hotspot
+./profiler.sh -e lock  -d 60 -f lock.html <pid>    # contention
 ```
 
-**MAT (heap dump 분석)**
-- Leak Suspects 자동 리포트가 90% 사건을 해결.
-- **Retained heap** vs **Shallow heap**을 구분: 해당 객체를 지우면 얼마가 해제되는가가 Retained.
+**JFR(Java Flight Recorder)**. 오버헤드 1% 미만, 프로덕션 상시 on도 가능. `jcmd <pid> JFR.start`로 시작 → `.jfr` 파일을 **JDK Mission Control(JMC)**에서 분석.
 
----
+**MAT(Eclipse Memory Analyzer)**. heap dump 분석 표준. **Leak Suspects**, **Dominator Tree**, **GC Roots까지의 경로** 이 세 기능만 쓸 줄 알면 대부분의 누수를 잡는다.
+
+분석 루틴 예시 — "OOM이 떴다"면:
+1. `-HeapDumpOnOutOfMemoryError`로 생성된 `.hprof`를 MAT에 로딩
+2. Leak Suspects Report 먼저 열기
+3. Dominator Tree에서 Retained Heap 큰 순서대로 상위 20개
+4. 의심 객체의 GC Roots 경로 추적 → 어떤 정적 참조가 붙잡고 있는지 식별
 
 ## Virtual Threads (Java 21+)
 
-플랫폼 스레드는 OS 스레드에 1:1로 매핑된다. 각 1MB 스택 + 컨텍스트 스위칭 비용 때문에 수만 개를 만들 수 없다. 그래서 우리는 늘 `ExecutorService` + 스레드 풀로 재사용했다.
+**기존 Platform Thread 모델의 한계**. 1 Java Thread = 1 OS Thread. 스택 1MB × 수만 스레드 = 메모리 폭발. 그래서 Tomcat, Netty, Spring MVC는 "스레드 풀 200개로 수천 RPS를 받기 위해" async, NIO, CompletableFuture, Reactor 등 비동기 프로그래밍을 동원해왔다.
 
-Virtual Thread는 **JVM이 관리하는 경량 스레드**로, 블로킹 시 플랫폼 스레드(캐리어)에서 **unmount** 되어 캐리어를 해방시킨다. 결과적으로 블로킹 I/O를 하는 코드도 수십만 개 동시 요청을 "스레드 하나당 하나의 요청(thread-per-request)" 스타일로 짤 수 있다.
-
-```java
-// 기존
-var pool = Executors.newFixedThreadPool(200);
-
-// Java 21
-var executor = Executors.newVirtualThreadPerTaskExecutor();
-executor.submit(() -> {
-    var user = userRepository.findById(id);      // JDBC 블로킹도 OK
-    var profile = profileClient.fetch(user.id()); // HTTP 블로킹도 OK
-    return render(user, profile);
-});
-```
-
-**효과가 큰 경우**:
-- I/O 바운드 서비스(외부 API 체인 호출, DB 여러 번 조회).
-- 기존 WebFlux/Reactor로 가기엔 학습 비용이 큰 팀.
-
-**효과가 작거나 오히려 해로운 경우**:
-- CPU 바운드 작업(암호화, 이미지 처리) — 스레드를 아무리 늘려도 코어 수 이상은 못 쓴다.
-- `synchronized` 블록 안에서 블로킹 — 캐리어를 **pin**시켜 unmount가 안 된다. Java 21에서 여전히 주의점, Java 24에서 개선 예정. `java.util.concurrent.locks`(ReentrantLock)로 대체.
-- 스레드-로컬 기반 캐시(스레드 수가 폭증하면 캐시가 의미 없어짐).
-
-**튜닝 포인트**:
-- 더 이상 "스레드 풀 크기"를 고민하지 말고, **downstream에 대한 동시성 제한**(세마포어, Rate Limiter)을 상위에서 건다.
-- DB 커넥션 풀 크기는 여전히 제한된다. Virtual Thread 10만 개가 동시에 `getConnection()`을 부르면 그대로 블로킹 큐에 줄 선다.
-
----
-
-## CompletableFuture와 구조화된 동시성
-
-Virtual Thread 이전/이후에도, 복수 API를 합성해야 할 때 CompletableFuture는 여전히 유용하다.
+**Virtual Thread**는 JVM이 관리하는 경량 스레드다. `Thread.startVirtualThread()` 또는 `Executors.newVirtualThreadPerTaskExecutor()`로 만든다. OS 스레드(= Carrier thread, ForkJoinPool 기반)에 올라탔다가, **블로킹 I/O를 만나면 언마운트해서 다른 가상 스레드에게 carrier를 양보**한다. 수만~수백만 개의 가상 스레드를 띄워도 OS 스레드는 CPU 코어 수만큼만 쓴다.
 
 ```java
-CompletableFuture<User> u = supplyAsync(() -> userRepo.find(id), ex);
-CompletableFuture<List<Order>> o = supplyAsync(() -> orderRepo.findByUser(id), ex);
-CompletableFuture<Profile> p = supplyAsync(() -> profileClient.fetch(id), ex);
-
-return CompletableFuture.allOf(u, o, p)
-    .thenApply(v -> new Dashboard(u.join(), o.join(), p.join()))
-    .orTimeout(500, TimeUnit.MILLISECONDS)
-    .exceptionally(ex -> Dashboard.fallback());
-```
-
-**안티패턴**: `join()`을 체인 중간에 부르는 것. 그 순간 비동기가 끝난다.
-
-**Java 21 Structured Concurrency (preview)**:
-```java
-try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
-    var fUser = scope.fork(() -> userRepo.find(id));
-    var fOrders = scope.fork(() -> orderRepo.findByUser(id));
-    scope.join().throwIfFailed();
-    return new Dashboard(fUser.get(), fOrders.get());
+try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+    IntStream.range(0, 10_000).forEach(i ->
+        executor.submit(() -> {
+            var response = httpClient.send(request, BodyHandlers.ofString());
+            return response.body();
+        })
+    );
 }
 ```
-하나 실패하면 나머지도 자동 cancel. 에러 전파/타임아웃/취소가 try-with-resources 범위로 묶인다. CompletableFuture의 "orphan task" 문제를 근본적으로 푼다.
 
----
+**언제 효과가 큰가**: 외부 HTTP 호출, DB 쿼리 대기 등 **블로킹 I/O가 많은 워크로드**. 기존에는 어쩔 수 없이 WebFlux로 갔던 코드를 "그냥 동기 스타일로 쓰고 Virtual Thread 위에 올리기"가 가능해진다.
+
+**언제 효과가 없거나 주의해야 하는가**:
+- CPU bound 작업(이미지 처리, 복잡한 계산) — 가상 스레드가 unmount되지 않으므로 이득 없음. Platform thread pool이 더 적합.
+- `synchronized` 블록 안에서 블로킹 I/O — 기존 JVM은 pinning이 일어나 carrier를 점유. Java 21은 개선, Java 24+에서 대부분 해소. `ReentrantLock`으로 교체하면 안전하다.
+- ThreadLocal 대량 사용 — 가상 스레드가 수만 개 생기면 ThreadLocal 복제 비용이 커진다. `ScopedValue`(Preview) 고려.
+
+**Spring Boot 3.2+**는 `spring.threads.virtual.enabled=true` 한 줄로 Tomcat/Jetty 요청 처리를 가상 스레드 위에 올린다.
+
+## CompletableFuture 합성 패턴과 구조화된 동시성
+
+**CompletableFuture**는 비동기 합성의 표준.
+```java
+CompletableFuture<User> userFuture = async(() -> userService.find(id));
+CompletableFuture<List<Order>> ordersFuture = async(() -> orderService.findByUser(id));
+
+CompletableFuture<UserDetail> result = userFuture
+    .thenCombine(ordersFuture, UserDetail::of)
+    .orTimeout(2, TimeUnit.SECONDS)
+    .exceptionally(ex -> UserDetail.fallback(id));
+```
+
+하지만 CompletableFuture는 **에러 전파와 취소 처리가 복잡**하다. 한 분기가 실패해도 다른 분기가 계속 돌아서 자원을 낭비한다.
+
+**Structured Concurrency (Java 21 Preview, Java 25 GA 예정)**가 이를 풀려고 나왔다.
+```java
+try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+    Supplier<User>        user   = scope.fork(() -> userService.find(id));
+    Supplier<List<Order>> orders = scope.fork(() -> orderService.findByUser(id));
+
+    scope.join().throwIfFailed();
+    return UserDetail.of(user.get(), orders.get());
+}
+```
+하나가 실패하면 scope 전체가 취소된다. 부모-자식 관계가 명확해서 스택 트레이스가 의미 있게 연결된다. Virtual Thread와 짝을 이뤘을 때 진가가 나온다.
 
 ## StampedLock vs ReentrantReadWriteLock
 
-공유 상태에 "읽기 훨씬 많고, 쓰기 드물다"는 조건이 있을 때 선택한다.
+후보자의 이전 학습 노트(`stamped-lock.md`)에서 다룬 주제의 심화 정리.
 
-**ReentrantReadWriteLock**:
-- 읽기 락끼리는 공유, 쓰기 락은 배타.
-- 재진입 가능, 공정 모드 지원.
-- 단점: 읽기가 몰리면 쓰기 기아(starvation) 가능, 읽기 락 획득/해제에도 CAS 비용.
+**ReentrantReadWriteLock**. Read가 많고 Write가 적은 워크로드에서 여러 Read가 동시에 진행 가능. 재진입 지원. 하지만 Write가 끼어들면 Read가 블로킹되고, Read 락 자체도 비용이 있다.
 
-**StampedLock (Java 8+)**:
-- **Optimistic read**를 지원. 락 없이 stamp만 받고 읽은 뒤 `validate(stamp)`로 쓰기가 끼어들었는지만 확인.
-- 재진입 불가, Condition 없음.
+**StampedLock**(Java 8+). 세 가지 모드:
+- `writeLock()`: 배타 락, stamp 반환
+- `readLock()`: 공유 락
+- `tryOptimisticRead()`: **락을 실제로 잡지 않고** stamp만 받고 읽기 시도 → 끝나고 `validate(stamp)`로 "그사이 write가 없었는지" 검증. 없었으면 그대로 성공, 있었으면 read lock으로 fallback.
 
 ```java
-private final StampedLock sl = new StampedLock();
-private double x, y;
-
-public double distanceFromOrigin() {
+double distanceFromOrigin() {
     long stamp = sl.tryOptimisticRead();
     double cx = x, cy = y;
-    if (!sl.validate(stamp)) {              // 쓰기가 끼어들었다면 재시도
+    if (!sl.validate(stamp)) {
         stamp = sl.readLock();
-        try { cx = x; cy = y; }
-        finally { sl.unlockRead(stamp); }
+        try { cx = x; cy = y; } finally { sl.unlockRead(stamp); }
     }
-    return Math.sqrt(cx * cx + cy * cy);
+    return Math.sqrt(cx*cx + cy*cy);
 }
 ```
 
-실측상 읽기 비율이 95% 이상인 핫패스에서 RWLock 대비 수 배 처리량이 나온다. 다만 재진입, Condition, 업그레이드 시 코드가 까다로우니 **정말 병목일 때만** 쓴다. 일반 서비스 코드에서는 RWLock이 기본.
+**선택 기준**:
+- 재진입 필요하면 `ReentrantReadWriteLock` (StampedLock은 재진입 미지원)
+- 읽기 빈도 압도적으로 높고 짧은 critical section이면 `StampedLock`의 optimistic read
+- `Condition`이 필요하면 `ReentrantReadWriteLock`
 
----
+**함정**: StampedLock은 interrupt에 약하고, stamp를 잘못 관리하면 deadlock 위험이 높다. 인터뷰에서 "왜 StampedLock을 선택했는가"를 물으면 "read가 write의 20배 이상이었고, validate 실패율이 1% 미만임을 JMH로 확인했기 때문"처럼 **측정 기반 근거**를 댈 수 있어야 한다.
 
-## JMH 마이크로벤치마크의 함정
+## JMH: 함정과 58배 개선 사례 framing
 
-`System.currentTimeMillis()` 기반 자체 측정은 거의 항상 거짓말이다. JIT가 충분히 데워지지 않았거나, 결과를 안 쓰는 계산을 dead code로 제거해 버린다. JMH는 이 문제를 해결한다.
+**마이크로벤치마크의 3대 함정**:
+1. **Dead Code Elimination**: JIT이 결과를 쓰지 않는 코드를 제거. `Blackhole.consume(result)`로 방지.
+2. **Warm-up 부족**: JIT 컴파일이 되기 전 해석 모드 측정치를 결과로 씀. `@Warmup(iterations = 5)`.
+3. **Constant Folding**: 입력이 상수면 JIT이 계산을 컴파일 타임에 처리. `@State` + 런타임 입력 생성.
 
 ```java
-@State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 5, time = 1)
 @Measurement(iterations = 10, time = 1)
 @Fork(2)
-public class HashBench {
-    private String data;
+@State(Scope.Benchmark)
+public class LockBenchmark {
 
-    @Setup public void setup() { data = "x".repeat(1024); }
+    private final StampedLock stamped = new StampedLock();
+    private final ReentrantReadWriteLock rw = new ReentrantReadWriteLock();
+    private volatile int value = 42;
 
     @Benchmark
-    public int baseline() {
-        return data.hashCode();
+    public int stampedOptimistic() {
+        long s = stamped.tryOptimisticRead();
+        int v = value;
+        if (!stamped.validate(s)) {
+            s = stamped.readLock();
+            try { v = value; } finally { stamped.unlockRead(s); }
+        }
+        return v;
     }
 
     @Benchmark
-    public void sinkToBlackhole(Blackhole bh) {
-        bh.consume(data.hashCode());     // dead code elimination 방지
+    public int rwRead() {
+        rw.readLock().lock();
+        try { return value; } finally { rw.readLock().unlock(); }
     }
 }
 ```
 
-**함정 5가지**:
-1. **Dead code elimination** — 반환값을 받지 않거나 Blackhole로 소비하지 않으면 JIT가 통째로 날린다.
-2. **Constant folding** — 벤치마크 입력이 상수면 JIT가 컴파일 타임에 계산해 버린다. `@State`로 주입.
-3. **Warm-up 부족** — 처음 몇 초는 인터프리터/C1 단계. `@Warmup`으로 최소 5회.
-4. **Fork 수 1** — JVM 하나에서 모든 벤치를 돌리면 이전 벤치가 JIT 상태를 오염시킨다. `@Fork(2+)`.
-5. **단일 스레드 가정** — 락/동시 구조를 볼 땐 `@Threads`로 명시.
+**"58배 개선 사례" framing** (인터뷰에서 쓸 때):
+"읽기 비율이 95% 이상인 캐시 조회 경로에서 ReentrantReadWriteLock이 CAS 경합으로 인해 스레드 64개일 때 성능이 역전되는 걸 JMH로 측정했습니다. StampedLock optimistic read로 교체하니 같은 조건에서 평균 응답 시간이 약 58배 개선되었습니다. 다만 이 수치는 critical section이 수 ns 수준인 경우에만 의미가 있고, 실제 비즈니스 로직이 섞인 경로에서는 이득이 2~3배 수준으로 떨어졌습니다. 그래서 **끝단 캐시**에만 적용하고 나머지는 유지했습니다."
 
-실제 사례: 과거 `StampedLock` 기반 좌표 접근 구조를 만들면서 동일 연산을 `synchronized` → `ReentrantReadWriteLock` → `StampedLock optimistic read`로 바꾸며 JMH로 측정했더니, 읽기 95% 워크로드에서 처리량이 약 58배 차이가 났다. 이 숫자는 JMH가 아니었으면 **훨씬 작게 보였을 가능성**이 높다. Dead code elimination과 warm-up 차이가 결과를 20~100배씩 흔들기 때문이다. 시니어가 "58배 빨라졌다"라고 말할 때는 반드시 JMH 리포트와 함께 말해야 신뢰를 산다.
-
----
+마지막 문장이 핵심이다. 시니어는 "얼마나 빨라졌는가"가 아니라 "어디까지 적용하지 않았는가"를 같이 말한다.
 
 ## 로컬 실습 환경
 
 ```bash
-# JDK 21 (Temurin)
-sdk install java 21.0.5-tem
-sdk use java 21.0.5-tem
+# JDK 21 설치 (SDKMAN)
+sdk install java 21.0.2-tem
 
-# async-profiler
-curl -LO https://github.com/async-profiler/async-profiler/releases/latest/download/async-profiler-linux-x64.tar.gz
-tar xzf async-profiler-linux-x64.tar.gz
+# GC 로그 관찰용 Spring Boot 샘플
+git clone https://github.com/spring-guides/gs-rest-service demo && cd demo/complete
 
-# JMH skeleton
-mvn archetype:generate \
-  -DinteractiveMode=false \
-  -DarchetypeGroupId=org.openjdk.jmh \
-  -DarchetypeArtifactId=jmh-java-benchmark-archetype \
-  -DgroupId=com.example -DartifactId=jmh-lab -Dversion=0.1
+./mvnw package
+
+java -Xms512m -Xmx512m -XX:+UseG1GC \
+     -XX:+HeapDumpOnOutOfMemoryError \
+     -Xlog:gc*:file=gc.log:time,uptime,level,tags \
+     -jar target/*.jar &
+
+# 부하
+ab -n 10000 -c 50 http://localhost:8080/greeting
+
+# GC 실시간
+jstat -gcutil $(pgrep -f spring-boot) 1000
+
+# 스레드/힙
+jcmd $(pgrep -f spring-boot) Thread.print | head -50
+jcmd $(pgrep -f spring-boot) GC.heap_info
+
+# JFR 60초
+jcmd $(pgrep -f spring-boot) JFR.start duration=60s filename=prof.jfr
 ```
 
-JVM 실습용 최소 실행 스크립트:
-
+async-profiler로 Flame graph 생성:
 ```bash
-#!/usr/bin/env bash
-java \
-  -Xms512m -Xmx512m \
-  -XX:+UseG1GC \
-  -XX:MaxGCPauseMillis=100 \
-  -XX:+HeapDumpOnOutOfMemoryError \
-  -XX:HeapDumpPath=/tmp/heap.hprof \
-  -Xlog:gc*,safepoint:file=/tmp/gc.log:time,level,tags:filecount=5,filesize=10m \
-  -XX:+FlightRecorder \
-  -jar app.jar
+./profiler.sh -d 30 -f cpu.html $(pgrep -f spring-boot)
 ```
 
-부하는 `wrk`나 `k6`로 주면서 별도 터미널에서:
-```bash
-watch -n1 "jstat -gcutil $(pgrep -f app.jar) | tail -n +2"
-```
+## 나쁜 패턴 vs 개선 패턴
 
----
-
-## 안티패턴 vs 개선
-
-**Bad 1: 힙만 키우면 된다**
-```
--Xmx16g   # 커지면 해결되겠지
-```
-→ Full GC 한 번에 STW가 수 초. Allocation rate 자체가 문제라면 힙은 증상 완화일 뿐.
-
-**Improved 1**: async-profiler `-e alloc`으로 할당 핫스팟 찾기 → 불필요한 `new byte[]`, 로그 포매팅, `String.format` 제거 → 그 다음에도 필요하면 힙 조정.
-
-**Bad 2: 스레드 풀 크기를 무한대로**
+**나쁨**: 페이징 없이 전체 로딩 → Heap OOM
 ```java
-Executors.newCachedThreadPool()
+List<Order> all = orderRepository.findAll(); // 수백만 건
 ```
-→ downstream이 느려지면 스레드가 무제한 생성, 결국 OOM.
+**개선**: Streaming + batch
+```java
+try (Stream<Order> s = orderRepository.streamAll()) {
+    s.forEach(o -> process(o));
+}
+```
 
-**Improved 2**: `ThreadPoolExecutor`로 coreSize/maxSize/queue를 명시하거나, Java 21 이상이면 Virtual Thread + 상위 세마포어.
+**나쁨**: 무제한 캐시
+```java
+Map<String, User> cache = new HashMap<>(); // 영원히 증가
+```
+**개선**: Caffeine으로 TTL + max size
+```java
+Cache<String, User> cache = Caffeine.newBuilder()
+    .maximumSize(10_000)
+    .expireAfterWrite(Duration.ofMinutes(10))
+    .build();
+```
 
-**Bad 3: 모든 GC 문제는 G1으로 해결된다**
-→ 힙 64GB + p99.9 5ms 요구 서비스라면 G1은 부족. ZGC Generational로 간다.
+**나쁨**: Virtual Thread 위에서 `synchronized` 안에 DB 호출
+```java
+synchronized (this) {
+    repository.save(entity); // carrier pinning
+}
+```
+**개선**: `ReentrantLock`
+```java
+lock.lock();
+try { repository.save(entity); } finally { lock.unlock(); }
+```
 
-**Bad 4: JMH 없이 `System.nanoTime()`으로 "빨라졌다"고 주장**
-→ JIT 상태에 따라 100배까지 튄다. JMH로 다시 측정.
+**나쁨**: ExecutorService 누수
+```java
+public Response handle() {
+    var exec = Executors.newFixedThreadPool(10); // 매 요청마다 생성
+    ...
+}
+```
+**개선**: 빈으로 재사용 + 종료 hook.
 
----
+## 인터뷰 framing: "서비스가 느려졌는데 GC 문제인지 어떻게 확인하나요"
 
-## 면접 답변 framing: "서비스가 느려졌는데 GC 문제인지 어떻게 확인하나요"
+STAR 구조로 정리한 모범 답변 뼈대:
 
-시니어 답변 구조는 **관측 → 가설 → 검증 → 대응** 4단으로 짠다.
+**Situation**. "결제 API의 p99 응답 시간이 200ms에서 갑자기 1.2s로 튀었다는 알람이 왔다고 가정하겠습니다."
 
-1. **관측**: 먼저 p99 레이턴시 악화 시점을 APM(Datadog/Pinpoint)에서 특정한다. 같은 시점에 GC time(%), heap used, Metaspace, 스레드 수 메트릭을 본다. p99 스파이크와 Young/Full GC pause가 겹치면 1차 용의자.
-2. **가설**: 원인은 세 축으로 나눈다. (a) Allocation rate 급증(트래픽/페이로드 증가, 캐시 리빌드), (b) 누수성 증가(Old gen이 계속 우상향), (c) 설정 문제(컨테이너 메모리 대비 Xmx 과다, Metaspace 무제한).
-3. **검증**:
-   - `jstat -gcutil 1s`로 YGC/FGC 빈도·시간.
-   - `-Xlog:gc*` 로그에서 allocation rate, pause time 분포.
-   - 의심 시점에 `jcmd GC.heap_dump` + MAT로 Dominator Tree.
-   - async-profiler `-e alloc`로 할당 핫스팟.
-4. **대응**:
-   - Allocation rate 문제 → 코드 레벨에서 할당 제거.
-   - 누수 → 원인 클래스로더/캐시 수정 후 배포.
-   - pause 자체 문제 → G1 → ZGC 전환 또는 `MaxGCPauseMillis` 재조정.
-   - 진짜 로드 증가 → scale-out과 힙 재산정(Full GC 직후 live set × 2.5).
+**Task / Approach**. "먼저 원인 후보를 세 가지로 좁힙니다. (1) 외부 의존성 지연, (2) DB 슬로우 쿼리, (3) JVM 자체 문제(GC/메모리/스레드). 첫 2분 안에 세 가설을 병렬 확인합니다."
 
-**피해야 할 답변**: "힙 덤프 떠서 봅니다" 단독 답변. 이건 도구 이름일 뿐, 방법론이 아니다. 반드시 "먼저 메트릭으로 GC 구간을 특정하고, 그 시점의 힙 덤프와 프로파일을 교차 확인"이라고 말해야 한다.
+**Action**.
+"1단계 — GC 지표 확인. `jstat -gcutil <pid> 1000`으로 YGC/FGC 빈도와 Old 사용률을 봅니다. Full GC가 분당 수 회로 튀었는지, Old가 90%를 넘어서 안 내려오는지 확인합니다. 동시에 `-Xlog:gc*` 로그를 GCViewer로 열어서 pause time 분포와 throughput을 봅니다. Throughput이 90% 아래로 떨어졌으면 GC가 범인일 가능성이 큽니다.
 
----
+2단계 — GC가 원인이면, Young이 작아서 Minor가 너무 잦은지 vs Old가 꽉 차서 Mixed/Full이 자주 도는지 구분합니다. 전자는 힙/Young 비율 조정으로 해결되고, 후자는 **메모리 누수**거나 **승격률**이 비정상적으로 높은 경우입니다.
+
+3단계 — 누수가 의심되면 `jcmd <pid> GC.heap_dump`로 덤프 받아 MAT의 Leak Suspects로 돌립니다. 우리가 실제로 겪었던 사례 중 하나는 `ThreadLocal`에 요청 스코프 객체를 넣고 제거를 안 해서 Tomcat 스레드 풀이 계속 참조를 쥐고 있던 케이스였습니다.
+
+4단계 — GC가 아니면 async-profiler로 CPU flame graph를 뜹니다. 블로킹 호출이 특정 메서드에 집중되는지, lock contention(`-e lock`)이 있는지 확인합니다."
+
+**Result framing**. "최종적으로 원인이 GC인지 아닌지 **두 개 이하의 지표**로 판단할 수 있어야 한다고 생각합니다. 저는 보통 `jstat`의 GCT 증가율과 GC 로그의 throughput, 이 두 개로 결정합니다. GC가 아니라는 걸 2~3분 안에 배제할 수 있으면 나머지 시간을 실제 원인에 쓸 수 있습니다."
+
+이 답변의 핵심은 "도구 이름을 많이 나열하는 것"이 아니라, **판단 기준과 배제 로직이 명확한 것**이다.
 
 ## 체크리스트
 
-**메모리 / 설정**
-- [ ] `-Xms == -Xmx` 고정 (리사이즈 비용 제거, 컨테이너 OOMKill 방지)
-- [ ] 컨테이너 limit 대비 `-Xmx`는 50~70%
-- [ ] `-XX:MaxMetaspaceSize` 명시
-- [ ] `-XX:MaxDirectMemorySize` 명시 (Netty/Kafka 쓰면 필수)
-- [ ] `-XX:+HeapDumpOnOutOfMemoryError` + HeapDumpPath
-- [ ] `-Xlog:gc*` 롤링 파일로 상시 기록
-
-**GC 선택**
-- [ ] 힙 32GB 이하 일반 API → G1
-- [ ] p99.9 10ms 미만 요구 → ZGC (Generational)
-- [ ] `MaxGCPauseMillis` 기본 200에서 SLO에 맞춰 조정
-
-**관측**
-- [ ] APM에서 GC time(%) 메트릭 대시보드 상주
-- [ ] 배포마다 `jcmd VM.flags`로 실제 적용 플래그 기록
-- [ ] JFR 상시 수집(오버헤드 ~1%)
-
-**코드**
-- [ ] Virtual Thread 쓴다면 `synchronized` 블록에서 블로킹 금지 → `ReentrantLock`
-- [ ] DB 커넥션 풀 크기는 Virtual Thread와 무관하게 별도 산정
-- [ ] 핫패스 벤치마크는 JMH로, `@Fork(2+) @Warmup(5) @Measurement(10)` 최소 기준
-- [ ] StampedLock은 읽기 95%+ 핫패스에서만, 그 외는 ReentrantReadWriteLock
-
-**면접**
-- [ ] "GC 문제인가요?" 질문에 관측→가설→검증→대응 4단으로 답할 수 있는가
-- [ ] OOM 4가지 유형과 각 진단 명령어를 구분해 말할 수 있는가
-- [ ] G1 vs ZGC 선택 기준을 힙 크기와 p99 SLO로 설명할 수 있는가
-- [ ] Virtual Thread가 "스레드 풀 크기 고민을 끝냈다"는 말의 정확한 의미와 예외 상황(pin, CPU 바운드)을 설명할 수 있는가
+- [ ] Heap, Metaspace, Thread stack, Direct memory 각각의 역할과 측정 방법을 설명할 수 있다
+- [ ] Young/Old, 승격, STW를 Weak Generational Hypothesis와 엮어서 설명할 수 있다
+- [ ] G1GC, ZGC, Shenandoah를 선택하는 기준을 워크로드로 설명할 수 있다
+- [ ] `-Xms`, `-Xmx`, `MaxGCPauseMillis`, `G1HeapRegionSize`의 의미와 결정 원리를 안다
+- [ ] `-Xlog:gc*` 로그에서 pause time, throughput, allocation rate를 뽑아낼 수 있다
+- [ ] 4가지 OOM(Heap/Metaspace/Direct/GC overhead)을 구분하고 각각의 1차 대응을 안다
+- [ ] `jcmd`, `jstat`, `async-profiler`, JFR, MAT을 실제로 실행해봤다
+- [ ] Virtual Thread가 효과적인 워크로드와 그렇지 않은 워크로드를 구분할 수 있다
+- [ ] CompletableFuture의 `thenCombine`, `orTimeout`, `exceptionally`를 합성할 수 있다
+- [ ] StampedLock의 optimistic read와 ReentrantReadWriteLock을 **측정 근거로** 선택할 수 있다
+- [ ] JMH의 3대 함정을 설명하고 `@Warmup`, `Blackhole` 사용법을 안다
+- [ ] "서비스가 느려졌다"는 질문에 GC 여부를 배제하는 순서를 2분 안에 말할 수 있다
+- [ ] 프로덕션 JVM 플래그에 `-XX:+HeapDumpOnOutOfMemoryError`와 GC 로그 설정이 반드시 들어가 있다
