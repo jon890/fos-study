@@ -390,14 +390,15 @@ Kafka 사용 여부가 아니라 이벤트 중복 수신 시 동일한 결과를
 
 | 슬롯팀 경험 | 올리브영 맥락 연결 |
 |---|---|
-| RCC 캐시 시스템 (DB 캐시 + 비동기 생성) | Redis Cache-Aside + 비동기 캐시 워밍업 ([블로그 A](https://oliveyoung.tech/2026-03-18/oy-store-data-interconnection-strategy/) 패턴 변형) |
+| 다중 서버 인메모리 캐시 정합성 (RabbitMQ Fanout + StampedLock) | Redis Cache-Aside + 이벤트 기반 캐시 무효화 ([블로그 A](https://oliveyoung.tech/2026-03-18/oy-store-data-interconnection-strategy/) 패턴 변형) |
+| RCC (RTP 편차 보정 시스템, @Async 백그라운드 + Strategy Pattern) | 추천 품질 폴백, 재고 소진 시 대체 상품 제안 등 **결과 품질 보정** 패턴 (응답성 최적화 아님) |
 | DB 유니크 키 기반 동시성 처리 | 이벤트 멱등 처리, 중복 방지 설계 |
 | StampedLock으로 정적 캐시 갱신 보호 | 캐시 Refresh 중 읽기 일관성 보장 |
 | RabbitMQ 이벤트 기반 캐시 동기화 | Kafka Consumer 이벤트 처리 패턴 동일 구조 (Key Cache 무효화 메시지 멱등성) |
 | SlotTemplate/BaseSlotService 추상화 | Feature Flag 전략 패턴, MSA 서비스 인터페이스 설계 ([블로그 C](https://oliveyoung.tech/2025-10-28/oliveyoung-zero-downtime-oauth2-migration/)와 동일 사고) |
 | AliasMethod + JMH 기반 성능 측정 | 카오스 실험 / EXPLAIN 기반 성능 분석 — 숫자로 검증하는 사고법 ([블로그 D](https://oliveyoung.tech/2026-03-30/chaos-host-level/) 친화적) |
 
-**연결 방식**: "슬롯팀에서 캐시 시스템을 직접 설계했습니다"로 끝내지 말고, "당시 겪은 Cache Stampede 유사 문제를 DB 유니크 키와 비동기 사전 생성으로 해결한 패턴이 올리브영의 Cache-Aside + 이벤트 기반 갱신 전략과 같은 설계 원리를 공유한다고 생각합니다"처럼 연결.
+**연결 방식**: "슬롯팀에서 캐시 시스템을 직접 설계했습니다"로 끝내지 말고, "다중 서버 환경에서 `PostCommitUpdateEventListener` + RabbitMQ Fanout + `StampedLock`으로 캐시 정합성과 읽기 응답성을 동시에 잡은 패턴이 올리브영의 Cache-Aside + 이벤트 기반 무효화 설계와 같은 원리를 공유한다고 생각합니다"처럼 연결해야 한다. RCC는 캐시가 아니라 RTP 편차 보정 시스템이므로 Cache-Aside 매핑으로 쓰지 말 것.
 
 ### AI 서비스팀 경험 → 올리브영 맥락
 
@@ -487,7 +488,7 @@ Kafka 사용 여부가 아니라 이벤트 중복 수신 시 동일한 결과를
 - [ ] Kafka Consumer at-least-once 처리에서 멱등성 보장 방법 2가지 이상을 설명할 수 있다
 - [ ] Resilience4j Circuit Breaker의 상태 전이 (Closed → Open → Half-Open)와 "임계값을 카오스 실험으로 정한다"는 사고를 함께 말할 수 있다
 - [ ] Feature Flag를 "코드 패턴이 아니라 운영 도구"로 설명하고 Shadow Mode + 점진 롤아웃까지 연결할 수 있다
-- [ ] 슬롯팀 RCC 캐시 경험을 올리브영 Cache-Aside / Kafka Key Cache 하이브리드 맥락으로 재프레이밍할 수 있다
+- [ ] 슬롯팀 다중 서버 인메모리 캐시 정합성 경험을 올리브영 Cache-Aside / Kafka Key Cache 하이브리드 맥락으로 재프레이밍할 수 있다 (RCC는 캐시가 아닌 RTP 편차 보정 시스템이므로 이 비유로 쓰지 않음)
 - [ ] AI 서비스팀 `TransactionSynchronizationManager` 경험을 면접 1순위 카드로 꺼낼 수 있다
 - [ ] 웰니스 도메인 특화 문제(건강기능식품·구독·재구매 주기 등)에 관한 역질문을 1~2개 준비했다
 
@@ -504,6 +505,9 @@ Kafka 사용 여부가 아니라 이벤트 중복 수신 시 동일한 결과를
 | 보너스 | SQS 알림톡 데드락 분석 (B번 글의 전사) | 인접 — 공통 인프라/알림 | https://oliveyoung.tech/2025-05-02/oliveryoung-alimtalk-deadlock/ |
 
 (9장에 해당하는 '웰니스 직접 사례' 자료는 현재 확정된 것이 없으므로 이 표에 추가하지 않는다.)
+- [ ] AI 서비스팀 Spring Batch 경험을 대용량 배치 처리 맥락으로 연결할 수 있다
+- [ ] 올리브영 기술 블로그 4편을 읽고 각각의 핵심 설계 결정을 한 문장으로 요약할 수 있다
+>>>>>>> d17ee0c (docs: RCC의 본질 정정 — 응답성 최적화 프레임 제거, RTP 편차 보정 시스템으로 통일)
 
 ---
 

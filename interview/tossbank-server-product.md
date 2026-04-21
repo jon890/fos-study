@@ -197,7 +197,7 @@ Loan Tech Platform 팀의 인턴 경험기로, 토스뱅크 개발 문화와 실
 | 공고 요구사항 | 내 경험 |
 | --- | --- |
 | Kotlin/Java Spring Framework 개발 | Java 17 + Spring Boot 3.x (NSC 슬롯팀, 2024.06~2025.11), Java 11 + Spring Boot 2.6 (SB개발팀, 2023~2024), NestJS/TypeScript도 보유 |
-| 대용량 트래픽 안정적 운영 | RCC 시스템: 슬롯 6종 백그라운드 캐시 생성, 복합 인덱스 최적화로 COUNT 쿼리 성능 개선, 동시성 DB 유니크 키 + 예외처리로 제어 |
+| 대용량 트래픽 안정적 운영 | 다중 서버 인메모리 캐시 정합성 (RabbitMQ Fanout + StampedLock writeLock + tryReadLock 2.5초), 스핀 성능 최적화 (AliasMethod O(1), SecureRandom → ThreadLocalRandom 58배 개선), JMH 기반 측정 |
 | Redis 사용 경험 | NSC 슬롯팀: Spring Boot + Redis (JPA + QueryDSL). 더퓨쳐컴퍼니: Redis Streams(이벤트 큐), Redis JSON(호가창 저장), RediSearch(가격 범위 조회·집계), Redis 분산 세마포어(직렬화 게이트), RDB 영속성 구성 |
 | Kafka 사용 경험 | 직접 Kafka 운영 경험은 없음. Redis Streams로 유사한 이벤트 스트리밍 패턴(Consumer Group, 순서 보장, 미처리 메시지 구독) 직접 구현한 경험 있음 |
 | 데이터 모델/API 설계 능력 | 거래소 체결 엔진: 호가창·주문 도메인 설계, Price-Time Priority 매칭 알고리즘 구현. RAG 배치: 11개 Step 파이프라인 설계, 전략 패턴 기반 메타데이터 확장 구조 |

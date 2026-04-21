@@ -19,7 +19,7 @@
 | 2024.10 ~ 2024.12 | Slot 33 — 링크게임 + 디스크 배수 + 홀드&스핀                      | [slot-33-linkgame-disk-multiplier.md](slot-33-linkgame-disk-multiplier.md) |
 | 2024.12           | BuyFeature 티켓 & 시나리오 스핀 — 플랫폼 공통 기능               | [buyfeature-ticket-scenario-spin.md](buyfeature-ticket-scenario-spin.md) |
 | 2025.02 ~ 2025.08 | 신규 슬롯 5종 — 라인/빙고/웨이(243) 메커닉 + AI 에이전트 협업     | [new-slot-games.md](new-slot-games.md)                                   |
-| 2025.07 ~ 2025.10 | RCC (RTP Cache Control) — 스핀 결과 사전 캐시 시스템             | [rcc-rtp-cache-control.md](rcc-rtp-cache-control.md)                     |
+| 2025.07 ~ 2025.10 | RCC (RTP Cache Control) — RTP 편차 보정을 위한 백그라운드 결과 생성 시스템 | [rcc-rtp-cache-control.md](rcc-rtp-cache-control.md)                     |
 | 2025.08           | 어드민 슬롯 에셋 비동기 일괄 동기화 — 전략 패턴 + 진행 추적       | [admin-asset-async-sync.md](admin-asset-async-sync.md)                   |
 
 ### 아키텍처 개선
