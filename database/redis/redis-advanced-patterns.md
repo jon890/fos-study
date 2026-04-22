@@ -1,347 +1,303 @@
-# [초안] Redis Advanced Patterns — 백엔드 실무에서 자주 마주치는 고급 패턴 정리
+# [초안] Redis 고급 패턴 허브 — 여러 문서를 꿰어 읽는 법
 
-## 왜 이 주제가 중요한가
+> 이 문서는 redis 폴더 안의 개별 심화 문서들을 **하나의 맥락으로 묶어주는 허브**다. 개념 설명이나 명령어 레퍼런스를 반복하지 않고, '어느 패턴을 언제 쓰는가', '어떤 장애 시나리오에서 어느 문서를 꺼내 드는가', '여러 기법을 어떻게 조합하는가'에 집중한다. 상세 구현과 예제는 각 링크 문서에서 이어서 읽는다.
 
-Redis를 "그냥 빠른 key-value 캐시"로만 쓰다 보면, 트래픽이 늘었을 때 오히려 Redis가 장애의 진원지가 된다. 실무에서 흔히 겪는 상황은 이런 식이다.
+---
 
-- 캐시를 걷어냈더니 DB가 죽는다 (cache stampede).
-- 캐시 TTL이 모두 동시에 만료돼 순간 QPS가 튄다 (thundering herd).
-- 분산락을 Redis로 걸었는데 타임아웃 상황에서 두 프로세스가 동시에 임계 구역에 들어간다.
-- `KEYS *` 한 번으로 Redis 전체가 멈춘다.
-- Redis Cluster로 옮겼더니 기존 `MULTI/EXEC` 파이프라인이 `CROSSSLOT` 에러로 깨진다.
+## 이 허브가 존재하는 이유
 
-시니어 백엔드 면접에서 Redis 질문은 단순 자료구조(String/Hash/List/Set/ZSet)를 묻는 수준을 넘어선다. "트래픽이 10배로 튀었을 때 이 캐시 전략으로 버틸 수 있는가", "이 분산락 구현은 정확히 어디서 깨지는가" 같은 실패 시나리오 중심 질문이 나온다. 이 문서는 그 수준에 맞춘 실전 패턴을 정리한다.
+Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸쳐** 발생한다.
 
-Redis의 기본 자료구조와 영속화(RDB/AOF), 복제/클러스터 개요는 별도의 기초 문서에서 다룬 것으로 간주하고, 여기서는 **캐시 전략**, **분산락**, **atomic 연산과 Lua**, **Pub/Sub vs Streams**, **Cluster 제약**, **실무에서의 hot key / big key 문제**에 집중한다.
+- 인기 상품 페이지의 TTL이 만료되는 순간 → 캐시 스탬피드 + hot key + DB 커넥션 폭주가 동시에 일어난다.
+- 분산 락으로 보호한다고 믿었던 재고 차감 → GC stall + 락 만료 + oversell이 연쇄로 발생한다.
+- Redis 단독 구성을 Cluster로 옮긴 뒤 → 기존 Lua/MULTI가 `CROSSSLOT` 에러로 한 번에 깨진다.
 
-## 캐시 읽기/쓰기 패턴 — 선택의 기준
+이런 문제들은 한 문서로는 설명되지 않는다. `cache-aside`, `distributed-lock`, `lua-script`, `operations`가 **함께** 읽혀야 판단이 선다. 이 허브는 그 연결 지점을 정리한다.
 
-### 1. Cache-Aside (Lazy Loading)
+---
 
-가장 흔하게 쓰는 패턴이다.
+## 학습 경로 — 어떤 순서로 읽을 것인가
 
 ```
-read:
-  v = redis.get(key)
-  if v is None:
-      v = db.select(...)
-      redis.setex(key, ttl, v)
-  return v
-
-write:
-  db.update(...)
-  redis.delete(key)   // not set
+[입문]           basic.md          ← 아키텍처, 자료구조, 싱글 스레드 전제
+    │
+    ├─ [캐시]   cache-aside.md    ← 읽기/쓰기 경로, 스탬피드, 정합성
+    │
+    ├─ [동시성] distributed-lock.md  ← SET NX, Redisson, Redlock 한계
+    │           lua-script.md         ← 복합 연산 원자화 사례
+    │           rate-limiting.md      ← 고정/슬라이딩 윈도우, 토큰 버킷
+    │
+    ├─ [메시징] pub-sub.md        ← Pub/Sub vs Stream 선택
+    │
+    ├─ [상태]   session.md        ← Spring Session, JWT 비교
+    │           leaderboard.md    ← Sorted Set 랭킹
+    │
+    └─ [운영]   operations.md     ← 성능, 메모리, 모니터링, 장애 대응
+                backup.md         ← RDB/AOF, Sentinel/Cluster
 ```
 
-쓰기 경로에서 **set이 아니라 delete**를 하는 이유는 두 가지다.
+허브 문서인 여기서는 **위 개별 문서가 서로 만나는 지점**만 다룬다.
 
-1. 쓰기 직후의 stale write race: `T1: db.update(old->new)` → `T2: db.update(new->final)` → `T2: redis.set(final)` → `T1: redis.set(new)` 이면 캐시에 오래된 값이 남는다. delete는 이 race를 줄인다.
-2. write-through 비용 회피: 읽히지 않을 데이터도 매 쓰기마다 캐시에 올리면 메모리 낭비가 크다.
+---
 
-### 2. Read-Through / Write-Through
+## 1. 캐시 + 분산 락 + Lua — 임계 경로 이중 방어
 
-애플리케이션이 아니라 캐시 레이어(또는 라이브러리)가 DB를 직접 읽고 쓴다. 스펙이 단순해지는 대신 캐시 장애가 곧 읽기/쓰기 장애가 된다. JPA 2차 캐시나 Spring `@Cacheable`이 이쪽에 가깝다.
+재고 차감, 쿠폰 발급, 잭팟 지급처럼 **중복 실행이 곧 돈 손실**인 경로는 하나의 기법으로는 부족하다. 세 가지 문서의 패턴을 합쳐야 한다.
 
-### 3. Write-Behind (Write-Back)
-
-쓰기는 캐시에만 하고, 배치로 DB에 flush한다. Throughput은 최고지만 Redis가 죽으면 데이터 유실이다. 카운터/집계처럼 "정확한 값은 중요하지 않지만 빠른 증가가 중요한" 경우 외에는 일반 도메인 데이터에 쓰지 않는다.
-
-### 4. Refresh-Ahead
-
-TTL이 끝나기 전에 미리 비동기로 갱신한다. Hot key가 만료되는 순간 DB로 쏠리는 걸 막는다. 아래 stampede 대응에서 다시 다룬다.
-
-선택 기준은 단순하다. **정합성이 중요한가, 속도가 중요한가, 트래픽이 튀는가**. 일반적인 상품 조회, 유저 프로필 같은 도메인은 Cache-Aside + delete on write가 기본이다.
-
-## Cache Stampede (Thundering Herd) 대응
-
-인기 있는 키 하나의 TTL이 끝나는 순간, 동시에 수백 개 요청이 캐시 miss → 같은 DB 쿼리를 치는 현상이다. 대응 방법은 크게 세 가지다.
-
-### (1) 분산락으로 단일 재계산 보장
+### 조합 설계
 
 ```
-v = redis.get(key)
-if v is not None:
-    return v
-
-lock_key = "lock:" + key
-if redis.set(lock_key, token, nx=True, ex=5):
-    try:
-        v = db.select(...)
-        redis.setex(key, ttl, v)
-    finally:
-        // 반드시 Lua로 token 일치 검증 후 DEL
-        release_lock(lock_key, token)
-    return v
-else:
-    sleep(50ms)
-    return redis.get(key) or db.select(...)
+요청 → [1] 로컬 캐시(L1)          ← cache-aside의 L1/L2 계층화
+       [2] Redis 예약(DECR/Lua)   ← lua-script의 원자적 차감
+       [3] 분산 락 (보조)          ← distributed-lock의 best-effort 보호
+       [4] DB 트랜잭션 + 유니크제약 ← 최종 정합성 보증
+       [5] 실패 시 보상 INCR       ← Redis 예약 되돌림
 ```
 
-대기 측은 짧게 sleep 후 캐시를 재조회한다. "락을 못 잡은 쪽이 그냥 DB를 치게" 두면 정작 보호하려던 DB가 또 맞는다.
+**핵심 원칙:**
+- Redis 차감은 **예약(reservation)**, DB commit이 **최종 결정**이다.
+- Redis 락은 Martin Kleppmann이 지적한 GC stall / clock drift 조건에서 mutual exclusion을 **절대 보장하지 않는다**. → [분산 락](./distributed-lock.md#redlock-클러스터-환경의-분산-락)
+- DB에 유니크 제약 / CHECK 제약을 반드시 이중으로 건다. Redis가 "거짓말"해도 이중 판매가 막힌다.
 
-### (2) Probabilistic Early Expiration (XFetch)
+관련 상세:
+- [Redis Lua 스크립트](./lua-script.md) — Hash + Lua로 잭팟 누적/당첨을 atomic하게 처리한 실제 사례
+- [분산 락](./distributed-lock.md) — SET NX EX, Redisson Watchdog, Redlock의 한계
+- [Cache-Aside](./cache-aside.md#장애-2--hot-key-집중-hot-spot) — L1(Caffeine) + L2(Redis) 계층화
 
-TTL이 끝나기 전에 확률적으로 **한 요청만** 재계산하게 만든다. Redis에 값과 함께 `computed_at`, `delta`(재계산 소요시간)를 저장하고, 다음 조건에서 재계산한다.
+---
 
-```
-now - delta * beta * ln(rand()) >= expiry
-```
+## 2. 캐시 스탬피드 — 세 가지 해법의 분기
 
-`beta`는 보통 1.0. 수학적으로 TTL 끝 직전에 재계산될 확률이 급격히 높아지고, 그 사이의 나머지 요청은 아직 살아있는 캐시를 그대로 본다. DB가 감당 가능한 수준으로 stampede가 분산된다.
+캐시 스탬피드는 `cache-aside.md`에 상세 설명이 있다. 여기서는 **어느 상황에 어느 해법을 고르는지**만 정리한다.
 
-### (3) TTL 지터(jitter)
+| 상황 | 해법 | 참조 |
+|------|------|------|
+| 인기 키 1~2개, 트래픽 예측 가능 | 사전 워밍 (스케줄러) | [Cache-Aside § 사전 워밍](./cache-aside.md#해결책-3--사전-워밍-pre-warming) |
+| 인기 키 N개, 순간 폭주 | 분산 락 기반 단일 재계산 | [Cache-Aside § 분산 락](./cache-aside.md#해결책-1--분산-락-mutex-lock), [분산 락](./distributed-lock.md) |
+| 레이턴시 스파이크 허용 불가 | Probabilistic Early Expiration (XFetch) | [Cache-Aside § PER](./cache-aside.md#해결책-2--확률적-조기-갱신-probabilistic-early-expiration) |
+| 동시 만료 자체를 분산 | TTL 지터 (모든 경우 기본 적용) | [Cache-Aside § TTL 분산](./cache-aside.md#ttl-분산-동시-만료-방지) |
+| Hot key 자체 부하 | L1 로컬 캐시로 Redis 조회 흡수 | [Cache-Aside § Hot Key](./cache-aside.md#장애-2--hot-key-집중-hot-spot) |
 
-비슷한 시점에 생성된 키가 정확히 같은 시각에 만료되면 동시에 튄다. `ttl = base + rand(0, jitter)`로 분산시킨다. 배치로 warm-up 한 캐시일수록 지터가 필수다.
+**판단 기준:** 지터는 '무조건 적용'. 나머지는 인기 키 수와 비즈니스 레이턴시 허용치로 고른다. 실무에서는 보통 **지터 + L1 + 분산 락** 3종 세트로 시작하고, 부족하면 PER를 얹는다.
 
-## 분산락 — Redis로 정말 mutual exclusion이 되는가
+---
 
-기본 구현은 `SET key token NX PX 30000`. 문제는 해제 시점이다. 반드시 **Lua 스크립트로 token을 검증한 뒤 DEL** 해야 한다.
+## 3. Pub/Sub vs Stream vs Kafka — 메시징 경로 선택
 
-```lua
--- release.lua
-if redis.call("GET", KEYS[1]) == ARGV[1] then
-    return redis.call("DEL", KEYS[1])
-else
-    return 0
-end
-```
-
-아래는 흔한 실패 시나리오다.
-
-1. T1이 락을 잡고 GC로 멈춘다 (또는 네트워크가 끊긴다).
-2. 락 TTL이 만료되고 T2가 새 락을 잡는다.
-3. T1이 깨어나서 `DEL lock_key` 를 하면 **T2의 락을 지운다**.
-4. T3가 또 락을 잡는다 → 임계 구역 중복 진입.
-
-token 검증 Lua는 이 중 3단계를 막아준다. 하지만 **2단계 자체**(T1과 T2가 잠깐 동시에 락을 소유한다고 "믿는" 상태)는 Redis만으로는 원천 차단할 수 없다. Redlock 알고리즘도 Martin Kleppmann이 지적한 대로, GC stall이나 clock drift 상황에서 완전한 mutual exclusion을 보장하지는 못한다.
-
-실무에서의 현실적인 결론은 이렇다.
-
-- **돈이 걸린 연산에는 Redis 락을 최종 방어선으로 쓰지 않는다**. DB 유니크 제약, `SELECT ... FOR UPDATE`, fencing token 같은 추가 방어를 둔다.
-- Redis 락은 **중복 실행을 줄이기 위한 최선 노력(best-effort)** 수단으로 쓴다. 캐시 재계산 dedupe, 스케줄러 leader election, 외부 API 호출 dedupe 정도가 적합하다.
-- 락 TTL은 **작업 예상 시간보다 충분히 길게** 두되, 장시간 락은 watchdog로 주기적 갱신한다 (Redisson `RLock`이 이 방식).
-
-## Atomic 연산과 Lua 스크립트
-
-Redis 명령 하나하나는 atomic이지만, 여러 명령의 조합은 그렇지 않다. `GET` → 값 보고 판단 → `SET`은 race가 생긴다. 해결책은 세 가지 중 하나다.
-
-### (1) 단일 명령으로 끝내기
-
-- 재고 차감: `DECR stock:1001` 후 음수면 롤백. 원자적.
-- 중복 체크 후 추가: `SADD visited:user:42 post:1001` — 1 반환하면 첫 방문.
-- TTL 같이 설정하는 SET: `SET key v NX EX 60` — 없을 때만 생성.
-
-### (2) Lua 스크립트
-
-스크립트 실행 중에는 다른 명령이 끼어들지 않는다. 복수 키 조작을 atomic하게 묶는 가장 강력한 수단이다.
-
-```lua
--- 재고 차감 with 최소값 검증
-local stock = tonumber(redis.call("GET", KEYS[1]) or "0")
-local qty = tonumber(ARGV[1])
-if stock < qty then
-    return -1
-end
-redis.call("DECRBY", KEYS[1], qty)
-return stock - qty
-```
-
-주의: Lua 스크립트가 길어지면 **Redis 싱글 스레드 전체가 그 시간만큼 블로킹된다**. 수 ms가 넘어가는 스크립트는 지양하고, `SCRIPT LOAD` + `EVALSHA`로 네트워크 payload를 줄인다.
-
-### (3) MULTI/EXEC (트랜잭션)
-
-`WATCH`와 함께 optimistic lock처럼 쓸 수 있지만, 실무에서는 Lua가 대부분 더 깔끔하다. Cluster 환경에서는 모든 키가 같은 hash slot에 있어야 한다는 제약이 붙는다.
-
-## Pub/Sub vs Streams — 메시징 패턴 선택
-
-### Pub/Sub
-
-- fire-and-forget.
-- 구독자가 없으면 메시지는 사라진다.
-- 재연결 시 놓친 메시지 복구 불가.
-- 실시간 캐시 무효화 브로드캐스트, 라이브 알림 정도에만 쓴다.
-
-### Streams (XADD / XREAD / XGROUP)
-
-- Kafka와 유사한 append-only 로그.
-- Consumer group, offset 관리, 재시도(pending entries list), DLQ 패턴 구현 가능.
-- 주문 이벤트, 감사 로그, 백그라운드 작업 큐 등 **유실되면 안 되는 이벤트**에 적합.
+[`pub-sub.md`](./pub-sub.md)에 상세 비교표가 있다. 허브 관점에서는 **조직의 기존 인프라**까지 포함해 본다.
 
 ```
-XADD orders:stream * orderId 1001 status paid
-XGROUP CREATE orders:stream billing $ MKSTREAM
-XREADGROUP GROUP billing worker-1 COUNT 10 BLOCK 2000 STREAMS orders:stream >
-XACK orders:stream billing <message-id>
+메시지 유실 허용 O  →  Redis Pub/Sub
+                      · 캐시 무효화 브로드캐스트
+                      · 실시간 채팅/알림 (접속자만)
+                      · Redisson 락 해제 신호
+
+메시지 유실 허용 X, Kafka 없음  →  Redis Stream
+                                    · 짧은 생명주기 작업 큐
+                                    · 이미지 처리, 메일 발송, 썸네일 생성
+
+메시지 유실 허용 X, Kafka 있음  →  Kafka (본류) + Redis Stream (보조)
+                                    · 주문/결제 이벤트 → Kafka
+                                    · 백그라운드 dedupe/빠른 큐 → Streams
 ```
 
-Kafka가 이미 있는 조직이라면 이벤트 소싱의 본류는 Kafka에 두고, Redis Streams는 **짧은 생명 주기의 작업 큐**(이미지 썸네일 생성, 메일 큐)에만 쓰는 것이 일반적인 분리다.
+같은 Redis 인프라에 이미 있는 Streams를 굳이 Kafka로 옮기지는 않는다. 반대로 Kafka가 이미 있는데 Streams로 중요한 이벤트를 옮기면 **운영 도구(Schema Registry, Kafka UI, exactly-once)가 없어 후회**한다.
 
-## Cluster 환경의 제약 — CROSSSLOT 문제
+---
 
-Redis Cluster는 키를 16384개 hash slot으로 나눠 샤드에 분배한다. Lua 스크립트나 MULTI/EXEC는 **하나의 slot 안에서만** 동작한다.
+## 4. Redis Cluster의 제약 — CROSSSLOT
+
+단일 인스턴스에서 Cluster로 넘어갈 때 **가장 자주 터지는 함정**이지만 개별 문서에서는 깊이 다루지 않는다. 여기서 정리한다.
 
 ```
+# 단일 인스턴스에서는 잘 돌던 코드
 MSET user:1:name Alice user:2:name Bob
-→ (error) CROSSSLOT Keys in request don't hash to the same slot
+→ Cluster: (error) CROSSSLOT Keys in request don't hash to the same slot
 ```
 
-해시 태그 `{}`로 같은 slot에 묶을 수 있다.
+Redis Cluster는 키를 CRC16 기반 16,384개 hash slot으로 분배한다. **Lua 스크립트, MULTI/EXEC, MSET/MGET, 트랜잭션**은 모두 같은 slot의 키에만 동작한다.
+
+### 해시 태그로 같은 slot에 묶기
 
 ```
 MSET {user:1}:name Alice {user:1}:email alice@x.com
+       ^^^^^^^                ^^^^^^^
+   해시 태그 → user:1 기준으로 같은 slot에 저장
 ```
 
-설계 원칙은 명확하다. **함께 atomic하게 조작해야 하는 키들은 같은 해시 태그를 공유**한다. 주문과 주문 아이템, 유저와 유저 프로필 같은 것들이다. 반대로 전혀 관련 없는 키에 같은 태그를 붙이면 특정 slot만 비대해지는 **hot slot** 문제가 생긴다.
+### 설계 원칙
 
-## Hot Key와 Big Key — 운영의 두 가지 지뢰
+- **같이 atomic하게 다룰 키들은 같은 해시 태그**를 공유한다 (user-profile, order-items 등).
+- **관련 없는 키에 같은 태그를 남발하면 hot slot**이 생긴다 (특정 샤드 CPU 100%).
+- 해시 태그는 **데이터 모델 설계 단계**에서 정해야 한다. 운영 중에 바꾸면 키 이동 = 캐시 폭풍이다.
 
-### Hot Key
+영향 받는 기능과 대체안:
 
-특정 키 하나에 트래픽이 쏠려 해당 샤드의 CPU가 포화되는 현상이다. 대응 방법:
+| 기능 | Cluster에서 | 대체 |
+|------|------------|------|
+| Lua 다중 키 조작 | 같은 slot만 가능 | 해시 태그 설계 또는 애플리케이션 레벨 보상 트랜잭션 |
+| MULTI/EXEC | 같은 slot만 가능 | Lua 스크립트로 통합 |
+| MSET/MGET | 같은 slot만 가능 | 개별 SET/GET + 파이프라인 |
+| Pub/Sub | Cluster-wide 동작 | 영향 없음 |
 
-- **로컬 캐시 계층 추가**: Caffeine 같은 in-process 캐시를 Redis 앞에 두고, 짧은 TTL(1~5초)로 동일 키 조회를 앱 서버 레벨에서 흡수한다.
-- **키 샤딩**: `counter:page:123` 하나 대신 `counter:page:123:{0..9}` 10개에 분산 INCR하고, 읽을 때 합산한다. 정확도를 약간 포기하는 대신 쓰기가 분산된다.
-- **Read replica 활용**: 읽기만 하는 트래픽이면 replica로 분산.
+관련: [Redis 기본 § Redis Cluster](./basic.md#redis-cluster), [Redis Lua 스크립트](./lua-script.md), [Redis 영속성과 클러스터](./backup.md)
 
-### Big Key
+---
 
-하나의 키에 수십~수백 MB가 들어있는 경우다. `DEL`만 해도 Redis 스레드가 수초 멈춘다. 대응:
+## 5. Hot Key와 Big Key — 운영의 두 지뢰
 
-- 리스트/해시를 논리적으로 쪼갠다 (`chat:room:1:msgs:2026-04` 처럼 날짜/범위 파티셔닝).
-- 삭제는 `UNLINK`로 비동기화한다 (Redis 4.0+).
-- `redis-cli --bigkeys`, `MEMORY USAGE key`로 주기적으로 감시한다.
+`operations.md`에 진단 명령어가 있지만, **개념 정의와 대응 설계**는 여러 문서에 분산되어 있어 허브에서 통합한다.
 
-### 금지해야 할 명령
+### Hot Key (단일 키 트래픽 집중)
 
-- `KEYS *` — O(N), 전체 블로킹. 반드시 `SCAN`으로 대체.
-- `FLUSHALL` / `FLUSHDB` — 프로덕션에서는 rename-command로 막아두는 것이 안전.
-- `SMEMBERS huge_set` — 큰 집합 전체 조회. `SSCAN`으로 대체.
+**증상:** 해당 슬롯의 CPU 100%, P99 지연 스파이크. 전체 서버는 한가한데 특정 노드만 과부하.
 
-## Bad vs Improved 예제 — 재고 차감
+**대응 계층:**
 
-### Bad: 애플리케이션 레벨 GET/SET
-
-```java
-Integer stock = redis.get("stock:1001");
-if (stock >= qty) {
-    redis.set("stock:1001", stock - qty);
-    orderService.createOrder(...);
-}
+```
+[L0 앱 내 캐시]   Caffeine 1~5초 TTL → Redis 호출 자체를 흡수
+[L1 로컬 로컬]    JVM 여러 대라면 Pub/Sub 무효화 신호
+[L2 Redis]        Read replica에 읽기 분산 (쓰기는 master)
+[L3 샤딩]         counter:page:123 → counter:page:123:{0..9} 10개로 분산
+                   읽을 때 SUM, 정확도 소폭 희생
 ```
 
-문제점:
-- GET과 SET 사이에 다른 요청이 끼어든다 → oversell.
-- 애플리케이션 예외 시 차감만 되고 주문은 실패 → 재고 유실.
+→ [Cache-Aside § Hot Key](./cache-aside.md#장애-2--hot-key-집중-hot-spot) 에 코드 예시가 있다.
 
-### Improved: Lua로 원자화 + DB 이중 방어
+### Big Key (단일 키 용량 비대)
 
-```java
-String LUA = """
-    local stock = tonumber(redis.call('GET', KEYS[1]) or '0')
-    local qty = tonumber(ARGV[1])
-    if stock < qty then return -1 end
-    redis.call('DECRBY', KEYS[1], qty)
-    return stock - qty
-""";
+**증상:** `DEL`만 해도 수 초 블로킹. `HGETALL` 타임아웃. 메모리 파편화 악화.
 
-Long remaining = redis.eval(LUA, List.of("stock:1001"), List.of("2"));
-if (remaining < 0) throw new OutOfStockException();
-
-try {
-    orderService.createOrder(...);   // DB 트랜잭션, 유니크 제약 포함
-} catch (Exception e) {
-    redis.incrBy("stock:1001", 2);   // 보상 차감 복원
-    throw e;
-}
-```
-
-핵심은 Redis 차감을 **예약(reservation)** 으로 다루고, DB 주문 생성을 최종 commit으로 본다는 점이다. DB 쪽에도 유니크 제약이나 재고 컬럼의 CHECK 제약을 걸어 "Redis가 거짓말을 해도" 이중 판매가 나지 않도록 한다.
-
-## 로컬 실습 환경
-
-Docker 하나로 충분하다.
+**탐지/대응:**
 
 ```bash
-docker run -d --name redis-study \
-    -p 6379:6379 \
-    redis:7.2 redis-server --appendonly yes
-
-docker exec -it redis-study redis-cli
+redis-cli --bigkeys                    # 큰 키 스캔
+redis-cli MEMORY USAGE chat:room:1     # 개별 키 크기
+UNLINK chat:room:1                     # 비동기 삭제 (Redis 4.0+)
 ```
 
-Cluster 실험이 필요하면 `redis:7.2` 이미지 + `redis-cli --cluster create`로 6노드(3 master / 3 replica)를 띄우는 bitnami의 compose 예제를 쓰는 것이 빠르다. MySQL과 같이 띄워야 하는 경우는 아래처럼 최소 구성으로 충분하다.
+**설계 원칙:**
+- 리스트/해시를 **파티셔닝**한다: `chat:room:1:msgs:2026-04`, `chat:room:1:msgs:2026-05`.
+- 오래된 데이터는 `ZREMRANGEBYRANK`, `LTRIM`으로 주기적 삭제.
+- 삭제는 `DEL` 대신 **`UNLINK`** (Redis 4.0+).
 
-```yaml
-# docker-compose.yml
-services:
-  redis:
-    image: redis:7.2
-    ports: ["6379:6379"]
-    command: ["redis-server", "--appendonly", "yes"]
-  mysql:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: study
-    ports: ["3306:3306"]
+→ [Redis 기본 § 주의사항](./basic.md#주의사항), [운영 가이드 § 운영 금지 명령어](./operations.md#운영-금지-명령어)
+
+---
+
+## 6. Graceful Degradation — Redis 장애 시 서비스가 죽지 않게
+
+**원칙:** Redis는 캐시 계층이다. Redis 장애가 서비스 전체 장애로 번지면 설계가 잘못된 것이다.
+
+### 3단 방어
+
+```
+[1] 짧은 타임아웃       → Lettuce commandTimeout = 50~500ms
+[2] Circuit Breaker    → 연속 실패 시 Redis 우회, DB 직접 조회
+[3] DB 폴백 + 부하 보호 → 커넥션 풀 한계, 쿼리 타임아웃, 비상 rate limit
 ```
 
-## 실제로 돌려볼 실습 과제
+```java
+try {
+    return redisCircuitBreaker.executeSupplier(() -> redis.get(key));
+} catch (Exception e) {
+    log.warn("Redis unavailable, falling back to DB");
+    return db.findById(id);  // 단, DB 커넥션 풀이 살아있는지 확인
+}
+```
 
-### 실습 1 — Cache-Aside + TTL 지터
+**주의:** Redis 다운 → DB로 트래픽 전부 쏠림 → DB도 다운 (연쇄 장애)이 실제로 가장 자주 발생한다. DB 쪽 보호(커넥션 풀 상한, 쿼리 타임아웃, 비상 rate limit)가 준비되지 않으면 Redis 다운보다 더 큰 장애가 난다.
 
-1. MySQL에 `product(id, name, price)` 테이블을 만들고 10만 row를 INSERT.
-2. Spring Boot에서 `GET /products/{id}` 엔드포인트를 Cache-Aside로 구현.
-3. `ttl = 300 + rand(0, 60)` 지터를 적용.
-4. wrk로 동일 상품 1000 concurrent 부하 → DB 쿼리 수가 1회 근방인지 슬로우 쿼리 로그로 확인.
+→ [Cache-Aside § 장애 1 Redis 완전 다운](./cache-aside.md#장애-1--redis-완전-다운), [Resilience 패턴](../../architecture/resilience-patterns.md)
 
-### 실습 2 — Lua 재고 차감
+---
 
-1. `stock:{productId}` 키에 초기 재고 100 SET.
-2. 위의 차감 Lua를 적용.
-3. 200 concurrent로 qty=1 차감 요청 200개 → 정확히 100개만 성공하는지 검증.
-4. Lua 없이 GET/DECR로 바꿔 같은 테스트 → 초과 판매 재현.
+## 7. 장애 유형 → 펼칠 문서 매핑
 
-### 실습 3 — 분산락 타임아웃 재현
+실무에서 장애가 발생했을 때 **어느 문서를 먼저 꺼내는가**를 정리한다.
 
-1. Jedis/Lettuce로 `SET lock NX EX 2`.
-2. 임계 구역에서 `Thread.sleep(3000)` — TTL보다 오래 걸리게.
-3. 다른 프로세스가 같은 락을 잡는지 확인.
-4. release를 **Lua token 검증 없이** DEL만 하게 만들어 "남의 락 지우기" 시나리오 재현.
-5. Lua 기반 release로 수정해 재현되지 않는 것 확인.
+| 증상 | 1차 문서 | 2차 문서 |
+|------|---------|---------|
+| DB CPU 폭주 + Redis 히트율 급락 | [Cache-Aside § 스탬피드](./cache-aside.md#cache-stampede-캐시-스탬피드) | [operations § 장애 5](./operations.md#5-cache-stampede-캐시-폭풍) |
+| 특정 슬롯 CPU 100% | 본 문서 § Hot Key | [basic § Redis Cluster](./basic.md#redis-cluster) |
+| DEL 한 번에 서버 블로킹 | 본 문서 § Big Key | [operations § 운영 금지 명령어](./operations.md#운영-금지-명령어) |
+| 분산 락에도 oversell 발생 | [distributed-lock § Redlock](./distributed-lock.md#redlock-클러스터-환경의-분산-락) | [lua-script § Lua 원자성 한계](./lua-script.md#lua-스크립트의-원자성-한계) |
+| Cluster 이전 후 CROSSSLOT 에러 | 본 문서 § Cluster 제약 | [lua-script](./lua-script.md) |
+| 메모리 파편화 / evicted_keys 증가 | [operations § 메모리](./operations.md#메모리--얼마가-적절하고-몇--이상이면-위험한가) | [basic § 메모리 파편화](./basic.md#메모리-파편화) |
+| 세션이 간헐적으로 사라짐 | [session](./session.md) | [operations § 장애 2 서버 재시작](./operations.md#2-서버-다운--재시작) |
+| Redis 다운 → 서비스 전체 다운 | 본 문서 § Graceful Degradation | [cache-aside § 장애 1](./cache-aside.md#장애-1--redis-완전-다운) |
+| 메시지가 조용히 사라짐 | [pub-sub § Pub/Sub 한계](./pub-sub.md#한계-중요) | [pub-sub § Stream](./pub-sub.md#redis-stream) |
 
-### 실습 4 — Streams consumer group
+---
 
-1. `XADD orders * ...`로 100건 produce.
-2. `XREADGROUP` 워커 2개 기동.
-3. 한 워커 중간에 죽이고 `XPENDING`으로 미처리 메시지 확인.
-4. `XCLAIM`으로 다른 워커에 재할당.
+## 인터뷰 답변 프레임 — 문서를 넘나드는 답
 
-## 면접 답변 프레이밍
+시니어 백엔드 면접에서 Redis 질문은 단일 문서 수준에서 답변하면 얕게 들린다. **여러 패턴을 연결하는 답**이 경력자처럼 들린다.
 
-면접관이 "캐시 전략 설명해 보세요"라고 물을 때, 교과서 정의부터 시작하면 깊이 없는 답변이 된다. 다음 골격이 더 잘 먹힌다.
+### Q. "캐시 전략을 어떻게 잡으시나요?"
 
-> "저는 Cache-Aside를 기본으로 쓰고, 쓰기 경로에서는 set이 아니라 delete를 씁니다. 이유는 동시 쓰기 시 stale 캐시가 남는 race를 줄이기 위해서입니다. TTL에는 항상 랜덤 지터를 넣어 동시 만료를 피하고, 인기 키의 경우 probabilistic early expiration이나 분산락으로 stampede를 제어합니다. 분산락은 Redlock이라도 GC stall 상황에서 상호 배제를 절대 보장하지는 못하기 때문에, 돈이 걸린 경로에는 DB 유니크 제약이나 SELECT FOR UPDATE를 이중 방어로 둡니다."
+> Cache-Aside를 기본으로 하고, 쓰기 경로에서는 set이 아니라 delete를 씁니다. 동시 쓰기 race에서 stale 캐시가 남는 걸 줄이기 위해서입니다. TTL에는 항상 랜덤 지터를 넣고, 인기 키가 있다면 L1으로 Caffeine을 30초 TTL로 두거나, 필요하면 분산 락으로 단일 재계산을 보장합니다. 정합성이 극도로 중요한 데이터는 캐시를 안 쓰거나, 짧은 TTL + 이벤트 기반 무효화를 조합합니다.
 
-이 답에 면접관이 이어 물을 확률이 높은 질문과 답 방향을 미리 준비해 둔다.
+(링크: [cache-aside](./cache-aside.md), [distributed-lock](./distributed-lock.md))
 
-- **"그럼 delete 후 바로 다른 요청이 miss로 DB 치면요?"** → hot key는 재계산 구간에 분산락을 걸어 단일 워커만 DB를 치게 한다, 나머지는 짧게 재시도.
-- **"Redis Cluster에서 Lua 못 쓸 때는?"** → 같은 slot으로 묶는 hash tag를 설계에 반영한다. 불가능한 경우 애플리케이션 레벨에서 보상 트랜잭션을 설계한다.
-- **"Redis 장애 나면?"** → 캐시는 장애 내성(graceful degradation) 전제로 설계한다. 캐시 호출을 타임아웃 짧게(예: 50ms) 걸고 실패 시 DB 직접 조회 + circuit breaker로 보호.
+### Q. "Redis 분산 락으로 재고 차감 막을 수 있나요?"
 
-경력자 톤으로 말할 때는 "OO 상황에서 이런 장애를 본 적이 있다 → 원인은 X였다 → 이후에는 Y 패턴으로 바꿨다" 흐름이 가장 설득력이 있다. 추상적인 best practice 나열은 주니어 답변처럼 들린다.
+> Redis 락은 best-effort입니다. Redlock이라 해도 GC stall이나 clock drift 상황에서 완전한 mutual exclusion은 불가능합니다. 그래서 돈이 걸린 경로는 Redis 락을 최종 방어선으로 쓰지 않습니다. Redis 차감은 Lua로 원자화해 **예약**으로 다루고, 최종 결정은 DB 트랜잭션 + 유니크 제약 + CHECK 제약으로 이중 방어합니다. 실패하면 Redis에 보상 INCR로 되돌립니다.
 
-## 체크리스트
+(링크: [distributed-lock](./distributed-lock.md), [lua-script](./lua-script.md))
 
-- [ ] Cache-Aside + delete-on-write를 기본값으로 이해하고, 언제 write-through/write-behind로 넘어가는지 설명할 수 있다.
-- [ ] TTL 지터의 목적과 미적용 시의 thundering herd를 예시로 설명할 수 있다.
-- [ ] Cache stampede 대응 세 가지(분산락, probabilistic early expiration, refresh-ahead)의 trade-off를 말할 수 있다.
-- [ ] `SET NX PX` + Lua 기반 release를 직접 구현할 수 있다.
-- [ ] Redis 분산락이 mutual exclusion을 절대적으로 보장하지 않는 이유(GC, clock drift, network partition)를 설명할 수 있다.
-- [ ] Lua 스크립트가 싱글 스레드를 블로킹한다는 점과, 긴 스크립트 사용 시의 영향을 이해하고 있다.
-- [ ] Cluster 환경의 CROSSSLOT 제약과 hash tag 설계 원칙을 적용할 수 있다.
-- [ ] Pub/Sub과 Streams의 차이, 각각 적합한 유스케이스를 구분할 수 있다.
-- [ ] Hot key / big key 탐지 방법(`--bigkeys`, `MEMORY USAGE`, 모니터링)과 대응책을 알고 있다.
-- [ ] `KEYS *`, `FLUSHALL`, 큰 컬렉션 전수 조회 같은 금지 명령과 대체 명령(`SCAN`, `UNLINK` 등)을 구분한다.
-- [ ] 재고 차감 같은 critical path에서 Redis 차감 + DB 제약 이중 방어 구조를 설계할 수 있다.
-- [ ] 캐시 장애 시 graceful degradation(타임아웃, circuit breaker, DB 직접 조회) 경로가 준비되어 있다.
+### Q. "단일 Redis를 Cluster로 옮길 때 무엇을 조심하나요?"
+
+> 가장 자주 터지는 건 CROSSSLOT입니다. Lua, MULTI/EXEC, MSET이 같은 슬롯의 키만 지원하기 때문에, 같이 atomic하게 다뤄야 하는 키들은 해시 태그로 묶어야 합니다. 단, 태그를 남발하면 특정 슬롯에 트래픽이 집중되는 hot slot이 생기기 때문에, 해시 태그 설계는 데이터 모델 설계 단계에서 결정해야 합니다.
+
+(링크: [basic § Cluster](./basic.md#redis-cluster))
+
+### Q. "Redis가 다운되면 서비스는요?"
+
+> 캐시 계층 장애를 서비스 전체 장애로 번지지 않게 하는 것이 원칙입니다. 모든 Redis 호출은 50~500ms 타임아웃으로 감싸고 Circuit Breaker로 감지합니다. 단 DB 폴백을 준비하는 것으로 끝이 아니고, Redis 트래픽이 DB로 쏠릴 때 DB가 죽지 않도록 커넥션 풀 상한과 비상 rate limit이 같이 설계돼 있어야 합니다.
+
+(링크: [cache-aside § 장애 1](./cache-aside.md#장애-1--redis-완전-다운), [resilience-patterns](../../architecture/resilience-patterns.md))
+
+---
+
+## 허브 체크리스트 — 설계 단계에서 확인할 것
+
+- [ ] 캐시 전략이 Cache-Aside + delete-on-write + TTL 지터로 시작하는가
+- [ ] 인기 키에 대해 스탬피드 방어(지터/락/L1/PER) 중 최소 한 가지가 걸려 있는가
+- [ ] 임계 경로(돈/재고)에 Redis Lua + DB 제약의 이중 방어가 걸려 있는가
+- [ ] Redis 락의 한계(GC, clock drift)를 이해하고 DB 방어를 생략하지 않았는가
+- [ ] Cluster 사용 시 해시 태그 설계가 데이터 모델 단계에서 반영되어 있는가
+- [ ] 해시 태그 남발로 hot slot이 생기지 않는지 검토했는가
+- [ ] Hot key에 대해 L1 로컬 캐시 또는 키 샤딩이 준비되어 있는가
+- [ ] Big key(100KB+)가 주기적으로 탐지/파티셔닝되는가 (`--bigkeys`, `MEMORY USAGE`)
+- [ ] 삭제는 `DEL` 대신 `UNLINK`를 우선 쓰는가 (Redis 4.0+)
+- [ ] 모든 Redis 호출이 짧은 타임아웃으로 감싸져 있는가 (50~500ms)
+- [ ] Circuit Breaker가 Redis 장애를 감지하고 DB 폴백으로 전환하는가
+- [ ] DB 폴백 시 커넥션 풀/비상 rate limit으로 DB가 연쇄 장애를 피하는가
+- [ ] 메시지 유실 허용 여부로 Pub/Sub vs Stream vs Kafka가 구분돼 있는가
+- [ ] `KEYS *`, `FLUSHALL`, 대형 컬렉션 전수 조회 같은 금지 명령이 운영에서 차단되는가
+- [ ] 장애 유형별 런북이 있어 "어느 문서를 볼지"를 즉시 안다 (§ 7 매핑 참조)
+
+---
+
+## 관련 문서
+
+**기초:**
+- [Redis 기본](./basic.md) — 아키텍처, 자료구조, 싱글 스레드 전제
+- [Redis 영속성과 클러스터](./backup.md) — RDB/AOF, Sentinel/Cluster
+
+**패턴별 심화:**
+- [Cache-Aside 완전 정복](./cache-aside.md) — 정합성, 스탬피드, L1/L2, 장애 대응
+- [분산 락](./distributed-lock.md) — SET NX, Redisson, Redlock 한계
+- [Rate Limiting](./rate-limiting.md) — 고정/슬라이딩 윈도우, 토큰 버킷
+- [Pub/Sub & Stream](./pub-sub.md) — 실시간 브로드캐스트 vs 신뢰성 큐
+- [세션 저장소](./session.md) — Spring Session, JWT 비교
+- [실시간 랭킹](./leaderboard.md) — Sorted Set 기반 랭킹 설계
+- [Lua 스크립트](./lua-script.md) — Hash + Lua 잭팟 누적/당첨 사례
+
+**운영:**
+- [Redis 운영 가이드](./operations.md) — 성능, 메모리, 모니터링, 장애 대응, 설정
+
+**교차 주제:**
+- [캐시 설계 전략](../../architecture/cache-strategies.md) — Look-Aside, Read/Write-Through 전반
+- [Resilience 패턴](../../architecture/resilience-patterns.md) — Circuit Breaker, 타임아웃, 폴백
