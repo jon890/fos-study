@@ -1,295 +1,311 @@
-# [초안] AI 서비스 개발팀 경험 기반 시니어 백엔드 면접 질문 은행
+# [초안] AI 서비스 개발팀 경험 기반 인터뷰 질문 은행 — CJ 올리브영 커머스플랫폼 시니어 백엔드
 
 ---
 
 ## 이 트랙의 경험 요약
 
-- Spring Batch 11 Step 기반 Confluence → OpenSearch RAG 벡터 색인 파이프라인 (AsyncItemProcessor / CompositeItemProcessor / @JobScope / 재시작성) — 설계·운영 전 과정을 본인이 주도했고, 대용량 I/O 바운드 배치에서 청크 병렬화와 Step 단위 실패 격리를 실제로 돌려본 경험.
-- gRPC OCR 서버 배포·스케일인 시 503 에러를 Envoy drain / supervisord stopwaitsecs / SIGTERM 핸들러 / preStop hook 예산을 NHN Cloud의 고정된 terminationGracePeriodSeconds 30초 제약 안에서 재배분하여 해결한 종료 시퀀스 설계 경험.
-- 임베딩 메타데이터를 Blocklist(remove) → Allowlist(EmbeddingMetadataProvider)로 전환하며 OCP를 지키고, 전략 패턴을 DocumentType → Provider 맵 + Spring DI로 정착시켜 신규 소스 추가 시 EmbeddingService를 건드리지 않는 구조를 만든 리팩터링.
-- Next.js 16 + Prisma 7 + Gemini @google/genai 기반 AI 웹툰 제작 도구 MVP를 12일 단독으로 6단계 파이프라인(소설→세계관→캐릭터→각색→글콘티→이미지)으로 구현하며 199 plan / 760 커밋을 달성, Claude Code 하네스 4인 에이전트 팀(planner/critic/executor/docs-verifier)을 설계·운영한 경험.
-- Gemini pro→flash→lite fallback + 전역 Rate Limit Tracking(Map<string, number>) + Project 단위 Context Caching + Continuation 재주입으로 환각 차단을 '프롬프트 카피라이팅'이 아니라 '호출 구조 설계'로 풀어낸 AI 파이프라인 아키텍처 경험.
-- 이력서/지원 문항 기준 지원 동기는 '대규모 커머스 트래픽 환경에서 캐시 정합성·이벤트 드리븐·대용량 색인·도메인 모델링 기술이 어떻게 작동하는지 직접 검증하고 싶다'이며, 1,600만 고객 규모의 올리브영 커머스플랫폼유닛이 본인 기술 스택과 직접 맞닿아 있음을 강조.
+- NHN AI 서비스 개발팀에서의 Spring Batch 기반 대용량 RAG 벡터 색인 파이프라인 설계/운영 경험을 중심으로, 시니어 백엔드 수준의 설계 판단·트레이드오프·장애 대응 역량을 검증하는 질문 은행.
+- 단순 기능 구현이 아닌 아키텍처 레벨 의사결정(@JobScope vs JobExecutionContext, AsyncItemProcessor I/O 병렬화, 전략 패턴 기반 확장 구조)을 드러내는 질문에 무게중심을 둔다.
+- Graceful Shutdown 503 트러블슈팅을 통해 인프라/런타임(K8s terminationGracePeriodSeconds, Envoy drain, supervisord stopwaitsecs, SIGTERM 전파)에 대한 실전 이해 깊이를 확인한다.
+- AI 웹툰 MVP 12일 단독 풀스택(199 plan / 760 커밋) 경험으로 AI 에이전트 협업 역량이 '툴 사용자'가 아닌 '파이프라인·아키텍처 설계자' 수준임을 드러내고, CJ 올리브영의 대규모 커머스 MSA·Kafka·Redis·JPA 환경과의 접합면을 강조한다.
+- 자기소개와 지원 동기를 커머스 도메인(1,600만 고객·대규모 트래픽)과 후보자 경험(MSA, 이벤트 드리븐, 캐시 정합성, 색인 파이프라인) 사이의 구체적 매핑으로 구성한다.
 
 ## 1분 자기소개 준비
 
-- NHN에서 4년째 Java/Spring Boot 기반 백엔드 개발을 해 온 김병태입니다. 소셜 카지노 게임 팀에서 멀티모듈 MSA 슬롯 서비스 신규 게임 개발·성능 개선·아키텍처 재설계를 맡았고, 이후 AI 서비스 개발팀으로 이동해 Confluence → OpenSearch 벡터 색인 RAG 파이프라인을 Spring Batch로 처음부터 설계·구현했습니다.
-- 대표 경험 세 가지를 꼽으면 — 다중 서버 인메모리 캐시 정합성을 RabbitMQ Fanout + Hibernate PostCommitUpdateEventListener + StampedLock으로 해결한 동시성 설계, @TransactionalEventListener(AFTER_COMMIT) 기반 Kafka 비동기 + Dead Letter Store 재시도 + traceId 추적의 신뢰성 설계, 그리고 11 Step 분리 + AsyncItemProcessor 병렬 처리 + 커서 기반 재시작 가능 구조의 대용량 색인 파이프라인 설계입니다.
-- 설계뿐 아니라 구조 개선에도 꾸준히 투자해왔습니다. 파편화된 스핀 비즈니스 로직을 AbstractPlayService + SpinOperationHandler 인터페이스 위임 구조로 통합했고, 447개 테스트 파일로 핵심 로직·AOP·Kafka·Redis 통합 테스트를 커버하는 안전망을 만들었습니다. Cursor Rules 20개 이상을 구축해 에이전트 단독으로 신규 게임 3종을 구현한 AI 도구 도입 경험도 있습니다.
-- 최근에는 12일 단독으로 Next.js 16 + Prisma 7 + Gemini 기반 AI 웹툰 제작 도구 MVP를 6단계 파이프라인으로 구현하며 Claude Code 하네스 4인 에이전트 팀을 설계·운영해 199 plan / 760 커밋을 쳐냈습니다. 기능을 만드는 것에 그치지 않고 팀 전체의 개발 속도와 안정성을 동시에 끌어올리는 구조를 만드는 것을 지향합니다.
+- NHN에서 4년째 Spring Boot 기반 MSA 환경에서 백엔드 개발을 담당하고 있는 김병태입니다. 소셜 카지노 게임 팀에서 슬롯 서비스 백엔드를 담당하며 다중 서버 인메모리 캐시 정합성, Kafka 기반 AFTER_COMMIT 비동기 처리, 도메인 리팩터링을 주도했습니다.
+- 최근 약 1년 4개월간은 AI 서비스 개발팀에서 사내 Confluence 문서를 OpenSearch에 벡터 색인하는 Spring Batch RAG 파이프라인을 11개 Step 구조로 처음부터 설계·운영했고, 여기서 AsyncItemProcessor 기반 I/O 병렬화와 재시작 가능한 청크 구조를 직접 구축했습니다.
+- 동시에 gRPC OCR 서버의 배포 중 503 이슈를 Kubernetes terminationGracePeriodSeconds 30초 제약 하에서 Envoy drain · SIGTERM 핸들러 · supervisord stopwaitsecs를 조율해 Graceful Shutdown 예산 설계로 해결한 경험도 있습니다.
+- 최근에는 AI 웹툰 제작 도구 MVP를 12일 동안 혼자 풀스택으로 구현하면서, Claude Code 하네스 기반 4인 에이전트 팀을 직접 설계해 199개 plan / 760 커밋을 돌리는 spec 기반 코딩 체계를 만들었습니다. 기능을 만드는 것에 그치지 않고, 팀이 쓸 수 있는 구조와 확장 가능한 파이프라인을 만드는 것을 중요하게 여기는 개발자입니다.
 
 ## 올리브영/포지션 맞춤 연결 포인트
 
-- 올리브영 커머스플랫폼유닛이 1,600만 고객에게 '빠르고 안정적인 고객 경험'을 제공한다는 미션에 깊이 공감합니다. 제가 4년간 쌓아온 Spring Boot MSA / Kafka / Redis / JPA / 대용량 색인 스택이 상품·전시·주문 도메인에 직접 맞닿아 있어, 수습 3개월 안에 의미 있는 기여를 낼 수 있다고 판단해 지원했습니다.
-- 기술 블로그의 'Cache-Aside + Kafka 하이브리드 도메인 연동' 글과 제가 구현한 'RabbitMQ Fanout + PostCommit 이벤트 리스너 기반 다중 서버 캐시 정합성' 설계는 문제 유형이 거의 동일합니다. '데이터 변경 빈도·라이프사이클 기준으로 Cache-Aside vs 이벤트 드리븐을 구분한다'는 팀 기조를 실무에서 이미 적용해본 경험이 있다고 말씀드릴 수 있습니다.
-- '올영세일 중 무중단 OAuth2 전환' 글에 나오는 Feature Flag + Shadow Mode + Resilience4j + Jitter 패턴은 제가 해결한 '@TransactionalEventListener(AFTER_COMMIT) + Dead Letter Store + traceId 추적' 및 'gRPC OCR 503 Graceful Shutdown 예산 설계'와 같은 '신뢰성을 구조로 담보한다'는 동일한 철학을 공유합니다.
-- Spring Batch 11 Step + AsyncItemProcessor + OpenSearch 벌크 색인으로 대용량 문서 증분 처리와 삭제 동기화를 직접 운영한 경험은, 커머스 상품 검색 인덱싱 도메인에도 그대로 적용 가능합니다. AI 도구를 '쓰는 수준'이 아니라 하네스 파이프라인과 스킬을 설계해 팀 개발 사이클을 단축한 경험은, 1,600만 고객 규모의 빠른 개발·높은 안정성을 동시에 추구해야 하는 환경에 바로 기여할 수 있는 자산이라고 생각합니다.
+- 커머스플랫폼유닛이 쓰는 핵심 스택(Spring Boot MSA · Kafka 이벤트 드리븐 · Redis Cache-Aside · JPA/Hibernate · MSA 간 도메인 데이터 연동)을 실무에서 설계·운영까지 직접 해봤습니다. 단순 사용이 아니라 한계 상황에서 어떤 트레이드오프가 생기는지 체감한 경험이 있습니다.
+- 캐시 정합성은 RabbitMQ Fanout + Hibernate PostCommitUpdateEventListener + StampedLock 조합으로 다중 서버 동기화를 구현했고, 올리브영 기술 블로그의 Redis Cache-Aside + Kafka 이벤트 기반 데이터 연동 설계와 문제의식이 같습니다.
+- 대용량 데이터 처리 측면에서 OpenSearch에 문서 수만 건을 벡터 색인하고 증분/삭제 동기화를 운영한 경험은, 커머스의 상품 색인·전시 데이터 연동 파이프라인에 즉시 전용될 수 있다고 봅니다.
+- Kafka AFTER_COMMIT 발행 + Dead Letter Store + 스케줄러 재시도 + traceId 기반 실패 추적까지 비동기 흐름의 신뢰성을 구조적으로 확보한 경험이 있어, 커머스에서 주문·알림·검색 색인 등 도메인 간 이벤트 연동의 안정성 확보 업무에 바로 기여할 수 있습니다.
+- AI 에이전트 협업에서는 팀 내 도입을 선도했고(Cursor Rules 20+ 구축, 신규 게임 3종 에이전트 단독 구현, 팀 전파), 1,600만 고객 환경에서 개발 속도와 안정성을 동시에 높이는 구조 개선에 기여할 수 있습니다.
 
 ## 지원 동기 / 회사 핏
 
 ### 왜 이직하려는가
-- 지금까지 쌓은 기술이 '대규모 커머스 트래픽'이라는 실제 환경에서 어떻게 작동하는지 직접 검증하고 싶습니다. 게임·AI 서비스에서 다룬 캐시 정합성·이벤트 드리븐·대용량 색인 경험이 커머스의 상품·전시·주문 도메인에서 어떻게 구부러지는지 몸으로 부딪혀보고 싶다는 동기가 가장 큽니다.
-- AI 서비스 팀에서 RAG 파이프라인을 처음부터 설계·운영하면서, 정작 그 AI가 결국 어떤 비즈니스 가치를 만드는지는 B2B 내부 도구라 체감하기 어려웠습니다. 올리브영처럼 고객 트래픽과 매출에 직접 연결되는 도메인에서 기술적 결정의 영향을 end-to-end로 보고 싶습니다.
-- 4년간 동일 조직에서 슬롯 → AI 서비스로 도메인 전환을 해봤기 때문에, '조직 이동 후 빠르게 도메인을 흡수하는 방법'에 대한 감각이 있습니다. 지금이 커머스라는 새로운 도메인에서 한 단계 더 성장할 수 있는 적절한 시점이라고 판단했습니다.
-- 팀 내 AI 도구 도입과 하네스 파이프라인 설계를 주도하며 '개인 생산성'을 넘어 '팀 생산성'을 설계하는 일에 가장 큰 재미를 느꼈습니다. 같은 고민을 더 큰 규모와 더 큰 도메인 복잡도에서 하고 싶어 이직을 결심했습니다.
+- 지금까지 쌓아온 기술 — MSA, Kafka 이벤트 드리븐, 캐시 정합성, 대용량 색인 파이프라인 — 이 대규모 커머스 트래픽 환경에서 어떻게 작동하는지 직접 경험해 보고 싶습니다. 게임/AI 서비스 도메인에서 검증한 설계 원칙이 1,600만 고객 규모의 복잡한 커머스 도메인에서 어디까지 유효한지 확인하고 싶은 지적 동기가 큽니다.
+- NHN에서는 주로 게임 도메인에서 '동시성과 즉시성'이 최우선이었다면, 커머스는 '복잡한 도메인 모델과 장기 운영되는 비즈니스 로직'이 중심입니다. 후자 환경에서의 도메인 모델링·확장 구조 설계 경험으로 백엔드 개발자로서의 폭을 넓히는 것이 현 시점의 성장 방향과 맞다고 판단했습니다.
+- 개인적으로는 '내가 만든 시스템을 실제로 많은 사용자가 매일 쓰는 경험'이 다음 단계의 동기부여입니다. B2C 커머스 플랫폼의 백엔드 엔지니어로서 눈에 보이는 제품 임팩트와 함께 일하고 싶습니다.
 
 ### 왜 올리브영인가
-- 1,600만 고객이라는 규모는 지금 제 기술 스택(Spring Boot MSA / Kafka / Redis / JPA / 대용량 색인)이 가장 의미 있게 작동할 수 있는 규모라고 봅니다. 기술 블로그의 'Cache-Aside + Kafka 하이브리드', '무중단 OAuth2 전환', 'SQS 데드락 분석' 등의 글을 보면 제가 실무에서 풀어온 문제 유형과 교집합이 매우 큽니다.
-- 올영세일처럼 평시 대비 10배 트래픽이 정기적으로 발생하는 환경은 '안정성을 구조로 담보한다'는 제 일하는 방식과 잘 맞습니다. Feature Flag + Shadow Mode + Resilience4j 3단 보호 같은 패턴을 팀 차원에서 제도화해 왔다는 점이 특히 매력적입니다.
-- 기술 블로그를 통해 의사결정의 '왜'를 외부에 공개·공유하는 문화가 있다는 것이 드러납니다. 저 역시 기술 결정의 배경과 트레이드오프를 ADR·문서로 남기는 습관이 있어, 올리브영의 문서 문화와 작업 방식이 잘 맞을 것이라고 생각합니다.
-- 웰니스 카테고리는 상품 속성·전시 규칙·개인화 요구가 복잡해 도메인 모델링 난이도가 높다고 이해하고 있습니다. 제가 게임 슬롯에서 AbstractPlayService + SpinOperationHandler로 파편화된 로직을 통합한 경험이, 복잡한 커머스 도메인에도 그대로 적용 가능하다고 판단했습니다.
+- 올리브영 기술 블로그의 MSA 데이터 연동 전략 글에서 Redis Cache-Aside + Kafka 이벤트 하이브리드 설계를 보고, 제가 NHN에서 풀어낸 다중 서버 인메모리 캐시 정합성 문제(RabbitMQ Fanout + Hibernate 이벤트 + StampedLock)와 같은 계열의 문제의식을 이미 조직 차원에서 다루고 있다는 점에 매력을 느꼈습니다.
+- 올영세일 평소 대비 10배 트래픽 중 Feature Flag + Shadow Mode + Resilience4j Circuit Breaker + Jitter로 P95 50ms / 성공률 100%를 달성한 무중단 OAuth2 전환 사례는, '대규모 트래픽을 실제로 감당하는 운영 역량'이 조직에 축적되어 있다는 신호로 읽었습니다.
+- 수십 명 규모 팀에서 깊이 있는 기술 블로그를 꾸준히 쓰는 문화는 '결정의 맥락을 문서로 남기는 습관'이 조직에 자리잡았다는 뜻이고, 제가 중요하게 여기는 '기술 결정과 트레이드오프를 문서로 남겨 동료와 공유하는' 방식과 잘 맞습니다.
 
 ### 왜 이 역할에 맞는가
-- 백엔드 개발자로서 '도메인 모델링 + ORM + 이벤트 드리븐 + 캐싱 + 대용량 검색'이라는 5개 축이 한 포지션에 모두 들어있는 기회는 드뭅니다. 커머스플랫폼유닛 웰니스개발팀의 담당 업무 목록이 제 4년간의 경험과 가장 높은 overlap을 보여, 가장 빠르게 기여할 수 있는 자리라고 판단했습니다.
-- 상품 관리·전시 로직·검색 엔진 연동이라는 핵심 비즈니스 로직은 바로 제가 RAG 파이프라인에서 다룬 '증분 색인 + 삭제 동기화 + 메타데이터 Allowlist 전략'과 맞닿아 있습니다. 기술 도메인은 다르지만 패턴이 동일해 투입 후 러닝 커브가 짧을 것으로 보입니다.
-- MSA 환경에서 서비스 간 동기/비동기 통신 경계를 직접 설계·운영해 본 경험이 있어, '도메인 데이터 연동 전략'이 주요 의제인 이 팀에서 제 경험을 바로 꺼내 쓸 수 있습니다. @TransactionalEventListener(AFTER_COMMIT) + Dead Letter Store 패턴은 팀이 이미 쓰고 있는 SQS 기반 알림톡 개선 주제와도 연결됩니다.
-- Spring Boot 프로젝트 수행, Kafka 비동기 처리, 다양한 캐싱 전략, 대용량 트래픽 운영이라는 4개 우대 조건에 모두 해당합니다. 특히 '캐싱 전략을 단순 Redis 사용을 넘어 다중 서버 정합성까지 고민해본 경험'은 이 포지션이 기대하는 시니어급 역할과 직접 연결된다고 생각합니다.
+- 커머스플랫폼유닛의 담당 업무 — 상품 관리·전시 로직·검색 엔진 연동 — 중에서 '검색 엔진 연동'은 제가 OpenSearch 기반 RAG 벡터 색인 파이프라인을 처음부터 설계·운영한 경험과 가장 직접적으로 맞닿아 있습니다. AI 문서 검색과 커머스 상품 검색은 목적이 다르지만, 대규모 데이터를 증분 색인하고 삭제 동기화를 안정적으로 운영하는 패턴은 동일합니다.
+- MSA 환경에서 도메인 간 이벤트 연동, 캐시 전략, ORM 활용, 장애 격리(Circuit Breaker·Graceful Shutdown) 같은 공고 우대 항목이 제가 실무에서 직접 풀어본 문제들과 거의 그대로 일치합니다. '학습 후 투입'이 아니라 '첫 달부터 PR 리뷰에 기여'가 가능하다고 판단합니다.
+- 수습 3개월의 구조가 '빠른 온보딩 후 바로 기여'를 전제로 한다는 점도 제가 선호하는 방식입니다. 단기간에 제품과 조직의 맥락을 흡수해 확장 가능한 구조 개선에 자발적으로 나서는 일을 지난 회사에서 계속 해왔습니다.
 
-## 메인 질문 1. Confluence → OpenSearch RAG 벡터 색인 배치를 Spring Batch 11 Step으로 설계했는데, 왜 하나의 거대한 Step이나 별도 스케줄러 배치가 아니라 굳이 11 Step으로 쪼갠 건가요? 설계 의도와 실제 운영에서 이 분리가 어떤 가치를 만들어냈는지 구체적으로 설명해주세요.
+## 메인 질문 1. Confluence 문서를 OpenSearch에 벡터 색인하는 Spring Batch 파이프라인을 11개 Step으로 분리했다고 하셨는데, 왜 그렇게 쪼갰는지, 그리고 각 Step 사이의 데이터 공유 방식은 어떻게 설계했는지 설명해 주세요.
 
 > 추가: 2026-04-18 | 업데이트: 2026-04-18
 
 ### 면접관이 실제로 보는 것
 
-- 대용량 배치에서 '왜 Spring Batch인가 / 왜 Step 분리인가'를 의사결정 수준에서 이해하고 있는지 확인.
-- 단순 기능 구현이 아니라 재시작성·실패 격리·Step 간 데이터 공유(@JobScope)의 트레이드오프를 인식하고 있는지 검증.
-- 커머스 상품 색인 파이프라인 설계 경험으로 이어질 수 있는 시니어급 설계 사고인지 평가.
+- Spring Batch를 '잡 = 거대한 스크립트'가 아니라 '실패 격리·재시작성·단일 책임' 관점에서 의식적으로 설계했는지 확인한다.
+- @JobScope / @StepScope / JobExecutionContext 같은 프레임워크 개념을 경험에 기반해 정확히 구분해 쓰는지, 단순 사용이 아니라 트레이드오프를 이해하는지를 검증한다.
+- 시니어 수준의 '왜 쪼갰는가 / 안 쪼갰을 때의 실제 부작용은 무엇이었는가'를 설명할 수 있는지를 본다.
 
 ### 실제 경험 기반 답변 포인트
 
-- 배치 잡은 크게 3단계 — 초기화/컬렉트 / 페이지·댓글 색인 / 삭제 동기화 / 인덱스 리프레시 — 각 단계가 '실패 시 영향 범위'가 완전히 다르기 때문에 한 Step에 묶으면 재시작 비용이 폭발합니다.
-- 핵심 색인 Step(Reader → CompositeItemProcessor → AsyncItemProcessor → AsyncItemWriter)은 I/O 바운드라 병렬화가 필수이지만, 앞쪽 스페이스 정보 수집은 한 번만 돌면 되므로 Tasklet으로 처리해 리소스를 낭비하지 않습니다.
-- Step 간 데이터 공유는 JobExecutionContext 대신 @JobScope 빈 ConfluenceJobDataHolder로 분리 — JobExecutionContext는 청크 커밋마다 BATCH_JOB_EXECUTION_CONTEXT에 직렬화되기 때문에 수천 개 페이지 ID를 넣기에는 부적절. @JobScope는 재시작 시 새 JobExecution과 함께 초기화되므로 allowStartIfComplete(true)로 상태 로더 Step을 반드시 재실행시켜 NPE 방지.
-- 실제 운영에서의 가치 — 댓글 Step이 실패해도 페이지 색인 결과는 살아있고, 재시작 시 실패한 Step부터 이어서 돌면 됨. 임베딩 API 장애가 났을 때 이 구조가 없었다면 전체 재실행 비용이 수 배로 증가했을 것.
+- Step 분리의 본질적 이유는 '실패 격리'였다. 수집·변환·임베딩·색인·삭제 동기화를 한 Step에 묶으면 중간 실패 시 이미 처리된 결과가 사라지고 처음부터 재시작해야 한다. 댓글 Step이 실패해도 페이지 Step 결과는 살아있어야 했다.
+- 11개 Step은 단일 책임 단위로 정리: startIndexingJob / initSource / spaceCollect / pageIndexing / pageIdCollect / commentIndexing / deletedPage/Comment/Attachment Remove / indexRefresh / completeIndexingJob. Step 간 데이터는 앞 Step이 컨텍스트에 쓰고 뒤 Step이 읽는 pull 방식.
+- Step 간 데이터 공유는 처음에 JobExecutionContext에 넣었지만, 이는 청크 커밋마다 BATCH_JOB_EXECUTION_CONTEXT에 직렬화되는 '경량 커서' 전용이다. 수천 건 페이지 ID 같은 도메인 데이터를 여기에 두면 매 커밋마다 DB에 읽고 쓰는 불필요한 부하가 된다.
+- 그래서 @JobScope 빈 ConfluenceJobDataHolder로 옮겼다. @JobScope는 ScopedProxyMode.TARGET_CLASS로 싱글톤 빈에 안전하게 주입 가능하고, 잡 실행이 끝나면 자동으로 폐기된다.
+- 재시작 시 함정이 있었다: 실패 재시작 시 새 JobExecution이 생성되고 @JobScope 빈도 새로 초기화되는데, 상태 로더 Step이 COMPLETED로 스킵되면 빈이 빈 상태로 남아 NPE가 난다. 이를 allowStartIfComplete(true)로 해결했다.
+- 이 설계 덕에 색인 중 특정 Step 실패 시 해당 Step부터 재시작 가능했고, 댓글 Step 장애가 페이지 색인 결과를 날려먹지 않았다. 운영 관점에서 '실패의 비용'을 크게 낮췄다.
 
 ### 1분 답변 구조
 
-- 한 마디로는 '실패 격리'와 '재시작 비용 최소화'입니다. 수집/색인/삭제/리프레시는 각각 외부 의존성이 달라 실패 확률과 재실행 비용이 다릅니다.
-- 예: 임베딩 API 장애로 페이지 색인 Step이 실패해도, 앞서 돌린 스페이스 정보 초기화나 페이지 ID 수집은 이미 끝나 있고 뒤의 삭제 동기화도 별개 경로라 건드리지 않아도 됩니다. 실패 지점부터 이어서 돌 수 있습니다.
-- 또한 Step 간 도메인 데이터는 JobExecutionContext에 넣지 않고 @JobScope 빈(ConfluenceJobDataHolder)으로 옮겨, 청크 커밋마다 DB에 직렬화되는 부하를 피했습니다. 재시작 시 새 JobExecution에서 빈이 비는 문제는 allowStartIfComplete(true)로 상태 로더 Step을 반드시 재실행시켜 해결했습니다.
-- 결론적으로 '기능 단위'가 아니라 '실패 시 영향 경계'를 기준으로 Step을 나눈 게 제 설계의 핵심입니다.
+- Step 분리의 핵심 목적은 실패 격리와 재시작 가능성입니다. 수집·변환·임베딩·색인·삭제 동기화를 한 Step에 묶으면 중간 실패 시 이미 처리한 수천 건이 전부 사라집니다. 그래서 11개 Step으로 쪼개 각 Step이 단일 책임만 지게 했습니다.
+- Step 사이 데이터 공유는 처음에 JobExecutionContext를 썼는데, 매 청크 커밋마다 DB에 직렬화되는 구조라서 수천 건 페이지 ID 공유에는 부적합했습니다. 그래서 @JobScope 빈 ConfluenceJobDataHolder로 옮겨 메모리에서만 공유하고, JobExecutionContext는 재시작용 커서 같은 경량 상태 전용으로 남겼습니다.
+- 재시작 시 상태 로더 Step이 COMPLETED로 스킵되면 @JobScope 빈이 비어 NPE가 나는 문제를 allowStartIfComplete(true)로 잡았습니다. 이 설계 덕에 댓글 Step이 실패해도 페이지 색인 결과는 보존되고, 실패 지점부터 재시작이 가능해졌습니다.
 
 ### 압박 질문 방어 포인트
 
-- '그럼 Step이 너무 많아 관리 비용이 늘지 않나요?' → 각 Step이 단일 책임을 가져 변경 파급이 좁고, Job 실행 이력이 DB에 쌓여 오히려 관찰 가능성이 높아짐. 11 Step은 도메인 요구(수집·보강·색인·삭제 동기화)의 자연스러운 분할이라 과도한 분해가 아닙니다.
-- '@JobScope는 재시작 시 NPE가 발생한다면서 굳이 쓸 이유가 있나?' → allowStartIfComplete(true)로 NPE를 예방할 수 있고, JobExecutionContext의 직렬화 비용을 피할 수 있음. 도메인 데이터 vs 재시작 커서 상태를 저장소 관점에서 분리하는 게 원칙.
+- '왜 11개씩이나? 더 합칠 수 있지 않나요?' → 각 Step이 외부 호출(Confluence / 임베딩 / OpenSearch) 중 하나를 담당하므로 실패 지점이 본질적으로 다르다. 묶으면 실패 원인 분석과 재시작 비용이 선형적으로 증가한다.
+- '@JobScope 프록시가 스레드 세이프한가요? AsyncItemProcessor와 함께 쓰면?' → @JobScope 빈에서 제공하는 컬렉션에 쓰기는 로더 Step에서 끝내고, 이후 Step은 읽기 전용으로만 접근하게 분리했다. 동시 쓰기가 없으므로 멀티스레드 Reader에서도 안전하다.
+- 'JobExecutionContext도 재시작을 지원하는데 왜 굳이 @JobScope로?' → 용도 분리의 문제다. 커서 같은 경량 상태는 ExecutionContext에 두어 재시작에 활용하고, 수천 건 도메인 데이터는 메모리 빈에 둔다. 둘이 섞이면 DB 부하와 재시작 복잡도가 동시에 늘어난다.
 
 ### 피해야 할 약한 답변
 
-- 'Step Batch는 원래 그렇게 쓰는 거라서요' 같은 프레임워크 기본값 복창.
-- 'Step을 나누면 코드가 깔끔해져서요' 같이 실패 격리/재시작성 같은 운영 가치를 언급하지 못하는 답.
+- 'Spring Batch 예제에서 본 대로 만들었습니다' — 설계 판단 부재를 드러낸다. 왜 11개인지, 왜 @JobScope인지 설명이 빠지면 '따라 쓴' 수준으로 읽힌다.
+- '재시작은 Spring Batch가 알아서 해 줍니다' — allowStartIfComplete나 @JobScope 재초기화 같은 실제로 부딪힌 함정을 말하지 못하면 '실제 운영 경험이 얕다'는 인상을 준다.
+- '11개 Step 전부 설명하겠습니다'로 나열만 하는 답변 — 질문의 본질(왜 쪼갰는가 / 어떻게 공유하는가)을 놓친다. Step 이름 나열보다 원칙과 트레이드오프를 먼저 말해야 한다.
 
 ### 꼬리 질문 5개
 
-**F1-1.** AsyncItemProcessor + AsyncItemWriter 조합에서 병렬 처리 중 특정 아이템이 실패하면 청크 전체가 롤백되나요, 아니면 해당 Future만 실패하나요? 스킵/재시도 정책은 어떻게 설계했나요?
+**F1-1.** AsyncItemProcessor를 썼다고 하셨는데, Future<T>가 Reader → Processor → Writer 체인에서 정확히 어떻게 흐르는지, 그리고 청크 커밋과의 관계를 설명해 주세요.
 
-**F1-2.** CompositeItemProcessor 체이닝(ChangeFilter → Enrichment → BodyConvert → Embedding)에서 ChangeFilter가 null을 반환해 스킵된 아이템은 이후 Processor를 건너뛰는데, 이 동작이 AsyncItemProcessor로 감쌀 때도 동일하게 동작하나요?
+**F1-2.** CompositeItemProcessor로 ChangeFilter → Enrichment → BodyConvert → Embedding 4단계를 체이닝했는데, ChangeFilter에서 null을 반환하면 뒤 단계가 스킵된다는 Spring Batch의 동작이 설계에 어떤 영향을 주었나요?
 
-**F1-3.** JobExecutionContext vs @JobScope 빈의 트레이드오프를 다시 설명해 주시고, 만약 수천이 아니라 수십만 단위 페이지 ID를 다뤄야 한다면 @JobScope 빈도 메모리 압박이 클 텐데 어떻게 풀 수 있을까요?
+**F1-3.** 색인 Step에서 청크 중간에 일부 아이템의 임베딩 API가 실패하면 청크 전체가 롤백되나요, 아니면 skip 정책을 썼나요? 그 선택 근거는 무엇인가요?
 
-**F1-4.** 재시작 시 allowStartIfComplete(true)를 켠 Step이 side-effect가 있는 Step(예: 외부 API 호출, DB insert)이면 중복 실행이 문제가 되지 않나요? 멱등성은 어떻게 보장했나요?
+**F1-4.** 다중 Confluence 인스턴스(스페이스별 baseUrl/토큰)를 동일 잡에서 처리하기 위해 ConfluenceApiServiceFactory를 도입하고 Step 실행 컨텍스트에서 연결 정보를 꺼내 쓰셨는데, 왜 잡 파라미터 기반이었고 스프링 프로필 분리는 고려 대상에서 제외했나요?
 
-**F1-5.** 커머스 상품 색인처럼 문서 수가 Confluence보다 훨씬 많고 변경 빈도가 훨씬 높은 환경이라면, 지금 구조를 어디부터 바꿔야 한다고 보시나요?
+**F1-5.** 같은 구조를 커머스의 상품 색인 파이프라인에 적용한다면 가장 먼저 바뀌어야 할 Step과 유지될 Step은 각각 무엇이라고 보시나요?
 
 ---
 
-## 메인 질문 2. gRPC OCR 서버 배포·스케일인 시 503이 클러스터 단위로 발생하는 문제를 해결하셨다고 했는데, 원인 분석부터 수정 범위 결정까지의 사고 과정을 시간 순서대로 설명해주세요. 특히 NHN Cloud의 terminationGracePeriodSeconds 30초 고정 제약을 어떻게 예산화했는지가 궁금합니다.
+## 메인 질문 2. gRPC OCR 서버 배포·스케일인 시 503이 발생한 이슈를, 원인 분석부터 Kubernetes terminationGracePeriodSeconds 30초 제약 하에서의 예산 설계까지 설명해 주세요. 무엇을 보고 무엇을 결정했나요?
 
 > 추가: 2026-04-18 | 업데이트: 2026-04-18
 
 ### 면접관이 실제로 보는 것
 
-- 장애 증상 → 근본 원인 역추적 능력(Envoy drain, SIGTERM, supervisord stopwaitsecs 등)을 검증.
-- '고정된 인프라 제약' 안에서 트레이드오프를 예산 단위로 쪼개 배분하는 시니어급 설계 감각 확인.
-- 커머스의 배포/스케일인 상황에서 유사한 장애를 만났을 때 디버깅·설계 품질을 가늠.
+- 단순 '로그 보고 고쳤다'가 아니라 '현상 → 스택별 원인 가설 → 제약 조건 → 예산 설계 → 검증'의 엔지니어링 사이클을 수행할 수 있는지를 본다.
+- 애플리케이션 레벨(SIGTERM 핸들러)뿐 아니라 프로세스 매니저(supervisord), 사이드카 프록시(Envoy), 오케스트레이터(K8s)까지 수직 전층에 대한 이해도를 검증한다.
+- 'NHN Cloud 특수성(terminationGracePeriodSeconds 고정 30초)' 같은 현실 제약을 받아들이고 그 안에서 해를 찾는 실무 감각을 본다.
 
 ### 실제 경험 기반 답변 포인트
 
-- 증상: 배포·스케일인 시 30~60초 단위로 503 'upstream connect error, reset reason: connection failure, transport failure reason: delayed connect error: 111(ECONNREFUSED)', server: envoy 헤더가 붙어 Envoy는 살아있는데 upstream:50051에 연결이 거부되는 패턴이었음.
-- 구조: 클라이언트 → Envoy(:5000) → gRPC 서버(:50051). preStop이 Envoy drain_listeners + sleep 20을 돌렸지만, sleep이 끝나고 SIGTERM이 전달되면 gRPC 서버가 SIGTERM 핸들러 없이 즉시 죽고, 그 사이 sleep 중 Envoy가 50051로 라우팅을 시도해 ECONNREFUSED가 발생.
-- 근본 원인 두 가지 — (1) server_grpc_general_OCR.py의 serve()가 wait_for_termination()만 있고 SIGTERM 핸들러가 없어 graceful shutdown 미구현, (2) supervisord [program:grpc-server]에 stopwaitsecs가 없어 기본값 10초만에 SIGKILL을 날림.
-- NCS가 terminationGracePeriodSeconds를 30초로 고정 → 전체 종료는 30초 안에 끝나야 함. preStop sleep 20 + grace 12 = 32초로 초과. preStop sleep을 15로 줄이고, gRPC server.stop(grace=12)로 in-flight 처리 대기, supervisord stopwaitsecs=17(12+여유 5)로 설정해 15+12+3=30초 예산 안에 맞춤. 핵심은 '시퀀스 내 각 단계가 소모할 수 있는 시간'을 예산 단위로 쪼갠 것.
+- 현상: 롤링 배포와 스케일인 직후 수십 초 동안 503이 클러스터 단위로 발생. 에러 메시지는 'upstream connect error ... delayed connect error: 111'. error 111은 ECONNREFUSED, 응답 헤더의 server: envoy는 Envoy는 살아있는데 upstream(50051)에 연결 실패라는 뜻.
+- 구조: 클라이언트 → Envoy(:5000) → gRPC 서버(:50051). 컨테이너 종료 시 실제 시퀀스를 재구성해 원인 두 개를 찾았다.
+- 원인 1: gRPC 서버에 SIGTERM 핸들러가 없었다. server.wait_for_termination()만 있어 SIGTERM 수신 시 즉시 종료 → 포트 50051 닫힘. 반면 preStop hook은 Envoy drain_listeners 호출 후 sleep 20을 걸어 '20초간 gRPC 서버가 죽은 채 Envoy는 살아서 50051로 라우팅'하는 구간이 생겼다.
+- 원인 2: supervisord [program:grpc-server]에 stopwaitsecs가 없어 기본 10초 적용. SIGTERM 핸들러를 추가해도 supervisord가 10초 안에 종료되지 않으면 SIGKILL을 날리는 구조였다.
+- 제약: NHN Cloud는 terminationGracePeriodSeconds를 30초로 고정. API 스펙에도 해당 필드가 없어 변경 불가. 모든 종료 동작이 30초 안에 끝나야 한다.
+- 예산 설계: preStop sleep 15s + gRPC grace 12s + 여유 3s = 30s. (1) gRPC 서버에 signal.SIGTERM 핸들러 추가 → server.stop(grace=12) (2) supervisord stopwaitsecs=17로 grace(12) + 여유(5) (3) preStop sleep 20→15로 단축.
+- 결과: preStop 완료 시점에 gRPC 서버가 정상 drain 후 종료되어 Envoy가 50051에 접속 거부당하는 구간이 사라졌다. 배포 중 503이 0으로 수렴.
 
 ### 1분 답변 구조
 
-- 먼저 에러 응답의 server:envoy 헤더와 111 ECONNREFUSED로 'Envoy 자체가 아니라 upstream 포트 50051이 먼저 닫힌다'는 걸 확정했습니다. 이 시점에 '왜 Envoy drain 중에 gRPC가 먼저 죽나'가 핵심 질문이 됐습니다.
-- 코드를 보니 gRPC 서버에 SIGTERM 핸들러 자체가 없어서 SIGTERM이 오면 즉시 프로세스가 종료됐고, supervisord도 stopwaitsecs 기본값 10초 때문에 핸들러를 추가해도 SIGKILL로 끊길 구조였습니다.
-- NCS는 terminationGracePeriodSeconds가 30초 고정이라 전체 시퀀스를 30초 예산 안에 넣어야 했습니다. preStop sleep을 20→15로 줄이고, gRPC server.stop(grace=12)로 in-flight RPC 처리 대기, supervisord stopwaitsecs=17로 맞춰 15+12+여유3=30초 안에 정확히 수렴하게 설계했습니다.
-- 결과는 배포·스케일인 503이 사라졌고, 배운 건 '고정된 인프라 제약 앞에서는 각 단계를 예산 단위로 쪼개 배분해야 한다'는 것이었습니다.
+- 현상은 롤링 배포와 스케일인 직후 503이 묶음으로 발생하는 패턴이었고, 에러 111은 ECONNREFUSED, server: envoy 헤더는 Envoy는 살아있는데 upstream(50051)에 연결 실패라는 뜻이었습니다. 종료 시퀀스를 재구성해 보니 preStop이 Envoy drain 후 sleep 20을 하는 동안 gRPC 서버는 SIGTERM 핸들러가 없어 즉시 죽어 있었습니다. 두 번째 원인은 supervisord stopwaitsecs 기본값 10초로 인한 SIGKILL 강제 종료였습니다.
+- NHN Cloud는 terminationGracePeriodSeconds를 30초로 고정하고 변경 API도 제공하지 않아, 모든 종료 동작을 30초 안에 끝내야 했습니다. preStop sleep 15 + gRPC grace 12 + 여유 3 = 30초 예산으로 설계하고, gRPC 서버에 SIGTERM 핸들러를 추가해 server.stop(grace=12)로 in-flight RPC를 drain시키고, supervisord stopwaitsecs=17을 설정해 SIGKILL을 막았습니다.
+- 수정 후 preStop 완료 시점에 gRPC 서버가 정상 drain 후 종료되어 Envoy가 upstream에 접속 거부당하는 구간이 사라지고 배포 중 503이 0으로 수렴했습니다.
 
 ### 압박 질문 방어 포인트
 
-- 'preStop sleep을 15로 줄이면 Envoy drain이 부족하지 않나?' → 실제 클러스터의 connection 라이프사이클과 Envoy 설정을 보고 판단한 값. drain_listeners는 신규 연결만 막고 in-flight는 유지하므로, in-flight는 하류 gRPC grace에서 흡수됨. 관찰 결과 503 없음으로 수렴.
-- '왜 terminationGracePeriodSeconds를 늘리지 않았나?' → NCS가 30초 고정이라 API 스펙에서 아예 바꿀 수 없는 환경 제약. 주어진 제약 안에서 예산 재분배가 유일한 해결책이었음.
+- '왜 30초 제약을 바꿀 협상을 인프라팀과 하지 않았나요?' → API 스펙 자체에 필드가 없어 플랫폼 레벨에서 막힌 제약이었다. 협상 비용 대비 '있는 예산 안에서 푼다'가 더 빠르고, 구조적 개선이 인프라 측 변경 없이 우리 팀 범위에서 닫혔다.
+- 'Envoy preStop drain 대신 gRPC 서버의 readiness probe를 먼저 꺼서 트래픽을 빼는 방법은?' → 그 방식도 유효하지만 이 구조는 Envoy가 트래픽 진입점을 쥐고 있어 drain_listeners를 직접 호출하는 게 더 결정적이었다. readiness 기반은 kube-proxy 전파 지연이 추가 변수로 들어온다.
+- 'sleep 15초는 너무 매직넘버 아닌가요?' → 당시 평균 in-flight RPC 지속 시간과 Envoy drain 전파 시간을 측정해 Envoy drain + connection drain window를 합친 안전 하한으로 15를 택했고, 나머지 12초 grace는 tail 요청 처리에 할당했다. 예산을 엔드투엔드로 쓴 구조이지 숫자 자체가 매직이 아니다.
 
 ### 피해야 할 약한 답변
 
-- 'SIGTERM 핸들러를 추가해서 해결했습니다' 수준의 1-step 답 — preStop, supervisord, 인프라 제약까지 함께 보지 않은 답.
-- 'K8s graceful shutdown을 적용했습니다' 같이 '책에서 본 용어'로 떠넘기고 실제 예산 계산·환경 제약을 설명하지 못하는 답.
+- 'SIGTERM 핸들러 추가해서 해결했습니다'만 말하기 — preStop / supervisord / terminationGracePeriodSeconds 같은 수직 전층 원인을 놓쳤다는 인상을 준다.
+- '30초 제약이 너무 짧다'는 불평으로 시작 — 주어진 제약 안에서 해를 찾는 시니어 감각이 아니라 환경 탓하는 태도로 읽힌다.
+- Envoy 에러 메시지를 그대로 옮기기만 하고 ECONNREFUSED와 upstream 라우팅 구조를 설명하지 못함 — 로그를 해석할 뿐 원인 추론을 못 한 것으로 보인다.
 
 ### 꼬리 질문 5개
 
-**F2-1.** server.stop(grace=12)의 grace는 정확히 어떤 의미인가요? 새 RPC는 거부되고 기존 RPC는 유지되는 동작이 gRPC Python SDK 내부적으로 어떻게 구현되어 있나요?
+**F2-1.** server.stop(grace=12)가 내부적으로 정확히 어떻게 동작하는지(신규 요청 거부 시점, in-flight 요청 처리 보장, 타임아웃 시 강제 종료 여부)를 설명해 주세요.
 
-**F2-2.** supervisord stopwaitsecs를 12가 아니라 17로 잡은 이유와, 만약 grace 대기 중 SIGKILL이 들어오면 in-flight RPC는 어떻게 되나요? 클라이언트는 어떤 에러를 보게 되나요?
+**F2-2.** supervisord stopwaitsecs와 stopsignal의 관계, 그리고 SIGKILL이 내려오는 경로를 구체적으로 설명해 주세요.
 
-**F2-3.** preStop sleep 15초가 Envoy drain이 충분한지 어떻게 검증했나요? drain_listeners는 실제로 어떤 커넥션을 종료하고 어떤 커넥션을 유지하나요?
+**F2-3.** preStop hook은 blocking 실행이라 그 안의 sleep 동안 SIGTERM이 전파되지 않습니다. 이 사실이 왜 중요했고 설계에 어떻게 반영됐나요?
 
-**F2-4.** 같은 문제를 커머스 상품 API처럼 HTTP 기반 서비스에서 겪는다면 접근이 어떻게 달라져야 할까요? Spring Boot의 server.shutdown=graceful 설정과 비교해서 설명해 주세요.
+**F2-4.** Envoy 대신 istio 사이드카를 쓰는 환경이었다면 drain 메커니즘이 어떻게 달라지고, 30초 예산 배분이 어떻게 바뀌었을까요?
 
-**F2-5.** NCS 고정 제약이 없어 terminationGracePeriodSeconds를 자유롭게 쓸 수 있다면, 같은 문제를 어떤 예산으로 재설계하시겠어요? 그 결정에 영향을 미치는 가장 큰 변수는 무엇인가요?
+**F2-5.** 커머스처럼 수백 개 파드가 동시에 롤링 업데이트되는 환경에서는 이 패턴이 더 어려워집니다. 동일 원칙을 TPS·커넥션 풀 상태와 함께 어떻게 확장 적용하시겠어요?
 
 ---
 
-## 메인 질문 3. 임베딩 메타데이터를 Blocklist(remove) → Allowlist(EmbeddingMetadataProvider) 방식으로 전환하며 전략 패턴을 적용하셨는데, '그냥 if-else 분기로도 충분하지 않나?'라는 반론에 어떻게 답하시겠어요? 그리고 이 설계가 OCP를 정말 지켰다고 어떻게 입증할 수 있나요?
+## 메인 질문 3. 임베딩 메타데이터 구성을 Blocklist(remove 14번)에서 Allowlist(EmbeddingMetadataProvider) 방식으로 전환했다고 하셨습니다. 왜 이 리팩터링이 OCP 관점에서 중요했고, 설계 전후의 변경 비용을 어떻게 비교할 수 있는지 설명해 주세요.
 
 > 추가: 2026-04-18 | 업데이트: 2026-04-18
 
 ### 면접관이 실제로 보는 것
 
-- 전략 패턴·OCP 같은 교과서 용어를 실무 리팩터링에서 '왜 여기서 써야 했는가' 관점에서 풀어낼 수 있는지 검증.
-- 단순 코드 품질이 아니라 '확장 포인트 설계' 수준의 시니어 판단을 하는지 확인.
-- 커머스의 복잡한 상품·전시 도메인에서 신규 요구 수용 전략을 같은 원칙으로 풀 수 있는지 평가.
+- '전략 패턴 썼습니다'가 아니라 '왜 전략 패턴이 이 문제에 적합했는가'를 설명할 수 있는지를 본다.
+- OCP(Open-Closed Principle)를 교과서가 아니라 실제 변경 비용으로 설명하는지, '새 DocumentType 추가 시 수정되는 파일 수'로 체감적으로 드러내는지를 확인한다.
+- 리팩터링 결정의 인과관계(문제 현상 → 설계 한계 → 대안 → 전환 비용)를 이해하고 있는지, 그리고 그 과정에서 발생한 부차적 비용(@Component + @Qualifier, 테스트 수정)을 정직하게 드러내는지를 본다.
 
 ### 실제 경험 기반 답변 포인트
 
-- Before 문제 — EmbeddingService 한 메서드에 14개 remove() + if (documentType == TASK) 분기가 누적되어, 새 DocumentType이 생길 때마다 EmbeddingService를 직접 수정해야 함. 게다가 '어떤 필드가 임베딩에 포함되나?'를 blocklist로 역산해야 하는 가독성 문제까지 발생.
-- Allowlist 전환의 본질은 '관리 단위'를 바꾼 것 — 제거할 필드가 아니라 포함할 필드를 명시. EmbeddingMetadataProvider.getSupportedDocumentTypes() + provide(Document)로 구현체가 자기 책임 범위를 스스로 선언.
-- OCP 입증 — Spring DI가 List<EmbeddingMetadataProvider>로 @Component 구현체를 자동 수집해 DocumentType → Provider 맵을 빌드. 신규 소스(예: Jira)를 추가할 때 EmbeddingService·Config·다른 Provider 중 어느 것도 건드리지 않고 JiraEmbeddingMetadataProvider 클래스 하나만 추가하면 맵에 자동 등록 — 이게 OCP의 운영적 증거.
-- 계층 구조(AbstractEmbeddingMetadataProvider → AbstractCollabToolEmbeddingMetadataProvider / AbstractConfluenceEmbeddingMetadataProvider → 구체 구현)로 공통 필드(putIfNotNull, putFormattedDatetime)는 한 번만 정의. Confluence 스페이스별 title/subject 폴백처럼 '소스 계열 내 미세한 차이'는 계열 추상 클래스에서 흡수해, 구현체는 자기 고유 필드만 책임.
+- 전환 전 구조: EmbeddingService가 document.cloneMetadata() 후 id/url/employee_id/project_id/... 14개 필드를 remove 방식으로 제거하고, DocumentType별로 if-else 분기로 추가 로직을 태웠다.
+- Blocklist의 문제 4가지: (1) 새 DocumentType마다 분기 추가 → EmbeddingService 수정 (2) 어떤 필드가 '포함'되는지 파악하려면 remove 목록을 역산해야 함 (3) cloneMetadata/getMetadataValue/putMetadata 같은 전용 메서드가 늘어남 (4) OCP 위반 — 새 도메인 추가가 기존 서비스 수정으로 번짐.
+- 전환 후 구조: EmbeddingMetadataProvider 인터페이스(getSupportedDocumentTypes, provide). 각 구현체(Task/Wiki/DriveFile/Confluence)가 자신이 담당하는 타입을 선언하고 포함할 필드를 명시적으로 조립. AbstractCollabToolEmbeddingMetadataProvider / AbstractConfluenceEmbeddingMetadataProvider로 공통 필드 추출.
+- Spring DI로 List<EmbeddingMetadataProvider>를 주입받아 DocumentType → Provider 맵을 빌드. EmbeddingService는 맵에서 Provider를 꺼내 위임만 한다. 14개 remove 블록과 if-else가 전부 사라짐.
+- 변경 비용 비교: 새 DocumentType 추가 시 전환 전에는 EmbeddingService를 열어 분기 추가 + remove 목록 수정 + 테스트 수정. 전환 후에는 @Component 구현체 하나를 새로 만들고 getSupportedDocumentTypes에 타입 선언만 하면 끝. EmbeddingService 코드는 건드리지 않는다.
+- 부차 비용도 정직하게 인정: 구현체 수가 늘어나며 @Component + @Qualifier 주입 설정이 세밀해졌고, @StepScope 빈 충돌(NoUniqueBeanDefinitionException)로 테스트 @Autowired에 @Qualifier를 맞춰야 하는 작업이 추가됐다.
 
 ### 1분 답변 구조
 
-- if-else로도 동작은 하지만 '관리 단위'가 틀립니다. blocklist는 '빼야 할 것'을 관리해서 새 필드가 생길 때마다 모든 분기에 remove를 추가해야 하고, '지금 임베딩에 어떤 필드가 들어가나?'를 역산해야 합니다.
-- Allowlist로 뒤집으면 '포함할 것'을 구현체가 선언합니다. EmbeddingMetadataProvider의 getSupportedDocumentTypes + provide만 구현하면 되고, Spring이 List<Provider>로 자동 주입돼 EmbeddingService는 맵 조회 → 위임만 합니다.
-- OCP 입증은 '신규 소스 추가 시 수정해야 하는 파일 수'로 본다면 명확합니다. Jira가 생긴다면 JiraEmbeddingMetadataProvider 하나 추가로 끝이고, EmbeddingService·Config·다른 Provider를 건드릴 필요가 없습니다. 이게 운영에서의 OCP 증거입니다.
-- 추가로 공통 필드는 계열 추상 클래스(AbstractCollabTool·AbstractConfluence)에서 흡수해, 구현체 중복도 제거했습니다.
+- Blocklist 방식은 '제거할 필드'를 관리하는 구조라 새 DocumentType이 추가될 때마다 EmbeddingService에 분기와 remove 목록이 늘었고, 어떤 필드가 실제로 포함되는지를 역산해야 했습니다. 전형적인 OCP 위반이었습니다.
+- EmbeddingMetadataProvider 인터페이스를 도입하고 각 구현체가 getSupportedDocumentTypes로 담당 타입을 선언하도록 뒤집었습니다. Spring이 List<Provider>를 주입해 DocumentType→Provider 맵을 만들고, EmbeddingService는 위임만 합니다. 공통 필드는 AbstractCollabTool / AbstractConfluence 추상 클래스로 응집했습니다.
+- 전환 후 새 도메인 추가 비용은 '@Component 구현체 하나 작성'으로 끝나고 EmbeddingService는 수정하지 않습니다. 부차 비용으로 @StepScope 빈 충돌 해결을 위한 @Qualifier 주입과 테스트 코드 Autowired 정리가 있었지만, 장기 변경 비용의 감소에 비해 일회성이었습니다.
 
 ### 압박 질문 방어 포인트
 
-- '확장 포인트가 없으면 전략 패턴은 과잉 설계 아닌가?' → 지금 소스가 Task/Wiki/Drive/Confluence로 이미 4종이고, 신규 스페이스별 메타데이터 차이까지 고려하면 확장 포인트가 이미 실재. 미래가 아니라 현재 도메인에 근거한 추상화.
-- 'Allowlist도 결국 필드가 늘면 각 구현체를 고쳐야 하지 않나?' → 맞음. 그러나 수정 범위가 자기 소스 구현체로 국한되어 blast radius가 작고, 공통 필드는 계열 추상 클래스에서 한 번만 관리하므로 변경 비용이 일정함.
+- '이 정도는 전략 패턴 과설계 아닌가?' → Provider 구현체가 이미 5종(Task/Wiki/DriveFile/Confluence 기본/Confluence 신규 스페이스)이고 계속 늘어나는 궤적이었다. 과설계 여부는 '분기 개수 × 변화 주기'로 판단한다. 여기는 이미 임계를 넘었다.
+- '@Qualifier를 명시해야 하는 비용은 전체 코드를 더 복잡하게 만들지 않나?' → 명시적 주입은 '설정 파일이 곧 조합의 증명'이라는 장점이 있어, 추적 가능성 측면에서는 오히려 유리하다. 리팩터링 과정에서 발견된 @StepScope 빈 충돌도 이 명시성 덕에 빌드 타임에 잡혔다.
+- '왜 처음부터 이 구조로 만들지 않았나?' → 초기에는 DocumentType이 Task 하나였고, YAGNI 원칙상 추상화를 미리 꽂지 않았다. 3번째 타입이 추가되는 시점이 전환의 자연스러운 신호였고, 실제로 그때 리팩터링했다.
 
 ### 피해야 할 약한 답변
 
-- '전략 패턴이 더 깔끔해서요' 같은 감각적 답. OCP 증명·구체 변경 비용 비교 없이 용어만 반복하는 답.
-- 'cloneMetadata(), getMetadataValue() 같은 지저분한 메서드가 사라져서요' 같이 표면적 개선만 언급하는 답.
+- '코드가 더 깨끗해졌습니다'로만 설명 — OCP·변경 비용·추상화 결정 시점 같은 시니어 레벨 언어가 빠진다.
+- '전략 패턴 썼습니다'로 끝내기 — 문제의 본질이 Blocklist vs Allowlist의 정보 흐름 방향임을 짚지 못하면 표면적 지식으로 보인다.
+- '전부 좋아졌습니다'로 부차 비용을 숨기기 — @StepScope 빈 충돌 같은 실제 트러블을 인정하지 않으면 '경험담이 아니라 정답 재생'으로 읽힌다.
 
 ### 꼬리 질문 5개
 
-**F3-1.** @StepScope 빈 충돌로 NoUniqueBeanDefinitionException이 났다고 하셨는데, 정확히 어떤 상황에서 발생했고 @Qualifier + @Component @StepScope 전역 등록 조합으로 어떻게 해결했는지 설명해 주세요.
+**F3-1.** AbstractCollabToolEmbeddingMetadataProvider와 AbstractConfluenceEmbeddingMetadataProvider를 왜 별도 추상 클래스로 나눴나요? 인터페이스 기본 메서드로 처리하지 않은 이유는?
 
-**F3-2.** EmbeddingMetadataProvider는 인터페이스인데, provide(Document)의 반환 타입이 Map<String, Object>입니다. 타입 안전성을 포기한 이유와, 만약 DocumentMetadata 같은 별도 VO로 강타입화한다면 어떤 장단점이 생길까요?
+**F3-2.** @StepScope 빈 충돌로 NoUniqueBeanDefinitionException이 발생했을 때, @Component @StepScope 전역 등록과 @Bean @StepScope 잡 전용 등록을 어떤 기준으로 나눴나요?
 
-**F3-3.** Confluence의 title/subject 폴백처럼 '같은 계열인데 스페이스별로만 다른 규칙'이 앞으로 더 많아지면 AbstractConfluenceEmbeddingMetadataProvider가 비대해질 위험이 있습니다. 어떻게 막으시겠어요?
+**F3-3.** Confluence의 title/subject 폴백 처리는 구현체 안에 두셨는데, 이를 인터페이스 계약으로 올리는 대안(예: fieldNameResolver)은 왜 택하지 않았나요?
 
-**F3-4.** 커머스 상품·전시처럼 메타데이터 필드가 수십 개 이상이고 카테고리별 규칙이 복잡한 도메인이라면, 지금 구조를 그대로 쓰시겠어요, 아니면 어떻게 바꾸시겠어요?
+**F3-4.** 전략 패턴이 적합하지 않은 경우를 경험한 적이 있다면 말씀해 주세요. 어떤 신호를 보고 전략 패턴을 포기하셨나요?
 
-**F3-5.** Allowlist 전환으로 과거에 blocklist였던 필드가 누락될 수 있습니다. 리팩터링 당시 회귀를 어떻게 방지했나요? 테스트 전략이 궁금합니다.
+**F3-5.** 커머스의 상품 도메인에 같은 패턴을 적용한다면, DocumentType 대신 어떤 기준(카테고리 / 채널 / 브랜드)으로 Provider를 분기시키는 게 적절하다고 보시나요?
 
 ---
 
-## 메인 질문 4. 12일 단독으로 Next.js 16 + Prisma 7 + Gemini 기반 AI 웹툰 제작 도구 MVP를 199 plan / 760 커밋 규모로 만들면서 Claude Code 하네스 4인 에이전트 팀을 설계·운영하셨는데, 이 파이프라인을 '툴 사용'이 아니라 '아키텍처'라고 부를 수 있는 이유를 설명해 주세요. 그리고 이 경험이 커머스 백엔드 개발자 역할에 어떻게 이어집니까?
+## 메인 질문 4. AI 웹툰 제작 도구 MVP를 12일 동안 혼자 풀스택으로 구현하면서 199 plan / 760 커밋을 돌렸다고 하셨습니다. Claude Code 하네스 기반 4인 에이전트 팀을 어떻게 설계했고, 단순 'AI 툴 사용'과 '하네스 설계자' 사이의 차이는 무엇이었나요?
 
 > 추가: 2026-04-18 | 업데이트: 2026-04-18
 
 ### 면접관이 실제로 보는 것
 
-- AI 도구를 단순 코드 자동 완성이 아니라 파이프라인/에이전트 팀 수준으로 설계한 역량을 검증.
-- 대규모 커밋·plan 수에 휘둘리지 않고 '구조적 설계 원칙'을 끌어낼 수 있는지 확인.
-- 시니어 백엔드 관점에서 AI 협업 경험을 도메인 업무로 연결 짓는 언어 능력 평가.
+- AI 에이전트 협업 경험이 '코드 자동완성 수준'인지 '파이프라인·아키텍처 설계 수준'인지 구분한다.
+- spec 기반 코딩·역할 분리 에이전트·재시작 가능성 같은 '검증된 방법론적 사고'를 실제로 가지고 있는지 확인한다.
+- 커머스 팀에 합류했을 때 조직 단위의 생산성 개선 기여가 가능한 사람인지(Cursor Rules 20+ 전파 경험 포함)를 본다.
 
 ### 실제 경험 기반 답변 포인트
 
-- 하네스 진화 5단계 — (1) vibe 코딩 단일 세션, (2) /planning으로 스펙 우선(Opus 기반 8단계 논의 → tasks/planNNN-*/index.json + phase 파일), (3) /plan-and-build로 phase 자기완결 + run-phases.py로 재시작 가능, (4) /build-with-teams로 critic(계획-코드 대조 APPROVE/REVISE) + docs-verifier(ADR/data-schema 정합성) 게이트 추가, (5) /integrate-ux로 디자이너 vibe PR을 컨벤션으로 흡수.
-- '아키텍처'라 부를 수 있는 이유 — 역할 분리(planner/critic/executor/docs-verifier)로 자기 계획을 자기가 검증하지 않는 구조, task 파일이 git에 영속되어 세션이 끊겨도 재시작 가능, docs-first로 코드 변경 전에 ADR/data-schema 업데이트 → 다음 세션의 컨텍스트 부패 방지. 모두 분산 시스템 설계 원칙(역할 분리·상태 영속화·eventual consistency·idempotency)의 재적용.
-- 기술 결정의 깊이 — Gemini pro→flash→lite fallback + 전역 Rate Limit Tracking Map으로 429 모델을 일정 시간 스킵, 원작 소설은 Project 단위 Context Cache로 5단계 호출이 공유, Continuation에 Grounding 블록 재주입으로 환각 차단(환각은 프롬프트 카피라이팅이 아니라 호출 구조 설계 문제). Zod 4 z.toJSONSchema()로 Gemini Structured Output과 런타임 검증을 단일 소스로 통합.
-- 커머스 연결 — 도메인은 다르지만 '재시작 가능성·실패 격리·전역 상태(Rate Limit)·역할 분리·문서로서의 컨텍스트'는 Spring Batch 색인 파이프라인, 주문-배송 이벤트 오케스트레이션, 팀 개발 프로세스 설계에 그대로 이식 가능. 게다가 하네스 자체를 팀에 도입해 개발 사이클을 단축한 경험은 1,600만 고객 규모에서 기능 안정성과 개발 속도를 동시에 끌어올리는 데 직결됨.
+- 하네스는 '사람이 많이 치는 도구'가 아니라 '에이전트에게 줄 입력의 정확도를 올리는 구조'다. 12일 / 199 plan / 760 커밋은 개인 타이핑 볼륨이 아니라 에이전트 팀의 처리량이다.
+- 4인 역할 분리: planner(설계) / critic(계획 검증) / executor(구현) / docs-verifier(ADR·스키마 정합성 점검). 같은 모델이라도 역할 프롬프트가 다르면 다른 시야로 본다. 자기가 짠 계획을 자기가 검증하면 잘 못 본다는 것이 반복 경험의 결론이었다.
+- 진화 단계: vibe 코딩 → /planning(스펙을 먼저 잡음, Opus로 설계 정확도 확보) → /plan-and-build(phase 분할 + 재시작 가능) → /build-with-teams(critic + docs-verifier 검증 게이트) → /integrate-ux(디자이너 vibe 결과물 흡수 워크플로우 스킬화).
+- 핵심 설계 원칙 3가지: (1) task 파일이 영속 상태 — 세션이 끊겨도 이어받기 가능 (2) 결정의 80%는 task 파일에 박혀 있어야 한다 — 모호한 입력은 모호한 출력을 낳는다 (3) docs-first — ADR·스키마를 먼저 업데이트해야 다음 세션 에이전트가 올바른 전제로 시작한다.
+- 단순 사용자와의 차이: 사용자는 '프롬프트 엔지니어링'에 머물고, 설계자는 '호출 구조 · 검증 게이트 · 역할 분리 · 영속 상태'를 설계한다. 환각 차단을 anti-pattern 문구로 풀지 않고 Continuation에 Grounding 재주입 + Project 단위 Context Cache로 구조적으로 푸는 것이 그 차이의 예다.
+- 팀 전파 경험: 사내 슬롯팀에서도 Cursor Rules 20+ 구축 → 신규 게임 3종 에이전트 단독 구현 → 팀 전파로 반복 개발 사이클 단축. 개인 성과가 아니라 팀 생산성 구조 개선에 가까운 일이었다.
 
 ### 1분 답변 구조
 
-- 핵심은 '역할이 분리된 에이전트 팀을 태스크 파일 + 재시작 가능한 하네스 위에 올렸다'는 점입니다. planner가 tasks/planNNN-*/index.json + phase 파일로 스펙을 고정하고, critic이 계획-코드 대조로 APPROVE/REVISE, executor가 실행, docs-verifier가 ADR·data-schema 정합성을 지킵니다.
-- 이 구조는 분산 시스템 원칙의 재적용입니다. task 파일은 git에 영속된 상태, phase는 자기완결적 단위, critic/docs-verifier는 게이트, Rate Limit Tracking은 전역 상태 — 어느 한 세션이 죽어도 다른 세션이 이어받을 수 있습니다.
-- Gemini pro→flash→lite fallback + Context Cache + Continuation grounding 재주입처럼 모델·캐시·호출 구조 수준의 결정도 직접 설계했고, 덕분에 환각과 비용 폭증을 동시에 눌렀습니다.
-- 커머스 백엔드로 이어지면 Spring Batch 색인, 이벤트 오케스트레이션, 팀 개발 프로세스 설계 어디서든 같은 원칙이 적용됩니다. AI를 쓰는 수준이 아니라 AI 팀 파이프라인을 설계·운영하는 수준의 생산성으로 기여할 수 있습니다.
+- 하네스는 사람이 많이 치는 도구가 아니라 에이전트에게 주는 입력의 정확도를 올리는 구조입니다. 199 plan / 760 커밋은 저 혼자 친 게 아니라 4인 에이전트 팀의 처리량이었습니다.
+- 팀 구성은 planner / critic / executor / docs-verifier 네 역할이었습니다. 같은 모델이라도 역할 프롬프트가 다르면 다른 시야로 보기 때문에, 자기가 짠 계획을 자기가 검증하게 두지 않고 critic을 분리한 게 핵심이었습니다.
+- 진화는 vibe 코딩 → /planning → /plan-and-build → /build-with-teams → /integrate-ux로 쌓였습니다. task 파일이 영속 상태가 되어 세션이 끊겨도 이어받을 수 있고, 결정의 80%를 task 파일에 미리 박아 실행 중 임의 결정을 줄였습니다.
+- 단순 사용자와 설계자의 차이는 환각 같은 문제를 프롬프트 문구로 푸는지 호출 구조로 푸는지의 차이입니다. 저는 Continuation에 Grounding 재주입 + Project Context Cache로 구조적으로 풀었습니다. 이 관점은 이전 회사에서도 Cursor Rules 20+ 전파로 팀 생산성 개선에 이미 적용했던 일입니다.
 
 ### 압박 질문 방어 포인트
 
-- '12일에 760 커밋이면 품질 검증이 되나요?' → critic과 docs-verifier가 매 phase마다 게이트를 치고, ADR 134개가 결정의 근거로 남아 있음. 실제로 ADR이 1,581줄로 비대해졌을 때 docs-verifier가 '에이전트 컨텍스트 효율 관점에서 길다'고 지적해 700줄로 줄인 사례처럼 검증 루프가 작동함.
-- '결국 vibe 코딩 아닌가?' → 초기엔 그랬지만 /planning 이후부터 '결정의 80%는 task 파일에 박혀 있어야 한다'는 원칙으로 전환. 결정이 안 된 부분이 실행 중에 터진다는 걸 반복적으로 경험하며 설계가 공고해짐.
+- 'AI가 짜준 코드를 믿을 수 있나요?' → 믿음은 구조에서 나온다. critic 에이전트가 계획을 코드와 대조해 APPROVE/REVISE를 판정하고, docs-verifier가 문서 정합성을 체크하는 이중 게이트가 있어 실행 중 터지는 일이 거의 없었다.
+- '커머스 조직 규모에서도 같은 방식이 통할까요?' → 규모가 커질수록 '결정의 맥락을 문서로 남기는' 도구가 오히려 더 필요하다. ADR docs-first 원칙과 파일 소유권 매트릭스는 사람 팀에서도 정확히 같은 목적으로 쓰인다.
+- '760 커밋은 품질이 낮은 것 아닌가요?' → 커밋 단위를 작고 명확하게 유지하는 것이 에이전트 팀의 동작 원리다. 큰 커밋은 critic이 검증하기 어렵고, 작은 커밋은 실패 격리 단위가 된다. Spring Batch의 Step 분리와 같은 원칙이다.
 
 ### 피해야 할 약한 답변
 
-- 'Claude Code를 잘 써서 많이 만들었어요' — 숫자만 자랑하고 구조를 설명하지 못하는 답.
-- 'AI가 대신 코드를 짜 줬어요'처럼 본인의 의사결정·아키텍처 역할을 덜어내는 답.
+- 'Claude Code 썼습니다 / 생산성 N배 됐습니다'로 끝내기 — 구조 설계 언어가 빠져 있다.
+- '에이전트한테 시키면 다 됩니다'라고 답하기 — 환각 / 세션 단절 / 역할 혼재 같은 실제 부딪힌 문제와 해법이 빠지면 설계자가 아니라 관찰자로 보인다.
+- '개인 프로젝트라 가능했습니다'로 축소 — 팀 전파 경험(Cursor Rules 20+, 신규 게임 3종)을 연결하지 못하면 조직 기여 가능성을 의심받는다.
 
 ### 꼬리 질문 5개
 
-**F4-1.** critic이 REVISE 판정을 내리는 구체적 사례 하나를 들어주실 수 있나요? 그 결정이 코드 품질에 어떻게 기여했나요?
+**F4-1.** critic 에이전트의 APPROVE/REVISE 판정 기준을 어떻게 설계했나요? 같은 계획에 대해 critic이 반복해서 REVISE를 내면 어떻게 벗어나나요?
 
-**F4-2.** Gemini pro→flash→lite fallback 시 grounding 준수력이 약해진다고 하셨는데, 지금은 어떻게 대응하고 있고, 만약 더 시간이 있었다면 어떤 구조로 풀었을까요?
+**F4-2.** docs-verifier가 ADR이 1,581줄까지 비대해진 것을 지적해 700줄로 줄였다고 하셨는데, '에이전트 컨텍스트 효율'과 '사람 가독성'이 충돌할 때 어느 쪽을 우선하시나요?
 
-**F4-3.** Continuation에 Grounding 블록을 재주입하는 방식은 토큰 비용을 늘립니다. Context Cache와의 비용 트레이드오프를 어떻게 계산했나요? 손익분기점은 어디에 있었나요?
+**F4-3.** 4인 역할 분리가 단일 에이전트보다 안정적인 이유를 '같은 모델이라도 역할 프롬프트가 다르면 다른 시야로 본다'고 하셨는데, 이 주장을 재현 가능한 방법으로 검증한 경험이 있으신가요?
 
-**F4-4.** Zod 4 z.toJSONSchema()로 단일 소스를 만들었지만, Repository 레이어에서는 Prisma 고유 타입(Partial·DbNull·connect/create/disconnect)을 쓰는 게 더 깔끔했다고 하셨습니다. '단일 소스' 원칙을 언제 깨고 언제 유지해야 한다고 보시나요?
+**F4-4.** 커머스 팀에 합류한다면 이 방법론의 어떤 조각(예: docs-first ADR, critic 게이트, 파일 소유권 매트릭스)을 가장 먼저 도입해야 한다고 보시나요? 도입 순서의 근거는?
 
-**F4-5.** 이 하네스 경험을 올리브영의 기존 팀에 도입한다면, 가장 먼저 어떤 작업부터 하시겠어요? 기존 팀이 쓰는 툴·문서·프로세스와 충돌할 수 있는 지점은 어디라고 예상하시나요?
+**F4-5.** 디자이너 vibe 결과물을 /integrate-ux 스킬로 흡수했다고 하셨는데, 사람 개발자의 PR에도 같은 '자동 정합성 변환' 아이디어를 적용할 수 있을까요?
 
 ---
 
-## 메인 질문 5. 본인 이력서의 'RabbitMQ Fanout + PostCommitUpdateEventListener + StampedLock 기반 다중 서버 캐시 정합성' 설계와, 올리브영 기술 블로그의 'Cache-Aside + Kafka Event-Driven 하이브리드 도메인 데이터 연동' 글을 비교해서, 두 설계의 공통점과 본질적인 차이를 설명해 주세요. 올리브영 팀에 합류했을 때 본인 경험을 어디에 어떻게 접목하시겠습니까?
+## 메인 질문 5. Gemini 모델 전략을 pro 기본 → 429 시 flash → lite fallback으로 설계하시고, 여기에 전역 Rate Limit Tracking과 Project 단위 Context Cache를 결합하셨습니다. 왜 '싼 모델이 결과적으로 비싸다'고 판단했는지, 그리고 429 재시도를 30초 대기 대신 즉시 fallback으로 바꾼 이유를 설명해 주세요.
 
 > 추가: 2026-04-18 | 업데이트: 2026-04-18
 
 ### 면접관이 실제로 보는 것
 
-- 지원사가 공개한 아키텍처를 이해하고, 본인 경험을 '구조 수준'에서 대응시킬 수 있는지 검증.
-- 단순히 '저도 비슷한 걸 해봤습니다'가 아니라, 공통 원리와 차이를 언어화할 수 있는 시니어급 분석력을 확인.
-- 합류 후 즉시 기여할 수 있는 구체적 영역을 본인 스스로 정의할 수 있는지 평가.
+- 비용 최적화를 '단가'가 아니라 '총 호출 횟수(재생성 포함)'로 보는지, 즉 품질-비용 트레이드오프를 시스템 레벨로 사고하는지를 확인한다.
+- Rate Limit이 분산 시스템의 상태 문제임을 이해하고, 메모리 Map 기반 전역 트래킹 같은 구체적 설계를 스스로 내놓을 수 있는지를 본다.
+- Context Cache 같은 프레임워크별 최적화 API를 '어디에 왜 쓰는지' 용도 기반으로 설명할 수 있는지를 검증한다.
 
 ### 실제 경험 기반 답변 포인트
 
-- 공통점 — 둘 다 '변경 빈도·라이프사이클 기준으로 연동 방식을 차별화'하는 접근. 올리브영은 변경이 적은 데이터는 Cache-Aside, 실시간 이벤트 데이터는 Kafka 이벤트 + Redis Key만 캐싱 + 선택적 API 호출. 제 설계도 정적 설정 데이터는 인메모리 캐시, 변경은 RabbitMQ Fanout으로 다중 서버에 브로드캐스트해 선택적 갱신 — 데이터 분류 원칙이 동일.
-- 본질적 차이 — (1) 캐시 저장 위치: 올리브영은 Redis(외부), 제 설계는 애플리케이션 인메모리(로컬). 인메모리는 DB 부하를 더 줄이지만 다중 서버 정합성 문제가 커져 Fanout 브로드캐스트 + StampedLock writeLock/tryReadLock 2.5초 타임아웃으로 갱신 중 읽기 경합을 제어. (2) 이벤트 트리거: 올리브영은 Kafka producer를 애플리케이션이 명시적 발행, 제 설계는 Hibernate PostCommitUpdateEventListener로 엔티티 커밋 훅에서 자동 발행 — 비즈니스 코드 침투가 없음. (3) 실패 복구: Kafka 비동기 경로는 @TransactionalEventListener(AFTER_COMMIT) + Dead Letter Store(REQUIRES_NEW 별도 트랜잭션 DB 저장) + 스케줄러 재시도 + traceId 추적까지 결합.
-- 합류 후 접목 포인트 — (1) 현재 블로그 구조에서 Cache-Aside 대상 데이터 중 '변경은 드물지만 동시 접근이 많은 데이터'가 있으면 인메모리 캐시 + 이벤트 기반 선택 갱신 옵션을 제시할 수 있음. (2) Kafka consumer에서 이벤트 처리 실패가 현재 어떻게 복구되는지 확인 후, Dead Letter Store + traceId 추적 패턴을 도입 제안 가능. (3) Resilience4j 3단 보호와 제 Dead Letter Store는 철학이 같으므로, 비동기 쓰기 경로에도 같은 수준의 신뢰성을 확장 가능.
-- 유의할 점 — 1,600만 고객 / 올영세일 10배 트래픽 환경이라 인메모리 캐시는 정합성보다 메모리/인스턴스 수 제약에서 더 신중해야 함. 따라서 '내 경험을 그대로 이식'하는 게 아니라 '원리를 공유하는 구조'로 접목하는 게 옳음.
+- 처음에는 flash가 기본이었다. pro 대비 1/4 비용에 빠르니 자연스러운 선택이었다. 며칠 써 보니 운영자가 결과물을 보고 '다시 해야겠다'고 느끼면 총 비용이 오히려 증가한다는 패턴이 보였다.
+- 판단 기준을 뒤집었다: '단가가 싼 모델'이 아니라 '한 번에 만족하는 확률이 높은 모델'이 결과적으로 더 싸다. pro를 기본으로 쓰고 429가 뜨면 flash → lite로 품질·비용을 순서대로 포기하는 fallback 체인으로 바꿨다.
+- 재시도 정책: 처음에는 429 후 30초 대기 → 재시도를 했는데, Gemini TPM은 1분 단위로 풀리므로 30초 대기는 대부분 또 실패했다. '대기는 비싸고 실패율도 낮추지 못한다.' 대신 429 즉시 다음 fallback 모델로 넘어가는 구조가 더 빠르고 안정적이었다.
+- 전역 Rate Limit Tracking: 429를 받은 모델을 Map<modelName, skipUntilTimestamp>로 마킹. 다른 요청들은 그 시간 동안 해당 모델을 건너뛰고 바로 fallback으로 간다. 분산된 재시도 로직이 아니라 전역 공유 상태가 필요한 이유 — 독립적으로 재시도하면 같은 429를 여러 번 반복해 비효율이 쌓인다.
+- Project 단위 Context Cache: 63만자 원작 소설은 Analysis/Treatment/Conti/Continuation 등 5단계가 모두 참조한다. 매번 보내면 단계마다 수십만 토큰을 재결제. cachedContent로 묶으면 만료(5분) 안의 호출은 입력 토큰 비용이 거의 0.
+- 통합 분석(Step1)도 같은 사고의 결과다. 5개 영역 별도 호출 → 분당 160만 토큰으로 TPM 한도에 거의 닿음. Structured Output 기반 1회 호출로 합쳐 토큰 75% 절감, 26.8s → 13.1s. API 호출 경계와 논리적 경계가 꼭 같아야 하지는 않다.
 
 ### 1분 답변 구조
 
-- 공통점은 '변경 빈도·라이프사이클에 따라 연동 방식을 나눈다'는 원칙입니다. 올리브영은 Cache-Aside와 Kafka + Redis Key + 선택적 API 호출, 제 설계는 정적 데이터 인메모리 캐시와 RabbitMQ Fanout 브로드캐스트 + 선택적 갱신 — 원리가 같습니다.
-- 본질적 차이는 세 가지입니다. 캐시 위치가 Redis vs 인메모리, 이벤트 트리거가 명시적 producer vs Hibernate PostCommit 훅(비즈니스 코드 비침투), 실패 복구가 @TransactionalEventListener(AFTER_COMMIT) + Dead Letter Store + traceId까지 결합되어 있다는 점입니다.
-- 합류 후 접목은 원리 공유 → 구조 제안 순서로 하겠습니다. 인메모리 캐시를 그대로 이식하진 않되, '변경 드물고 동시 접근 많은 데이터'에서 옵션으로 제시하고, Kafka 쓰기 경로에 Dead Letter Store + traceId 추적을 넣어 현재 Resilience4j 3단 보호와 동일한 수준의 신뢰성을 비동기 경로에도 확장할 수 있습니다.
-- 1,600만 고객·10배 피크 환경이라 '인메모리'는 메모리·인스턴스 수 제약에서 신중해야 한다는 점을 인지하고, 원리를 공유하는 구조로 접근하겠습니다.
+- 비용을 '단가'가 아니라 '총 호출 횟수(재생성 포함)'로 봤습니다. flash는 싸지만 품질이 부족해 재생성이 일어나면 결과적으로 더 비쌌고, pro는 한 번에 만족하는 확률이 훨씬 높았습니다. 그래서 pro 기본 + 429 시 flash → lite fallback으로 전략을 뒤집었습니다.
+- 429 후 30초 대기는 Gemini TPM이 1분 단위로 풀리는 구조 때문에 대부분 또 실패했습니다. 대기는 비싸고 실패율도 낮추지 못했기에, 즉시 다음 fallback 모델로 넘기는 쪽이 빠르고 안정적이었습니다.
+- 분산 요청이 독립적으로 재시도하면 같은 429를 여러 번 반복해 비효율이 쌓이므로, Map<modelName, skipUntilTimestamp> 전역 상태로 '지금 막힌 모델'을 공유해 모두가 함께 fallback하도록 했습니다.
+- Project 단위 Context Cache로 63만자 소설을 다섯 단계가 공유 참조하게 해 매 호출마다 수십만 토큰을 재결제하는 낭비를 없앴습니다. 같은 맥락에서 Step1 소설 분석의 5개 영역도 Structured Output 1회 호출로 합쳐 토큰 75% 절감과 26.8s→13.1s를 얻었습니다.
 
 ### 압박 질문 방어 포인트
 
-- '다중 서버 인메모리 캐시는 Redis만큼 검증되지 않은 패턴 아닌가?' → 정합성 리스크가 크다는 건 사실. 그래서 Fanout 브로드캐스트 + StampedLock writeLock으로 갱신 중 읽기 차단, tryReadLock 2.5초 타임아웃으로 데드락 방지까지 설계. 다만 모든 데이터에 쓰는 게 아니라 '정적 설정 데이터'에 국한한 선택.
-- '결국 올리브영 블로그 글을 읽고 맞추는 것 아닌가?' → 블로그를 읽기 전부터 제가 풀었던 문제 유형이 동일. 블로그를 보고 '용어가 다를 뿐 같은 고민을 팀이 한다'는 걸 확인했고, 그래서 이 팀에 기여할 수 있다고 판단해 지원했음.
+- '처음부터 pro를 썼으면 fallback이 필요 없지 않나?' → pro도 TPM 한도가 있고 429가 난다. fallback은 '품질 하락을 감수하더라도 서비스 연속성을 지킨다'는 의사결정이지, pro 선택 실수의 보완이 아니다.
+- '전역 상태는 서버 여러 대로 확장되면 Redis 같은 걸로 바꿔야 하는데?' → 맞다. 이 구조는 MVP 단계 단일 인스턴스 기준 설계였고, 확장되면 Redis로 승격하는 것이 자연스러운 다음 단계다. Fallback 우선순위 정책은 그대로 유지된다.
+- 'Context Cache 5분 만료는 너무 짧지 않나?' → Gemini 플랫폼 제약이다. 대안은 Project 생성 시점에 cache를 지연 생성하지 않고 단계 진입 시마다 refresh하거나, 5분 내 연속 호출이 보장된 순차 실행 흐름을 설계하는 것이다. 후자를 택했다.
 
 ### 피해야 할 약한 답변
 
-- '올리브영 블로그에서 본 Cache-Aside + Kafka와 제 RabbitMQ 경험이 비슷합니다' 수준의 표면적 매칭.
-- '저도 캐싱 해봤고 Kafka도 해봤습니다'처럼 공통점·차이를 구분하지 않는 답.
+- 'pro가 성능이 좋아서 썼습니다' — 비용 관점 없이 품질만 얘기하면 시니어 수준의 설계 판단이 아니다.
+- '429는 어쩔 수 없이 대기합니다' — 재시도 정책의 근거(1분 TPM 리셋)를 모른 채 표준 지연 전략만 언급하는 답.
+- 'Context Cache 썼습니다'로 끝내기 — 왜 Project 단위인지, 만료와 refresh 흐름을 어떻게 맞췄는지 설명하지 못하면 API 사용자 수준의 이해로 보인다.
 
 ### 꼬리 질문 5개
 
-**F5-1.** StampedLock의 writeLock/tryReadLock을 선택한 이유를 ReentrantReadWriteLock이나 ReadWriteLock과 비교해 설명해 주세요. 2.5초 타임아웃은 어떻게 산정했나요?
+**F5-1.** Map<modelName, skipUntilTimestamp>의 skipUntil 값은 무엇을 기준으로 결정했나요? 429 응답 헤더의 Retry-After와 실제 관측치의 차이는 어떻게 맞추셨나요?
 
-**F5-2.** Hibernate PostCommitUpdateEventListener를 쓰면 비즈니스 코드 침투가 없는 반면, '엔티티 변경'이라는 저수준 이벤트를 '도메인 이벤트'로 끌어올리는 데 한계가 있습니다. 커머스 도메인에서 이 한계가 문제가 되는 시나리오를 예로 들어주세요.
+**F5-2.** Pro → Flash fallback 시 프롬프트 Grounding 준수력이 약해져 환각이 다시 등장한다고 하셨는데, 이 문제를 모니터링하거나 자동 감지하는 구조를 설계한다면 어떻게 하시겠어요?
 
-**F5-3.** @TransactionalEventListener(AFTER_COMMIT) + Dead Letter Store 패턴에서, Kafka 발행이 AFTER_COMMIT 시점에 실패하면 원 트랜잭션은 이미 커밋된 상태입니다. 이 불일치는 어떻게 허용 가능한 설계로 만드시나요?
+**F5-3.** Gemini Context Cache의 cachedContent 만료(5분) 안에 호출이 끝나지 않으면 다음 단계가 비용 이득을 못 봅니다. 단계 순서와 타이밍을 어떻게 짰나요?
 
-**F5-4.** 올영세일처럼 10배 피크 트래픽에서 Cache-Aside + 선택적 API 호출 구조가 오히려 '선택적 호출이 집중되는 순간'에 취약할 수 있습니다. 이런 thundering herd 시나리오는 어떻게 방어하시겠어요?
+**F5-4.** Step1 통합 분석이 토큰 75% 절감과 속도 2배를 얻었는데, 반대로 '논리적 경계를 쪼개 두는 게 유리한 경우'는 어떤 시그널로 판단하시나요?
 
-**F5-5.** 본인이 설계한 RabbitMQ Fanout 구조와 Kafka 기반 구조가 혼재한 환경에서 팀이 '하나로 통일하자'고 한다면, 어느 쪽을 권하시겠어요? 결정 기준은 무엇인가요?
+**F5-5.** 커머스의 상품 검색 쿼리 LLM Rewriting 같은 흐름에 같은 전략을 쓴다면, 캐시 단위와 fallback 체인을 어떻게 설계하시겠어요?
 
 ---
 
 ## 최종 준비 체크리스트
 
-- 자기소개 1분 버전과 올리브영 fit 버전을 각각 한 번씩 소리 내어 리허설하고, 두 버전 모두 60~90초 안에 들어오는지 녹음 체크.
-- 5개 메인 질문에 대해 'oneMinuteAnswer' 4~5줄 구조를 그대로 말로 재현할 수 있는지 확인하고, 막혔다면 answerPoints의 구체 수치(11 Step / 30초 예산 / 199 plan·760 커밋 / 14개 remove 등)를 다시 암기.
-- 올리브영 기술 블로그 4개 글(MSA 데이터 연동 / 무중단 OAuth2 전환 / SQS 데드락 / Spring 트랜잭션 동기화)의 핵심 결론 한 줄씩 정리하고, 각 글과 내 경험의 접점을 1문장씩 연결해 말하기 연습.
-- followUps 총 25개를 '답할 수 있음 / 보강 필요 / 모름' 3단계로 셀프 체크하고, 보강 필요 항목은 근거 코드·ADR·지표를 하루 1~2개씩 복습 계획으로 배분.
-- pressureDefense 항목을 기준으로 '반론이 들어왔을 때 흔들리지 않는 문장'을 미리 말로 준비하고, 특히 '과잉 설계 아닌가 / 다른 기술로도 되지 않나' 계열 압박에 2문장 이내로 되받아치는 대응 스크립트를 확정.
-- 이력서 2번·3번·4번 문항의 수치(4년, 447개 테스트, Cursor Rules 20개+, 신규 게임 3종, 199 plan, 760 커밋, 12일, terminationGracePeriodSeconds 30초 등)를 수치만 따로 뽑아 플래시카드로 만들고 면접 전날 최종 점검.
+- 각 답변에서 'NHN 경험 → CJ 올리브영 커머스 접합면(Kafka/Redis/MSA/대용량 색인)'으로 연결되는 브릿지 문장을 한 번 이상 넣었는지 점검.
+- 숫자(199 plan / 760 커밋 / 12일, 447 테스트 파일, 11 Step, 30초 예산 = 15 + 12 + 3, Step1 토큰 75% 절감, 26.8s → 13.1s)를 외우고 있는지 리허설에서 검증.
+- 모든 질문에 '왜 그렇게 했는가'에 대한 트레이드오프 답변을 준비했는지 확인 — '그냥 했다'로 끝나는 답이 없어야 한다.
+- 압박 질문(pressureDefense)에 대해 방어 논리 + 반박 수용 지점(한계 인정)을 함께 준비해 '완벽 주장'처럼 들리지 않도록 연습.
+- 자기소개 1분 버전을 실제로 녹음해 타임박싱(60±5초) 확인 — 경력/AI 서비스/OCR/웹툰 MVP 네 축이 빠지지 않고 흘러가는지 점검.
+- Why 올리브영 파트에서 기술 블로그 4개 글(MSA 데이터 연동 / OAuth2 무중단 / SQS 데드락 / Spring 트랜잭션 동기화) 중 2개 이상을 자연스럽게 인용할 수 있는지 리허설.
+- 하네스·AI 경험이 '툴 사용자 자랑'으로 보이지 않고 '파이프라인·아키텍처 설계 경험'으로 정확히 프레이밍되는지 동료 리뷰로 검증.
