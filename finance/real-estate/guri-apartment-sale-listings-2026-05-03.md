@@ -423,8 +423,3 @@
 | 7억 3,000 | 전용 84㎡ / 공급 108㎡ | 108A | 21/25 | 동향 | NONE | 2026-04-23 | [2622006480](https://new.land.naver.com/complexes/8575?articleNo=2622006480) |
 | 7억 8,000 | 전용 84㎡ / 공급 108㎡ | 108A | 8/25 | 동향 | NONE | 2026-04-06 | [2618522508](https://new.land.naver.com/complexes/8575?articleNo=2618522508) |
 
-## 원본
-
-- 수집 위치: `/home/bifos/ai-nodes/apartment/data/2026-05-03-guri-buy-search/`
-- 원본 리포트: `report.md`
-- 원본 매물 JSON: `naver-*.json`
