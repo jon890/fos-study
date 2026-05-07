@@ -17,6 +17,7 @@ Java 언어·JVM·생태계 학습 기록. 하위 폴더는 주제별 세부 정
 
 ## 동시성
 
+- [Concurrency 폴더](./concurrency/README.md) — 락 비교, 동기화 전략 모음
 - [Java StampedLock](./stamped-lock.md) — 읽기 폭주에도 쓰기가 밀리지 않는 락
 
 ## 관찰성 / 로깅
