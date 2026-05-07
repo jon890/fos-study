@@ -2,7 +2,7 @@
 
 **진행 기간**: 2026.04 ~ 2026.05
 
-운영 중인 API 서버에서 "어떤 비즈니스 에러가 얼마나 발생하고 있는지"를 Grafana에서 보고 싶었다. Spring Boot Actuator + Micrometer 조합이면 보통 `http_server_requests_seconds_count{status="4xx"}` 같은 표준 메트릭으로 충분한데, 이 서버는 그게 안 됐다. 모든 응답을 HTTP 200으로 래핑하는 사내 표준 응답 envelope을 쓰고 있어서, status 라벨이 전부 200으로만 찍혔기 때문이다.
+운영 중인 API 서버에서 "어떤 비즈니스 에러가 얼마나 발생하고 있는지"를 Grafana에서 보고 싶었다. Spring Boot Actuator + Micrometer 조합이면 보통 `http_server_requests_seconds_count{status="4xx"}` 같은 표준 메트릭으로 충분한데, 이 서버는 그게 안 됐다. 모든 응답을 HTTP 200으로 통일하고 비즈니스 에러는 응답 body 안의 코드로 표현하는 **공통 응답 포맷**(response envelope)을 쓰고 있어서, status 라벨이 전부 200으로만 찍혔기 때문이다.
 
 이걸 해결하기 위해 `@RestControllerAdvice`에 직접 Counter를 박아 비즈니스 errorCode 단위 메트릭을 만들었고, PromQL을 두 번 갈아탔다. 이번 글은 그 과정의 How-to + 의사결정 흐름이다.
 
@@ -101,6 +101,8 @@ code(50) × category(3) × exception(10) = 최대 1,500 시리즈
 그래서 라벨을 추가할 때는 항상 "이 라벨이 가질 수 있는 값의 상한이 얼마인가"를 곱셈으로 가늠해본 뒤 결정한다. 아래 4개 라벨도 그 가늠을 거쳐서 통과한 것들이다.
 
 ### 최종 결정한 라벨 네 개
+
+이번 메트릭은 `code`, `name`, `category`, `exception` 네 개로 박았다. 코드부터 본다.
 
 ```java
 private void recordBusinessError(ResultCode resultCode, Exception e) {
@@ -336,6 +338,6 @@ Pie chart의 `category=4` / `category=5`도 `displayName override`로 `User Erro
 
 ## 마무리
 
-응답을 200으로 래핑하는 envelope 정책 자체는 흔치 않지만, 비슷한 환경(예: GraphQL이라 항상 200, gRPC와 status 변환 레이어가 있어서 표준 status가 무력화됨 등)은 의외로 많다. 표준 메트릭이 안 맞으면 직접 박는 게 결국 답인데, 그 과정에서 "어디에 박을지", "어떤 라벨을 붙일지", "PromQL을 어떻게 쓸지" 세 단계 결정이 있다는 걸 이번에 정리하게 됐다.
+응답을 200으로 통일하는 공통 응답 포맷 정책 자체는 흔치 않지만, 비슷한 환경(예: GraphQL이라 항상 200, gRPC와 status 변환 레이어가 있어서 표준 status가 무력화됨 등)은 의외로 많다. 표준 메트릭이 안 맞으면 직접 박는 게 결국 답인데, 그 과정에서 "어디에 박을지", "어떤 라벨을 붙일지", "PromQL을 어떻게 쓸지" 세 단계 결정이 있다는 걸 이번에 정리하게 됐다.
 
 특히 PromQL 갈아타는 단계는 "처음부터 잘 결정할 수 있었나" 자문해 봤는데, 솔직히 누적 sum까지는 한 번 부딪혀봐야 알 수 있는 영역이었던 것 같다. 데모 검증 vs 운영 모니터링이라는 두 사용처가 생각보다 다르게 동작한다는 걸, 패널을 띄워놓고 며칠 운영해본 뒤에야 체감했다.
