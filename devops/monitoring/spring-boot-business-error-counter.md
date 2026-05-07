@@ -245,7 +245,7 @@ sum by (code) (rate(ocr_api_business_error_total{cluster="$cluster"}[5m]))
 sum by (code) (ocr_api_business_error_total{cluster="$cluster"})
 ```
 
-Counter는 monotonically increasing이라 이 식은 "전체 누적"을 그대로 보여준다. 첫 sample부터 즉시 값이 표시되고, 신규 시리즈도 즉시 라인에 등장한다.
+Counter는 **단조 증가**(monotonically increasing)하는 본성이라 이 식은 "전체 누적"을 그대로 보여준다. 첫 sample부터 즉시 값이 표시되고, 신규 시리즈도 즉시 라인에 등장한다.
 
 문제는 다른 데서 터졌다. **에러가 멈춰도 라인이 사라지지 않는다.** Grafana 시간 범위 안의 누적값을 그대로 그리니, 한 번 발생한 코드는 시간 범위가 끝날 때까지 계단식 라인이 남는다. "지금 발생 중인 에러"와 "한참 전에 발생한 잔존 라인"이 시각적으로 구분되지 않았다.
 
@@ -314,9 +314,9 @@ Pie chart의 `category=4` / `category=5`도 `displayName override`로 `User Erro
 
 ### Counter는 절대 줄지 않는다 (그래서 retention이 중요하다)
 
-이 글의 PromQL 트레이드오프 전체가 **counter는 monotonically increasing**이라는 본성에서 출발한다. Pod이 재시작되면 카운터가 0부터 다시 시작하지만, 그건 Prometheus 입장에서 보면 같은 라벨 시리즈에 reset이 감지되는 것이고, 시리즈 자체는 retention 기간 내내 살아 있다.
+이 글의 PromQL 트레이드오프 전체가 **counter는 단조 증가한다**는 본성에서 출발한다. Pod이 재시작되면 카운터가 0부터 다시 시작하지만, 그건 Prometheus 입장에서 보면 같은 라벨 시리즈에 reset이 감지되는 것이고, 시리즈 자체는 **보관 기간**(retention) 내내 살아 있다.
 
-"한 번 발생한 errorCode가 영원히 남는 것 같은데"는 이 본성 때문이다. 사라지게 하려면 (1) 시간 범위를 짧게 (2) `rate`/`increase` 윈도우 사용 (3) 시리즈 자체가 retention에서 만료. 보통 (2)가 답이다.
+"한 번 발생한 errorCode가 영원히 남는 것 같은데"는 이 본성 때문이다. 사라지게 하려면 (1) 시간 범위를 짧게 (2) `rate`/`increase` 윈도우 사용 (3) 시리즈 자체가 보관 기간에서 만료. 보통 (2)가 답이다.
 
 ### 라벨 카디널리티는 사전에 계산하고 시작한다
 
