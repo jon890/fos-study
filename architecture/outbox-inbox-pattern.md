@@ -1,5 +1,7 @@
 # [초안] Outbox / Inbox Pattern 심화 — 분산 메시징의 정합성 문제를 DB 트랜잭션으로 풀어내기
 
+> 관련 문서: [분산 트랜잭션과 Outbox 패턴 — 왜 2PC를 피하고 어떻게 대신할 것인가](./distributed-transaction-outbox-pattern.md). 이 문서는 Outbox·Inbox 한 짝의 동작 메커니즘과 transaction boundary, polling/CDC 변형, ordering 등 심화 주제에 집중하고, 위 문서는 분산 트랜잭션 맥락에서 "왜 2PC가 아닌 Outbox인가"라는 의사결정 축을 다룬다.
+
 ## 왜 중요한가
 
 분산 시스템에서 백엔드 엔지니어가 가장 자주 마주하는 함정 중 하나는 "DB 커밋과 메시지 발행이 둘 다 성공해야 한다"는 요구다. 결제 승인이 끝났는데 후속 알림 메시지가 누락되거나, 반대로 DB는 롤백되었는데 메시지는 이미 카프카로 나가 버린 경험은 어느 팀이든 한 번씩 한다. 이 문제는 단순한 "한 번 더 publish 하자"로 해결되지 않는다. 네트워크는 신뢰할 수 없고, 두 개의 서로 다른 자원(DB와 Broker)을 동시에 commit/abort 시키는 분산 트랜잭션은 운영상 거의 쓰이지 않는다.
