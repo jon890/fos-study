@@ -14,6 +14,7 @@
 - [분산 아키텍처 스터디 팩](./distributed-architecture-study-pack.md) — 서비스 경계, 장애 전파, 일관성, 메시징, 멱등성
 - [분산 트랜잭션](./distributed-transaction.md) — 2PC와 대안
 - [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md) — 왜 2PC를 피하고 어떻게 대신할 것인가
+- [Outbox / Inbox 패턴](./outbox-inbox-pattern.md) — exactly-once 전송과 멱등 수신
 - [MSA 서비스 간 통신](./msa-service-communication.md) — Redis Cache-Aside × Kafka 이벤트 하이브리드
 
 ## 대규모 트래픽
@@ -30,6 +31,7 @@
 ## API / 도메인 설계
 
 - [API 설계 실전 스터디 팩](./api-design.md) — REST, 멱등성, 페이지네이션, 버전 전략
+- [API 버저닝과 하위 호환성](./api-versioning-backward-compatibility.md) — URI/Header 전략, deprecation 정책
 - [DDD와 도메인 모델링](./ddd-domain-modeling.md) — 전술/전략 패턴 실전 가이드
 
 ## 캐시

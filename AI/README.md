@@ -8,6 +8,11 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 - [LangGraph](./langgraph/langgraph-overview.md) — 에이전트 워크플로를 그래프로 통제하기
 - [AGENTS.md 포맷](./agents/agents.md) — AI coding agent 동작 지침서
 
+## Agent 설계 (agent/)
+
+- [LLM Tool Calling 에이전트 워크플로](./agent/llm-tool-calling-agent-workflow.md) — Tool Use 루프, 결정성/관측성 설계
+- [멀티턴 메모리 헬스케어 에이전트](./agent/multi-turn-memory-healthcare-agent.md) — 4계층 메모리, 헬스케어 도메인 특화 정책
+
 ## 하네스 엔지니어링
 
 - [하네스 엔지니어링 이론편](./harness-engineering.md) — 개념, Anthropic/Fowler 사례, 설계 원칙

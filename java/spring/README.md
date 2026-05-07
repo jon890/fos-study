@@ -9,6 +9,7 @@ Spring Framework / Spring Boot 학습 기록. IoC, 생명주기, 트랜잭션, A
 
 ## 컨테이너와 생명주기
 
+- [Spring Framework vs Spring Boot](./spring-framework-vs-spring-boot.md) — 두 프로젝트의 경계와 자동 구성
 - [IoC 컨테이너](./1_IoC_Container.md) — 스프링 프레임워크 기본
 - [Application Context의 생명주기](./application-context-lifecycle.md)
 - [InitializingBean](./initializing-bean.md) — 빈 초기화 콜백
