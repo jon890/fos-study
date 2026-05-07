@@ -289,7 +289,9 @@ sum by (category) (increase(ocr_api_business_error_total{cluster="$cluster"}[1h]
 
 ## Grafana 패널 5종 — PromQL과 legend
 
-최종적으로 만든 대시보드는 다음과 같다.
+최종적으로 만든 대시보드는 다음과 같다. 데모용으로 임의 에러를 흘려넣은 상태라 errorCode와 분포가 의미 있게 잡혀 있다.
+
+![비즈니스 에러 카운터 Grafana 대시보드 — errorCode 시계열, User vs System 파이 차트, Top-5 errorCode, Exception types, System errors 단독 패널이 한 화면에 배치되어 있다](./images/business-error-dashboard.png)
 
 | # | 패널 | 시각화 | PromQL | legend |
 |---|---|---|---|---|
