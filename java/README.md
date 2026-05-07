@@ -23,5 +23,5 @@ Java 언어·JVM·생태계 학습 기록. 하위 폴더는 주제별 세부 정
 ## 관찰성 / 로깅
 
 - [MDC (Mapped Diagnostic Context)](./MDC.md) — 로그에 컨텍스트 태깅
-- [OpenTelemetry란 무엇인가?](./OPEN_TELEMETRY.md) — 개요
+- [OpenTelemetry](./opentelemetry/README.md) — 분산 추적 인덱스
 - [Java의 로깅 환경](./logging.md) — SLF4J, Logback

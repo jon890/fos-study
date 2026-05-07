@@ -13,7 +13,6 @@ Spring Framework / Spring Boot 학습 기록. IoC, 생명주기, 트랜잭션, A
 - [IoC 컨테이너](./1_IoC_Container.md) — 스프링 프레임워크 기본
 - [Application Context의 생명주기](./application-context-lifecycle.md)
 - [InitializingBean](./initializing-bean.md) — 빈 초기화 콜백
-- [`bootRun` 명령어](./boot-run.md)
 
 ## 트랜잭션
 

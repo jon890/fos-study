@@ -6,5 +6,5 @@ OpenTelemetry를 Java/Spring 환경에서 적용한 기록.
 
 ## 관련
 
-- [OpenTelemetry란 무엇인가?](../OPEN_TELEMETRY.md) — 개요
+- [OpenTelemetry 공식 docs](https://opentelemetry.io/docs/what-is-opentelemetry/) — 개념 정의 (관측 프레임워크, 트레이스/메트릭/로그)
 - [MDC (Mapped Diagnostic Context)](../MDC.md) — 로그에 traceId 태깅
