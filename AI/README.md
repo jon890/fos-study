@@ -6,7 +6,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 
 - [RAG (Retrieval-Augmented Generation)](./RAG/README.md) — 임베딩, 벡터 검색, 실무 사례
 - [LangGraph](./langgraph/langgraph-overview.md) — 에이전트 워크플로를 그래프로 통제하기
-- [AGENTS.md 포맷](./agents/agents.md) — AI coding agent 동작 지침서
+- [AGENTS.md 포맷](./agents-md-format.md) — AI coding agent 동작 지침서
 
 ## Agent 설계 (agent/)
 

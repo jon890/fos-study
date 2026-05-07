@@ -60,7 +60,7 @@ YAML 기반 워크플로우로 에이전트를 정의하기 때문에, Claude Co
 
 ## agents.md와의 관계
 
-BMAD의 각 에이전트는 결국 [agents.md](./agents/agents.md) 방식으로 역할을 정의한다. Analyst 에이전트는 "요구사항 분석가" 페르소나를 갖고, Developer 에이전트는 "구현 담당자"로서 특정 Boundary(건드리면 안 되는 것)를 갖는다.
+BMAD의 각 에이전트는 결국 [agents.md](./agents-md-format.md) 방식으로 역할을 정의한다. Analyst 에이전트는 "요구사항 분석가" 페르소나를 갖고, Developer 에이전트는 "구현 담당자"로서 특정 Boundary(건드리면 안 되는 것)를 갖는다.
 
 agents.md가 "AI에게 역할을 부여하는 방법"이라면, BMAD는 "역할이 정해진 AI들을 어떤 순서로, 어떤 아티팩트를 주고받으며 협업시키는가"를 다루는 상위 레이어다.
 
