@@ -2,11 +2,19 @@
 
 OpenSearch(ElasticSearch 포크) 학습 기록. 매핑·샤딩·쿼리·RAG 검색 적용 주제.
 
-## 기본
+## 입문
+
+- [OpenSearch 기초](./opensearch-basics.md) — 검색 엔진을 백엔드 관점에서 다루는 입문 가이드
+
+## 색인 / 매핑
 
 - [Mapping](./mapping.md) — 필드 타입, 분석기
 - [Sharding](./sharding.md) — 프라이머리/레플리카 샤드 전략
 - [Refresh Interval](./refresh-interval.md) — 실시간성 vs 처리량 트레이드오프
+
+## 분석기 / 플러그인
+
+- [Analyzer 구조 (nori, ngram, tokenizer, token filter)](./opensearch-plugins-nori-ngram-analyzer-tokenizer-token-filter.md) — 한국어 형태소·자동완성·오타 보정의 빌딩 블록
 
 ## 쿼리와 성능
 
