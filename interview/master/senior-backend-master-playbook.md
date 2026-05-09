@@ -1,8 +1,7 @@
 # [초안] 시니어 Java 백엔드 면접 마스터 플레이북 — 김병태
 
 > 대상 직무: 시니어 Java 백엔드 (재사용 가능한 공통 자료)
-> 가장 가까운 면접: CJ 올리브영 커머스플랫폼유닛 Back-End (경력) — 2026-04-21
-> 근거: [`resume/2603_김병태_이력서_v4.md`](../../resume/2603_김병태_이력서_v4.md), `task/nsc-slot/**`, `task/ai-service-team/**`, [`interview/cj-oliveyoung-wellness-backend.md`](../cj-oliveyoung-wellness-backend.md)
+> 근거: `resume/`, `task/nsc-slot/**`, `task/ai-service-team/**`
 
 ---
 

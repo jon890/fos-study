@@ -19,6 +19,10 @@ JavaScript 런타임과 언어 기능 학습 기록.
 
 - [Http Client](./http-client.md) — Node 환경 HTTP 클라이언트 비교
 
+## 백엔드 운영 패턴
+
+- [Node 백엔드 운영 패턴](./node-backend-patterns.md) — Streams 백프레셔, pipe vs pipeline, 멱등성 키 vs 분산 락
+
 ## TypeScript
 
 - [Brand Type](./typescript/brand-type.md) — 타입 안정성을 위한 브랜드 타입 패턴

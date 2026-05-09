@@ -451,7 +451,7 @@ Redis Cache-Aside + TTL 1시간 설정
 
 실시간성이 필요한 데이터는 별도로 Kafka 이벤트 기반으로 처리해 불필요한 API 호출을 줄이면서도 최신 데이터를 보장했다.
 
-관련 문서: [MSA 환경에서 도메인 데이터 연동 전략](../interview/cj-oliveyoung-wellness-backend.md#5-올리브영-기술-블로그-핵심-글-요약)
+관련 문서: [MSA 서비스 간 통신](./msa-service-communication.md) — Cache-Aside × Kafka 이벤트 하이브리드
 
 ---
 
