@@ -28,9 +28,11 @@
 
 - [CJ푸드빌 디지털 채널 Back-end 직무 분석](./cj-foodville-digital-channel-backend.md)
 - [CJ푸드빌 디지털 채널 Back-end 면접 답변집](./commerce-interview-answer-slot-experience-mapping.md) — 슬롯 도메인 경험을 커머스/F&B 설계로 번역
+- [F&B / e-Commerce 운영 모니터링과 장애 대응 인터뷰 정리](./fnb-ecommerce-operations-monitoring-interview.md)
 
 ### 회사 무관 재사용 자료
 
 - [시니어 Java 백엔드 면접 마스터 플레이북](./senior-backend-master-playbook.md) — 자기소개·강점·프로젝트·공통 질문 프레이밍
 - [NSC 슬롯팀 경험 기반 질문 은행](./slot-team-question-bank.md) — 도메인 모델링·동시성·성능·AI 협업
 - [AI 서비스팀 경험 기반 질문 뱅크](./ai-service-team-question-bank.md) — Spring Batch RAG·gRPC graceful shutdown·전략 패턴·12일 AI 웹툰 MVP
+- [Observability 면접 답변 프레임](./observability-interview-frame.md) — 장애 탐지·추적·deploy diff 4축 답변 구조

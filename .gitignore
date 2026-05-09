@@ -6,3 +6,6 @@
 .omc
 .claude/settings.local.json
 .claude/skills-eval-workspace
+
+# node
+node_modules/

@@ -1,12 +1,14 @@
-# [초안] Datadog APM 실전 투입 가이드: Java/Spring 서비스 관측성 스택 구축하기
+# Datadog APM 실전 투입 가이드: Java/Spring 서비스 관측성 스택 구축하기
 
-## 왜 이 주제가 중요한가
+## 왜 Datadog인가
 
-CJ OliveYoung Wellness Platform 같이 트래픽이 일 수백만 건 들어오는 커머스 백엔드는 관측성(observability) 스택이 곧 SRE 생존선이다. 장애 탐지 시간(MTTD)과 복구 시간(MTTR)을 초/분 단위로 줄이려면, 로그만 뒤져서는 답이 안 나온다. 분산 요청이 5~10개 마이크로서비스를 타고 흐르는데 "어디서 느려졌나"를 5분 안에 집어내야 한다.
+분산 요청이 5\~10 개 마이크로서비스를 타고 흐르는 환경에서 장애 탐지 시간(MTTD)과 복구 시간(MTTR)을 초/분 단위로 줄이려면, 로그만 뒤져서는 답이 안 나온다. "어디서 느려졌나"를 5분 안에 집어내려면 metric / log / trace 를 같은 trace_id 로 엮을 수 있어야 한다.
 
-Datadog은 한국의 대형 커머스(쿠팡, 컬리 등)와 마찬가지로 CJ OliveYoung도 실전 스택으로 쓰는 통합 관측성 플랫폼이다. Metrics / Logs / APM / RUM / Profiler / Synthetics 를 한 UI에서 상관관계로 엮을 수 있다는 것이 Datadog을 다른 도구 대비 붙여 쓰는 가장 큰 이유다. ELK + Prometheus + Jaeger를 각각 운영하는 팀 입장에서는 "같은 요청의 로그와 trace를 한 번의 클릭으로 연결"이라는 경험이 생산성을 결정한다.
+Datadog 은 Metrics / Logs / APM / RUM / Profiler / Synthetics 를 한 UI 에서 상관관계로 엮을 수 있는 통합 관측성 플랫폼이다. ELK + Prometheus + Jaeger 를 각각 운영하는 팀 입장에서는 "같은 요청의 로그와 trace 를 한 번의 클릭으로 연결" 이라는 경험이 생산성을 결정한다.
 
-이 문서는 일반 observability 이론 팩이 아닌, Datadog을 실전에 투입할 때 반드시 알아야 하는 데이터 모델, 태깅, 샘플링, 비용, 알람, 장애 대응 플레이북을 시니어 백엔드 관점에서 다룬다.
+이 문서는 일반 observability 이론 팩이 아닌, Datadog 을 실전에 투입할 때 반드시 알아야 하는 데이터 모델, 태깅, 샘플링, 비용, 알람, 장애 대응 플레이북을 시니어 백엔드 관점에서 다룬다.
+
+> 운영 중 장애 탐지·추적을 묻는 면접 질문 답변 프레임은 [observability-interview-frame.md](../../interview/observability-interview-frame.md) 에 따로 정리.
 
 ## 1. Datadog 데이터 모델: 4개 제품의 범위와 한계
 
@@ -432,21 +434,7 @@ services:
 8. Monitor를 하나 만든다 — `avg(last_5m):avg:trace.servlet.request.duration{service:order-api} > 1`.
 9. 부하를 다시 걸어 alert이 Slack에 뜨는지 확인.
 
-## 14. 면접 답변 프레이밍
-
-"운영 중 장애를 어떻게 탐지하고 추적하시나요?" 라는 질문이 자주 나온다. 시니어 백엔드 답변 구조 예:
-
-"장애는 크게 두 층에서 탐지합니다. 첫째는 **SLO 기반 alert** — 서비스별로 RED(Rate, Errors, Duration)를 SLI로 정의하고, p99 latency와 error rate threshold가 SLO를 위반하면 Datadog monitor가 Slack으로 호출합니다. 저희 팀은 트래픽 계절성이 있어서 threshold 대신 **anomaly monitor**를 쓰는 경우도 있습니다.
-
-탐지 후 추적은 **APM flame graph가 기본 진입점**입니다. Service map에서 어느 서비스 edge가 빨간지 먼저 보고, 문제 서비스의 slow trace 샘플을 열어 flame graph에서 bottleneck span을 찾습니다. DB span이면 실행된 쿼리와 connection pool wait time을 span 태그로 확인하고, downstream HTTP call이면 해당 서비스 trace로 점프합니다.
-
-로그와 trace는 **trace_id로 correlation**이 자동으로 됩니다. 저희 스택에서는 SLF4J MDC에 tracer가 자동으로 dd.trace_id를 박아주고, Logback JSON encoder가 필드로 출력합니다. 그래서 APM trace → Logs 탭으로 바로 이동해 해당 요청의 로그만 뽑아 볼 수 있습니다.
-
-이전에는 OpenTelemetry + Jaeger + ELK로 직접 traceId를 관리했는데, MDC context propagation 이슈와 도구 분리로 디버깅 시간이 길어졌습니다. Datadog은 auto-instrumentation 범위가 넓어 JPA, Kafka, Redis까지 별도 작업 없이 span이 잡히고, 한 UI에서 metric/log/trace를 넘나들 수 있어 MTTR이 크게 줄었습니다.
-
-배포 관련 regression은 **Unified Service Tagging**의 version 태그로 diff합니다. 배포 전후 버전의 p99를 중첩해 보고, 특정 엔드포인트에서 regression이 있으면 Git deploy diff로 연결해 커밋을 봅니다. feature flag로 gradual rollout을 했다면 그쪽을 먼저 off 시키는 게 1차 mitigation입니다."
-
-## 15. 체크리스트
+## 14. 체크리스트
 
 **설치/설정 단계**
 - [ ] Datadog Agent를 DaemonSet(K8s) 또는 호스트 데몬(VM)으로 배포했는가

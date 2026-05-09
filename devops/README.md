@@ -14,6 +14,3 @@
 - [Envoy Proxy](./envoy-proxy.md) — L7 프록시, 서비스 메시 기반
 - [Graceful Shutdown](./graceful-shutdown.md) — 무중단 배포를 위한 종료 처리
 
-## 면접 대비 (초안)
-
-- [F&B / e-Commerce 운영 모니터링과 장애 대응 인터뷰 정리](./fnb-ecommerce-operations-monitoring-interview.md)
