@@ -8,13 +8,13 @@
 
 ## 벡터간 "가까움"은 어떻게 계산하는가?
 
-- **1. Cosine Similarity (RAG에서 거의 표준)**
+- **1. Cosine Similarity**(RAG에서 거의 표준)
 
   - 각도 기반 유사도
   - **두 벡터의 방향이 얼마나 비슷한가**
   - 텍스트 임베딩에는 가장 잘 맞아서 일반적으로 이걸 사용
 
-- **2. Euclidean Distance (L2 거리)**
+- **2. Euclidean Distance**(L2 거리)
 
   - 물리적으로 벡터 좌표 간 거리
 

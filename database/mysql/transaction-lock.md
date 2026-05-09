@@ -12,7 +12,7 @@ MySQL InnoDB 기본값은 **REPEATABLE READ**다. 나머지 수준은 설정을 
 |---|---|---|---|
 | READ UNCOMMITTED | 발생 | 발생 | 발생 |
 | READ COMMITTED | 없음 | 발생 | 발생 |
-| **REPEATABLE READ (기본값)** | 없음 | 없음 | InnoDB에서 없음* |
+| **REPEATABLE READ**(기본값) | 없음 | 없음 | InnoDB에서 없음* |
 | SERIALIZABLE | 없음 | 없음 | 없음 |
 
 \* 표준 SQL 스펙상 REPEATABLE READ는 Phantom Read를 허용하지만, InnoDB는 **Next-Key Lock**으로 Gap을 잠가서 Phantom Read를 막는다.

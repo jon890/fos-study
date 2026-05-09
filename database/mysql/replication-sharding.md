@@ -12,8 +12,8 @@
 
 MySQL의 복제는 primary가 binlog에 변경 이벤트를 기록하고, replica가 그것을 읽어 재실행하는 구조다. binlog 포맷이 세 가지 있는데 각각 트레이드오프가 명확하다.
 
-- **statement-based (SBR)**: 실행된 SQL 문장 자체를 기록한다. 로그 크기는 작지만 `NOW()`, `UUID()`, `LAST_INSERT_ID()` 같은 비결정적 함수에서 primary와 replica 결과가 달라질 수 있다. `INSERT ... SELECT` 같은 넓은 쿼리도 락 양상이 달라 위험하다.
-- **row-based (RBR)**: 변경된 각 row의 before/after 이미지를 기록한다. 정확성은 가장 높지만 대량 UPDATE 시 로그가 폭증한다. 예를 들어 `UPDATE orders SET status='X' WHERE created_at < '2025-01-01'` 이 수천만 row에 걸리면 binlog이 수 GB가 된다.
+- **statement-based**(SBR): 실행된 SQL 문장 자체를 기록한다. 로그 크기는 작지만 `NOW()`, `UUID()`, `LAST_INSERT_ID()` 같은 비결정적 함수에서 primary와 replica 결과가 달라질 수 있다. `INSERT ... SELECT` 같은 넓은 쿼리도 락 양상이 달라 위험하다.
+- **row-based**(RBR): 변경된 각 row의 before/after 이미지를 기록한다. 정확성은 가장 높지만 대량 UPDATE 시 로그가 폭증한다. 예를 들어 `UPDATE orders SET status='X' WHERE created_at < '2025-01-01'` 이 수천만 row에 걸리면 binlog이 수 GB가 된다.
 - **mixed**: 기본적으로 statement, 위험한 경우만 row로 자동 전환. MySQL 8의 기본값에 가깝지만, 운영 표준은 거의 항상 **ROW** 로 고정하는 것이 맞다. Aurora도 `binlog_format=ROW`를 요구하는 기능이 많다.
 
 ### GTID: 페일오버의 핵심
@@ -63,7 +63,7 @@ CloudWatch의 `AuroraReplicaLag` 지표를 알람으로 걸되, 임계값은 서
 3. **GTID 기반 일관성 읽기**: 쓰기 후 반환된 GTID를 클라이언트가 들고 있다가 replica에서 `WAIT_FOR_EXECUTED_GTID_SET(gtid, timeout)`을 호출. 정확하지만 레이턴시가 lag 만큼 늘어나 좋은 UX는 아니다.
 4. **Aurora Global Database의 managed read replica 엔드포인트**: 리전 내부 lag은 통상 매우 낮으므로 도메인이 허용하면 그대로 쓴다.
 
-실무에서 가장 자주 쓰는 조합은 **(1) + (2)** 다. 간단하면서도 대부분의 read-after-write 사용자 불만을 제거한다.
+실무에서 가장 자주 쓰는 조합은 **(1) +**(2) 다. 간단하면서도 대부분의 read-after-write 사용자 불만을 제거한다.
 
 ## 트래픽 라우팅: Proxy / DNS / 앱 레벨 분기
 
@@ -102,7 +102,7 @@ public class ReplicationRoutingDataSource extends AbstractRoutingDataSource {
 | 트랜잭션 | 일반 트랜잭션 가능 | 분산 트랜잭션 필요, 보통 포기 |
 | 조인 | 자유롭게 가능 | 샤드 간 조인 극도로 비쌈 |
 
-**수직 분할**은 "하나의 큰 테이블이나 DB를 도메인 단위로 쪼갠다". `users`, `orders`, `payments` 를 각각 별도 DB로 분리. 마이크로서비스 분리와 쌍을 이루는 결정이다. **수평 분할(=샤딩)**은 "동일한 스키마를 가진 데이터를 키 기준으로 여러 DB에 나눠 담는다". `user_id % 16` 으로 16개 샤드에 분산.
+**수직 분할**은 "하나의 큰 테이블이나 DB를 도메인 단위로 쪼갠다". `users`, `orders`, `payments` 를 각각 별도 DB로 분리. 마이크로서비스 분리와 쌍을 이루는 결정이다. **수평 분할**(=샤딩)은 "동일한 스키마를 가진 데이터를 키 기준으로 여러 DB에 나눠 담는다". `user_id % 16` 으로 16개 샤드에 분산.
 
 의사결정은 보통 순서가 있다. 먼저 인덱스/쿼리 튜닝 → 읽기는 replica 분산 → 수직 분할(도메인 분리) → 그래도 단일 DB 쓰기가 버티지 못하면 수평 샤딩. 샤딩은 마지막 옵션이다. 한 번 샤딩하면 롤백 비용이 엄청나고, 조인·트랜잭션·유니크 제약·글로벌 시퀀스·리포팅 쿼리 전부가 복잡해진다.
 

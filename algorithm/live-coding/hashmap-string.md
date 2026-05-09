@@ -77,7 +77,7 @@ boolean isIsomorphic(String s, String t) {
 
 HashMap이 빛을 발하는 영역이 슬라이딩 윈도우다. 창 안의 문자 빈도를 유지하면서 왼쪽 포인터를 당기고 오른쪽을 늘린다.
 
-**템플릿 (Java)**
+**템플릿**(Java)
 ```java
 int longestUniqueWindow(String s) {
     Map<Character, Integer> count = new HashMap<>();
@@ -304,7 +304,7 @@ public class FirstUniqueChar {
 }
 ```
 
-**HashMap 버전 (면접관이 "맵으로도 해보라"고 할 때)**
+**HashMap 버전**(면접관이 "맵으로도 해보라"고 할 때)
 ```java
 public static int firstUniqCharMap(String s) {
     Map<Character, Integer> freq = new HashMap<>();
@@ -410,7 +410,7 @@ public class TopAnagramGroup {
 }
 ```
 
-**카운트 시그니처 버전 (단어가 길 때)**
+**카운트 시그니처 버전**(단어가 길 때)
 ```java
 private static String normalizeByCount(String w) {
     int[] cnt = new int[26];

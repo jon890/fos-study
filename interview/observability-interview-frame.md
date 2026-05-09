@@ -1,6 +1,6 @@
 # Observability — 면접 답변 프레임
 
-운영 중 장애 탐지·추적·재발 방지를 묻는 시니어 백엔드 질문에 어떻게 답할지 정리한 자료. 도구 의존성을 줄이고 **개념(SLO·RED·trace correlation·deploy diff)** 위주로 풀되, 실전 사례로 Datadog 스택을 인용하는 구성이다.
+운영 중 장애 탐지·추적·재발 방지를 묻는 시니어 백엔드 질문에 어떻게 답할지 정리한 자료. 도구 의존성을 줄이고 **개념**(SLO·RED·trace correlation·deploy diff) 위주로 풀되, 실전 사례로 Datadog 스택을 인용하는 구성이다.
 
 도구 자체에 대한 학습 자료는 별도로 둔다.
 

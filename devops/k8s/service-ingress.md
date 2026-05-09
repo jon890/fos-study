@@ -55,8 +55,8 @@ spec:
 외부에서 들어오는 HTTP(S) 트래픽을 규칙에 따라 적절한 **Service**로 라우팅해주는 **L7 리버스 프록시 설정**이다.
 
 - **구성 요소**:
-  - **Ingress (주문서)**: `my-service.com/api`는 api 서비스로 보내줘라고 적힌 YAML.
-  - **Ingress Controller (실행자)**: 실제 Nginx 서버(Pod). 주문서(Ingress YAML)를 읽어서 `nginx.conf₩를 동적으로 고치고 트래픽을 처리한다.
+  - **Ingress**(주문서): `my-service.com/api`는 api 서비스로 보내줘라고 적힌 YAML.
+  - **Ingress Controller**(실행자): 실제 Nginx 서버(Pod). 주문서(Ingress YAML)를 읽어서 `nginx.conf₩를 동적으로 고치고 트래픽을 처리한다.
 - **개발자 비유**:
   - **Service**: 각 부서의 안내 데스크
   - **Ingress**: 건물 1층의 통합 로비 & 보안 게이트

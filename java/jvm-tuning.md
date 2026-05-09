@@ -37,11 +37,11 @@ JVM이 프로세스로 올라왔을 때 차지하는 메모리는 크게 네 영
 
 대부분의 객체는 "금방 죽는다"는 **Weak Generational Hypothesis**가 현대 GC의 출발점이다.
 
-**Young 영역**은 Eden + Survivor 0/1로 구성된다. 새 객체는 Eden에 잡힌다. Eden이 꽉 차면 **Minor GC(Young GC)**가 발동해, 살아남은 객체를 Survivor로 옮긴다. 여러 번 살아남으면(age threshold, 기본 15회) **Old 영역**으로 **승격(promotion)**된다.
+**Young 영역**은 Eden + Survivor 0/1로 구성된다. 새 객체는 Eden에 잡힌다. Eden이 꽉 차면 **Minor GC**(Young GC)가 발동해, 살아남은 객체를 Survivor로 옮긴다. 여러 번 살아남으면(age threshold, 기본 15회) **Old 영역**으로 **승격**(promotion)된다.
 
 **Old 영역**에 객체가 쌓이다가 임계치를 넘으면 **Major GC / Mixed GC / Full GC**가 일어난다. G1GC는 Old까지 포함하는 Mixed GC로 최대한 Full GC를 회피한다.
 
-**Stop-the-world(STW)**란 GC가 힙을 안전하게 스캔하고 객체를 옮기는 동안 애플리케이션 스레드를 전부 멈추는 구간이다. 파라렐 GC는 STW가 길고, G1은 대부분의 작업을 병렬로 하지만 핵심 단계는 여전히 STW이다. ZGC, Shenandoah는 STW를 수 ms 이하로 끌어내린 **concurrent GC**다.
+**Stop-the-world**(STW)란 GC가 힙을 안전하게 스캔하고 객체를 옮기는 동안 애플리케이션 스레드를 전부 멈추는 구간이다. 파라렐 GC는 STW가 길고, G1은 대부분의 작업을 병렬로 하지만 핵심 단계는 여전히 STW이다. ZGC, Shenandoah는 STW를 수 ms 이하로 끌어내린 **concurrent GC**다.
 
 면접에서 "왜 Young/Old로 나누는가"를 물으면: 새 객체의 대부분은 금방 죽으므로 Young만 자주 청소하면 비용이 낮다. Old로 승격된 객체는 이미 오래 살아남은 객체들이고, 그들끼리는 생존률이 높으니 덜 자주 청소한다. 세대 구분은 **"GC 대상 범위를 줄이는 최적화"**의 결과물이다.
 
@@ -322,9 +322,9 @@ jstat -gcutil <pid> 1000
 
 슬롯 시뮬레이터 케이스에서 `-e alloc`으로 떴다면 `AccumulateData.addWinMoney` → `ArrayList.add` 경로에서 allocation hotspot이 명확히 잡혔을 것이다.
 
-**JFR(Java Flight Recorder)**. 오버헤드 1% 미만, 프로덕션 상시 on도 가능. `jcmd <pid> JFR.start`로 시작 → `.jfr` 파일을 **JDK Mission Control(JMC)**에서 분석.
+**JFR**(Java Flight Recorder). 오버헤드 1% 미만, 프로덕션 상시 on도 가능. `jcmd <pid> JFR.start`로 시작 → `.jfr` 파일을 **JDK Mission Control**(JMC)에서 분석.
 
-**MAT(Eclipse Memory Analyzer)**. heap dump 분석 표준. **Leak Suspects**, **Dominator Tree**, **GC Roots까지의 경로** 이 세 기능만 쓸 줄 알면 대부분의 누수를 잡는다.
+**MAT**(Eclipse Memory Analyzer). heap dump 분석 표준. **Leak Suspects**, **Dominator Tree**, **GC Roots까지의 경로** 이 세 기능만 쓸 줄 알면 대부분의 누수를 잡는다.
 
 분석 루틴 예시 — "OOM이 떴다"면:
 1. `-HeapDumpOnOutOfMemoryError`로 생성된 `.hprof`를 MAT에 로딩
@@ -374,7 +374,7 @@ CompletableFuture<UserDetail> result = userFuture
 
 하지만 CompletableFuture는 **에러 전파와 취소 처리가 복잡**하다. 한 분기가 실패해도 다른 분기가 계속 돌아서 자원을 낭비한다.
 
-**Structured Concurrency (Java 21 Preview, Java 25 GA 예정)**가 이를 풀려고 나왔다.
+**Structured Concurrency**(Java 21 Preview, Java 25 GA 예정)가 이를 풀려고 나왔다.
 ```java
 try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
     Supplier<User>        user   = scope.fork(() -> userService.find(id));

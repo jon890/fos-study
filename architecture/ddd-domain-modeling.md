@@ -9,7 +9,7 @@ DDD**(Domain-Driven Design)**는 "소프트웨어의 복잡성은 도메인 그 
 Anemic domain 모델은 엔티티가 getter/setter와 필드만 가진 **데이터 구조체**에 불과하고, 실제 비즈니스 로직은 `OrderService`, `OrderValidator`, `OrderHelper` 같은 서비스 레이어에 흩어진다. 이 패턴의 문제는 다음과 같다.
 
 - 비즈니스 규칙이 어디 있는지 찾을 수 없다. `order.cancel()`이 있어야 할 자리에 `OrderService.cancelOrder(order)`가 있고, 동일한 취소 로직이 반환/환불/관리자-강제취소 세 군데에 중복된다.
-- 객체 자신이 **불변식(invariant)**을 지키지 못한다. `order.setStatus(CANCELLED)`를 누구든 호출할 수 있으니, 배송 완료 상태에서 취소되는 사고가 발생한다.
+- 객체 자신이 **불변식**(invariant)을 지키지 못한다. `order.setStatus(CANCELLED)`를 누구든 호출할 수 있으니, 배송 완료 상태에서 취소되는 사고가 발생한다.
 - 테스트가 서비스 레이어에 몰리고, 순수 도메인 단위 테스트가 불가능해진다.
 
 Rich domain 모델은 엔티티가 자기 책임을 스스로 진다.

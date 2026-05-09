@@ -105,7 +105,7 @@ K8s에서 `Deployment`의 `image: xxx`는 레지스트리에서 이미지를 끌
 
 ### 2.6 Docker Storage - Layer 기반 구조
 
-도커 이미지의 핵심은 **레이어(layer)** 구조
+도커 이미지의 핵심은 **레이어**(layer) 구조
 
 #### 이미지 레이어 구조
 
@@ -134,7 +134,7 @@ RUN chmod +x /app  (layer 3)
 
 도커 네트워크 종류
 
-- **1. bridge (기본)**
+- **1. bridge**(기본)
   - `docker0` 브리지 네트워크
   - 컨테이너끼리 내부 IP로 통신 가능
 - **2. host**

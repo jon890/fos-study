@@ -49,7 +49,7 @@ Plain text 로그는 기계가 읽기 어렵다. 프로덕션 로그는 **구조
 
 JSON 로그는 Elasticsearch/Loki/Datadog에 인덱싱해 `errorCode=PAYMENT_TIMEOUT AND env=prod` 같은 구조적 질의가 가능하다.
 
-**Correlation ID**는 하나의 요청(또는 작업)에 부여되는 고유 식별자로, 여러 서비스와 로그 라인을 가로지르는 실을 만든다. Spring에서는 **MDC(Mapped Diagnostic Context)**에 주입해 모든 로그 라인에 자동 포함되게 한다.
+**Correlation ID**는 하나의 요청(또는 작업)에 부여되는 고유 식별자로, 여러 서비스와 로그 라인을 가로지르는 실을 만든다. Spring에서는 **MDC**(Mapped Diagnostic Context)에 주입해 모든 로그 라인에 자동 포함되게 한다.
 
 ```java
 @Component
@@ -102,12 +102,12 @@ public TaskDecorator mdcTaskDecorator() {
 
 모든 서비스에 대해 **어떤 메트릭을 봐야 하나?**라는 질문에 두 가지 정석 답이 있다.
 
-**RED (요청 중심, 보통 API 서비스에 적용)**
+**RED**(요청 중심, 보통 API 서비스에 적용)
 - **R**ate: 초당 요청 수
 - **E**rrors: 실패한 요청 수(또는 비율)
 - **D**uration: 지연시간 분포(p50/p95/p99)
 
-**USE (리소스 중심, 보통 인프라/백엔드 리소스에 적용)**
+**USE**(리소스 중심, 보통 인프라/백엔드 리소스에 적용)
 - **U**tilization: 사용률(CPU 70%)
 - **S**aturation: 대기/포화(run queue 길이, DB connection pool wait)
 - **E**rrors: 리소스 레벨 에러(디스크 read error, TCP retransmit)
@@ -224,14 +224,14 @@ java -javaagent:opentelemetry-javaagent.jar \
 
 서비스 A가 B를 호출할 때 HTTP 헤더로 trace context를 넘긴다.
 
-**W3C Trace Context (현재 표준)**:
+**W3C Trace Context**(현재 표준):
 ```
 traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
 tracestate: congo=t61rcWkgMzE
 ```
 포맷: `version-traceId-spanId-flags`.
 
-**B3 (Zipkin 계열, 레거시)**:
+**B3**(Zipkin 계열, 레거시):
 ```
 X-B3-TraceId: 4bf92f3577b34da6a3ce929d0e0e4736
 X-B3-SpanId: 00f067aa0ba902b7

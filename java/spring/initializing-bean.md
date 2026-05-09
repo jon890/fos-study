@@ -1,6 +1,6 @@
 # InitializingBean 이란?
 
-- `InitializingBean`은 Spring Framework의 **빈 생명주기(Bean LifeCycle)** 인터페이스 중 하나
+- `InitializingBean`은 Spring Framework의 **빈 생명주기**(Bean LifeCycle) 인터페이스 중 하나
 - 빈의 프로퍼티 설정 (Dependency Injection)이 완료된 후, 추가적인 초기화 작업이 필요할 떄 사용하도록 설계 되었음
 
 ```java

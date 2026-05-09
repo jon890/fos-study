@@ -51,7 +51,7 @@ public void placeOrder(OrderCommand cmd) {
 
 ### REQUIRES_NEW
 
-기존 트랜잭션을 **일시 정지(suspend)** 시키고 **완전히 새로운 트랜잭션**을 시작. 새 트랜잭션이 커밋/롤백되어도 **바깥 트랜잭션은 영향을 받지 않는다.**
+기존 트랜잭션을 **일시 정지**(suspend) 시키고 **완전히 새로운 트랜잭션**을 시작. 새 트랜잭션이 커밋/롤백되어도 **바깥 트랜잭션은 영향을 받지 않는다.**
 
 언제 써야 하는가:
 - 감사 로그(audit log), 실패 이력 같이 **바깥이 롤백되어도 반드시 남겨야 하는 기록.**
@@ -259,7 +259,7 @@ public void dispatchOutbox() {
 - **AFTER_COMMIT**은 "커밋 실패 시 이벤트 누출을 막는다."
 - **Outbox**는 "커밋 성공 후 이벤트 유실을 막는다."
 
-이 둘을 같이 쓴다. Outbox 저장은 메인 트랜잭션 안에서, Outbox dispatch는 **별도의 워커 트랜잭션**에서. 후자는 재시도 가능해야 하므로 consumer 쪽이 **멱등(idempotent)** 해야 한다. `eventId`(UUID)를 메시지에 심고 컨슈머가 중복 체크하는 것이 일반적이다.
+이 둘을 같이 쓴다. Outbox 저장은 메인 트랜잭션 안에서, Outbox dispatch는 **별도의 워커 트랜잭션**에서. 후자는 재시도 가능해야 하므로 consumer 쪽이 **멱등**(idempotent) 해야 한다. `eventId`(UUID)를 메시지에 심고 컨슈머가 중복 체크하는 것이 일반적이다.
 
 ### Graceful shutdown과의 연결
 

@@ -140,9 +140,9 @@ public RestTemplate restTemplate() {
 
 CAP 정리는 분산 시스템이 다음 세 가지를 동시에 보장할 수 없다는 정리다.
 
-- **C (Consistency)**: 모든 노드에서 같은 시간에 같은 데이터를 읽는다
-- **A (Availability)**: 모든 요청이 응답을 받는다 (오류 응답 포함)
-- **P (Partition Tolerance)**: 네트워크 파티션이 발생해도 시스템이 동작한다
+- **C**(Consistency): 모든 노드에서 같은 시간에 같은 데이터를 읽는다
+- **A**(Availability): 모든 요청이 응답을 받는다 (오류 응답 포함)
+- **P**(Partition Tolerance): 네트워크 파티션이 발생해도 시스템이 동작한다
 
 네트워크 파티션은 실제로 발생하기 때문에 P는 포기할 수 없다. 결국 선택은 **CP** (일관성 우선, 가용성 희생) 또는 **AP** (가용성 우선, 일관성 희생)다.
 
@@ -533,9 +533,9 @@ log.info("Order processed",
 
 분산 서비스에서 모니터링해야 할 메트릭을 **RED 방법론**으로 정리한다.
 
-- **R (Rate)**: 초당 요청 수
-- **E (Errors)**: 에러율 (5xx 비율)
-- **D (Duration)**: 응답 시간 (p50, p95, p99)
+- **R**(Rate): 초당 요청 수
+- **E**(Errors): 에러율 (5xx 비율)
+- **D**(Duration): 응답 시간 (p50, p95, p99)
 
 ```java
 @Component

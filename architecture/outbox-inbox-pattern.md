@@ -92,7 +92,7 @@ FOR UPDATE SKIP LOCKED;
 
 `SKIP LOCKED`가 없던 MySQL 5.7 시절에는 워커마다 shard 컬럼(예: `id % N`)을 두거나, advisory lock을 썼다. MySQL 8 이상이라면 `SKIP LOCKED`가 사실상 표준이다. 발행에 성공하면 같은 트랜잭션에서 `UPDATE outbox_event SET published_at = NOW() WHERE id = ?`로 마킹한다. 마킹한 행은 retention 정책에 따라 일정 기간 뒤 archive 또는 delete한다.
 
-**Transaction log tailing(CDC)**은 Debezium이 대표적이다. DB의 binlog를 읽어 outbox 테이블의 INSERT를 broker로 직접 흘려보낸다. 애플리케이션 코드가 보장해야 할 것은 outbox INSERT뿐이고, polling 워커를 운영하지 않아도 된다는 장점이 있다. 반면 Debezium 자체의 운영 부담, schema 변경 시 connector 재배포, binlog retention 관리 같은 다른 비용이 생긴다. CJ 같은 엔터프라이즈 환경에서는 운영 조직의 친숙도와 SRE 인력에 따라 선택이 갈린다.
+**Transaction log tailing**(CDC)은 Debezium이 대표적이다. DB의 binlog를 읽어 outbox 테이블의 INSERT를 broker로 직접 흘려보낸다. 애플리케이션 코드가 보장해야 할 것은 outbox INSERT뿐이고, polling 워커를 운영하지 않아도 된다는 장점이 있다. 반면 Debezium 자체의 운영 부담, schema 변경 시 connector 재배포, binlog retention 관리 같은 다른 비용이 생긴다. CJ 같은 엔터프라이즈 환경에서는 운영 조직의 친숙도와 SRE 인력에 따라 선택이 갈린다.
 
 면접 답변 톤으로 정리하면 이렇다. "트래픽이 크지 않거나 DBA 협조가 어려우면 polling, 트래픽이 크고 운영팀이 Debezium에 익숙하면 CDC를 우선 검토합니다. 어느 쪽이든 outbox INSERT를 비즈니스 트랜잭션과 같이 커밋한다는 본질은 같습니다."
 

@@ -26,7 +26,7 @@
 | 기술 fit | **8/10** | Java 17·21, Spring Boot 3.x, JPA, MySQL 8.x, Azure 모두 운영. Kotlin/MyBatis/JSP/AWS만 갭. |
 | 도메인 fit | **3/10** | 게임(베팅·슬롯)·AI 서비스 위주. F&B/e-Commerce 무경험. 운영형 자사 서비스 경험은 있음. |
 | 경력 fit | **9/10** | 2022.02\~ 약 4년, 시니어 Java 백엔드 실무 3년+. JD의 "4년 이상" 충족. |
-| **지원 우선순위** | **B (중간)** | 기술 매칭은 합격권이지만, 카카오헬스케어 메인 타깃과 결이 다르고 도메인 갭이 있음. **포트폴리오 사용처가 좁다**. |
+| **지원 우선순위** | **B**(중간) | 기술 매칭은 합격권이지만, 카카오헬스케어 메인 타깃과 결이 다르고 도메인 갭이 있음. **포트폴리오 사용처가 좁다**. |
 
 ---
 
@@ -50,10 +50,10 @@
 
 1. **Kotlin** — 출처 문서에 운영 기재 없음. JD 필수 항목에 Java와 병기되어 있어 **선택 가능**해 보이나, Kotlin 비중 확인 필요. (현 MVP 정책상 제외 중이지만, 이 공고에 지원하려면 단기 학습 검토)
 2. **MyBatis** — 프로필에 운영 기재 없음. JPA 기반이 강하므로 **MyBatis가 메인 스택일 경우 갭이 큼**. 면접에서 비중을 물어볼 것.
-3. **JSP + jQuery (우대)** — 직접 운영 경험 없음. 레거시 화면이 일부 있는 환경일 가능성. **읽고 수정 가능 수준**으로 자기 평가할 것 (없다면 그대로 말하기).
+3. **JSP + jQuery**(우대) — 직접 운영 경험 없음. 레거시 화면이 일부 있는 환경일 가능성. **읽고 수정 가능 수준**으로 자기 평가할 것 (없다면 그대로 말하기).
 4. **AWS / GCP** — 명시 없음. Azure는 운영. JD가 "Azure, AWS, GCP **등**"이므로 Azure 경험으로 갈음 가능하나, 운영 클라우드 확인 필요.
 5. **Oracle** — 명시 없음. MySQL 운영. JD는 "MySQL 또는 Oracle"이므로 충족.
-6. **Hexagonal / Clean Architecture (우대)** — 명시적 도입 기재 없음. 단, **SlotTemplate / EmbeddingMetadataProvider / `RccSpinResultAnalyzer` 인터페이스 분리** 등 포트-어댑터적 사고는 보유. 면접에서 "이름은 안 붙였지만 동일한 원칙으로" 답변 가능.
+6. **Hexagonal / Clean Architecture**(우대) — 명시적 도입 기재 없음. 단, **SlotTemplate / EmbeddingMetadataProvider / `RccSpinResultAnalyzer` 인터페이스 분리** 등 포트-어댑터적 사고는 보유. 면접에서 "이름은 안 붙였지만 동일한 원칙으로" 답변 가능.
 7. **F&B / e-Commerce 도메인** — 무경험. 도메인 학습 의지를 말로 보완해야 함.
 8. **Bitbucket** — Git은 운영, Bitbucket UI는 직접 기재 없음. 사실상 동등하므로 무리 없이 답변 가능.
 
@@ -63,10 +63,10 @@
 
 > **이 공고에서는 "운영 안정성 + 성능 개선 + 장애 대응" 서사가 가장 잘 먹힘.** AI/Agent 서사는 부차로.
 
-1. **다중 서버 인메모리 캐시 정합성 설계 (SB 개발팀 + NSC 슬롯팀 통합)** — JD의 "성능 개선 / 품질 향상 / 운영" 키워드와 가장 직결. JPA 이벤트 리스너 + MQ Fanout + StampedLock + 멀티클라우드(Azure 포함) 풀스택. **메인으로 앞세울 것.**
+1. **다중 서버 인메모리 캐시 정합성 설계**(SB 개발팀 + NSC 슬롯팀 통합) — JD의 "성능 개선 / 품질 향상 / 운영" 키워드와 가장 직결. JPA 이벤트 리스너 + MQ Fanout + StampedLock + 멀티클라우드(Azure 포함) 풀스택. **메인으로 앞세울 것.**
 2. **Kafka Outbox Pattern 설계** — 트랜잭션·메시지 경계 이해. AFTER_COMMIT + REQUIRES_NEW + 재전송 스케줄러. **시니어 백엔드 면접관이 좋아하는 깊이.**
 3. **NHN Cloud Container 503 graceful shutdown 해결** — 정확히 JD의 "장애/이슈 분석 대응" 항목. preStop 15s + gRPC grace 12s + 여유 3s 예산 설계 서사가 강력.
-4. **슬롯 스핀 성능 최적화 (AliasMethod + ThreadLocalRandom)** — "성능 개선" 어필용 보조 카드. 알고리즘/RNG 교체 의사결정 서사로 활용.
+4. **슬롯 스핀 성능 최적화**(AliasMethod + ThreadLocalRandom) — "성능 개선" 어필용 보조 카드. 알고리즘/RNG 교체 의사결정 서사로 활용.
 5. **(보조) Confluence RAG 벡터 색인 배치 파이프라인** — Spring Batch + 운영형 파이프라인. AI 색채를 빼고 "**대용량 배치 + 재시작 안전성 + I/O 병렬화**" 관점으로 재포장.
 
 > **빼거나 줄일 것**: AI 웹툰 MVP, AI 에이전트 단독 슬롯 구현. 이 공고에서는 차별화보다 "본업 안 챙긴" 인상을 줄 위험. **언급은 하되 메인으로 두지 말 것.**

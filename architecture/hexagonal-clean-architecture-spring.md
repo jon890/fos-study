@@ -395,7 +395,7 @@ Spring 컨텍스트 없이 돌아간다는 사실이 핵심이다. 실행 시간
 도입 강도를 세 단계로 본다.
 
 1. **단계 0 — 그냥 Layered**: Controller / Service / Repository / Entity. 비즈니스 규칙이 적은 CRUD 어드민, 짧은 수명의 PoC.
-2. **단계 1 — UseCase + Port (도메인은 Entity 재사용)**: Application Service를 명시적으로 분리하고, Outbound Port를 Repository 위에 인터페이스로 둔다. JPA 엔티티는 그대로 도메인 역할도 겸한다. 대부분의 백엔드는 여기서 충분하다.
+2. **단계 1 — UseCase + Port**(도메인은 Entity 재사용): Application Service를 명시적으로 분리하고, Outbound Port를 Repository 위에 인터페이스로 둔다. JPA 엔티티는 그대로 도메인 역할도 겸한다. 대부분의 백엔드는 여기서 충분하다.
 3. **단계 2 — Pure Domain 분리**: 도메인 모델과 JPA 엔티티 분리, 매퍼, ArchUnit, 멀티 어댑터. 도메인 규칙이 풍부하거나(주문/정산/회원 등급/쿠폰), 멀티 채널/멀티 영속성/멀티 외부 시스템이거나, 팀이 충분히 크고 변경 빈도가 높을 때.
 
 레거시 커머스 코드에 한 번에 단계 2를 적용하려고 하면 거의 항상 실패한다. 효과적인 패턴은 다음과 같다.

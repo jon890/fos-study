@@ -30,7 +30,7 @@ if (count > 100) {  // 분당 100회 초과
 }
 ```
 
-**한계: 경계 문제 (Boundary Problem)**
+**한계: 경계 문제**(Boundary Problem)
 
 ```
 1:59분에 100회 요청 → 허용

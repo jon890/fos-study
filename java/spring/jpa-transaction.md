@@ -93,7 +93,7 @@ order.getItems().size();  // ← LazyInitializationException!
                           //   트랜잭션 종료 후 접근
 ```
 
-**해결책 (상황에 따라 선택)**:
+**해결책**(상황에 따라 선택):
 
 ```java
 // 1. Fetch Join으로 필요한 연관관계 미리 로딩

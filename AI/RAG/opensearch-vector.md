@@ -1,7 +1,7 @@
 # OpenSearch를 VectorStore로 활용하기 위한 가이드
 
 - OpenSearch는 원래 Elasticsearch에서 파생된 **검색 엔진 기반 분산 데이터베이스**
-- 최근에는 **벡터 검색(Vector Search)** 기능이 강화되어 RAG 시스템에서 많이 쓰임
+- 최근에는 **벡터 검색**(Vector Search) 기능이 강화되어 RAG 시스템에서 많이 쓰임
   - 또 다른 활용으로는 추천 시스템, 이상 감지, 자연어 처리 등에도 사용 됨
   - 자세한 내용은
     - https://opensearch.org/platform/vector-search/
@@ -79,7 +79,7 @@
 
 ## 3. OpenSearch가 벡터 검색을 어떻게 수행하는가?
 
-- 벡터 검색 알고리즘은 주로 **HNSW (Hierarchical Navigable Small World graph)** 기반
+- 벡터 검색 알고리즘은 주로 **HNSW**(Hierarchical Navigable Small World graph) 기반
   - HNSW 핵심 요약
     - 벡터 간 유사도를 차직 위한 그래프 구조
     - 수백만 벡터까지 빠름
@@ -148,7 +148,7 @@
 사실 embedding + vector search만으로는 검색 품질이 100% 나오지 않음
 그래서 대규모 서비스는 다음을 조합함
 
-- **1. Hybrid Search (BM25 + Vector)**
+- **1. Hybrid Search**(BM25 + Vector)
   - BM25(키워드 검색)와 벡터 검색을 합친 방식
   - 예
     - `score = 0.7 * vector_score + 0.3 * bm25_score`
@@ -157,7 +157,7 @@
     - 문맥 검색도 가능함
     - RAG 품질 대폭 상승
   - OpenSearch 2.x에서 공식 지원
-- **2. Reranking (re-ranking 모델 적용)**
+- **2. Reranking**(re-ranking 모델 적용)
   - 검색 결과 Top N개를 가져온 다음, LLM 또는 corss-encoder 모델로 다시 랭킹
   - `Vector Search -> Top 200 전달 -> Reranker -> Top 5 추출`
   - 검색 품질이 극적으로 개선됨

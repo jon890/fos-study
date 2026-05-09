@@ -113,7 +113,7 @@
   }
   ```
 
-- **7. 스트림 처리 (특히 async generator)**
+- **7. 스트림 처리**(특히 async generator)
 
   - 웹소켓, SSE, 풀링 기반 데이터 스트림 -> async generator와 `for await...of` 조합이 좋음
 

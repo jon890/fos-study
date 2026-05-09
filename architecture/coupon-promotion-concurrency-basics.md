@@ -15,7 +15,7 @@
 쿠폰 도메인을 설계할 때는 세 종류의 객체를 분리해서 생각한다.
 
 - **CouponPolicy** — 캠페인 정의. 총 발급 수량, 시작/종료 시간, 할인 규칙, 사용 가능 매장, 중복 사용 가능 여부를 가진다.
-- **Coupon (CouponIssue)** — 사용자가 실제로 보유한 쿠폰. `policyId`, `userId`, `code`, `status`, `issuedAt`, `usedAt`, `expiredAt` 같은 필드를 가진다.
+- **Coupon**(CouponIssue) — 사용자가 실제로 보유한 쿠폰. `policyId`, `userId`, `code`, `status`, `issuedAt`, `usedAt`, `expiredAt` 같은 필드를 가진다.
 - **CouponRedemption** — 한 번의 사용 이벤트. `couponId`, `orderId`, `usedAt`, `revokedAt`을 가진다. 한 쿠폰이 여러 번 사용 가능하다면(스탬프형) 이 객체가 N개가 된다.
 
 이 셋을 합쳐 한 테이블로 만들면 처음에는 편하지만, 사용/취소/복구 흐름이 들어오는 순간 상태 컬럼 하나로는 표현이 부족해진다. 면접에서 "쿠폰 테이블 어떻게 설계하시겠어요" 질문이 오면 이 세 객체를 분리한다고 답하면 좋은 출발이 된다.
@@ -169,7 +169,7 @@ update가 0건이면 이미 사용됐거나 만료됐거나 다른 사람의 쿠
 
 - **Optimistic lock** — 충돌이 드물 때. 실패하면 재시도하거나 사용자에게 즉시 에러. 쿠폰 사용은 충돌이 드문 편이라 보통 여기로 충분하다.
 - **Pessimistic lock** — 충돌이 잦고, 재시도 비용이 클 때. 한 row를 두고 여러 트랜잭션이 자주 다투는 상황. 쿠폰에서는 정책 카운터에 잠깐 쓸 수는 있다.
-- **분산락 (Redis Redlock, ZooKeeper, DB advisory lock)** — DB row 단위가 아닌 비즈니스 단위 락. 예: "한 사용자가 동시에 두 주문을 만들지 못하게" 같은 cross-row 락. 사용량 제한, 큐 직렬화에 쓴다. 단일 row 정합성에 분산락을 거는 것은 over-engineering인 경우가 많다.
+- **분산락**(Redis Redlock, ZooKeeper, DB advisory lock) — DB row 단위가 아닌 비즈니스 단위 락. 예: "한 사용자가 동시에 두 주문을 만들지 못하게" 같은 cross-row 락. 사용량 제한, 큐 직렬화에 쓴다. 단일 row 정합성에 분산락을 거는 것은 over-engineering인 경우가 많다.
 
 분산락은 만능이 아니다. Redlock은 노드 fail-over 시점에 안전성 논쟁이 있고(Martin Kleppmann의 비판이 유명하다), TTL 만료와 작업 종료 사이의 race도 있다. "분산락을 걸었으니 안전하다"가 아니라 "분산락 + DB unique key + 상태 전이 update"가 안전하다고 답하는 편이 면접 점수가 더 좋다.
 
@@ -193,7 +193,7 @@ update가 0건이면 이미 사용됐거나 만료됐거나 다른 사람의 쿠
 한 쿠폰의 라이프사이클을 트랜잭션 경계와 함께 그려본다.
 
 1. **발급** — Redis `DECR`로 입장권 확인 → RDBMS `INSERT coupon`. 두 단계가 같은 트랜잭션이 아니므로 outbox 또는 보정 배치를 둔다.
-2. **장바구니 적용 (예약)** — `Coupon.status = ISSUED → RESERVED`. 다른 주문에 같은 쿠폰이 들어가지 못하게 짧게 잠근다.
+2. **장바구니 적용**(예약) — `Coupon.status = ISSUED → RESERVED`. 다른 주문에 같은 쿠폰이 들어가지 못하게 짧게 잠근다.
 3. **결제 시도** — PG 호출. PG는 외부 시스템이므로 트랜잭션에 묶지 않는다.
 4. **결제 성공 콜백** — `RESERVED → USED`. `coupon_redemption` row 생성. 같은 `paymentId`로 두 번 호출되어도 멱등하게 처리한다.
 5. **결제 실패** — `RESERVED → ISSUED`. 자동 복구.
@@ -375,10 +375,10 @@ latch.countDown();
 
 피크 트래픽 대응은 단일 기법이 아니라 입구–카운터–DB–후속처리의 4단 방어다.
 
-- **입구 (API Gateway/WAF)** — 사용자당 RPS 제한, 봇 차단. 발급 시도 자체를 줄인다.
-- **카운터 (Redis)** — `DECR` 단일 키로 정원 검증. 매진되면 즉시 차단.
-- **DB (RDBMS)** — Redis를 통과한 요청만 받고, unique key로 1인 1쿠폰을 보장한다. insert는 빠르게.
-- **후속 처리 (Kafka/outbox)** — 분석, 알림, 회계 정합성 검증은 비동기로 뺀다. 실시간 경로에서 제거한다.
+- **입구**(API Gateway/WAF) — 사용자당 RPS 제한, 봇 차단. 발급 시도 자체를 줄인다.
+- **카운터**(Redis) — `DECR` 단일 키로 정원 검증. 매진되면 즉시 차단.
+- **DB**(RDBMS) — Redis를 통과한 요청만 받고, unique key로 1인 1쿠폰을 보장한다. insert는 빠르게.
+- **후속 처리**(Kafka/outbox) — 분석, 알림, 회계 정합성 검증은 비동기로 뺀다. 실시간 경로에서 제거한다.
 
 추가 기법.
 - **대기열 패턴** — 정원이 매우 작고 트래픽이 매우 큰 경우, 사용자에게 대기열 토큰을 발급하고 순서대로만 발급 호출을 들여보낸다.

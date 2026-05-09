@@ -119,7 +119,7 @@ public int removeDuplicates(int[] nums) {
 
 Two Pointers는 순수 알고리즘 문제에만 국한되지 않는다. 백엔드 실무에서도 같은 사고방식이 반복된다.
 
-**예시 1 — 정렬된 두 결과 셋 병합 (Merge Two Sorted Results)**
+**예시 1 — 정렬된 두 결과 셋 병합**(Merge Two Sorted Results)
 
 두 개의 정렬된 DB 결과 목록을 메모리에서 병합할 때, 각 리스트에 포인터를 두고 비교하면서 합친다. 이것이 Merge Sort의 핵심이자 Two Pointers의 변형이다.
 

@@ -443,7 +443,7 @@ public class CardPaymentStrategy implements PaymentStrategy {
 }
 ```
 
-Spring `@Component`로 등록된 Bean은 기본이 싱글턴이다. 동시 요청이 들어오면 인스턴스 변수를 공유한다. 전략 클래스는 **무상태(stateless)**여야 한다. 필요한 데이터는 메서드 파라미터로 전달해야 한다.
+Spring `@Component`로 등록된 Bean은 기본이 싱글턴이다. 동시 요청이 들어오면 인스턴스 변수를 공유한다. 전략 클래스는 **무상태**(stateless)여야 한다. 필요한 데이터는 메서드 파라미터로 전달해야 한다.
 
 ### 실수 4: 전략이 너무 많아지는 Over-Engineering
 

@@ -203,6 +203,6 @@ tmux send-keys -t 2 "claude --task '문서 작성'" Enter
 
 ## 관련 도구
 
-- **TPM (Tmux Plugin Manager)**: 플러그인 관리자. `~/.tmux/plugins/tpm`
+- **TPM**(Tmux Plugin Manager): 플러그인 관리자. `~/.tmux/plugins/tpm`
 - **yazi**: 터미널 파일 탐색기. tmux 단축키로 연동하면 `Prefix + Tab`으로 즉시 파일 탐색 가능
 - **tmuxinator**: YAML로 복잡한 세션 레이아웃을 정의해서 재사용하는 도구

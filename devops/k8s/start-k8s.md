@@ -61,7 +61,7 @@
 - **ConfigMap / Secret**
   - 환경변수, 설정들을 Pod 외부에 분리
   - Secret은 암호화
-- **HPA (Horizontal Pod Autoscaler)**
+- **HPA**(Horizontal Pod Autoscaler)
   - CPU, 메모리, 커스텀 메트릭 기반으로 **자동 스케일 아웃/스케일 인**
 - **Node / Cluster / Control Plane**
   - Node = 실제 컨테이너가 올라가는 서버

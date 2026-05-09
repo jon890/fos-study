@@ -32,7 +32,7 @@ error 111은 ECONNREFUSED, TCP 레벨에서 연결이 거부됐다는 뜻이다.
 
 컨테이너가 종료될 때 실제로 일어나는 일을 추적해봤다.
 
-**종료 시퀀스 (수정 전)**
+**종료 시퀀스**(수정 전)
 
 1. preStop hook 실행: Envoy `drain_listeners` 호출 → `sleep 20`
 2. preStop 완료 → SIGTERM 전달 → gRPC 서버 **즉시 종료** → 포트 50051 닫힘

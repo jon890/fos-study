@@ -19,7 +19,7 @@ RRWL write lock 대기 타임라인:
 
 트래픽이 많은 서비스에서 로컬 캐시를 주기적으로 갱신해야 하는데, 그 사이에 읽기 요청이 끊이지 않으면 쓰기(갱신)가 계속 밀리는 현상이 생긴다.
 
-`StampedLock`은 이 문제를 **낙관적 읽기(Optimistic Read)** 로 해결한다.
+`StampedLock`은 이 문제를 **낙관적 읽기**(Optimistic Read) 로 해결한다.
 
 ---
 

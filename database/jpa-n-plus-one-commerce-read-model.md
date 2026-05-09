@@ -165,7 +165,7 @@ spring:
         default_batch_fetch_size: 100
 ```
 
-부모 N건을 조회한 뒤, LAZY 컬렉션을 처음 접근할 때 Hibernate가 자식 N개를 한 번의 `where parent_id in (?, ?, …)` 쿼리로 묶어서 가져온다. **N+1이 N+1이 아니라 1+1 또는 1+(N/100)** 으로 줄어든다.
+부모 N건을 조회한 뒤, LAZY 컬렉션을 처음 접근할 때 Hibernate가 자식 N개를 한 번의 `where parent_id in (?, ?, …)` 쿼리로 묶어서 가져온다. **N+1이 N+1이 아니라 1+1 또는 1+**(N/100) 으로 줄어든다.
 
 **언제 쓰나**:
 - 목록 + 컬렉션 둘 이상이 LAZY로 엮여 있을 때

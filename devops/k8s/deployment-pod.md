@@ -1,7 +1,7 @@
 # Deployment와 Pod
 
 - 계속해서, ArgoCD를 하향식으로 학습해 나가본다.
-- 다음으로는 **Deployment(전략) -> ReplicaSet(관리) -> Pod(실체)** 순서로 내려가게 된다.
+- 다음으로는 **Deployment(전략) -> ReplicaSet(관리) -> Pod**(실체) 순서로 내려가게 된다.
 
 <br />
 
@@ -17,7 +17,7 @@
 - 개념 : 컨테이너를 감싸고 있는 껍데기이다.
 - 특징
   - **1 Pod = 1 IP** : Pod 하나마다 고유한 내부 IP를 할당받는다.
-  - **일회용(Ephemeral)** : Pod는 영원하지 않다. 죽으면 **되살리는 게 아니라, 폐기하고 새로운 Pod를 만든다**
+  - **일회용**(Ephemeral) : Pod는 영원하지 않다. 죽으면 **되살리는 게 아니라, 폐기하고 새로운 Pod를 만든다**
   - **다중 컨테이너** : 보통은 `Spring Boot` 컨테이너 1개만 들어가지만, 로그 수집기나 프록시 같은 보조 컨테이너(Sidecar)를 옆에 끼워서 같이 띄울 수도 있다.
     - 이들은 **localhost**로 통신한다.
 
@@ -82,9 +82,9 @@ spec:
 개발자가 이미지 태그를 `v1`에서 `v2`로 바꾸고 `kubectl apply`를 하면 무슨 일이 벌어질까?
 
 1. **Deployment**가 "어? 버전이 바뀌었네?"라고 감지한다.
-2. **Deployment**는 **새로운 ReplicaSet (v2용)**을 만든다. (아직 Pod 개수는 0)
+2. **Deployment**는 **새로운 ReplicaSet**(v2용)을 만든다. (아직 Pod 개수는 0)
 3. **Deployment**가 새 RS에게 "Pod 1개 만들어봐"라고 시킨다. -> v2 Pod 1개 생성
 4. 새 Pod가 `ReadinessProbe` (헬스 체크)를 통과해서 "준비 완료" 상태가 되면,
-5. **Deployment**는 **기존 RS (v1용)**에게 "Pod를 1개 줄여"라고 시킨다. -> v1 Pod 1개 삭제
+5. **Deployment**는 **기존 RS**(v1용)에게 "Pod를 1개 줄여"라고 시킨다. -> v1 Pod 1개 삭제
 6. 이 과정을 목표 개수 (Replicas: 2)가 될 떄까지 반복한다.
 7. **결과**: 사용자는 다운타임 없이 v1에서 v2로 자연스럽게 넘어간다.

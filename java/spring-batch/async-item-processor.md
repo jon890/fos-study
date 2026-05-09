@@ -4,14 +4,14 @@
 
 이 구조의 핵심은 **읽기는 동기, 처리는 비동기, 쓰기는 동기**(Future Unwrapping)이다.
 
-- **1. ItemReader (Main Thread)**:
+- **1. ItemReader**(Main Thread):
   - 단일 스레드에서 Chunk Size만큼 데이터를 순차적으로 읽는다.
   - 따라서 **Reader에는 Executor가 필요 없다.**
-- **2. AsyncItemProcessor (Main Thread -> Worker Threads)**:
+- **2. AsyncItemProcessor**(Main Thread -> Worker Threads):
   - Main 스레드가 읽은 데이터를 받아 `TaskExecutor`에 작업을 제출(Submit)한다.
   - 즉시 `Future<T>`를 리턴하고 다음 데이터를 받는다.
   - **여기에만 `ExecutorService(TaskExecutor)`가 필요하다.**
-- **3. AsyncItemWriter (Main Thread)**:
+- **3. AsyncItemWriter**(Main Thread):
   - `ASyncItemWriter`는 `List<Future<T>>`를 받는다.
   - 내부적으로 루프를 돌며 `Future.get()`을 호출해 결과가 나올 때까지 기다린다.
   - **따라서 Writer는 별도의 Executor를 가지지 않으며, Main 스레드에서 동작한다**
@@ -23,14 +23,14 @@
 
 `AsyncItemProcessor`를 사용할 떄 성능 병목은 **Chunk Size와 Thread Pool Size의 불일치**에서 발생한다.
 
-- **A. 이상적인 비율 (1:1)**:
+- **A. 이상적인 비율**(1:1):
   - 권장 설정: `Thread Pool Size` >= `Chunk Size`
   - 이유: Reader가 Chunk(100개)를 다 읽어서 Processor에 넘기면, Processor는 순식간에 100개의 Task를 스레드 풀에 던진다.
     - 만약 `Chunk=100`, `Pool=10`이라면?
     - 10개만 돌고 90개는 큐에서 대기한다.
     - Writer는 100개가 다 끝날 때까지 기다려야 하므로, 전체적인 처리 시간은 **가장 늦게 끝나는 작업**에 맞춰진다.
     - 따라서 한 청크 내의 아이템들이 **최대한 동시**에 실행되도록 맞추는 것이 베스트이다.
-- **B. 현실적인 제약 (DB Connection Pool)**
+- **B. 현실적인 제약**(DB Connection Pool)
   - 하지만 무작정 스레드 풀을 늘릴 수 없는 결정적인 이유가 **DB 커넥션**이다.
   - **Processor 내부에서 DB 조회/저장이 일어난다면?**
     - `Thread Pool Size`가 100이어도 `HikariCP Maximum Pool Size`가 10이라면, 나머지 90개 스레드는 DB 커넥션을 얻기 위해 블락 상태가 된다. 컨텍스트 스위칭 비용만 낭비하게 된다.

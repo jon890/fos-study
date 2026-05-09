@@ -173,7 +173,7 @@ LIMIT 20;
 
 - **URI 버전**: `/v1/orders`, `/v2/orders`. 캐싱/라우팅이 단순하고, CDN 로그만 봐도 트래픽 분포가 보인다. 실무 기본값.
 - **Custom Header**: `X-API-Version: 2026-01-15`. Stripe 방식. 날짜 기반 버전을 계정 단위로 고정해 점진 이관.
-- **Accept Header (content negotiation)**: `Accept: application/vnd.company.order.v2+json`. 순수주의엔 맞지만 클라이언트 구현 비용이 높고 CDN에 불친절하다.
+- **Accept Header**(content negotiation): `Accept: application/vnd.company.order.v2+json`. 순수주의엔 맞지만 클라이언트 구현 비용이 높고 CDN에 불친절하다.
 
 선택 기준:
 - 외부 공개 + 다수 파트너: URI + 장기 지원(최소 12개월 deprecation).

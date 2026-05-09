@@ -23,7 +23,7 @@
       > 브라우저/Node 양쪽을 모두 고려한 가장 모던한 선택. </br>
       > 99% 경우 fetch면 충분
 
-  - **2. undici (Node 공식 HTTP 라이브러리)**
+  - **2. undici**(Node 공식 HTTP 라이브러리)
 
     - Node 팀에서 만든 가장 빠르고 안정적인 HTTP/1.1 클라이언트
     - 심지어 Node 내부에서도 http 모듈보다 undici가 더 빠름
@@ -46,7 +46,7 @@
       > 성능, 안정성, Node 공식성 면에서 최고의 선택 </br>
       > Node 백엔드라면 fetch + undici 조합이 현재 표준
 
-  - **3. axios - 전통의 강자 (하지만 2025년 기준 만능은 아님)**
+  - **3. axios - 전통의 강자**(하지만 2025년 기준 만능은 아님)
 
     - 장점
       - request/response interceptor

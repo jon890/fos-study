@@ -238,7 +238,7 @@ public class ConfluencePageItemReader implements ItemReader<ConfluencePageItem>,
 
 ## Atlas Doc Format → Markdown 변환
 
-Confluence Cloud는 페이지 본문을 기본적으로 **Atlas Doc Format(ADF)** 으로 반환한다. JSON 기반의 트리 구조 포맷인데, 그냥 저장하면 RAG 검색에 쓸 수 없다. 임베딩 모델에는 구조화된 텍스트가 들어가야 하는데, Markdown으로 변환하면 문서의 계층 구조와 의미론적 정보를 보존할 수 있어서 검색 품질에 유리하다.
+Confluence Cloud는 페이지 본문을 기본적으로 **Atlas Doc Format**(ADF) 으로 반환한다. JSON 기반의 트리 구조 포맷인데, 그냥 저장하면 RAG 검색에 쓸 수 없다. 임베딩 모델에는 구조화된 텍스트가 들어가야 하는데, Markdown으로 변환하면 문서의 계층 구조와 의미론적 정보를 보존할 수 있어서 검색 품질에 유리하다.
 
 ```json
 // ADF 예시

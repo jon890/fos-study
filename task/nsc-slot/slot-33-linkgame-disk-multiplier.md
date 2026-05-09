@@ -6,7 +6,7 @@
 
 ## 어떤 슬롯인가
 
-이 슬롯은 **링크게임(Link Game) + 홀드&스핀(Hold & Spin)** 이 핵심이다.
+이 슬롯은 **링크게임(Link Game) + 홀드&스핀**(Hold & Spin) 이 핵심이다.
 
 베이스 스핀에서 링크 심볼을 모아서 윈도우를 채우면 링크게임에 진입하고, 링크게임에서 추가 심볼을 모아 최종 보상을 결정한다. 윈도우가 완전히 링크 심볼로 채워지면 Grand Jackpot이 발생한다.
 
@@ -119,7 +119,7 @@ final CascadingEventListener cascadingEventListener =
 
 링크게임에서 하이 심볼(H01, H02, H03)은 디스크 배수를 크게 올리는 고가치 심볼이다. 확률 테이블만으로 이를 조절하면 기댓값은 맞출 수 있지만, 특정 스핀에서 하이 심볼이 몰려 나오는 극단적인 경우를 막을 수 없다.
 
-**하드 캡(hard cap)** 을 추가했다.
+**하드 캡**(hard cap) 을 추가했다.
 
 ```java
 if (SymbolEnum.isHighSymbol(decidedSymbol)) {

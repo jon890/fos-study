@@ -27,7 +27,7 @@ BMAD의 개발 라이프사이클은 크게 두 단계다.
 | 에이전트 | 역할 | 산출물 |
 |---|---|---|
 | **Analyst** | 요구사항 탐색, 제약 조건 파악 | Project Brief |
-| **Product Manager (PM)** | Brief → 제품 명세서 | PRD (Product Requirements Document) |
+| **Product Manager**(PM) | Brief → 제품 명세서 | PRD (Product Requirements Document) |
 | **Architect** | 시스템 설계, 컴포넌트 구조, 데이터 흐름 | Architecture Document |
 | **Scrum Master** | 스토리 작성, 수용 기준 정의 | User Stories |
 
@@ -95,9 +95,9 @@ BMAD 말고 다른 선택지도 있다.
 
 | 도구/방법론 | 성격 | BMAD 대비 |
 |---|---|---|
-| **[CrewAI](https://github.com/crewAIInc/crewAI)** | 역할 기반 멀티에이전트 실행 프레임워크 | BMAD는 방법론, CrewAI는 실행 엔진. 상호보완 가능 |
-| **[AutoGen](https://github.com/microsoft/autogen)** | 멀티에이전트 대화 프레임워크 | 오픈엔디드 문제 해결에 강함. BMAD보다 유연하지만 구조가 약함 |
-| **[LangGraph](https://github.com/langchain-ai/langgraph)** | 그래프 기반 워크플로우 | 복잡한 조건 분기에 강함. 엔지니어링 비용이 높아서 팀 규모가 있어야 효과적 |
+| **[CrewAI]**(https://github.com/crewAIInc/crewAI) | 역할 기반 멀티에이전트 실행 프레임워크 | BMAD는 방법론, CrewAI는 실행 엔진. 상호보완 가능 |
+| **[AutoGen]**(https://github.com/microsoft/autogen) | 멀티에이전트 대화 프레임워크 | 오픈엔디드 문제 해결에 강함. BMAD보다 유연하지만 구조가 약함 |
+| **[LangGraph]**(https://github.com/langchain-ai/langgraph) | 그래프 기반 워크플로우 | 복잡한 조건 분기에 강함. 엔지니어링 비용이 높아서 팀 규모가 있어야 효과적 |
 | **Vibe Coding** | 그냥 프롬프트로 바로 코딩 | 속도는 빠르지만 BMAD가 해결하려는 "블랙박스 코드" 문제를 그대로 안고 간다 |
 | **Spec Kit / OpenSpec** | 가벼운 스펙 문서 방식 | BMAD보다 오버헤드가 적고 실용적. 체계는 덜하지만 소규모 팀엔 오히려 맞을 수 있다 |
 
