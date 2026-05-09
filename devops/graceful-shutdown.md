@@ -200,4 +200,13 @@ sequenceDiagram
 
 ## 실제 적용 사례
 
-- [OCR 서버 배포·스케일인 시 503 에러 수정 — Graceful Shutdown 미적용](../task/ai-service-team/graceful-shutdown-503-fix.md) — NHN Cloud Container 30초 고정 예산 안에서 Envoy `drain_listeners` + preStop sleep + Python gRPC `server.stop(grace=12)` + supervisord `stopwaitsecs=17` 시간 예산 설계로 30~60초 503 묶음을 해결한 사례. 이 글의 "Kubernetes + NCS 환경에서의 시간 예산" 단락이 정확히 그 환경이다.
+### NHN Cloud Container 30초 고정 예산 하 OCR gRPC 서버 503 해결
+
+이 글의 "Kubernetes + NCS 환경에서의 시간 예산" 단락이 정확히 그 환경이다.
+
+- preStop 스크립트에서 Envoy `drain_listeners` 호출
+- preStop sleep 15s 로 Endpoints 전파 대기
+- Python gRPC `server.stop(grace=12)` 로 in-flight RPC 처리
+- supervisord `stopwaitsecs=17` 로 grace + 여유 확보
+
+→ [OCR 서버 배포·스케일인 시 503 에러 수정](../task/ai-service-team/graceful-shutdown-503-fix.md)
