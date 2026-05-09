@@ -194,3 +194,7 @@
 - **6. 대량 장애 전파 방지**
   - 빠른 실패
   - fallback / degrade 모드
+
+## 관련
+
+- [DB 커넥션 풀 크기](../database/connection-pool.md) — 다른 레이어의 같은 풀 패턴 (DB 워커 자원 한계)

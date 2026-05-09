@@ -82,7 +82,12 @@ pattern: `\`[a-zA-Z0-9_./\-]+\.mdx?\``       # 백틱 안의 .md 경로
 pattern: `(?:[a-z0-9\-]+/)+[a-z0-9\-]+\.mdx?`  # 백틱 없이 본문에 등장한 경로
 ```
 
-매치 줄에서 그 경로가 이미 `](path)` 형태로 감싸여 있으면 제외한다. 정규식만으로 어려우면 Python 후처리.
+매치 줄에서 그 경로가 이미 `](path)` 형태로 감싸여 있으면 제외한다. **추가 마스킹** — `[\`path\`](path)` 형태처럼 백틱 경로가 마크다운 링크의 표시 텍스트인 경우도 false positive 다 (실측 확인됨). 다음 패턴으로 사전 제거:
+
+```python
+# 백틱이 link 표시 텍스트인 경우 제거
+text = re.sub(r'\[`[^`]+`\]\([^)]+\)', '', text)
+```
 
 **수정 제안 형식**:
 
@@ -133,6 +138,8 @@ text = re.sub(r'`[^`]+`', '', text)                     # 인라인 코드
 **의도적 줄글 패턴 — 사전 필터링 (보고 제외)**:
 
 - `interview/**` 디렉터리의 면접 답변 카드 (한 호흡 키워드 enumeration)
+- `resume/**` — 이력서 본문은 자연스러운 줄글
+- `architecture/cj-foodville-*-interview.md`, `architecture/fnb-*.md` 등 면접 컨텍스트 파일 (이름에 "interview" / "fnb" / "foodville" 포함되면 보수적 처리)
 - 자기소개 / 1분 발화 템플릿
 - 5개 이내 기술 스택 단순 나열 (`Prometheus + Grafana + Tempo + Loki + OTel`)
 - 메모리/사이즈/시간 합산식 (`7 + 100 + 8 = 115 bytes`)
@@ -145,7 +152,7 @@ CLAUDE.md / blog-post-writer 룰 중 grep 한 줄로 잡히는 항목.
 
 1. **`~` 취소선 함정** — 한 paragraph(빈 줄 분리 단위) 안에 `~` 가 짝수 개로 등장 → 두 `~` 사이가 취소선으로 렌더링될 위험
 2. **`§` 특수문자** — section sign 사용 금지 룰 위반
-3. **Bold + 괄호 패턴** — `**텍스트(영문)**` 형태 (CLAUDE.md 룰: `**텍스트**(영문)` 으로 써야 함)
+3. **Bold + 괄호 패턴** — `**텍스트(영문)**` 형태 (CLAUDE.md 룰: `**텍스트**(영문)` 으로 써야 함). **검증 권장** — 이 룰은 "일부 파서에서 깨진다" 추정 기반이라 fos-blog 실제 렌더링이 정상이라면 룰 자체를 완화 검토
 
 **검사 코드**:
 
@@ -168,16 +175,22 @@ re.findall(r'\*\*[^*]+\([^)]+\)\*\*', text)
 
 ### Step B — Sub-agent 위임 검사 (축 3, 4, 7)
 
-무거운 의미 검사 3개를 **Agent 도구로 동시 fork** 한다. 메인은 task 정의만 보내고 결과만 받는다. 한 번에 multiple Agent 호출을 하나의 메시지에 묶어 병렬 실행.
+무거운 의미 검사 3개를 **전용 sub-agent 로 동시 fork** 한다. 각 agent 는 별도 정의 파일로 관리되며 (`fos-study/.claude/agents/`), Agent 도구의 `subagent_type` 으로 호출한다. 한 번에 multiple Agent 호출을 하나의 메시지에 묶어 병렬 실행.
 
-#### 위임 형식 — 표준 schema
+#### 호출 형식
 
-각 sub-agent 는 정해진 형식으로만 보고하도록 프롬프트에 명시한다.
+| 축 | subagent_type | 정의 파일 |
+|---|---|---|
+| 3. Orphan | `orphan-doc-auditor` | `.claude/agents/orphan-doc-auditor.md` |
+| 4. Cross-link | `cross-link-auditor` | `.claude/agents/cross-link-auditor.md` |
+| 7. README 정합성 | `readme-integrity-auditor` | `.claude/agents/readme-integrity-auditor.md` |
+
+#### 표준 schema (모든 agent 공통)
 
 ```yaml
 axis: <orphan | cross-link | readme-integrity>
 findings:
-  - file: <path>
+  - file: <repo root 기준 상대경로>
     line: <number 또는 null>
     severity: <high | medium | low>
     pattern: <짧은 패턴 식별자>
@@ -187,58 +200,18 @@ total: <number>
 notes: <짧은 메타 코멘트, 없으면 빈 문자열>
 ```
 
-#### 축 3. Orphan doc — sub-agent
+#### 호출 시 프롬프트 (간단)
 
-**Sub-agent 프롬프트 핵심**:
+각 agent 정의 파일에 system prompt 가 박혀 있으므로 호출 시 프롬프트는 **간단한 task 트리거**만 필요하다.
 
-> fos-study 저장소(`/Users/nhn/personal/fos-study`) 의 모든 `.md` 파일 중 어디에서도 마크다운 링크로 참조되지 않는 파일을 찾아라.
->
-> 예외 — orphan 으로 보고하지 말 것:
->
-> - 모든 폴더의 `README.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`
-> - 저장소 루트의 `CLAUDE.md`
->
-> 마스킹: `.git`, `node_modules`, `.claude`, `.omc`, `memory` 디렉터리 제외.
->
-> 표준 schema 로 반환.
+> "fos-study 저장소를 검사하고 표준 YAML schema 로 결과를 반환해라."
 
-**서브에이전트 종류**: `Explore` (read-only, 빠름) 또는 `general-purpose`.
+#### 메인의 책임
 
-#### 축 4. Cross-link 제안 — sub-agent
-
-**Sub-agent 프롬프트 핵심**:
-
-> 두 문서가 같은 주요 키워드를 상호 언급하는데 한쪽 또는 양쪽 모두 링크가 없는 경우를 찾아라.
->
-> 키워드 소스: 각 문서의 H1 제목, 상위 H2, 파일명(kebab-case).
->
-> 후보 매칭 시 false positive 가 많으니 다음 케이스만 보고:
->
-> - 두 문서가 **확실히 같은 기술 주제**를 다루고
-> - 한쪽 본문에 다른 쪽 키워드가 **링크 아닌 형태**로 등장
->
-> 자동 수정 금지 — 후보 제안만.
->
-> 표준 schema 로 반환.
-
-#### 축 7. README ↔ 실제 파일 정합성 — sub-agent
-
-**Sub-agent 프롬프트 핵심**:
-
-> 각 폴더의 `README.md` 인덱스가 실제 그 폴더의 `.md` 파일 목록과 일치하는지 검사해라.
->
-> 검사 항목:
->
-> - **누락**: 폴더에 있지만 README 에 등재 안 된 `.md`
-> - **고스트**: README 가 가리키지만 실제 파일 없음 (broken link 와 별개로, README 인덱스 행이 가리키는 케이스만)
-> - **카테고리 위치 어색**: 다른 카테고리 헤더 아래에 잘못 배치된 행 (의심만, 자동 단정 금지)
->
-> 대상 README 우선순위:
->
-> - `task/<팀명>/README.md` (CLAUDE.md task/ 구조 룰)
-> - 기술 카테고리 README (`architecture/`, `database/`, `java/`, `devops/`, `interview/` 등)
->
-> 표준 schema 로 반환.
+- 3 agent 를 한 메시지에 multiple Agent tool calls 로 동시 fork (`run_in_background: true` 권장)
+- 결과 도착 시 schema 검증 (axis / findings / total 필드 존재)
+- spot-check 3건 정도 sampling 해 정확성 검증 (agent 의 보고는 의도이지 실측이 아닐 수 있음)
+- 통합 리포트의 해당 축 채우기
 
 ### Step C — 결과 통합 + 리포트
 

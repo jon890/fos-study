@@ -26,3 +26,8 @@ JavaScript 런타임과 언어 기능 학습 기록.
 ## TypeScript
 
 - [Brand Type](./typescript/brand-type.md) — 타입 안정성을 위한 브랜드 타입 패턴
+
+## 자료구조 / 도서
+
+- [JavaScript로 배우는 자료구조와 알고리즘](./Data_Structures_and_Algorithms/README.md) — 책 정리 (Big O, JS 특성)
+- [Heap 자료구조](./Heap/README.md) — Min/Max Heap 구현

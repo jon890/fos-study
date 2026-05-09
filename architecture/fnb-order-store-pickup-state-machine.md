@@ -386,3 +386,7 @@ public class OrderStateMachine {
 - [ ] 비정상 전이 시도 카운트 알람 임계값 설정
 - [ ] 부하 테스트로 동시 결제 승인 + 동시 매장 접수 시나리오 통과 확인
 - [ ] 트랜잭션 안에서 외부 HTTP를 호출하지 않는지 정적 분석으로 검증
+
+## 관련
+
+- [F&B 이커머스 결제·환불·정산 운영 가이드](./fnb-payment-refund-settlement-operations.md) — 결제·환불 상태가 주문 상태머신과 만나는 지점

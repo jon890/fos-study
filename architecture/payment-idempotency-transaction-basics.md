@@ -373,3 +373,7 @@ public class FakePgClient {
 - [ ] 부분취소와 부분환불을 한 모델로 표현할 수 있는가
 - [ ] 모든 상태 전이가 audit에 남는지 코드 흐름으로 확인 가능한가
 - [ ] 면접 답변을 90초 안에 위 5단계로 압축해서 말할 수 있는가
+
+## 관련
+
+- [커머스 주문 상태와 데이터 정합성 기본기](./commerce-order-state-consistency-fundamentals.md) — 주문 상태 전이와 결제 멱등성이 만나는 지점

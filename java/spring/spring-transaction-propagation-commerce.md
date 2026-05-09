@@ -238,3 +238,7 @@ logging:
 - [ ] `transaction.interceptor` TRACE 로그로 propagation이 의도대로 적용되는지 한 번 이상 눈으로 확인했다
 - [ ] rollbackOnly / `UnexpectedRollbackException` 시나리오를 직접 재현해 봤다
 - [ ] 면접 답변에서 본인 Outbox 경험과 트랜잭션 전파 정책을 한 문단 안에서 자연스럽게 연결할 수 있다
+
+## 관련
+
+- [트랜잭션 전파·격리수준·AFTER_COMMIT 실전](./transaction-propagation-isolation-after-commit.md) — 같은 주제의 일반 개념 문서. 격리수준 + Outbox 흐름까지

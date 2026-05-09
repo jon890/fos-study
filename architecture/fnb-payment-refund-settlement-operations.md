@@ -391,3 +391,7 @@ public PgResponse approve(@RequestBody PgRequest req) {
 - [ ] 모든 결제·환불 상태 전이가 감사로그에 append-only로 남는가
 - [ ] CS가 한 결제건의 전체 타임라인을 한 화면에서 볼 수 있는가
 - [ ] 매장·브랜드·본사 정산 흐름과 PG 입금 구조(통합 vs 서브머천트)가 문서화되어 있는가
+
+## 관련
+
+- [F&B 주문/매장/픽업 상태머신 설계](./fnb-order-store-pickup-state-machine.md) — 환불 흐름이 묶여 있는 주문 상태머신
