@@ -37,6 +37,7 @@ AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
   - ADF → Markdown 변환, 임베딩 비동기 처리(`AsyncItemProcessor`), 삭제 동기화, 다중 스페이스 지원
   - 변경 감지(version 비교), 데이터 보강(첨부파일·작성자·멘션), 전략 패턴 기반 메타데이터 확장
 - **임베딩 메타데이터 구성 개선**: blocklist(remove) → allowlist(provider) 방식 전환, `EmbeddingMetadataProvider` 인터페이스 도입으로 OCP 준수
+- **OCR 서버 배포·스케일인 503 에러 수정**: Envoy `drain_listeners` 후 SIGTERM 즉시 종료로 발생한 30~60초 503 묶음 — gRPC 서버에 graceful shutdown 적용해 preStop sleep 동안 in-flight 요청을 마저 처리하도록 종료 시퀀스 재정렬
 - **AI 웹툰 제작 도구 MVP**: 12일 단독 풀스택 — 웹소설 → 세계관/캐릭터/각색/글콘티 → 60컷 이미지 6단계 파이프라인
   - Claude Code 하네스 기반 4인 에이전트 팀(planner/critic/executor/docs-verifier)으로 12일/199 plan/760 커밋
   - vibe 코딩 → spec 기반 코딩 진화: `/planning` → `/plan-and-build` → `/build-with-teams`, 디자이너 통합용 `/integrate-ux` 스킬화
