@@ -18,6 +18,11 @@
 
 - [김영한의 실전 데이터베이스 설계](./김영한의-실전-데이터베이스-설계/README.md)
 
+## 면접 대비 — 커머스 응용 (초안)
+
+- [JPA N+1과 커머스 조회 모델](./jpa-n-plus-one-commerce-read-model.md) — 주문/메뉴/쿠폰 도메인
+- [MyBatis와 JPA/Hibernate 트레이드오프](./mybatis-jpa-tradeoffs.md) — 레거시 백엔드를 다루는 시니어 관점
+
 ## 관련
 
 - [캐시 설계 전략](../architecture/cache-strategies.md) — 캐시 패턴 총정리

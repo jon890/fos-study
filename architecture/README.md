@@ -37,3 +37,22 @@
 ## 캐시
 
 - [캐시 설계 전략 총정리](./cache-strategies.md) — Look-Aside, Read/Write-Through, Cache Stampede
+
+## 면접 대비 — 커머스/F&B 도메인 (초안)
+
+CJ푸드빌 디지털 채널 백엔드 면접 대비 묶음. 슬롯 도메인 경험을 커머스·F&B 설계 언어로 번역하는 학습 노트.
+
+- [F&B · e-Commerce 디지털 채널 도메인 한 장 정리](./fnb-ecommerce-domain-overview.md)
+- [e-Commerce 주문·결제 도메인 모델링](./ecommerce-order-payment-domain-modeling.md) — 상태머신, 멱등성, Outbox/Saga
+- [커머스 주문 상태와 데이터 정합성 기본기](./commerce-order-state-consistency-fundamentals.md)
+- [F&B 주문/매장/픽업 상태머신 설계](./fnb-order-store-pickup-state-machine.md)
+- [F&B 쿠폰·프로모션·멤버십·포인트 설계](./fnb-coupon-promotion-membership-design.md)
+- [F&B 이커머스 결제·환불·정산 운영 가이드](./fnb-payment-refund-settlement-operations.md)
+- [쿠폰/프로모션 동시성과 정합성 기본기](./coupon-promotion-concurrency-basics.md)
+- [결제 도메인 멱등성과 트랜잭션 재시도 기본기](./payment-idempotency-transaction-basics.md)
+- [CJ푸드빌 커머스/F&B 도메인 설계 면접 대비](./cj-foodville-commerce-domain-design-interview.md)
+
+## 면접 대비 — 아키텍처/운영 (초안)
+
+- [Hexagonal / Clean Architecture를 Spring 백엔드에 적용하기](./hexagonal-clean-architecture-spring.md)
+- [레거시 JSP/jQuery 화면과 신규 API가 공존하는 백엔드 운영 전략](./legacy-jsp-jquery-api-coexistence.md)

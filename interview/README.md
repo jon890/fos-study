@@ -38,6 +38,11 @@
 - [토스뱅크 Server Developer (Product)](./tossbank-server-product.md)
 - [토스플레이스 Node.js 백엔드](./tossplace-nodejs-backend.md)
 - [토스플레이스 Node.js 백엔드 컬처핏](./tossplace-nodejs-culturefit.md)
+- [CJ푸드빌 디지털 채널 Back-end](./cj-foodville-digital-channel-backend.md)
+
+### 면접 답변집
+
+- [CJ푸드빌 디지털 채널 Back-end 면접 답변집](./commerce-interview-answer-slot-experience-mapping.md) — 슬롯 도메인 경험을 커머스/F&B 설계로 번역
 
 ### 회사 분석
 

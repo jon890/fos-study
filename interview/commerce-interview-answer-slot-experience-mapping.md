@@ -159,7 +159,7 @@ public class MenuMasterCache implements StaticDataManager<Long, Menu> {
 
 ### Q4. "메뉴 추천이나 노출 슬롯에 가중치를 둬야 한다면?"
 
-AliasMethod O(1) 가중치 랜덤을 그대로 인용한다. 슬롯에서 100만 회 시뮬레이션 시 누적합 O(n) 방식이 병목이었던 사례가 있고, JMH 기준 `ThreadLocalRandom` 70.241 ops/s vs `SecureRandom` 1.197 ops/s 측정 근거를 들 수 있다. 외식 도메인에서는 다음 사례에 적용 가능하다고 답한다.
+AliasMethod O(1) 가중치 랜덤을 그대로 인용한다. 슬롯에서 100만 회 시뮬레이션 시 누적합 O(n) 방식이 병목이었던 사례가 있고, 멀티스레드 환경에서 `SecureRandom`은 내부 `synchronized`로 락 경합이 누적된다는 점을 근거로 `ThreadLocalRandom`으로 교체한 의사결정을 들 수 있다. 외식 도메인에서는 다음 사례에 적용 가능하다고 답한다.
 
 - 추천 메뉴 슬롯의 **가중치 기반 노출** — 신메뉴 가중치 부스팅, 매장별 우선순위 다름.
 - A/B 테스트 트래픽 분배 — 고정 비율로 빠르게 뽑아야 할 때.

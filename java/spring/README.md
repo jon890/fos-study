@@ -19,6 +19,7 @@ Spring Framework / Spring Boot 학습 기록. IoC, 생명주기, 트랜잭션, A
 - [Spring Data JPA 트랜잭션 실수 모음](./jpa-transaction.md)
 - [트랜잭션 전파·격리수준·AFTER_COMMIT 실전](./transaction-propagation-isolation-after-commit.md)
 - [TransactionSynchronization 실전](./transaction-synchronization.md) — 커밋 이후 외부 호출을 안전하게 묶는 법
+- [Spring 트랜잭션 전파, 커머스 주문/결제에서 실전으로 이해하기](./spring-transaction-propagation-commerce.md) (초안)
 
 ## JPA
 

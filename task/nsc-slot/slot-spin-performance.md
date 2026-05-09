@@ -103,17 +103,6 @@ final int random = RANDOM.nextInt(maxRandom);
 
 `ThreadLocalRandom`으로 충분하다.
 
-### JMH 벤치마크
-
-실제로 얼마나 차이가 나는지 JMH로 측정했다. 1000만 번 랜덤을 뽑는 기준이다.
-
-```
-ThreadLocalRandom: 70.241 ops/s
-SecureRandom:       1.197 ops/s
-```
-
-약 58배 차이다. 시뮬레이터에서 스핀 하나당 수십 번 랜덤을 뽑는 걸 감안하면 이 차이가 누적된다.
-
 ### 왜 ThreadLocalRandom이 빠른가
 
 `ThreadLocalRandom`은 이름 그대로 스레드별 독립 인스턴스다. 각 스레드가 자신만의 상태를 가지기 때문에 스레드 간 경쟁이 없다.
@@ -163,4 +152,3 @@ private ThreadLocalRandom getRandom() {
 ## 사용 기술
 
 - Java 17
-- JMH (Java Microbenchmark Harness)

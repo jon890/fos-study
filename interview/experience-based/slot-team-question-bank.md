@@ -153,20 +153,20 @@
 
 ### 면접관이 실제로 보는 것
 
-- 성능 문제를 추측이 아닌 측정(JMH) 기반으로 접근하는 엔지니어링 태도와, 도구 선택 시 보안 특성의 필요성을 상황에 맞게 판단하는 역량을 평가한다.
+- 성능 문제를 추측이 아닌 근거(락 경합 모델·자료구조 복잡도) 기반으로 접근하는 엔지니어링 태도와, 도구 선택 시 보안 특성의 필요성을 상황에 맞게 판단하는 역량을 평가한다.
 - ThreadLocalRandom 필드 저장 버그처럼 Java 동시성 API의 미묘한 오용 패턴을 인지하고 수정한 경험이 있는지 확인한다.
 
 ### 실제 경험 기반 답변 포인트
 
 - AliasMethod 도입: 가중치 랜덤 선택을 누적합 O(n) 방식에서 사전 테이블 기반 O(1) 방식으로 전환했다. 테이블 생성은 슬롯 초기화 시 1회만 수행하고, 매 스핀마다 호출되는 pick()은 랜덤 2회로 항상 O(1)이다.
-- SecureRandom → ThreadLocalRandom: JMH로 1000만 번 기준 측정 결과 ThreadLocalRandom(70.241 ops/s) vs SecureRandom(1.197 ops/s), 약 58배 차이를 확인했다.
-- SecureRandom 선택 근거 부재 확인: 슬롯은 서버가 결과를 결정하고 클라이언트에 전달하는 구조다. 공격자가 내부 랜덤 상태에 접근할 경로가 없으므로 암호학적 예측 불가능성이 필요한 시나리오가 아니다. SecureRandom은 OS 엔트로피 풀 사용과 내부 synchronized 처리로 멀티스레드 환경에서 락 경합이 발생한다.
+- SecureRandom → ThreadLocalRandom: SecureRandom은 OS 엔트로피 풀 사용과 내부 synchronized 처리로 멀티스레드 환경에서 락 경합이 누적된다. ThreadLocalRandom은 스레드별 독립 인스턴스라 경합이 없다.
+- SecureRandom 선택 근거 부재 확인: 슬롯은 서버가 결과를 결정하고 클라이언트에 전달하는 구조다. 공격자가 내부 랜덤 상태에 접근할 경로가 없으므로 암호학적 예측 불가능성이 필요한 시나리오가 아니다.
 - ThreadLocalRandom 오용 패턴 수정: ThreadLocalRandom.current()를 필드로 저장하면 초기화 스레드에 귀속된 인스턴스가 고정된다. 다른 스레드에서 해당 필드를 사용하면 스레드 안전하지 않다. 매번 current()를 호출하도록 수정했다.
 
 ### 1분 답변 구조
 
 - 상황: 시뮬레이터 100만 스핀에서 슬롯 1종당 10분 이상 걸리는 병목이 있었다. 가중치 선택 O(n)과 SecureRandom 내부 락 경합이 주요 원인이었다.
-- 결정: AliasMethod로 가중치 선택을 O(1)로 전환하고, JMH 측정으로 58배 성능 차이를 확인한 뒤 SecureRandom을 ThreadLocalRandom으로 교체했다. 슬롯 구조상 암호학적 보장이 불필요하다는 근거도 명확히 정리했다.
+- 결정: AliasMethod로 가중치 선택을 O(1)로 전환하고, 멀티스레드에서 SecureRandom의 내부 synchronized로 인한 락 경합이 시뮬레이터 병목의 한 축이라는 점을 근거로 SecureRandom을 ThreadLocalRandom으로 교체했다. 슬롯 구조상 암호학적 보장이 불필요하다는 근거도 명확히 정리했다.
 - 결과: 시뮬레이터 처리 시간이 대폭 단축됐고, ThreadLocalRandom 필드 저장 버그도 함께 발견해 수정했다. 이 개선은 실제 스핀 응답 경로에도 동일하게 적용됐다.
 
 ### 압박 질문 방어 포인트
@@ -185,7 +185,7 @@
 
 **F4-2.** ThreadLocalRandom을 시뮬레이터(멀티스레드)와 일반 스핀(단일 요청) 양쪽에서 사용했는데, 두 컨텍스트에서 동작 차이가 있었나요?
 
-**F4-3.** JMH 벤치마크 설계 시 JVM 워밍업(warmup iterations)이나 GC 영향을 어떻게 처리했나요?
+**F4-3.** 성능 비교를 할 때 JVM 워밍업이나 GC 영향을 어떻게 분리했나요? 마이크로벤치를 본인이 직접 설계해 본 적은 있나요?
 
 **F4-4.** 실제 슬롯 스핀에서 AliasMethod와 ThreadLocalRandom 전환 후 프로덕션 응답 시간에 측정 가능한 개선이 있었나요? 시뮬레이터 외에 실스핀 영향도 측정했나요?
 
@@ -244,5 +244,5 @@
 - SlotTemplate의 PayCalculator 주입 구조, WayPayCalculator 싱글턴의 멀티스레드 안전성 근거, BaseSlotService와 interface default 메서드의 차이를 설명할 수 있는가
 - RCC 캐시 생성 동시성을 낙관적 락 대신 DB 유니크 키 + 예외 처리로 처리한 트레이드오프와 캐시 없음 시 폴백 동작 방식을 설명할 수 있는가
 - StampedLock writeLock/tryReadLock 2.5초 타임아웃의 근거, 타임아웃 만료 시 처리 방식, ReentrantReadWriteLock 대비 선택 이유를 설명할 수 있는가
-- AliasMethod O(1) 선택의 테이블 구성 원리, SecureRandom 대신 ThreadLocalRandom을 선택한 보안 근거, JMH 58배 측정 결과, ThreadLocalRandom 필드 저장 버그를 설명할 수 있는가
+- AliasMethod O(1) 선택의 테이블 구성 원리, SecureRandom 대신 ThreadLocalRandom을 선택한 보안 근거(서버에서 결과 결정 + 내부 락 경합 부재), ThreadLocalRandom 필드 저장 버그를 설명할 수 있는가
 - Cursor Rules 20개의 도메인 컨텍스트 공급 설계 의도, 에이전트 생성 코드 품질 검증 방법, 추상화 레이어와 Rules의 상호 의존 관계를 설명할 수 있는가

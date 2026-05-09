@@ -38,7 +38,7 @@
 | JPA/Hibernate | `PostCommitUpdateEventListener`, `@TransactionalEventListener(AFTER_COMMIT)`, `REQUIRES_NEW` 운영 (`resume/...v4.md` 문항1) |
 | MySQL RDBMS | MySQL 8.x 운영 + 복합 인덱스 추가로 캐시 충족 판정 쿼리 개선 (`task/nsc-slot/rcc-rtp-cache-control.md`) |
 | 클라우드 환경 (Azure 명시) | NHN Cloud + **Azure 이중화** 운영, Azure Service Bus, Azure Blob (`task/sb-dev-team/`) |
-| 성능 개선 및 품질 향상 | AliasMethod O(n)→O(1), 58배 처리량 개선(JMH), Welford OOM 제거 (`task/nsc-slot/slot-spin-performance.md`, `slot-simulator-oom.md`) |
+| 성능 개선 및 품질 향상 | AliasMethod O(n)→O(1) 가중치 랜덤 도입, Welford Online으로 시뮬레이터 OOM 제거 (`task/nsc-slot/slot-spin-performance.md`, `slot-simulator-oom.md`) |
 | 장애/이슈 분석 대응 | NHN Cloud `terminationGracePeriodSeconds` 30s 제약 하 503 에러 제거 (`task/ai-service-team/graceful-shutdown-503-fix.md`) |
 | 기획 조직과의 커뮤니케이션 | 의사결정 문서화 습관, AI 웹툰 MVP에서 디자이너·기획과 협업 (`task/ai-service-team/webtoon-maker-ai-pipeline.md`) |
 | (우대) 운영 오픈 경험 | NSC 슬롯 8종 신규 개발/오픈, Spring Boot 3 기반 신규 팀 셋업 |
@@ -66,7 +66,7 @@
 1. **다중 서버 인메모리 캐시 정합성 설계 (SB 개발팀 + NSC 슬롯팀 통합)** — JD의 "성능 개선 / 품질 향상 / 운영" 키워드와 가장 직결. JPA 이벤트 리스너 + MQ Fanout + StampedLock + 멀티클라우드(Azure 포함) 풀스택. **메인으로 앞세울 것.**
 2. **Kafka Outbox Pattern 설계** — 트랜잭션·메시지 경계 이해. AFTER_COMMIT + REQUIRES_NEW + 재전송 스케줄러. **시니어 백엔드 면접관이 좋아하는 깊이.**
 3. **NHN Cloud Container 503 graceful shutdown 해결** — 정확히 JD의 "장애/이슈 분석 대응" 항목. preStop 15s + gRPC grace 12s + 여유 3s 예산 설계 서사가 강력.
-4. **슬롯 스핀 성능 최적화 (AliasMethod + ThreadLocalRandom + JMH)** — "성능 개선" 어필용 보조 카드. 정량 근거(58배) 있음.
+4. **슬롯 스핀 성능 최적화 (AliasMethod + ThreadLocalRandom)** — "성능 개선" 어필용 보조 카드. 알고리즘/RNG 교체 의사결정 서사로 활용.
 5. **(보조) Confluence RAG 벡터 색인 배치 파이프라인** — Spring Batch + 운영형 파이프라인. AI 색채를 빼고 "**대용량 배치 + 재시작 안전성 + I/O 병렬화**" 관점으로 재포장.
 
 > **빼거나 줄일 것**: AI 웹툰 MVP, AI 에이전트 단독 슬롯 구현. 이 공고에서는 차별화보다 "본업 안 챙긴" 인상을 줄 위험. **언급은 하되 메인으로 두지 말 것.**
@@ -104,7 +104,7 @@
 ### 운영·장애
 10. **(강점)** 본인이 가장 어려웠던 장애 사례와 RCA. → graceful shutdown 503 사례.
 11. 새벽 장애 알림이 왔을 때 첫 5분 동안 보는 것 3가지?
-12. 성능 개선을 정량으로 입증한 사례. → AliasMethod / JMH 서사.
+12. 성능 개선을 의사결정으로 입증한 사례. → AliasMethod 도입 / RNG 교체 서사 (정량 수치는 본인이 직접 측정한 부분만 인용).
 
 ### 도메인·협업
 13. F&B 도메인은 처음인데 어떤 식으로 학습 계획을 잡을 것인가?

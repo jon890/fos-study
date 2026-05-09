@@ -197,13 +197,13 @@ Loan Tech Platform 팀의 인턴 경험기로, 토스뱅크 개발 문화와 실
 | 공고 요구사항 | 내 경험 |
 | --- | --- |
 | Kotlin/Java Spring Framework 개발 | Java 17 + Spring Boot 3.x (NSC 슬롯팀, 2024.06~2025.11), Java 11 + Spring Boot 2.6 (SB개발팀, 2023~2024), NestJS/TypeScript도 보유 |
-| 대용량 트래픽 안정적 운영 | 다중 서버 인메모리 캐시 정합성 (RabbitMQ Fanout + StampedLock writeLock + tryReadLock 2.5초), 스핀 성능 최적화 (AliasMethod O(1), SecureRandom → ThreadLocalRandom 58배 개선), JMH 기반 측정 |
+| 대용량 트래픽 안정적 운영 | 다중 서버 인메모리 캐시 정합성 (RabbitMQ Fanout + StampedLock writeLock + tryReadLock 2.5초), 스핀 성능 최적화 (AliasMethod O(1) 가중치 랜덤, SecureRandom → ThreadLocalRandom 전환) |
 | Redis 사용 경험 | NSC 슬롯팀: Spring Boot + Redis (JPA + QueryDSL). 더퓨쳐컴퍼니: Redis Streams(이벤트 큐), Redis JSON(호가창 저장), RediSearch(가격 범위 조회·집계), Redis 분산 세마포어(직렬화 게이트), RDB 영속성 구성 |
 | Kafka 사용 경험 | 직접 Kafka 운영 경험은 없음. Redis Streams로 유사한 이벤트 스트리밍 패턴(Consumer Group, 순서 보장, 미처리 메시지 구독) 직접 구현한 경험 있음 |
 | 데이터 모델/API 설계 능력 | 거래소 체결 엔진: 호가창·주문 도메인 설계, Price-Time Priority 매칭 알고리즘 구현. RAG 배치: 11개 Step 파이프라인 설계, 전략 패턴 기반 메타데이터 확장 구조 |
 | 비즈니스 요건 이해 | 더퓨쳐컴퍼니: 게임 거래소 기획부터 설계·구현. NHN: 슬롯 게임 RTP 보장 시스템(RCC) 설계, 금융 법적 요건 반영 |
 | 캐시 아키텍처 설계 | SB개발팀: Ehcache + 인메모리 Map(`AbstractStaticReloadable`) + MQ Fanout 멀티서버 캐시 정합성 (RabbitMQ/Azure Service Bus 이중화). NSC슬롯: Spring @Async 비동기 캐시 생성 시스템 |
-| 성능 최적화 | AliasMethod O(1) 가중치 랜덤 선택 도입, SecureRandom → ThreadLocalRandom 전환(58배 개선), JMH 벤치마킹으로 측정 |
+| 성능 최적화 | AliasMethod O(1) 가중치 랜덤 선택 도입, SecureRandom → ThreadLocalRandom 전환 (멀티스레드에서 락 경합 제거) |
 | 아키텍처 추상화 | SlotTemplate/BaseSlotService/ExtraConfig 분리로 슬롯 엔진 추상화. RccSpinResultAnalyzer 인터페이스로 슬롯별 캐시 조건 캡슐화. EmbeddingMetadataProvider 전략 패턴 도입(OCP 준수) |
 | Spring Batch 경험 | RAG 배치 파이프라인: AsyncItemProcessor + AsyncItemWriter 병렬 처리, CompositeItemProcessor 체이닝, @JobScope 데이터 홀더, 재시작 가능 설계 (allowStartIfComplete) |
 
