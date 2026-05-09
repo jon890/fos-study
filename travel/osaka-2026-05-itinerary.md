@@ -51,10 +51,10 @@
 - **11:10-12:20** 입국, 수하물, 이동 준비
 - **12:20-13:30** 간사이공항 -> 우메다 이동
 - **13:30-14:00** [호텔 한큐 리스파이어 오사카](https://www.google.com/maps/search/?api=1&query=Hotel+Hankyu+RESPIRE+Osaka) 짐 맡기기
-- **14:00-15:00** 우메다 점심
+- **14:00-15:00** [이치란 우메다 시바타점](https://www.google.com/maps/search/?api=1&query=Ichiran+Umeda+Shibata+Osaka) 점심
 - **15:00-16:10** [그랜드 프론트 오사카](https://www.google.com/maps/search/?api=1&query=Grand+Front+Osaka) / 빔즈 중심 쇼핑
 - **16:10-17:20** [루쿠아 오사카 / 루쿠아 1100](https://www.google.com/maps/search/?api=1&query=LUCUA+Osaka) / 몽벨 중심 쇼핑
-- **17:20-18:20** 뉴발란스 / 스니커즈 매장 확인
+- **17:20-18:20** [뉴발란스 그랜드 프론트 오사카](https://www.google.com/maps/search/?api=1&query=New+Balance+Grand+Front+Osaka) / 스니커즈 매장 확인
 - **18:20-19:20** 저녁
 - **19:20-20:20** 한큐 또는 한신 백화점 식품관 / 간식 / 선물 가볍게 확인
 - **20:20-21:20** 체력과 날씨가 괜찮으면 우메다 스카이빌딩, 아니면 호텔 복귀
@@ -68,7 +68,9 @@
    - 루쿠아 오사카 쪽에서 확인한다.
    - 아웃도어 의류, 가방, 소품을 보기 좋다.
 3. **뉴발란스**
-   - 우메다 / 오사카역권에서 확인한다.
+   - 1순위 매장은 **뉴발란스 그랜드 프론트 오사카**. 그랜드 프론트 오사카 남관 5F, 11:00-21:00 운영으로 확인된다.
+   - JR 오사카역 중앙북구에서 도보 약 3분 권역이라 숙소 / 그랜드 프론트 쇼핑 동선과 잘 맞는다.
+   - 러닝, 라이프스타일, 키즈/주니어, 슈즈, 의류, 액세서리 취급으로 확인된다.
    - 원하는 모델과 사이즈가 없으면 3일차 신사이바시 / 난바권에서 보충한다.
 4. **백화점 / 식품관**
    - 한큐와 한신을 모두 깊게 보기보다 하나만 메인으로 본다.
@@ -78,6 +80,9 @@
 
 - [그랜드 프론트 오사카](https://www.google.com/maps/search/?api=1&query=Grand+Front+Osaka)
   - 빔즈, 편집숍, 라이프스타일 매장 후보.
+- [뉴발란스 그랜드 프론트 오사카](https://www.google.com/maps/search/?api=1&query=New+Balance+Grand+Front+Osaka)
+  - 그랜드 프론트 오사카 남관 5F. 11:00-21:00 운영.
+  - 러닝/라이프스타일 슈즈와 의류를 같이 보기 좋음.
 - [루쿠아 오사카 / 루쿠아 1100](https://www.google.com/maps/search/?api=1&query=LUCUA+Osaka)
   - 몽벨, 의류, 잡화 보기 좋음.
 - [요도바시 카메라 + LINKS UMEDA](https://www.google.com/maps/search/?api=1&query=Yodobashi+Camera+Multimedia+Umeda)
@@ -92,7 +97,7 @@
 ### 점심 / 저녁 후보
 
 - [이치란 우메다 시바타점](https://www.google.com/maps/search/?api=1&query=Ichiran+Umeda+Shibata+Osaka)
-  - 숙소 근처에서 빠르게 먹기 좋음.
+  - **1일차 점심 확정.** 숙소 근처에서 빠르게 먹고 우메다 쇼핑을 시작하기 좋음.
 - [무지 카페 그랜드 프론트 오사카](https://www.google.com/maps/search/?api=1&query=Cafe+Meal+MUJI+Grand+Front+Osaka)
   - 가볍고 깔끔함.
 - 그랜드 프론트 / 루쿠아 식당가
@@ -103,7 +108,7 @@
 ### Day 1 운영 팁
 
 - 첫날은 난바와 도톤보리를 빼고 우메다에 집중한다.
-- 빔즈, 몽벨, 뉴발란스 순서로 “꼭 사고 싶은 것”부터 본다.
+- 점심은 이치란 우메다 시바타점으로 확정하고, 이후 빔즈, 몽벨, 뉴발란스 순서로 “꼭 사고 싶은 것”부터 본다.
 - 백화점은 한큐와 한신 중 한 곳만 깊게 본다.
 - 우메다 스카이빌딩은 필수가 아니라 체력 남을 때 붙이는 옵션으로 둔다.
 - 첫날 쇼핑이 밀리면 3일차 신사이바시 / 난바권에서 뉴발란스나 스트릿 쇼핑을 보충한다.
@@ -313,6 +318,7 @@ USJ 다음날이므로 늦게 시작하고, 교토 대신 오사카 시내에서
 - USJ Express Pass 구성과 닌텐도월드 입장 조건
 - USJ 앱 로그인 / 티켓 QR / timed entry
 - 우메다 쇼핑 매장 위치와 영업시간
+- 뉴발란스 그랜드 프론트 오사카 재고 / 사이즈
 - WAD Omotenashi Cafe 영업시간과 위치
 - 아지노야, 미즈노, 다루마 웨이팅 가능성
 - & ISLAND 기타하마 영업시간과 대기 가능성
