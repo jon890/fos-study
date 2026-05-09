@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>김병태 이력서 — CJ푸드빌 디지털 채널 백엔드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 20mm;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+    color: #212529;
+    font-size: 9.5pt;
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ─── Header ─── */
+  .header { margin-bottom: 20px; }
+  .header h1 {
+    font-size: 24pt;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+  }
+  .contact {
+    font-size: 9pt;
+    color: #6c757d;
+    margin-bottom: 14px;
+  }
+  .contact a { color: #6c757d; text-decoration: none; }
+  .contact .label {
+    font-weight: 600;
+    color: #343a40;
+    margin-right: 4px;
+  }
+  .summary {
+    font-size: 9.5pt;
+    color: #343a40;
+    line-height: 1.7;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-left: 3px solid #0d6e3e;
+    border-radius: 0 4px 4px 0;
+  }
+  .summary p { margin: 0; }
+  .summary p + p { margin-top: 8px; }
+
+  /* ─── Section ─── */
+  .section { margin-top: 22px; }
+  .section-title {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #1a1a2e;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #1a1a2e;
+    margin-bottom: 14px;
+    letter-spacing: -0.3px;
+  }
+
+  /* ─── Skills ─── */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 4px 12px;
+    font-size: 9pt;
+    margin-bottom: 6px;
+  }
+  .skill-label { font-weight: 600; color: #343a40; padding: 2px 0; }
+  .skill-value { color: #495057; padding: 2px 0; }
+
+  /* ─── Company ─── */
+  .company { margin-bottom: 4px; }
+  .company-name { font-size: 12.5pt; font-weight: 700; color: #212529; }
+  .company-meta { font-size: 8.5pt; color: #6c757d; margin-top: 2px; }
+
+  /* ─── Team ─── */
+  .team {
+    margin-top: 14px;
+    padding: 10px 12px 8px 12px;
+    background: #f8f9fa;
+    border-left: 3px solid #16213e;
+    border-radius: 0 3px 3px 0;
+  }
+  .team-name { font-size: 11pt; font-weight: 700; color: #16213e; margin-bottom: 2px; }
+  .team-period { font-size: 8.5pt; color: #6c757d; margin-bottom: 4px; }
+  .team-desc { font-size: 9pt; color: #495057; margin-top: 4px; line-height: 1.55; }
+
+  /* ─── Project ─── */
+  .project { margin: 12px 0 14px 0; padding-left: 6px; }
+  .project-title { font-size: 10pt; font-weight: 600; color: #16213e; margin-bottom: 2px; }
+  .project-period { font-size: 8pt; color: #6c757d; margin-bottom: 6px; }
+
+  .block-label {
+    font-size: 9pt;
+    font-weight: 700;
+    color: #16213e;
+    margin-top: 6px;
+    margin-bottom: 2px;
+  }
+  .project ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 4px 0;
+  }
+  .project li {
+    padding-left: 14px;
+    position: relative;
+    margin-bottom: 2px;
+    font-size: 9pt;
+    line-height: 1.55;
+  }
+  .project li::before {
+    content: "\2022";
+    position: absolute;
+    left: 2px;
+    color: #495057;
+  }
+
+  .tech-line {
+    font-size: 8.5pt;
+    color: #495057;
+    margin-top: 6px;
+    padding-left: 2px;
+  }
+  .tech-line .label {
+    font-weight: 700;
+    color: #16213e;
+    margin-right: 4px;
+  }
+
+  /* ─── Education / Etc ─── */
+  .edu-row { margin-bottom: 4px; }
+  .edu-name { font-weight: 600; font-size: 10pt; }
+  .edu-meta { font-size: 8.5pt; color: #6c757d; margin-top: 1px; }
+  .etc-item {
+    padding-left: 14px;
+    position: relative;
+    margin-bottom: 2px;
+    font-size: 9pt;
+  }
+  .etc-item::before {
+    content: "\2022";
+    position: absolute;
+    left: 2px;
+    color: #495057;
+  }
+
+  .divider { border: none; border-top: 1px solid #dee2e6; margin: 14px 0; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; }
+    .company { page-break-after: avoid; }
+    .team { page-break-inside: avoid; }
+    .project-title { page-break-after: avoid; }
+    .project-period { page-break-after: avoid; }
+    .block-label { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<div class="header">
+  <h1>김병태</h1>
+  <div class="contact">
+    <span class="label">연락처</span> 010-2753-2647
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    <span class="label">이메일</span> jon89071@gmail.com
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    <span class="label">GitHub</span> <a href="https://github.com/jon890">github.com/jon890</a>
+  </div>
+  <div class="summary">
+    <p>
+      7년차 백엔드 개발자로, NHN에서 4년째 게임/AI 서비스 백엔드를 담당하고 있습니다.
+      소셜 카지노 슬롯 게임·게임 내 아이템 거래소 체결 엔진·블록체인 입출금 지갑 같은 <strong>다양한 도메인 설계 경험</strong>이 있습니다.
+      좋은 설계와 오래 살아남는 코드를 만드는 데 관심이 많고, 문제를 끈질기게 파고들며 크고 작은 이슈를 다양하게 해결해왔습니다.
+    </p>
+    <p>
+      현재는 AI 서비스개발팀에서 NHN Cloud 대외 AI 서비스 운영과 사내 임직원용 도구를 함께 다루고 있고, 최근에는 AI 웹툰 제작 도구 MVP를 만들었습니다.
+    </p>
+    <p>
+      CJ푸드빌의 디지털 채널을 살펴보면서, 그동안 쌓아온 <strong>다양한 도메인 설계 경험</strong>과
+      <strong>생산성 향상 경험</strong>이 자연스럽게 연결될 수 있다고 봤습니다.
+      이 두 경험을 발판으로 신규 앱 출시와 팀 생산성 양쪽에 기여하고 싶습니다.
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════ 기술 스택 ═══════════ -->
+<div class="section">
+  <div class="section-title">기술 스택</div>
+  <div class="skills-grid">
+    <div class="skill-label">Backend</div>
+    <div class="skill-value">Java, Spring Boot, Spring Batch, Spring Cloud, JPA, Hibernate, QueryDSL, TypeScript, NestJS</div>
+    <div class="skill-label">Database / Cache</div>
+    <div class="skill-value">MySQL, Redis, OpenSearch</div>
+    <div class="skill-label">Message Broker</div>
+    <div class="skill-value">RabbitMQ, Apache Kafka</div>
+    <div class="skill-label">Infra / Cloud</div>
+    <div class="skill-value">NHN Cloud, AWS, Docker, Container Service, Kubernetes</div>
+  </div>
+</div>
+
+<!-- ═══════════ 경력 ═══════════ -->
+<div class="section">
+  <div class="section-title">경력</div>
+
+  <!-- ═════════════════════════ NHN ═════════════════════════ -->
+  <div class="company">
+    <div class="company-name">엔에이치엔(NHN)</div>
+    <div class="company-meta">2022.12 - 재직중 (3년 6개월) &nbsp;|&nbsp; 정규직 &nbsp;|&nbsp; 백엔드 개발 / AI 서비스 개발</div>
+  </div>
+
+  <!-- ─── Team: AI 서비스 개발팀 ─── -->
+  <div class="team">
+    <div class="team-name">AI 서비스 개발팀</div>
+    <div class="team-period">2025.12 - 현재</div>
+    <div class="team-desc">
+      다양한 AI 도구를 만들어보며 시장 가능성을 검증하는 팀.
+      합류 후 사내 RAG 색인 파이프라인 신규 구축, AI 웹툰 제작 도구 같은 신규 시도를 진행해왔습니다.
+    </div>
+  </div>
+
+  <div class="project">
+    <div class="project-title">AI 웹툰 제작 도구 구현</div>
+    <div class="project-period">2026.04</div>
+
+    <div class="block-label">주요 업무</div>
+    <ul>
+      <li>캐릭터 제작·배경 제작·이미지 컷 제작·말풍선 제작까지 웹툰 제작 전 과정을 AI 도구로 자동화한 풀스택 도구 구축 (작품 기획 → 캐릭터/배경 → 각색 → 글콘티 → 이미지 컷 → 말풍선 편집 6단계)</li>
+      <li>AI 환각 차단 — 프롬프트로 범위를 선언하는 수준에서, 출력에 원작 인용을 함께 받아 검증하고, 모델 입력 자체를 정해진 범위로 좁히는 수준까지 단계적으로 강화</li>
+      <li>캐릭터 외형 일관성 확보 — 텍스트로 "이전과 같게"를 강제하는 한계를 인지하고, 기본 시트 이미지를 레퍼런스로 자동 첨부하는 구조로 전환</li>
+      <li>도메인·트랜잭션 경계를 분리한 3계층 아키텍처(Controller / Application / Domain) 적용 및 요청·프로젝트 단위 로그 추적 기반 운영 관찰성 도입</li>
+      <li>디자이너 협업 — 시각 영역과 로직 영역을 디렉터리 단위로 분리해 동시 수정 충돌 제거</li>
+    </ul>
+
+    <div class="block-label">주요 성과</div>
+    <ul>
+      <li>본 도구로 제작된 웹툰이 <a href="https://www.youtube.com/@promptoon_studio" style="color:#0d6e3e;">@promptoon_studio</a> 채널에서 실제 연재 중 — 단발성 PoC 가 아니라 운영 단계로 진입</li>
+    </ul>
+
+    <div class="tech-line"><span class="label">사용한 기술:</span> Next.js, React, Prisma, Zod, Tailwind, Gemini API, Claude Code 하네스</div>
+  </div>
+
+  <div class="project">
+    <div class="project-title">사내 RAG 벡터 검색 배치 파이프라인</div>
+    <div class="project-period">2026.01 - 2026.02</div>
+
+    <div class="block-label">주요 업무</div>
+    <ul>
+      <li>사내 문서를 OpenSearch에 벡터 색인하는 Spring Batch 파이프라인 설계 및 구현</li>
+      <li>11개 Step 분리, 비동기 임베딩 처리, 실패 지점부터 재시작 가능한 구조로 안정성 확보</li>
+    </ul>
+
+    <div class="tech-line"><span class="label">사용한 기술:</span> Java, Spring Boot, Spring Batch, OpenSearch</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ─── Team: NSC 슬롯개발팀 ─── -->
+  <div class="team">
+    <div class="team-name">NSC 슬롯개발팀</div>
+    <div class="team-period">2024.06 - 2025.11 (1년 6개월)</div>
+    <div class="team-desc">
+      소셜 카지노 게임 페블시티의 슬롯 도메인을 전담하는 팀. 신규 슬롯 게임 개발과 슬롯 엔진 공통화, 시뮬레이터/RTP 검증 시스템 운영을 다룹니다.
+      합류 후 신규 슬롯 6종 개발과 슬롯 엔진 점진 리팩터링을 맡았고, AI 에이전트 협업 워크플로 도입 작업을 맡았습니다.
+    </div>
+  </div>
+
+  <div class="project">
+    <div class="project-title">소셜카지노 게임 페블시티 — 슬롯 백엔드 개발 및 도메인 아키텍처 설계</div>
+    <div class="project-period">2024.06 - 2025.11</div>
+
+    <div class="block-label">주요 업무</div>
+    <ul>
+      <li>MSA 기반 게임 서버 아키텍처 개선 및 신규 슬롯 6종 백엔드 로직 설계·개발 (텀블링·웨이243·링크게임·라인+빙고 등)</li>
+      <li>반복되는 게임 로직의 공통화(템플릿 메서드)와 확장이 용이한 데코레이터 패턴 도입</li>
+      <li>MSA 간 데이터 정합성 확보(다중 서버 인메모리 캐시 정합성)와 로깅 시스템 구축으로 운영 효율화</li>
+    </ul>
+
+    <div class="block-label">주요 성과</div>
+    <ul>
+      <li>슬롯 엔진 1년 점진 리팩터링 — 중복 흐름을 단일 템플릿으로 통합, 신규 스핀 타입은 핸들러 패턴으로 확장. 팀에 전파해 후속 슬롯이 동일 구조 위에 얹히도록 정리</li>
+      <li>다중 서버 캐시 정합성 — 트랜잭션 커밋 후 메시지 브로커로 변경을 전파하는 패턴을 적용하면서, 캐시 데이터를 인터페이스로 추상화하고 갱신 중 일관성 보장 락 추가</li>
+      <li>시뮬레이터 OOM 해결 — 1억 건 당첨금 분산 계산을 단일 패스 알고리즘(Welford Online)으로 전환, 공간 복잡도 O(N) → O(1)</li>
+      <li>안정성 확보 — 447개 테스트 작성·유지로 담당 모듈 커버리지 4% → 51% 향상</li>
+      <li>생산성 표준화 — 추상화 정착으로 신규 슬롯 개발 기간 3~4주 수준으로 안정화</li>
+    </ul>
+
+    <div class="tech-line"><span class="label">사용한 기술:</span> Java 17, Spring Boot 3, Spring Cloud, MySQL, Redis, RabbitMQ, JPA, QueryDSL, JUnit 5</div>
+  </div>
+
+  <div class="project">
+    <div class="project-title">슬롯 AI TF — 에이전트 기반 개발 워크플로 도입</div>
+    <div class="project-period">2025.04 - 2025.11</div>
+
+    <div class="block-label">주요 업무</div>
+    <ul>
+      <li>AI 에이전트가 슬롯 도메인 컨텍스트를 이해하도록 구조화된 컨텍스트 파일(Cursor Rules 20종 이상) 관리 체계 수립</li>
+      <li>사내 협업 도구(Dooray)와 AI 에이전트 간 연동을 위한 MCP 서버 제작</li>
+      <li>워크플로 구축을 맡아, 팀원 한 명씩 돌아가며 AI와 협업해 슬롯을 개발하는 방식으로 시너지 창출</li>
+    </ul>
+
+    <div class="block-label">주요 성과</div>
+    <ul>
+      <li>슬롯 서버 개발 기간 4주 → 3주 (약 25% 단축)</li>
+      <li>신규 슬롯 3종(Slot 41 빙고, 44 라인+프리스핀, 47 웨이243)을 에이전트 협업 + 팀 검토로 구현</li>
+    </ul>
+
+    <div class="tech-line"><span class="label">사용한 기술:</span> Cursor, Claude Code, Gemini CLI, Codex, MCP</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ─── Team: SB 개발팀 ─── -->
+  <div class="team">
+    <div class="team-name">SB 개발팀 (스포츠 베팅)</div>
+    <div class="team-period">2022.12 - 2024.05 (1년 6개월)</div>
+    <div class="team-desc">
+      글로벌 승부예측 게임 Bylo Sports의 백엔드/프론트엔드를 함께 다루는 팀. 추천 프로그램·다국어·캐시 운영·블록체인 토큰 보상 흐름 등을 다룹니다.
+      합류해 추천 프로그램·13개 로케일 다국어 시스템 신규 구축과 다중 서버 캐시 운영을 풀스택으로 다뤘습니다.
+    </div>
+  </div>
+
+  <div class="project">
+    <div class="project-title">글로벌 승부예측 게임 Bylo Sports — 풀스택 개발</div>
+    <div class="project-period">2022.12 - 2024.05</div>
+
+    <div class="block-label">주요 업무</div>
+    <ul>
+      <li>추천 프로그램 — 추천/피추천 보너스, 미션 기반 블록체인 토큰 클레임 3단계 상태 머신 설계 및 구현</li>
+      <li>13개 로케일 다국어 시스템 — Svelte derived 합성 + 백엔드 캐시 사전 구성, 스포츠 베팅 도메인 특성상 경기 마켓·선수·핸디캡 표기까지 템플릿 번역</li>
+      <li>다중 서버 인메모리 캐시(Ehcache + Map + RabbitMQ Fanout · Azure Service Bus 이중화) 운영 — 팀에 자리 잡은 캐시 정합성 패턴을 함께 운영</li>
+    </ul>
+
+    <div class="block-label">주요 성과</div>
+    <ul>
+      <li>13개 로케일 글로벌 출시를 백엔드/프론트 양쪽에서 풀스택으로 대응</li>
+      <li>Rollup → Vite/SvelteKit 전환으로 개발자 빌드 경험 개선, JavaScript → TypeScript 전환으로 타입 안정성 강화</li>
+    </ul>
+
+    <div class="tech-line"><span class="label">사용한 기술:</span> Java 11, Spring Boot 2.6, JPA, QueryDSL, Ehcache 3, RabbitMQ, Azure Service Bus, Svelte/SvelteKit, Vite, TypeScript</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═════════════════════════ 더퓨쳐컴퍼니 ═════════════════════════ -->
+  <div class="company">
+    <div class="company-name">주식회사 더퓨쳐컴퍼니</div>
+    <div class="company-meta">2022.02 - 2022.11 (10개월) &nbsp;|&nbsp; 정규직 &nbsp;|&nbsp; 블록체인 백엔드 개발</div>
+  </div>
+
+  <div class="team">
+    <div class="team-name">블록체인 메타버스 게임 백엔드</div>
+    <div class="team-desc">
+      블록체인 기반 메타버스 게임 백엔드를 담당하는 소규모 팀. 게임 내 아이템 거래소·블록체인 입출금·미니게임을 다룹니다.
+      P2P 거래소 체결 엔진과 솔라나 기반 입출금 시스템, 미니게임 백엔드 설계·구현을 맡았습니다.
+    </div>
+  </div>
+
+  <div class="project">
+    <div class="project-title">블록체인 기반 메타버스 게임 백엔드</div>
+    <div class="project-period">2022.02 - 2022.11</div>
+
+    <div class="block-label">주요 업무</div>
+    <ul>
+      <li>솔라나 기반 가상화폐 입출금 및 스왑 시스템 — 유저별 솔라나 지갑 발급, 트랜잭션 모니터링 데몬, 인게임 토큰 출금 플로우 설계 및 구현</li>
+      <li>게임 내 아이템 거래소 — Redis Streams + Redis JSON + RediSearch 기반 P2P 체결 엔진(가격-시간 우선 매칭, 부분 체결, 잔량 등록, 취소) 설계·구현</li>
+      <li>미니게임 — 게임 토큰을 베팅하고 얻는 빙고 게임 백엔드 설계·개발, 유저 이탈 시 재시도 가능한 API 분리 + 지표 분석용 대시보드 구축으로 운영 효율성 증대</li>
+    </ul>
+
+    <div class="block-label">주요 성과</div>
+    <ul>
+      <li>Redis 단일 인프라(Streams/JSON/RediSearch)만으로 거래소 체결 엔진 설계 — 분산 락 없이 스트림 순서 보장 + 플래그 게이트로 동시성 해결, Decimal 기반 정밀 연산으로 부동소수점 오차 차단</li>
+    </ul>
+
+    <div class="tech-line"><span class="label">사용한 기술:</span> NestJS, TypeScript, Redis Streams, Redis JSON, RediSearch, Solana SDK</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═════════════════════════ 엠씨에스텍 ═════════════════════════ -->
+  <div class="company">
+    <div class="company-name">엠씨에스텍</div>
+    <div class="company-meta">2018.08 - 2022.01 (3년 5개월) &nbsp;|&nbsp; 정규직 / 프리랜서 &nbsp;|&nbsp; SI 기반 IT 개발팀</div>
+  </div>
+
+  <div class="team">
+    <div class="team-name">한전KDN SI — 사내 시스템 개발·현대화</div>
+    <div class="team-desc">
+      공공기관(한전KDN) 사내 시스템을 신규 개발 및 레거시 현대화하는 SI 팀. Java/Spring 기반 사내 홈페이지·SMS·헬스케어·임베디드 모니터링 도구 등을 다뤘습니다.
+    </div>
+  </div>
+
+  <div class="project">
+    <div class="project-title">한전KDN 사내 시스템 개발·현대화 (SI)</div>
+    <div class="project-period">2018.08 - 2022.01</div>
+
+    <div class="block-label">주요 업무</div>
+    <ul>
+      <li>헬스케어 앱 1인 백엔드 — 사내 조직도 기반 랭킹·건강 데이터 Batch 시스템 설계, DB 프로시저 의존 로직을 애플리케이션 레벨로 전환, Caffeine 캐시 도입</li>
+      <li>Struts 기반 레거시 사내 홈페이지를 Spring MVC로 마이그레이션 + 대량 SMS 발송 동시 처리량 50건 → 500건으로 개선</li>
+      <li>전기차 충전기 TCP/IP 소켓 프로토콜 검증기 + JNI 기반 네트워크 메시지 추출 + d3.js 실시간 모니터링 대시보드 구축</li>
+    </ul>
+
+    <div class="tech-line"><span class="label">사용한 기술:</span> Java, Spring MVC / Spring Boot, MySQL, Caffeine, JNI</div>
+  </div>
+
+</div>
+
+<!-- ═══════════ 학력 ═══════════ -->
+<div class="section">
+  <div class="section-title">학력</div>
+  <div class="edu-row">
+    <div class="edu-name">전남대학교</div>
+    <div class="edu-meta">2012.03 - 2019.02 &nbsp;|&nbsp; 졸업 &nbsp;|&nbsp; 수학 전공, 소프트웨어공학 부전공 &nbsp;|&nbsp; 평점 3.18 / 4.5</div>
+  </div>
+</div>
+
+<!-- ═══════════ 자격증 / 기타 ═══════════ -->
+<div class="section">
+  <div class="section-title">자격증 / 기타</div>
+  <div class="etc-item">정보처리기사 (2018.08)</div>
+  <div class="etc-item">TOEIC 860 (2017.01)</div>
+  <div class="etc-item">GitHub: <a href="https://github.com/jon890" style="color:#495057;">https://github.com/jon890</a></div>
+</div>
+
+</body>
+</html>
