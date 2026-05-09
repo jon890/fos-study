@@ -7,7 +7,7 @@
 - [Docker](./docker/README.md) — 컨테이너, HealthCheck, 프로세스 격리
 - [Kubernetes](./k8s/README.md) — Pod, Service, Ingress, Helm, Argo CD
 - [쿠버네티스 인 액션](./k8s-in-action/README.md) — 책 정리
-- [Monitoring](./monitoring/README.md) — Prometheus, remote_write
+- [Observability](./observability/README.md) — Prometheus, Micrometer, Datadog APM
 
 ## 네트워크 / 운영
 
