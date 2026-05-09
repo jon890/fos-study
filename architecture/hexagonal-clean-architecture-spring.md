@@ -6,7 +6,7 @@ Spring 기반 백엔드 경력 중후반에서 가장 자주 마주치는 질문
 
 면접에서도 똑같은 형태로 물어본다. "도메인 로직과 인프라 코드를 분리한 경험이 있는가", "JPA 엔티티를 그대로 도메인 모델로 쓰는 것의 문제는 무엇인가", "이 코드에 트랜잭션 경계를 어디에 두어야 하는가". 이 질문들에 답하려면 Hexagonal/Clean이라는 단어를 외워서 되는 게 아니라, **경계를 어디에 긋고 무엇을 그 경계 안에 둘지**를 자기 언어로 설명할 수 있어야 한다. 이 글은 그 경계를 Spring 코드 위에 직접 그려 보는 것을 목표로 한다.
 
-도메인 모델 자체에 대한 더 일반적인 설명은 [domain-driven-design-essentials](./domain-driven-design-essentials.md) 같은 별도 문서가 어울리고, 이 문서는 그중에서도 **Hexagonal/Clean이라는 경계 모델을 Spring 컴포넌트(Controller, Service, JPA, Kafka 등) 위에 올리는 실전 기술**에 집중한다.
+도메인 모델 자체에 대한 더 일반적인 설명은 [DDD와 도메인 모델링](./ddd-domain-modeling.md) 문서가 어울리고, 이 문서는 그중에서도 **Hexagonal/Clean이라는 경계 모델을 Spring 컴포넌트(Controller, Service, JPA, Kafka 등) 위에 올리는 실전 기술**에 집중한다.
 
 ## 핵심 개념: 한 문장으로 정리부터
 
