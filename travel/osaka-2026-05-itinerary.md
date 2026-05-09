@@ -187,12 +187,18 @@ USJ 다음날이므로 늦게 시작하고, 교토 대신 오사카 시내에서
 - **09:30-10:30** 늦은 기상, 준비, 전날 USJ 피로 회복
 - **10:30-11:00** 우메다 -> 난바 또는 신사이바시 이동
 - **11:00-12:30** 신사이바시 / 아메리카무라 쇼핑
+  - BAPE Store Osaka, 스니커즈 / 스트릿 쇼핑
 - **12:30-13:30** 점심
-- **13:30-15:30** 난바 / 닛폰바시 / 오타로드 구경
-- **15:30-16:30** 카페 또는 휴식
-- **16:30-18:00** 도톤보리, 글리코 사인, 에비스바시 산책
-- **18:00-19:30** 저녁
-- **19:30-21:00** 돈키호테, 드럭스토어, 간식 쇼핑 또는 도톤보리 야경
+  - 난바 쪽에서 가볍게 먹거나, 우오토요를 점심 백업 후보로 둔다.
+- **13:30-14:40** [WAD Omotenashi Cafe](https://www.google.com/maps/search/?api=1&query=wad+omotenashi+cafe+osaka)
+  - 말차 / 모나카 카페. 와이프가 가고 싶어 하는 카페라 우선순위를 높게 둔다.
+- **14:40-16:10** 닛폰바시 / 오타로드 / 가챠 구경
+  - 가챠가챠의 숲, 덴덴타운, 캐릭터 / 피규어 구경.
+- **16:10-17:00** [사키모토 코히](https://www.google.com/maps/search/?api=1&query=Sakimoto+Coffee+Namba+Osaka) 휴식 후보
+  - 체력과 시간이 되면 넣고, 일정이 밀리면 스킵한다.
+- **17:00-18:20** 도톤보리 / 글리코 사인 / 에비스바시 산책
+- **18:20-19:40** [카미나리 스시](https://www.google.com/maps/search/?api=1&query=Kaminari+Sushi+Sennichimae+Osaka) 저녁
+- **19:40-21:00** 도톤보리 야경 / [앗치치 도톤보리 본점](https://www.google.com/maps/search/?api=1&query=Acchichi+Dotonbori+Osaka) 타코야키 간식 / 돈키호테 옵션
 - **21:00-21:40** 우메다 복귀
 
 ### 쇼핑 / 구경 후보
@@ -213,29 +219,39 @@ USJ 다음날이므로 늦게 시작하고, 교토 대신 오사카 시내에서
 ### 카페 후보
 
 - [WAD Omotenashi Cafe](https://www.google.com/maps/search/?api=1&query=wad+omotenashi+cafe+osaka)
-  - 말차와 모나카 후보. 위치, 영업시간, 대기 확인 필요.
+  - 3일차 카페 1순위. 말차와 모나카 후보.
+  - 와이프가 가고 싶어 하므로, 단순 옵션보다 우선순위를 높게 둔다.
+  - 위치, 영업시간, 대기 가능성은 출발 전 재확인.
+- [사키모토 코히](https://www.google.com/maps/search/?api=1&query=Sakimoto+Coffee+Namba+Osaka)
+  - 난바 / 난바나카 쪽 휴식 후보.
+  - WAD 이후 일정이 밀리지 않고 체력이 남으면 2차 카페 또는 휴식 지점으로 넣는다.
 - 난바 근처 카페
-  - WAD가 애매하면 현장 대체.
+  - WAD 대기가 길거나 사키모토 코히가 애매하면 현장 대체.
 
 ### 점심 / 저녁 후보
 
+- [카미나리 스시](https://www.google.com/maps/search/?api=1&query=Kaminari+Sushi+Sennichimae+Osaka)
+  - 3일차 저녁 확정 후보. 난바 / 센니치마에 권역이라 도톤보리 산책 전후로 붙이기 좋다.
+  - 이번 여행에서 스시를 한 번 먹고 싶은 목적에 잘 맞는다.
+- [앗치치 도톤보리 본점](https://www.google.com/maps/search/?api=1&query=Acchichi+Dotonbori+Osaka)
+  - 도톤보리 타코야키 간식 후보. 저녁 메인보다는 밤 산책 중 가볍게 먹는 포지션.
+- [우오토요](https://www.google.com/maps/search/?api=1&query=Uotoyo+Nipponbashi+Osaka)
+  - 닛폰바시 쪽 해산물 / 일식 식사 후보로 보이며, 점심 백업으로 둔다.
+  - 메뉴와 영업시간은 아직 확정 정보가 부족하므로 출발 전 재확인 필요.
 - [아지노야](https://www.google.com/maps/search/?api=1&query=Ajinoya+Osaka)
-  - 오코노미야키. 안정적인 1순위.
+  - 오코노미야키 백업. 웨이팅이 길면 스킵.
 - [오코노미야키 미즈노](https://www.google.com/maps/search/?api=1&query=Mizuno+Okonomiyaki+Osaka)
-  - 유명점. 웨이팅이 길면 스킵.
-- [치보 도톤보리](https://www.google.com/maps/search/?api=1&query=Chibo+Dotonbori+Osaka)
-  - 오코노미야키 대체 후보.
+  - 유명점 백업. 웨이팅이 길면 스킵.
 - [쿠시카츠 다루마 도톤보리](https://www.google.com/maps/search/?api=1&query=Kushikatsu+Daruma+Dotonbori)
-  - 저녁과 맥주 느낌이 좋음.
-- [타코야키 와나카 도톤보리](https://www.google.com/maps/search/?api=1&query=Takoyaki+Wanaka+Dotonbori)
-  - 간식 후보.
-- [타코야키 쿠쿠루 도톤보리](https://www.google.com/maps/search/?api=1&query=Takoyaki+Kukuru+Dotonbori)
-  - 간식 후보.
+  - 스시 대신 술 한잔 느낌으로 바꾸고 싶을 때의 대체 후보.
 
 ### Day 3 운영 팁
 
-- BAPE, 가챠, 도톤보리만 해도 충분히 하루가 찬다.
-- WAD 카페는 필수가 아니라 옵션으로 둔다.
+- 우선순위는 WAD, 카미나리 스시, 앗치치, 사키모토 코히, 우오토요 순서로 둔다.
+- WAD는 와이프가 가고 싶어 하는 카페라 3일차 카페 1순위로 확정한다.
+- 사키모토 코히는 카페를 좋아하는 흐름에는 잘 맞지만, WAD까지 간 뒤 일정이 밀리면 과감히 스킵한다.
+- 카미나리 스시는 3일차 저녁 메인으로 잡고, 앗치치는 도톤보리 밤 간식으로 둔다.
+- 우오토요는 점심 백업 후보로 두되, 메뉴 / 영업시간 확인 전까지 필수 일정으로 고정하지 않는다.
 - 돈키호테는 사람이 많으면 마지막 날 우메다 또는 공항 쇼핑으로 넘긴다.
 - 교토는 이번 흐름에서는 제외한다. USJ 다음날 왕복 이동과 관광 밀도가 부담스럽다.
 
@@ -320,6 +336,10 @@ USJ 다음날이므로 늦게 시작하고, 교토 대신 오사카 시내에서
 - 우메다 쇼핑 매장 위치와 영업시간
 - 뉴발란스 그랜드 프론트 오사카 재고 / 사이즈
 - WAD Omotenashi Cafe 영업시간과 위치
+- 사키모토 코히 영업시간과 위치
+- 카미나리 스시 예약 / 대기 가능성
+- 앗치치 도톤보리 본점 영업시간
+- 우오토요 메뉴 / 영업시간
 - 아지노야, 미즈노, 다루마 웨이팅 가능성
 - & ISLAND 기타하마 영업시간과 대기 가능성
 - 귀국일 공항 이동 시간과 수속 여유
