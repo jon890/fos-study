@@ -24,16 +24,13 @@
 
 ## 문서 목록
 
-### 마스터 플레이북
-
-- [시니어 Java 백엔드 면접 마스터 플레이북](./master/senior-backend-master-playbook.md) — 자기소개·강점·프로젝트·공통 질문 프레이밍을 한 곳에
-
 ### 진행 중 — CJ푸드빌 디지털 채널 Back-end
 
 - [CJ푸드빌 디지털 채널 Back-end 직무 분석](./cj-foodville-digital-channel-backend.md)
 - [CJ푸드빌 디지털 채널 Back-end 면접 답변집](./commerce-interview-answer-slot-experience-mapping.md) — 슬롯 도메인 경험을 커머스/F&B 설계로 번역
 
-### 경험 기반 질문 뱅크 (회사 무관, 재사용 가능)
+### 회사 무관 재사용 자료
 
-- [NSC 슬롯팀 경험 기반 질문 은행](./experience-based/slot-team-question-bank.md)
-- [AI 서비스팀 경험 기반 질문 뱅크](./experience-based/ai-service-team-question-bank.md)
+- [시니어 Java 백엔드 면접 마스터 플레이북](./senior-backend-master-playbook.md) — 자기소개·강점·프로젝트·공통 질문 프레이밍
+- [NSC 슬롯팀 경험 기반 질문 은행](./slot-team-question-bank.md) — 도메인 모델링·동시성·성능·AI 협업
+- [AI 서비스팀 경험 기반 질문 뱅크](./ai-service-team-question-bank.md) — Spring Batch RAG·gRPC graceful shutdown·전략 패턴·12일 AI 웹툰 MVP
