@@ -97,7 +97,8 @@
   /* ─── Project ─── */
   .project { margin: 12px 0 14px 0; padding-left: 6px; }
   .project-title { font-size: 10pt; font-weight: 600; color: #16213e; margin-bottom: 2px; }
-  .project-period { font-size: 8pt; color: #6c757d; margin-bottom: 6px; }
+  .project-period { font-size: 8pt; color: #6c757d; margin-bottom: 2px; }
+  .project-tags { font-size: 8pt; color: #16213e; font-weight: 500; margin-bottom: 6px; }
 
   .block-label {
     font-size: 9pt;
@@ -230,6 +231,7 @@
   <div class="project">
     <div class="project-title">AI 웹툰 제작 도구 구현</div>
     <div class="project-period">2026.04</div>
+    <div class="project-tags">Next.js · React · Gemini API · Claude Code</div>
 
     <div class="block-label">주요 업무</div>
     <ul>
@@ -244,17 +246,19 @@
       <li>본 도구로 제작된 웹툰이 <a href="https://www.youtube.com/@promptoon_studio" style="color:#0d6e3e;">@promptoon_studio</a> 채널에서 실제 연재 중</li>
     </ul>
 
-    <div class="tech-line"><span class="label">사용한 기술:</span> Next.js, React, Prisma, Zod, Tailwind, Gemini API, Claude Code 하네스</div>
+    <div class="tech-line"><span class="label">사용한 기술:</span> Next.js, React, Prisma, Zod, Tailwind, Gemini API, Claude Code</div>
   </div>
 
   <div class="project">
     <div class="project-title">사내 RAG 벡터 검색 배치 파이프라인</div>
     <div class="project-period">2026.01 - 2026.02</div>
+    <div class="project-tags">Java · Spring Batch · OpenSearch</div>
 
     <div class="block-label">주요 업무</div>
     <ul>
       <li>사내 문서를 OpenSearch에 벡터 색인하는 Spring Batch 파이프라인 설계 및 구현</li>
-      <li>11개 Step 분리, 비동기 임베딩 처리, 실패 지점부터 재시작 가능한 구조로 안정성 확보</li>
+      <li>관심사별로 Step 분리 — 페이지 색인 / 댓글 색인 / 삭제 동기화 / 색인 갱신을 독립 Step 으로 구성</li>
+      <li>재시작 가능한 구조 — Confluence API 가 페이지 단위로 데이터를 주는 "다음 위치" 를 배치 자체 저장소에 기록해, 실패 시 그 지점부터 이어서 처리</li>
     </ul>
 
     <div class="tech-line"><span class="label">사용한 기술:</span> Java, Spring Boot, Spring Batch, OpenSearch</div>
@@ -275,10 +279,11 @@
   <div class="project">
     <div class="project-title">소셜카지노 게임 페블시티 — 슬롯 백엔드 개발 및 도메인 아키텍처 설계</div>
     <div class="project-period">2024.06 - 2025.11</div>
+    <div class="project-tags">Java 17 · Spring Boot 3 · MySQL · Redis · RabbitMQ</div>
 
     <div class="block-label">주요 업무</div>
     <ul>
-      <li>MSA 기반 게임 서버 아키텍처 개선</li>
+      <li>MSA 기반 게임 서버 백엔드 개발</li>
       <li>신규 슬롯 6종 백엔드 로직 설계·개발</li>
     </ul>
 
@@ -292,6 +297,7 @@
           <li>생산성 개선 — 1년 리팩터링 후 신규 슬롯 백엔드 개발 기간 평균 6주 → 4주 단축</li>
         </ul>
       </li>
+      <li>스핀 처리 비동기 전환 — 동기 API 호출 → 외부 플랫폼 서버 비동기 처리 → Kafka 기반 메시지 패턴 으로 단계적 진화. 동기 호출 병목을 메시지 브로커로 분리해 처리량·장애 격리성 확보</li>
     </ul>
 
     <div class="block-label">트러블슈팅 — 다중 서버 캐시 갱신 중 NPE 해소</div>
@@ -316,6 +322,7 @@
   <div class="project">
     <div class="project-title">슬롯 AI TF — 에이전트 기반 개발 워크플로 도입</div>
     <div class="project-period">2025.04 - 2025.11</div>
+    <div class="project-tags">Claude Code · Cursor · MCP</div>
 
     <div class="block-label">주요 업무</div>
     <ul>
@@ -348,21 +355,34 @@
   <div class="project">
     <div class="project-title">글로벌 승부예측 게임 Bylo Sports — 풀스택 개발</div>
     <div class="project-period">2022.12 - 2024.05</div>
+    <div class="project-tags">Java 11 · Spring Boot · Svelte · RabbitMQ · Ehcache</div>
 
     <div class="block-label">주요 업무</div>
     <ul>
-      <li>추천 프로그램 — 추천/피추천 보너스, 미션 기반 블록체인 토큰 클레임 3단계 상태 머신 설계 및 구현</li>
-      <li>13개 로케일 다국어 시스템 — Svelte derived 합성 + 백엔드 캐시 사전 구성, 스포츠 베팅 도메인 특성상 경기 마켓·선수·핸디캡 표기까지 템플릿 번역</li>
-      <li>다중 서버 인메모리 캐시(Ehcache + Map + RabbitMQ Fanout · Azure Service Bus 이중화) 운영 — 팀에 자리 잡은 캐시 정합성 패턴을 함께 운영</li>
+      <li>포인트 시스템 설계 및 개발 — 베팅 보상·출석·미션 등에서 적립·소모되는 사용자 자산 시스템</li>
+      <li>사용자 추천 프로그램 설계 및 개발 — 추천인이 추천 유저의 베팅 수수료 일부를 보상으로 지급받는 구조</li>
+      <li>다국어 시스템 개발 — UI 라벨·외부 API 기반 동적 도메인 데이터 모두 로케일별 메모리 캐시로 적재. 클라이언트에는 버전 비교로 변경된 부분만 갱신 유도</li>
+      <li>어드민 설정 관리 개발 — 어드민에서 설정 변경 시 RabbitMQ Fanout 으로 갱신 메시지 발행. 메시지에 담긴 데이터 타입 식별자를 보고 모든 게임 서버가 해당 캐시만 선별 갱신</li>
     </ul>
 
     <div class="block-label">주요 성과</div>
     <ul>
-      <li>13개 로케일 글로벌 출시를 백엔드/프론트 양쪽에서 풀스택으로 대응</li>
-      <li>Rollup → Vite/SvelteKit 전환으로 개발자 빌드 경험 개선, JavaScript → TypeScript 전환으로 타입 안정성 강화</li>
+      <li>포인트 시스템 설계
+        <ul style="list-style:none; padding-left:14px; margin-top:2px;">
+          <li>잔액·이력 분리 — 이력에 "변경 후 잔액 + 증감량" 함께 기록, 이력만으로 시점별 잔액 추적·감사 가능</li>
+          <li>동시성 정합성 — 비관적 락으로 동시 적립·소모 race condition 차단</li>
+        </ul>
+      </li>
+      <li>샤드 간 트랜잭션 처리 — 추천인·피추천인이 서로 다른 DB 에 있을 수 있는 샤딩 환경 대응
+        <ul style="list-style:none; padding-left:14px; margin-top:2px;">
+          <li>1차 — 새 트랜잭션을 여는 방식(REQUIRES_NEW)으로 자식 작업을 분리하고 오류를 부모로 전파하는 패턴 적용</li>
+          <li>2차 — 부모 commit 실패 시 정합성이 깨지는 한계를 인지, 부모 트랜잭션 커밋 후 이벤트 리스너(AFTER_COMMIT) 기반 구조로 전환</li>
+        </ul>
+      </li>
+      <li>TypeScript + Vite 빌드 전환 — Rollup 대비 빌드 속도 10배 이상 향상, 개발자 경험 개선</li>
     </ul>
 
-    <div class="tech-line"><span class="label">사용한 기술:</span> Java 11, Spring Boot 2.6, JPA, QueryDSL, Ehcache 3, RabbitMQ, Azure Service Bus, Svelte/SvelteKit, Vite, TypeScript</div>
+    <div class="tech-line"><span class="label">사용한 기술:</span> Java 11, Spring Boot 2.6, JPA, QueryDSL, Ehcache 3, RabbitMQ, Svelte/SvelteKit, Vite, TypeScript</div>
   </div>
 
   <hr class="divider">
@@ -384,17 +404,25 @@
   <div class="project">
     <div class="project-title">블록체인 기반 메타버스 게임 백엔드</div>
     <div class="project-period">2022.02 - 2022.11</div>
+    <div class="project-tags">NestJS · TypeScript · Redis · Solana SDK</div>
 
     <div class="block-label">주요 업무</div>
     <ul>
-      <li>솔라나 기반 가상화폐 입출금 및 스왑 시스템 — 유저별 솔라나 지갑 발급, 트랜잭션 모니터링 데몬, 인게임 토큰 출금 플로우 설계 및 구현</li>
-      <li>게임 내 아이템 거래소 — Redis Streams + Redis JSON + RediSearch 기반 P2P 체결 엔진(가격-시간 우선 매칭, 부분 체결, 잔량 등록, 취소) 설계·구현</li>
-      <li>미니게임 — 게임 토큰을 베팅하고 얻는 빙고 게임 백엔드 설계·개발, 유저 이탈 시 재시도 가능한 API 분리 + 지표 분석용 대시보드 구축으로 운영 효율성 증대</li>
+      <li>솔라나 기반 가상화폐 입출금 및 스왑 시스템 — 유저별 솔라나 지갑 발급, 입금 폴링 워커, 인게임 토큰 출금 플로우 설계 및 구현</li>
+      <li>게임 내 아이템 거래소 — Redis 기반 P2P 체결 엔진 설계·구현</li>
+      <li>미니게임 — 게임 토큰을 베팅하고 얻는 빙고 게임 백엔드 설계·개발</li>
     </ul>
 
     <div class="block-label">주요 성과</div>
     <ul>
-      <li>Redis 단일 인프라(Streams/JSON/RediSearch)만으로 거래소 체결 엔진 설계 — 분산 락 없이 스트림 순서 보장 + 플래그 게이트로 동시성 해결, Decimal 기반 정밀 연산으로 부동소수점 오차 차단</li>
+      <li>Redis 단일 인프라로 거래소 체결 엔진 설계 — 분산 락 없이 동시성·정합성 해결
+        <ul style="list-style:none; padding-left:14px; margin-top:2px;">
+          <li>스트림 순서 보장 — Redis Streams 의 순차성으로 매칭 순서 정합성 확보</li>
+          <li>아이템별 처리 중 플래그 — 원자적 처리 중 표시로 같은 주문·아이템에 동시 진입 차단</li>
+          <li>처리량 — 단일 Redis 인스턴스 기준 초당 약 50건 (락 10ms + 처리 10ms)</li>
+        </ul>
+      </li>
+      <li>재진입 이어 플레이 — 브라우저 이탈 잦은 환경에서 결과 확인 전 보상 적립을 막기 위해 게임 상태를 영속화, 재진입 시 마지막 진행 지점부터 이어 플레이 가능하게 설계</li>
     </ul>
 
     <div class="tech-line"><span class="label">사용한 기술:</span> NestJS, TypeScript, Redis Streams, Redis JSON, RediSearch, Solana SDK</div>
@@ -418,15 +446,19 @@
   <div class="project">
     <div class="project-title">한전KDN 사내 시스템 개발·현대화 (SI)</div>
     <div class="project-period">2018.08 - 2022.01</div>
+    <div class="project-tags">Java · Spring MVC · MySQL</div>
 
     <div class="block-label">주요 업무</div>
     <ul>
-      <li>헬스케어 앱 1인 백엔드 — 사내 조직도 기반 랭킹·건강 데이터 Batch 시스템 설계, DB 프로시저 의존 로직을 애플리케이션 레벨로 전환, Caffeine 캐시 도입</li>
-      <li>Struts 기반 레거시 사내 홈페이지를 Spring MVC로 마이그레이션 + 대량 SMS 발송 동시 처리량 50건 → 500건으로 개선</li>
-      <li>전기차 충전기 TCP/IP 소켓 프로토콜 검증기 + JNI 기반 네트워크 메시지 추출 + d3.js 실시간 모니터링 대시보드 구축</li>
+      <li>헬스케어 앱 백엔드 — 조직도 기반 랭킹·건강 데이터 Batch 시스템 설계</li>
+      <li>인사평가 시스템 개발 — DB 프로시저 의존 로직을 애플리케이션 레벨로 전환, Caffeine 캐시 도입</li>
+      <li>사내 홈페이지 현대화 — Struts → Spring MVC 마이그레이션 + 대량 SMS 발송 동시 처리량 50건 → 500건 개선</li>
+      <li>제주2리 안드로이드 앱 개발 — 제주도 여행 앱</li>
+      <li>전기차 충전 진단기 안드로이드 앱 개발</li>
+      <li>DDS 네트워크 모니터링 웹 대시보드 구현</li>
     </ul>
 
-    <div class="tech-line"><span class="label">사용한 기술:</span> Java, Spring MVC / Spring Boot, MySQL, Caffeine, JNI</div>
+    <div class="tech-line"><span class="label">사용한 기술:</span> Java, Spring MVC, MySQL, Caffeine, Android</div>
   </div>
 
 </div>
