@@ -196,7 +196,7 @@ AliasMethod O(1) 가중치 랜덤을 그대로 인용한다. 슬롯에서 100만
 
 ## 7. 연결 문서 (작성 후 채워 넣을 자리)
 
-- 캐시 정합성 깊이 학습은 `database/[`task/sb-dev-team/cache-architecture.md`](../task/sb-dev-team/cache-architecture.md)) 또는 `task/sb-dev-team/cache-architecture.md`(사례)로 분리 연결.
-- Outbox 패턴 깊이 학습은 `kafka/transactional-outbox-pattern.md`로 연결.
-- EXPLAIN[`interview/cj-foodville-digital-channel-backend.md`](./cj-foodville-digital-channel-backend.md)x.md` study-pack과 페어링.
-- 회사·포지션 카드 본체는 `interview/cj-foodville-digital-channel-backend.md`(별도 작성)로 두고 본 문서는 *답변 매핑 전용*으로 유지한다.
+- 캐시 정합성 깊이 학습은 [Redis 캐시 무효화 (커머스)](../database/redis/redis-cache-invalidation-commerce.md)(개념) 또는 [SB 팀 캐시 아키텍처](../task/sb-dev-team/cache-architecture.md)(사례)로 분리 연결.
+- Outbox 패턴 깊이 학습은 [분산 트랜잭션 — Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md)으로 연결.
+- EXPLAIN 학습은 [MySQL EXPLAIN 플랜](../database/mysql/explain-plan.md) 및 [복합 인덱스·EXPLAIN 커머스 API 시나리오](../database/mysql/mysql-index-explain-commerce-api.md) study-pack과 페어링.
+- 회사·포지션 카드 본체는 [CJ푸드빌 디지털 채널 백엔드 면접](./cj-foodville-digital-channel-backend.md)으로 두고 본 문서는 *답변 매핑 전용*으로 유지한다.

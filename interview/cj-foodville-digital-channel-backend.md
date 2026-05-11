@@ -35,11 +35,11 @@
 | JD 요건 | 후보자 증거 |
 |---------|-------------|
 | Java + Spring Framework 기반 | Java 17·21 / Spring Boot 3.x 4년 운영 (`task/nsc-slot/`, `task/ai-service-team/`) |
-| JPA/Hibernate | `PostCommitUpdateEventListener`, `@TransactionalEventListener(AFTER_COMMIT)`, `REQUIRES_NEW` 운영 (`resume/...v4.md` 문항1) |
+| JPA/Hibernate | `PostCommitUpdateEventListener`, `@TransactionalEventListener(AFTER_COMMIT)`, `REQUIRES_NEW` 운영 ([cj-foodville-resume-backend.html](../resume/cj-foodville-resume-backend.html)) |
 | MySQL RDBMS | MySQL 8.x 운영 + 복합 인덱스 추가로 캐시 충족 판정 쿼리 개선 ([`task/nsc-slot/rcc-rtp-cache-control.md`](../task/nsc-slot/rcc-rtp-cache-control.md)) |
 | 클라우드 환경 (Azure 명시) | NHN Cloud + **Azure 이중화** 운영, Azure Service Bus, Azure Blob (`task/sb-dev-team/`) |
-| 성능 개선 및 품질 향상 | AliasMethod O(n)→O([`task/nsc-slot/slot-spin-performance.md`](../task/nsc-slot/slot-spin-performance.md) 제거 (`task/nsc-slot/slot-spin-performance.md`, `slot-simulator[`task/ai-service-team/graceful-shutdown-503-fix.md`](../task/ai-service-team/graceful-shutdown-503-fix.md)raceP[`task/ai-service-team/webtoon-maker-ai-pipeline.md`](../task/ai-service-team/webtoon-maker-ai-pipeline.md)team/graceful-shutdown-503-fix.md`) |
-| 기획 조직과의 커뮤니케이션 | 의사결정 문서화 습관, AI 웹툰 MVP에서 디자이너·기획과 협업 (`task/ai-service-team/webtoon-maker-ai-pipeline.md`) |
+| 성능 개선 및 품질 향상 | AliasMethod O(n)→O(1), 시뮬레이터 OOM 해소 ([slot-spin-performance.md](../task/nsc-slot/slot-spin-performance.md), [slot-simulator-oom.md](../task/nsc-slot/slot-simulator-oom.md)), gRPC graceful shutdown ([graceful-shutdown-503-fix.md](../task/ai-service-team/graceful-shutdown-503-fix.md)) |
+| 기획 조직과의 커뮤니케이션 | 의사결정 문서화 습관, AI 웹툰 MVP에서 디자이너·기획과 협업 ([`task/ai-service-team/webtoon-maker-ai-pipeline.md`](../task/ai-service-team/webtoon-maker-ai-pipeline.md)) |
 | (우대) 운영 오픈 경험 | NSC 슬롯 8종 신규 개발/오픈, Spring Boot 3 기반 신규 팀 셋업 |
 | (우대) 안정적 프러덕트 운영 | 다중 서버 캐시 정합성, Outbox Pattern, 447개 테스트 파일 |
 
