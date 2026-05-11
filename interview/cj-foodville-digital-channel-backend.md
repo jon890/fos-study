@@ -35,7 +35,7 @@
 | JD 요건 | 후보자 증거 |
 |---------|-------------|
 | Java + Spring Framework 기반 | Java 17·21 / Spring Boot 3.x 4년 운영 (`task/nsc-slot/`, `task/ai-service-team/`) |
-| JPA/Hibernate | `PostCommitUpdateEventListener`, `@TransactionalEventListener(AFTER_COMMIT)`, `REQUIRES_NEW` 운영 ([cj-foodville-resume-backend.html](../resume/cj-foodville-resume-backend.html)) |
+| JPA/Hibernate | `PostCommitUpdateEventListener`, `@TransactionalEventListener(AFTER_COMMIT)`, `REQUIRES_NEW` 운영 (`resume/cj-foodville-resume-backend.html`) |
 | MySQL RDBMS | MySQL 8.x 운영 + 복합 인덱스 추가로 캐시 충족 판정 쿼리 개선 ([`task/nsc-slot/rcc-rtp-cache-control.md`](../task/nsc-slot/rcc-rtp-cache-control.md)) |
 | 클라우드 환경 (Azure 명시) | NHN Cloud + **Azure 이중화** 운영, Azure Service Bus, Azure Blob (`task/sb-dev-team/`) |
 | 성능 개선 및 품질 향상 | AliasMethod O(n)→O(1), 시뮬레이터 OOM 해소 ([slot-spin-performance.md](../task/nsc-slot/slot-spin-performance.md), [slot-simulator-oom.md](../task/nsc-slot/slot-simulator-oom.md)), gRPC graceful shutdown ([graceful-shutdown-503-fix.md](../task/ai-service-team/graceful-shutdown-503-fix.md)) |

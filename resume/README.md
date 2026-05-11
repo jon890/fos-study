@@ -4,7 +4,7 @@
 
 ## 최신 이력서
 
-- [CJ푸드빌 디지털 채널 백엔드 이력서](./cj-foodville-resume-backend.html)
+- CJ푸드빌 디지털 채널 백엔드 이력서 (`resume/cj-foodville-resume-backend.html`, PDF 동일 경로)
 
 ## 회사별 경험 및 경력기술서
 
