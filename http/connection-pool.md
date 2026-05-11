@@ -180,9 +180,9 @@
 - **1. inbound/outbound timeout 정확히 설정**
   - request timeout : 5초
   - idle timeout : 30초 이하
-  - headers timeout: 2~5초
+  - headers timeout: 2\~5초
 - **2. connection pool 크기 제한**
-  - 인스턴스당 10 ~ 100 (코어 수 \* 10 정도)
+  - 인스턴스당 10 \~ 100 (코어 수 \* 10 정도)
 - **3. retry + backoff**
   - exponential backoff
   - jitter 추가

@@ -45,7 +45,7 @@ Session은 **인증 상태를 서버 측 저장소에 두고, 클라이언트에
 
 세션 저장소 위치는 운영 특성을 좌우한다.
 
-- **WAS 메모리(in-memory)** — 단일 인스턴스에서는 가장 빠르고 단순하지만, 서버를 늘리는 순간 인스턴스마다 세션이 따로 생긴다. 로드밸런서 sticky session으로 임시 봉합 가능하지만 인스턴스 재기동에 약하다.
+- **WAS 메모리**(in-memory) — 단일 인스턴스에서는 가장 빠르고 단순하지만, 서버를 늘리는 순간 인스턴스마다 세션이 따로 생긴다. 로드밸런서 sticky session으로 임시 봉합 가능하지만 인스턴스 재기동에 약하다.
 - **Redis 등 외부 세션 스토어** — 수평 확장 가능. 스프링이라면 `spring-session-data-redis`로 거의 코드 수정 없이 전환된다. 운영 표준에 가깝다.
 - **DB** — 가능은 한데 조회 빈도가 너무 높아 비용 대비 효과가 낮다.
 
@@ -118,8 +118,8 @@ CJ푸드빌처럼 외식·매장 운영 백엔드는 다음 구성이 흔하다.
 
 이 셋은 다른 문제를 푸는데 같이 등장해서 자주 섞인다.
 
-- **CSRF(Cross-Site Request Forgery)** — 다른 사이트가 사용자의 인증 쿠키가 자동 첨부되는 점을 악용해 의도치 않은 요청을 강제하는 공격. **세션·쿠키 기반 인증에서 발생**한다. 방어는 (1) `SameSite=Lax/Strict`, (2) CSRF 토큰(폼/헤더에 추가 토큰), (3) 중요한 변경은 POST + Origin 검증. `Authorization` 헤더로 토큰을 명시하는 API에는 발생하지 않는다.
-- **CORS(Cross-Origin Resource Sharing)** — 브라우저가 다른 origin으로 가는 XHR/fetch를 막는 보안 모델을 풀어주기 위한 헤더 규약. 서버가 `Access-Control-Allow-Origin`, `Access-Control-Allow-Credentials` 등을 응답으로 주면 브라우저가 통과시킨다. **공격 방어가 아니라 합법적 크로스오리진 허용 메커니즘**이라는 점이 중요하다. CORS를 푼다고 CSRF가 같이 풀리는 게 아니다.
+- **CSRF**(Cross-Site Request Forgery) — 다른 사이트가 사용자의 인증 쿠키가 자동 첨부되는 점을 악용해 의도치 않은 요청을 강제하는 공격. **세션·쿠키 기반 인증에서 발생**한다. 방어는 (1) `SameSite=Lax/Strict`, (2) CSRF 토큰(폼/헤더에 추가 토큰), (3) 중요한 변경은 POST + Origin 검증. `Authorization` 헤더로 토큰을 명시하는 API에는 발생하지 않는다.
+- **CORS**(Cross-Origin Resource Sharing) — 브라우저가 다른 origin으로 가는 XHR/fetch를 막는 보안 모델을 풀어주기 위한 헤더 규약. 서버가 `Access-Control-Allow-Origin`, `Access-Control-Allow-Credentials` 등을 응답으로 주면 브라우저가 통과시킨다. **공격 방어가 아니라 합법적 크로스오리진 허용 메커니즘**이라는 점이 중요하다. CORS를 푼다고 CSRF가 같이 풀리는 게 아니다.
 - **SameSite** — 위에서 다룬 쿠키 속성. CSRF 1차 방어선이자 동시에 크로스도메인 쿠키 첨부 정책. `None`을 쓰려면 반드시 `Secure`가 같이 필요하다.
 
 흔한 사고: 프론트가 다른 origin으로 분리되며 CORS를 열고 `credentials: include`로 쿠키를 보내려는데 SameSite가 `Lax`라 쿠키가 안 가서 401이 난다. 또는 그걸 풀려고 `SameSite=None; Secure`로 바꿨는데, 운영 환경 HTTPS 인증서가 일부 경로에 누락되어 쿠키가 안 실리는 경우. 둘 다 운영에서 자주 겪는다.

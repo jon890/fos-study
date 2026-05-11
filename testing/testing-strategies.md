@@ -28,8 +28,8 @@
 ```
 
 - **Unit**: 한 클래스의 로직. 의존성은 mock/stub. 1ms 단위. 서비스 규칙, validator, 도메인 계산, 매퍼가 여기 위치한다.
-- **Slice**: Spring의 일부 컨텍스트만 띄운다. `@WebMvcTest`는 컨트롤러+MVC 인프라, `@DataJpaTest`는 JPA 레이어. 200~800ms. 단위로는 검증 불가한 **프레임워크 바인딩**(HTTP 바인딩, JPA 쿼리, JSON 직렬화)을 여기서 잡는다.
-- **Full Integration**: `@SpringBootTest` + TestContainers. 실제 MySQL/Redis/Kafka가 뜬다. 결제, 멱등성, 트랜잭션 경계, 락 동작은 여기서만 검증된다. 2~10초.
+- **Slice**: Spring의 일부 컨텍스트만 띄운다. `@WebMvcTest`는 컨트롤러+MVC 인프라, `@DataJpaTest`는 JPA 레이어. 200\~800ms. 단위로는 검증 불가한 **프레임워크 바인딩**(HTTP 바인딩, JPA 쿼리, JSON 직렬화)을 여기서 잡는다.
+- **Full Integration**: `@SpringBootTest` + TestContainers. 실제 MySQL/Redis/Kafka가 뜬다. 결제, 멱등성, 트랜잭션 경계, 락 동작은 여기서만 검증된다. 2\~10초.
 - **E2E**: 서비스 배포본까지 띄워 API를 외부에서 호출. 선택적.
 
 **비율 가이드**(팀 100명 기준이 아니라 1개 모듈 기준):

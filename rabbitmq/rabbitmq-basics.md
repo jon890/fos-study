@@ -56,7 +56,7 @@ Queue가 durable이어도 **메시지가 persistent로 발행되지 않으면** 
 | 재처리 | 같은 메시지를 재소비하려면 별도 메커니즘 필요 | offset만 되감으면 됨 |
 | 라우팅 | Exchange 타입으로 복잡한 라우팅 가능 | Topic → Partition 단순 |
 | 순서 보장 | 단일 Queue 내에서 보장 | Partition 내에서 보장 |
-| 처리량 | 초당 수만~수십만 | 초당 수십만~수백만 |
+| 처리량 | 초당 수만\~수십만 | 초당 수십만\~수백만 |
 | 주용도 | 작업 분배, RPC, 이벤트 팬아웃 | 로그 수집, 이벤트 소싱, 스트리밍 |
 
 면접 답변 프레이밍의 기본은 이렇게 잡는다.
@@ -127,7 +127,7 @@ public void handle(OrderMessage msg, Channel channel,
 
 **Bad**: 설정을 건드리지 않으면 Consumer가 Queue에 있는 메시지를 무한정 가져가려 한다. 한 Consumer가 수천 건을 메모리에 안고 있다가 GC 폭주나 OOM이 난다.
 
-**Improved**: `prefetchCount`를 10~50 사이에서 시작해서 처리 시간에 맞춰 조정한다. 처리 시간이 긴 작업은 낮게(1~5), 짧으면 높게.
+**Improved**: `prefetchCount`를 10\~50 사이에서 시작해서 처리 시간에 맞춰 조정한다. 처리 시간이 긴 작업은 낮게(1\~5), 짧으면 높게.
 
 ### 실수 3. Publisher Confirm 미설정
 
@@ -292,7 +292,7 @@ public class EmailConsumer {
 > 네 가지를 세트로 봅니다. Queue durable, Message persistent, Publisher Confirm, Consumer manual ack 입니다. 여기에 더해서 처리 실패 메시지를 위한 DLX + DLQ를 구성하고, Publisher 쪽에서는 Confirm nack이 왔을 때 재발행할 수 있도록 Outbox 패턴으로 묶어두는 편입니다.
 
 **Q. Prefetch는 왜 설정하나요?**
-> Consumer가 아직 ack하지 않은 메시지를 얼마나 미리 받아올지 제한하는 값입니다. 기본값이 무제한이라 놔두면 한 Consumer가 수천 건을 메모리에 안고 있다가 OOM이 나거나, 불균등 분배가 심해집니다. 처리 시간이 긴 작업은 낮게(1~5), 짧은 작업은 높게(50~) 잡아 분배를 평탄하게 만듭니다.
+> Consumer가 아직 ack하지 않은 메시지를 얼마나 미리 받아올지 제한하는 값입니다. 기본값이 무제한이라 놔두면 한 Consumer가 수천 건을 메모리에 안고 있다가 OOM이 나거나, 불균등 분배가 심해집니다. 처리 시간이 긴 작업은 낮게(1\~5), 짧은 작업은 높게(50\~) 잡아 분배를 평탄하게 만듭니다.
 
 **Q. 같은 메시지가 여러 번 처리되는 문제를 어떻게 다루나요?**
 > RabbitMQ는 기본이 at-least-once이기 때문에 중복은 언제든 발생할 수 있다고 전제합니다. 그래서 Consumer 측에서 메시지 ID를 기준으로 **idempotent** 하게 처리하도록 만듭니다. 예를 들어 주문 이벤트 처리 전에 `processed_message(message_id)` 테이블을 확인하거나, 결제 호출에 `idempotency_key`를 실어 보내는 식입니다.

@@ -285,6 +285,8 @@ notes: <짧은 메타 코멘트, 없으면 빈 문자열>
 - **외부 URL 포함 감사** — 이 스킬은 저장소 내부 링크만 대상. 외부 URL 유효성은 별도 작업
 - **규모 과장** — 감사는 건전성 체크다. "저장소를 전부 재구성하자" 는 권고는 범위 이탈. 발견한 문제만 보고
 - **Sub-agent 결과 신뢰 과다** — agent 의 보고는 의도이지 실측이 아닐 수 있음. 자동 수정 전 메인이 spot-check (3건 정도 샘플) 로 정확성 검증
+- **html / pdf / 이미지 파일을 마크다운 링크로 걸기** — fos-blog 의 `resolveMarkdownLink()` 는 `.md` 와 `.mdx` 만 처리. `.html`, `.pdf`, `.png` 같은 비-md 파일을 `[text](path.html)` 형태로 걸면 blog 렌더링 시 깨지거나 잘못된 URL 로 변환됨. 이런 파일은 **텍스트 참조** (백틱 또는 일반 텍스트) 로 위치만 표시: `` `resume/cj-foodville-resume-backend.html` `` 형태. 수정 적용 시 unlinked path mention 자동 링크화 스크립트가 비-md 확장자를 건드리지 않도록 패턴 제한 필수
+- **자동 변환 스크립트의 중첩 백틱·링크 손상** — `\`path\`` 형태를 `[\`path\`](path)` 로 치환할 때 이미 nested 한 케이스 (`\`path1[..](path2)\``) 가 있으면 결과가 망가짐. 변환 전 paragraph 단위로 정상성 확인, 또는 정규식에서 nested 명확히 제외
 
 ## 주기
 

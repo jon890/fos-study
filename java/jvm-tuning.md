@@ -47,7 +47,7 @@ JVM이 프로세스로 올라왔을 때 차지하는 메모리는 크게 네 영
 
 ## 현대 GC 비교: G1GC / ZGC / Shenandoah
 
-**G1GC**(Java 9+ 기본, Java 11 LTS 이후 완전 기본값). 힙을 Region으로 쪼개고, garbage가 많은 Region부터 우선 청소한다. 목표 pause time을 `-XX:MaxGCPauseMillis`로 지정하면 그 목표를 최대한 지키려고 Region 수를 조절한다. 힙 4GB~수십 GB, pause 100~200ms 목표에서 가장 무난하다.
+**G1GC**(Java 9+ 기본, Java 11 LTS 이후 완전 기본값). 힙을 Region으로 쪼개고, garbage가 많은 Region부터 우선 청소한다. 목표 pause time을 `-XX:MaxGCPauseMillis`로 지정하면 그 목표를 최대한 지키려고 Region 수를 조절한다. 힙 4GB\~수십 GB, pause 100\~200ms 목표에서 가장 무난하다.
 
 **ZGC**(Java 15 GA, Java 17부터 프로덕션 권장). pause time이 힙 크기와 거의 무관하게 1ms 이하다. Colored pointer와 load barrier를 써서 mark/relocate를 전부 concurrent하게 돌린다. 수백 GB 힙에서도 pause가 안 늘어난다. 대신 CPU와 메모리 오버헤드가 약간 있고, throughput은 G1보다 살짝 낮다. **지연에 민감한 API 게이트웨이, 결제, 검색**에 적합.
 
@@ -57,7 +57,7 @@ JVM이 프로세스로 올라왔을 때 차지하는 메모리는 크게 네 영
 
 | 워크로드 | 추천 GC |
 |---|---|
-| 일반 웹/API, Heap 4~32GB, pause 100~200ms OK | G1GC |
+| 일반 웹/API, Heap 4\~32GB, pause 100\~200ms OK | G1GC |
 | 결제/검색/실시간, pause 10ms 이하 요구 | ZGC |
 | Heap 100GB 이상 | ZGC |
 | Batch, throughput 최우선 | Parallel GC |
@@ -73,7 +73,7 @@ JVM이 프로세스로 올라왔을 때 차지하는 메모리는 크게 네 영
 ```
 `Xms`와 `Xmx`를 같은 값으로 두는 게 정석이다. 다르게 두면 힙을 늘리고 줄이는 과정 자체가 STW를 유발한다. 서버 JVM에서 힙 크기 변동은 비용만 크고 이득이 거의 없다.
 
-**힙 크기 결정 원리**. 피크 부하 시점의 **Old 영역 실사용량 × 2~3배**가 전체 Heap의 합리적 시작점이다. 피크 때 Old가 1GB를 쓰고 있다면 Heap 3~4GB를 주고, 거기서 GC 로그를 보며 조정한다. 무작정 크게 잡으면 GC 한 번이 더 오래 걸리고, 너무 작게 잡으면 Full GC가 뜬다.
+**힙 크기 결정 원리**. 피크 부하 시점의 **Old 영역 실사용량 × 2\~3배**가 전체 Heap의 합리적 시작점이다. 피크 때 Old가 1GB를 쓰고 있다면 Heap 3\~4GB를 주고, 거기서 GC 로그를 보며 조정한다. 무작정 크게 잡으면 GC 한 번이 더 오래 걸리고, 너무 작게 잡으면 Full GC가 뜬다.
 
 **G1GC 주요 플래그**.
 ```bash

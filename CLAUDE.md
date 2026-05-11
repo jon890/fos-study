@@ -89,10 +89,10 @@ fos-study/
 
 | 디렉터리 | 회사/팀 | 기간 |
 |---|---|---|
-| `task/the-future-company/` | 더퓨쳐컴퍼니 | 2022.02 ~ 2022.11 |
-| `task/sb-dev-team/` | NHN — SB 개발팀 (스포츠 베팅) | 2023.01 ~ 2024.03 |
-| `task/nsc-slot/` | NHN — NSC 슬롯개발팀 | 2024.06 ~ 2025.11 |
-| `task/ai-service-team/` | NHN — AI 서비스 개발팀 | 2025.12 ~ |
+| `task/the-future-company/` | 더퓨쳐컴퍼니 | 2022.02 \~ 2022.11 |
+| `task/sb-dev-team/` | NHN — SB 개발팀 (스포츠 베팅) | 2023.01 \~ 2024.03 |
+| `task/nsc-slot/` | NHN — NSC 슬롯개발팀 | 2024.06 \~ 2025.11 |
+| `task/ai-service-team/` | NHN — AI 서비스 개발팀 | 2025.12 \~ |
 
 ### 각 팀 README.md 구성 규칙
 

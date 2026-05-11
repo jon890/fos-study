@@ -154,8 +154,8 @@ public JwtDecoder jwtDecoder() {
 
 ## 4. Access Token vs Refresh Token, 회전, 탈취 대응
 
-- **Access Token**: 수명 짧음(5~15분). API 호출마다 전송. 탈취돼도 피해 시간이 제한됨.
-- **Refresh Token**: 수명 김(수일~수개월). Access Token을 재발급받는 용도. 서버 저장 필수.
+- **Access Token**: 수명 짧음(5\~15분). API 호출마다 전송. 탈취돼도 피해 시간이 제한됨.
+- **Refresh Token**: 수명 김(수일\~수개월). Access Token을 재발급받는 용도. 서버 저장 필수.
 
 **Refresh Token Rotation (회전):**
 
