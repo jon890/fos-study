@@ -12,7 +12,7 @@
 - 알람 임계치를 정적으로 잡았을 때의 함정과 시간대 가중 임계치 전략을 다룬다.
 - 인터뷰 답변용으로 후보자의 graceful shutdown 503 해결 경험과 같은 사례 카드를 어떻게 묶어 말해야 하는지 정리한다.
 
-대상 독자는 시니어 백엔드 엔지니어 면접을 준비 중인 사람, 그리고 F&B/커머스 도메인에서 SRE 협업이 필요한 백엔드다. 관련 인접 문서가 이미 있다면(예: `task/graceful-shutdown-503.md`, `architecture/circuit-breaker-and-bulkhead.md`) 사례 본문은 그쪽에 두고 이 문서는 첫 5분 운영 플레이북 + 관측성 기본기 hub 역할로 좁힌다.
+대상 독자는 시니어 백엔드 엔지니어 면접을 준비 중인 사람, 그리고 F&B/커머스 도메인에서 SRE 협업이 필요한 백엔드다. 관련 인접 문서가 이미 있다면(예: [task/ai-service-team/graceful-shutdown-503-fix.md](../task/ai-service-team/graceful-shutdown-503-fix.md)) 사례 본문은 그쪽에 두고 이 문서는 첫 5분 운영 플레이북 + 관측성 기본기 hub 역할로 좁힌다.
 
 ## 첫 5분에 깨야 하는 잘못된 본능
 

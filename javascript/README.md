@@ -26,6 +26,7 @@ JavaScript 런타임과 언어 기능 학습 기록.
 ## TypeScript
 
 - [Brand Type](./typescript/brand-type.md) — 타입 안정성을 위한 브랜드 타입 패턴
+- [TypeScript 6.0 — 마지막 JS 컴파일러, Go 로 가는 다리](./typescript/typescript-6-0.md)
 
 ## 자료구조 / 도서
 

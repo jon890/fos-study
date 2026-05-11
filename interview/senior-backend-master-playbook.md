@@ -41,14 +41,14 @@
 - **문제**: 다중 서버가 각자 정적 설정 데이터를 인메모리 캐시로 가지는 상황에서, 어드민 변경 시 갱신 중 조회 요청이 일시적 정합성 오류를 냄.
 - **해결**: `PostCommitUpdateEventListener`로 커밋 후에만 RabbitMQ Fanout Exchange로 변경 ID 발행 → 각 인스턴스가 자신의 큐에서 수신 후 해당 항목만 선택 갱신. 갱신/조회 경합은 `StampedLock` writeLock + `tryReadLock(2500ms)` 타임아웃으로 흡수. `StaticDataManager` 인터페이스로 init/refresh/clear 책임 분리 → 새 캐시 타입 추가해도 기존 코드 무변경.
 - **커머스 전이 관점**: 상품 캐시로 확장할 때는 Caffeine(L1) + Redis(L2) **2-tier 구조**로 피크 TPS를 흡수하고, 인스턴스 수가 수십~백 대 규모로 늘어나면 RabbitMQ Fanout 대신 Kafka 토픽(인스턴스마다 독립 consumer group)이나 Redis Pub/Sub이 더 적합하다는 점을 인지하고 있습니다. Cache Stampede는 핫키에 대한 probabilistic early expiration + single-flight로 대응.
-- **증거**: [`resume/2603_김병태_이력서_v4.md`](../resume/2603_김병태_이력서_v4.md) 문항 1, [`task/nsc-slot/slot-engine-abstraction.md`](../task/nsc-slot/slot-engine-abstraction.md) "StaticDataLoader 개선", [`architecture/cache-strategies.md`](../architecture/cache-strategies.md) 개인 학습 기록.
+- **증거**: [`resume/cj-foodville-resume-backend.html`](../resume/cj-foodville-resume-backend.html) 문항 1, [`task/nsc-slot/slot-engine-abstraction.md`](../task/nsc-slot/slot-engine-abstraction.md) "StaticDataLoader 개선", [`architecture/cache-strategies.md`](../architecture/cache-strategies.md) 개인 학습 기록.
 
 ### 4-2. Kafka 비동기 흐름의 신뢰성을 구조로 확보했다
 
 - 금액/레벨처럼 즉시 응답이 필요한 로직은 DB 트랜잭션 내, 미션·통계·알림 후처리는 Kafka로 분리.
 - `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 이후에만 발행해 롤백된 트랜잭션 이벤트의 외부 유출을 차단. 전송 실패 시 `Propagation.REQUIRES_NEW` 별도 트랜잭션으로 실패 메시지를 DB에 저장하고 스케줄러가 재전송하는 **Dead Letter Store + 재시도 구조**. traceId 동반 저장으로 실패 원인 추적.
 - **정식 Transactional Outbox와의 차이 인지**: AFTER_COMMIT과 Kafka 발행 사이의 짧은 구간(JVM 크래시·SIGKILL)에 대한 유실 가능성이 남음. 해당 도메인(통계·알림)의 특성상 수용 가능한 수준으로 판단한 설계 선택이며, 커머스처럼 정합성이 더 엄격한 도메인에서는 이벤트를 비즈니스 데이터와 같은 트랜잭션에 저장 후 relay하는 **정식 Outbox 구조**로 강화할 계획입니다.
-- 증거: [`resume/2603_김병태_이력서_v4.md`](../resume/2603_김병태_이력서_v4.md) 문항 1, [`architecture/distributed-transaction-outbox-pattern.md`](../architecture/distributed-transaction-outbox-pattern.md) 개인 학습 기록.
+- 증거: [`resume/cj-foodville-resume-backend.html`](../resume/cj-foodville-resume-backend.html) 문항 1, [`architecture/distributed-transaction-outbox-pattern.md`](../architecture/distributed-transaction-outbox-pattern.md) 개인 학습 기록.
 
 ### 4-3. 대용량 배치 파이프라인을 처음부터 설계했다
 
@@ -77,7 +77,7 @@
 
 - 슬롯 도메인: 제네릭 추상 테스트 클래스 `AbstractSlotTest`로 게임 타입별 초기화 자동화, 총 447개 테스트 파일에서 핵심 비즈니스 로직 / AOP 검증 / Kafka 이벤트 발행 / Redis 통합 테스트까지 커버.
 - 배치 도메인: `@BatchComponentTest` 커스텀 애노테이션으로 외부 API만 모킹하고 Spring 컨텍스트에서 실제 빈을 엮어 테스트해 `@Qualifier` 충돌·`@StepScope` 빈 중복 같은 실수를 빌드 타임에 차단.
-- 증거: [`resume/2603_김병태_이력서_v4.md`](../resume/2603_김병태_이력서_v4.md) 문항 1, [`task/ai-service-team/rag-vector-search-batch.md`](../task/ai-service-team/rag-vector-search-batch.md) "테스트 전략".
+- 증거: [`resume/cj-foodville-resume-backend.html`](../resume/cj-foodville-resume-backend.html) 문항 1, [`task/ai-service-team/rag-vector-search-batch.md`](../task/ai-service-team/rag-vector-search-batch.md) "테스트 전략".
 
 ---
 

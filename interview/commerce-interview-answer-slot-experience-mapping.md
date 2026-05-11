@@ -167,7 +167,7 @@ AliasMethod O(1) 가중치 랜덤을 그대로 인용한다. 슬롯에서 100만
 
 ### Q5. "EXPLAIN과 인덱스 — 자가 진단상 약점인데 어떻게 보완 중인가?"
 
-정직하게 약점이라고 인정하고 *학습 경로*를 보여준다. RCC 캐시 충족 판정 쿼리를 복합 인덱스로 튜닝한 실 사례(`task/nsc-slot/rcc-rtp-cache-control.md`) 한 건을 가져온다.
+정직하게 약점이라고 인정하고 *학습 경로*를 보여준다. RCC 캐시 충족 판정 쿼리를 복합 인덱스로 튜닝한 실 사례([`task/nsc-slot/rcc-rtp-cache-control.md`](../task/nsc-slot/rcc-rtp-cache-control.md)) 한 건을 가져온다.
 
 - *type, key, rows, Extra* 네 컬럼을 우선 본다. `Using filesort`, `Using temporary`가 보이면 인덱스 설계 재검토.
 - 복합 인덱스의 **leftmost prefix** 규칙, 커버링 인덱스로 IO 줄이기, InnoDB의 클러스터드 인덱스 특성 — 면접 직전까지 study-pack을 반복 학습 중이라고 답한다.
@@ -196,7 +196,7 @@ AliasMethod O(1) 가중치 랜덤을 그대로 인용한다. 슬롯에서 100만
 
 ## 7. 연결 문서 (작성 후 채워 넣을 자리)
 
-- 캐시 정합성 깊이 학습은 `database/cache-invalidation-multi-instance.md`(개념) 또는 `task/sb-dev-team/cache-architecture.md`(사례)로 분리 연결.
+- 캐시 정합성 깊이 학습은 `database/[`task/sb-dev-team/cache-architecture.md`](../task/sb-dev-team/cache-architecture.md)) 또는 `task/sb-dev-team/cache-architecture.md`(사례)로 분리 연결.
 - Outbox 패턴 깊이 학습은 `kafka/transactional-outbox-pattern.md`로 연결.
-- EXPLAIN/인덱스 드릴은 `database/mysql-explain-and-composite-index.md` study-pack과 페어링.
+- EXPLAIN[`interview/cj-foodville-digital-channel-backend.md`](./cj-foodville-digital-channel-backend.md)x.md` study-pack과 페어링.
 - 회사·포지션 카드 본체는 `interview/cj-foodville-digital-channel-backend.md`(별도 작성)로 두고 본 문서는 *답변 매핑 전용*으로 유지한다.
