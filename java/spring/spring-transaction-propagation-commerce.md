@@ -214,7 +214,7 @@ logging:
 >
 > 예외 측면에서는 Spring이 기본적으로 unchecked만 자동 롤백하므로 외부 IO 호출이 있는 메서드는 `rollbackFor`를 명시적으로 잡아 두는 편입니다. 자기 호출 함정도 자주 나오는데, 같은 클래스 내부 호출은 프록시를 우회하기 때문에 트랜잭션이 적용되지 않아서, 트랜잭션 단위가 분리될 만하면 빈을 분리합니다.
 >
-> 이벤트 발행은 `@TransactionalEventListener(AFTER_COMMIT)`로 직접 publish하는 대신, 도메인 트랜잭션 안에서 outbox row를 같이 저장하고 별도 publisher가 발행하는 Transactional Outbox 패턴을 선호합니다. 이전 프로젝트에서 Kafka Outbox를 도입할 때, 결제 성공 후 알림이 누락되는 사고를 막기 위해 publish를 도메인 트랜잭션과 분리하고 outbox 폴러가 재시도까지 담당하게 한 경험이 있어서 그 구조가 손에 익어 있습니다."
+> 이벤트 발행은 `@TransactionalEventListener(AFTER_COMMIT)`로 직접 publish하는 대신, 도메인 트랜잭션 안에서 outbox row를 같이 저장하고 별도 publisher가 발행하는 Transactional [Outbox 패턴](../../architecture/distributed-transaction-outbox-pattern.md)을 선호합니다. 이전 프로젝트에서 Kafka Outbox를 도입할 때, 결제 성공 후 알림이 누락되는 사고를 막기 위해 publish를 도메인 트랜잭션과 분리하고 outbox 폴러가 재시도까지 담당하게 한 경험이 있어서 그 구조가 손에 익어 있습니다."
 
 여기서 마지막 한 줄이 본인의 Outbox 경험과 자연스럽게 연결되는 지점이다. 면접관은 보통 이 시점에서 "재시도 멱등성은 어떻게 보장했냐", "outbox 폭증은 어떻게 막았냐", "DLQ는 따로 뒀냐" 같은 후속 질문으로 들어오므로 답변 끝에 이 후속 질문을 유도할 만한 키워드(idempotency key, partition key, DLQ)를 의도적으로 깔아 둔다.
 

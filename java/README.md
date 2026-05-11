@@ -5,7 +5,7 @@ Java 언어·JVM·생태계 학습 기록. 하위 폴더는 주제별 세부 정
 ## 하위 주제
 
 - [Spring](./spring/README.md) — IoC, 트랜잭션, AOP, JPA, HTTP 클라이언트
-- [Spring Batch](./spring-batch/README.md) — 배치 파이프라인, AsyncItemProcessor, StepScope
+- [Spring Batch](./spring-batch/README.md) — 배치 파이프라인, [AsyncItemProcessor](spring-batch/async-item-processor.md), StepScope
 - [JDBC](./jdbc/README.md) — 커서, 배치 처리
 - [OpenTelemetry](./opentelemetry/README.md) — 분산 추적
 - [바이트코드 조작과 리플렉션](./더_자바_코드를_조작하는_다양한_방법/README.md)

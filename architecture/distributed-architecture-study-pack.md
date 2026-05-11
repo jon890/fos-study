@@ -805,4 +805,4 @@ GROUP BY event_type;
 - [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md) — 2PC 대안, Outbox 테이블 설계
 - [Resilience 패턴](./resilience-patterns.md) — Timeout·Retry·Circuit Breaker·Bulkhead·Backpressure
 - [분산 트랜잭션](./distributed-transaction.md) — 기본 개념과 1차 방어
-- [MSA 서비스 간 통신](./msa-service-communication.md) — Cache-Aside × Kafka 이벤트
+- [MSA 서비스 간 통신](./msa-service-communication.md) — [Cache-Aside](../database/redis/cache-aside.md) × Kafka 이벤트

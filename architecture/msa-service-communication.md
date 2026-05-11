@@ -1,4 +1,4 @@
-# [초안] MSA 서비스 간 통신: Redis Cache-Aside × Kafka 이벤트 하이브리드 설계
+# [초안] MSA 서비스 간 통신: Redis [Cache-Aside](../database/redis/cache-aside.md) × Kafka 이벤트 하이브리드 설계
 
 ## 1. 이 주제가 왜 중요한가
 

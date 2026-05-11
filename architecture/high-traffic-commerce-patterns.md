@@ -170,7 +170,7 @@ Outbox 패턴은 트랜잭션 내에서 이벤트 row를 만들고 별도 프로
 
 ## 6. Read storm 방지 — 캐시의 세 가지 심화 패턴
 
-### 6-1. Cache-Aside + Negative caching
+### 6-1. [Cache-Aside](../database/redis/cache-aside.md) + Negative caching
 
 조회 트래픽은 기본적으로 cache-aside(lazy loading)를 쓴다.
 

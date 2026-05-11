@@ -77,4 +77,4 @@ Tip: Kafka나 RabbitMQ와 같은 메시지 브로커를 활용하고, **Transact
 
 - [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md) — 2PC를 피하고 대신 쓸 방법
 - [Resilience 패턴](./resilience-patterns.md) — Timeout, Retry, Circuit Breaker, Bulkhead 상세
-- [MSA 서비스 간 통신](./msa-service-communication.md) — Cache-Aside × Kafka 이벤트 하이브리드
+- [MSA 서비스 간 통신](./msa-service-communication.md) — [Cache-Aside](../database/redis/cache-aside.md) × Kafka 이벤트 하이브리드

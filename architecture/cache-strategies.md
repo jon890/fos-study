@@ -12,7 +12,7 @@
 
 ## 읽기 전략 (Read Cache Strategy)
 
-### 1. Look-Aside (Cache-Aside)
+### 1. Look-Aside ([Cache-Aside](../database/redis/cache-aside.md))
 
 **애플리케이션이 캐시와 DB를 직접 관리**하며, 요청 시 캐시를 먼저 확인하고 미스 시에만 DB에서 읽어오는 방식이다. **Lazy Loading**이라고도 부른다.
 

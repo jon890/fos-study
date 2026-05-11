@@ -15,7 +15,7 @@
 - [분산 트랜잭션](./distributed-transaction.md) — 2PC와 대안
 - [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md) — 왜 2PC를 피하고 어떻게 대신할 것인가
 - [Outbox / Inbox 패턴](./outbox-inbox-pattern.md) — exactly-once 전송과 멱등 수신
-- [MSA 서비스 간 통신](./msa-service-communication.md) — Redis Cache-Aside × Kafka 이벤트 하이브리드
+- [MSA 서비스 간 통신](./msa-service-communication.md) — Redis [Cache-Aside](../database/redis/cache-aside.md) × Kafka 이벤트 하이브리드
 
 ## 대규모 트래픽
 

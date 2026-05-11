@@ -12,12 +12,12 @@
 
 - NHN에서 4년째 Spring Boot 기반 MSA 환경에서 백엔드를 개발해온 김병태입니다. 처음 3년은 소셜 카지노 게임 슬롯 서비스에서 신규 게임 개발과 성능 개선·아키텍처 재설계를 담당했고, 이후 AI 서비스 팀으로 이동해 사내 RAG를 위한 Spring Batch 색인 파이프라인을 설계·운영했습니다.
 - 기술적으로는 다중 서버 인메모리 캐시 정합성을 RabbitMQ Fanout + Hibernate PostCommitUpdateEventListener + StampedLock으로 직접 해결했고, Kafka 이벤트 드리븐을 AFTER_COMMIT + Dead Letter Store + traceId 추적까지 결합해 신뢰성 있는 비동기 처리를 구조적으로 만들었습니다.
-- AI 서비스 팀에서는 Confluence → OpenSearch RAG 파이프라인을 11개 Step으로 분리하고 AsyncItemProcessor로 I/O 병렬화, 임베딩 메타데이터 구성을 blocklist에서 EmbeddingMetadataProvider 기반 allowlist로 전환해 OCP를 지키는 식으로 운영 가능한 형태로 정리했습니다. 직전에는 12일 동안 혼자 AI 웹툰 제작 도구 MVP를 풀스택으로 구현하며 199 plan / 760 커밋을 4인 에이전트 팀 하네스로 처리했고, 이 과정에서 'AI 도구를 쓰는 사람'이 아니라 'AI 호출 구조와 비용 모델을 설계하는 사람'으로 한 단계 더 나갔다고 생각합니다.
+- AI 서비스 팀에서는 Confluence → OpenSearch RAG 파이프라인을 11개 Step으로 분리하고 [AsyncItemProcessor](../java/spring-batch/async-item-processor.md)로 I/O 병렬화, 임베딩 메타데이터 구성을 blocklist에서 EmbeddingMetadataProvider 기반 allowlist로 전환해 OCP를 지키는 식으로 운영 가능한 형태로 정리했습니다. 직전에는 12일 동안 혼자 AI 웹툰 제작 도구 MVP를 풀스택으로 구현하며 199 plan / 760 커밋을 4인 에이전트 팀 하네스로 처리했고, 이 과정에서 'AI 도구를 쓰는 사람'이 아니라 'AI 호출 구조와 비용 모델을 설계하는 사람'으로 한 단계 더 나갔다고 생각합니다.
 - 이 모든 경험을 1,600만 고객이 사용하는 커머스 트래픽 환경에서 검증하고 싶어 올리브영 커머스플랫폼유닛에 지원하게 되었고, 안정성과 개발 속도를 동시에 끌어올리는 데 빠르게 기여하고 싶습니다.
 
 ## 올리브영/포지션 맞춤 연결 포인트
 
-- 다중 서버 인메모리 캐시 정합성을 RabbitMQ Fanout + Hibernate PostCommitUpdateEventListener + StampedLock으로 직접 해결한 경험은, 올리브영 기술 블로그의 '변경 빈도/라이프사이클 기반 Cache-Aside + Kafka 하이브리드' 의사결정과 같은 결이라 합류 직후 같은 패턴을 1,600만 트래픽 규모에서 검증할 수 있다.
+- 다중 서버 인메모리 캐시 정합성을 RabbitMQ Fanout + Hibernate PostCommitUpdateEventListener + StampedLock으로 직접 해결한 경험은, 올리브영 기술 블로그의 '변경 빈도/라이프사이클 기반 [Cache-Aside](../database/redis/cache-aside.md) + Kafka 하이브리드' 의사결정과 같은 결이라 합류 직후 같은 패턴을 1,600만 트래픽 규모에서 검증할 수 있다.
 - Kafka 이벤트 드리븐을 @TransactionalEventListener(AFTER_COMMIT) + Dead Letter Store + 스케줄러 재시도 + traceId 추적까지 결합해 비동기 신뢰성을 구조적으로 확보한 경험은, 올리브영의 '무중단 OAuth2 전환'에서 본 Resilience4j 3단계 보호 + Feature Flag + Shadow Mode 같은 운영 안정성 설계와 같은 결의 사고방식이다.
 - Spring Batch 11 Step 기반 Confluence → OpenSearch 색인 파이프라인을 처음부터 설계하면서 AsyncItemProcessor / @JobScope / 커서 기반 재시작 / 삭제 동기화까지 운영했고, 이 패턴은 커머스 상품 검색 색인이나 전시 데이터 동기화에 그대로 옮겨진다.
 - AI 도구를 단순 사용자가 아니라 호출 구조와 비용 모델을 직접 설계하는 수준에서 다뤄왔다 — 4인 에이전트 팀 하네스로 12일에 199 plan / 760 커밋을 처리한 경험은 '대규모 인원 없이도 빠른 반복이 가능한 팀 구조'를 만드는 역량으로 연결된다.

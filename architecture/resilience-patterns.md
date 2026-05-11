@@ -11,7 +11,7 @@
 
 실패는 "예외 케이스"가 아니라 "항상 일정 확률로 일어나는 사건"이다. 시니어 백엔드 엔지니어의 역할은 **"실패가 발생했을 때 전파를 어디에서 끊을 것인가"** 를 설계하는 것이다. 한 다운스트림의 지연이 내 스레드풀을 다 먹어치우고, 그것이 업스트림의 SLA를 깨뜨리고, 결국 전체 플랫폼이 시나리오 그대로 죽는 **cascading failure**를 막는 것이 핵심이다.
 
-면접에서 "외부 API가 느려지면 어떻게 대응하시나요?" 라는 질문은 사실상 **Timeout → Retry → Circuit Breaker → Bulkhead → Fallback → Backpressure → Graceful Shutdown** 의 스택을 차례로 이해하고 있느냐는 질문이다. 이 문서는 그 전체 스택을 실행 가능한 수준으로 정리한다.
+면접에서 "외부 API가 느려지면 어떻게 대응하시나요?" 라는 질문은 사실상 **Timeout → Retry → Circuit Breaker → Bulkhead → Fallback → Backpressure → [Graceful Shutdown](../devops/graceful-shutdown.md)** 의 스택을 차례로 이해하고 있느냐는 질문이다. 이 문서는 그 전체 스택을 실행 가능한 수준으로 정리한다.
 
 ## 핵심 개념: Resilience 패턴 스택
 

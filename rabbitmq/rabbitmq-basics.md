@@ -289,7 +289,7 @@ public class EmailConsumer {
 > 가장 큰 차이는 메시지가 소비된 이후의 보관 모델입니다. RabbitMQ는 Ack가 돌아오면 메시지를 큐에서 지우는 전통적인 브로커고, Kafka는 소비 후에도 로그로 보관해 offset 기반으로 재소비할 수 있습니다. 그래서 작업 분배나 이벤트 팬아웃처럼 "한 번 처리되면 끝"인 경우 RabbitMQ, 이벤트 소싱이나 스트리밍 분석처럼 같은 이벤트를 여러 번 재처리해야 하는 경우 Kafka를 선택했습니다.
 
 **Q. RabbitMQ에서 메시지 유실을 막기 위해 어떤 설정을 켭니까?**
-> 네 가지를 세트로 봅니다. Queue durable, Message persistent, Publisher Confirm, Consumer manual ack 입니다. 여기에 더해서 처리 실패 메시지를 위한 DLX + DLQ를 구성하고, Publisher 쪽에서는 Confirm nack이 왔을 때 재발행할 수 있도록 Outbox 패턴으로 묶어두는 편입니다.
+> 네 가지를 세트로 봅니다. Queue durable, Message persistent, Publisher Confirm, Consumer manual ack 입니다. 여기에 더해서 처리 실패 메시지를 위한 DLX + DLQ를 구성하고, Publisher 쪽에서는 Confirm nack이 왔을 때 재발행할 수 있도록 [Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md)으로 묶어두는 편입니다.
 
 **Q. Prefetch는 왜 설정하나요?**
 > Consumer가 아직 ack하지 않은 메시지를 얼마나 미리 받아올지 제한하는 값입니다. 기본값이 무제한이라 놔두면 한 Consumer가 수천 건을 메모리에 안고 있다가 OOM이 나거나, 불균등 분배가 심해집니다. 처리 시간이 긴 작업은 낮게(1\~5), 짧은 작업은 높게(50\~) 잡아 분배를 평탄하게 만듭니다.

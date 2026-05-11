@@ -51,7 +51,7 @@ PENDING → AUTHORIZED → CAPTURED → (PARTIAL_)REFUNDED
 기본 전략은 두 가지다.
 
 - **상태 기반 단계 분리**: 주문/결제 행을 먼저 `PENDING`으로 만들고 commit, 그 다음 PG 호출, 그 결과를 별도 트랜잭션에서 `AUTHORIZED`/`FAILED`로 갱신한다.
-- **Outbox 패턴**: DB와 같은 트랜잭션 안에 "외부에 보낼 메시지"를 outbox 테이블에 저장하고, 별도 워커가 outbox를 폴링하며 외부 호출을 수행한다. 외부 호출의 실패는 worker 재시도로 흡수되고, DB 상태 변경은 원자적으로 끝난다.
+- **[Outbox 패턴](distributed-transaction-outbox-pattern.md)**: DB와 같은 트랜잭션 안에 "외부에 보낼 메시지"를 outbox 테이블에 저장하고, 별도 워커가 outbox를 폴링하며 외부 호출을 수행한다. 외부 호출의 실패는 worker 재시도로 흡수되고, DB 상태 변경은 원자적으로 끝난다.
 
 결제 승인처럼 동기 응답이 필요한 경우 첫 번째 전략을, 결제 후 알림/적립/회계 연동처럼 사용자 응답과 분리 가능한 경우 Outbox를 쓴다.
 

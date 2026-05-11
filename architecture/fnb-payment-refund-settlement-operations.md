@@ -128,7 +128,7 @@ CREATE TABLE payment_intent (
 
 PG 호출 시 헤더 또는 바디에 이 키를 넣는다. 대부분의 국내 PG는 `Idempotency-Key` 또는 자체 필드명을 지원한다. 지원하지 않더라도 우리 쪽에서 단일 호출만 보장하면 충분하다.
 
-### Outbox 패턴: 트랜잭션 경계와 메시지 발행 분리
+### [Outbox 패턴](distributed-transaction-outbox-pattern.md): 트랜잭션 경계와 메시지 발행 분리
 
 후보자가 가지고 있는 카프카 Outbox 경험은 결제 도메인에서 다음과 같이 매핑된다.
 

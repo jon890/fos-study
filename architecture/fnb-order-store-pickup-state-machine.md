@@ -215,7 +215,7 @@ public AcceptResult acceptOrder(AcceptOrderCommand cmd) {
 
 여기에서 외부 호출은 트랜잭션 밖이다. 별도의 OutboxPublisher가 outbox 행을 폴링/CDC로 읽어 KDS, 알림, 정산 시스템으로 이벤트를 비동기 발송한다.
 
-## Outbox 패턴 — 상태 변경과 통지를 안전하게 묶기
+## [Outbox 패턴](distributed-transaction-outbox-pattern.md) — 상태 변경과 통지를 안전하게 묶기
 
 상태 전이 + 외부 알림을 한 트랜잭션 안에 묶으려는 시도는 거의 항상 분산 트랜잭션 함정으로 끝난다. Outbox는 이걸 우회한다.
 

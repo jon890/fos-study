@@ -388,7 +388,7 @@ ADR-154에서 **pino + `AsyncLocalStorage` 기반 MDC**를 도입했다. Java SL
 
 전반 12일에 60컷 일괄 생성을 클라이언트 `Promise.allSettled`로 옮긴 게 ADR-073이었다. 후반부에 같은 패턴을 컷·배경·소품 3종으로 통일하고, SDK까지 신호를 전파하는 작업이 들어갔다.
 
-**ADR-137: 배치 생성 통합.** 컷은 `AsyncIterable` + `AbortController` + 전량 병렬, 배경/소품은 `CONCURRENCY=3` 슬라이스 + `batchAbortedRef` boolean — 같은 일을 두 패턴이 하고 있었다. 후자를 폐기하고 전자로 수렴했다. 핵심은 **`AbortSignal`을 SDK까지 전파**한 부분이다. 클라이언트 `fetch(signal)` → route의 `request.signal` → application → generator → `@google/genai` SDK의 `config.abortSignal`까지.
+**ADR-137: 배치 생성 통합.** 컷은 `AsyncIterable` + `[AbortController](../../javascript/abort-controller.md)` + 전량 병렬, 배경/소품은 `CONCURRENCY=3` 슬라이스 + `batchAbortedRef` boolean — 같은 일을 두 패턴이 하고 있었다. 후자를 폐기하고 전자로 수렴했다. 핵심은 **`AbortSignal`을 SDK까지 전파**한 부분이다. 클라이언트 `fetch(signal)` → route의 `request.signal` → application → generator → `@google/genai` SDK의 `config.abortSignal`까지.
 
 `@google/genai`의 `abortSignal`은 client-only로 명시되어 있어 Google 서버의 작업 자체는 중단 안 된다. 비용은 발생한다. 그럼에도 전파한 이유는 (1) 대기 중이던 요청의 시작 억제, (2) 네트워크/메모리 즉시 회수, (3) 향후 SDK가 실제 취소를 지원하면 자동 수혜. **"지금은 이득이 작지만 차후 공짜 업그레이드를 받기 위해 시그니처를 미리 정비"**가 의도였다.
 

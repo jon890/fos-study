@@ -7,7 +7,7 @@
 
 ## 1. 1분 자기소개 (60초, 약 280자)
 
-> NHN에서 4년간 Java 백엔드 개발을 해온 김병태입니다. 소셜 카지노 슬롯팀에서는 Spring Boot 멀티모듈 MSA 환경에서 신규 슬롯 게임 5종 이상과 RTP 편차 보정 시스템(RCC)을 만들었고, 다중 서버 인메모리 캐시 정합성 문제를 RabbitMQ Fanout과 StampedLock으로 직접 풀었습니다. 이후 AI 서비스팀으로 이동해 Confluence 문서를 OpenSearch에 벡터 색인하는 Spring Batch 파이프라인을 11개 Step과 AsyncItemProcessor로 처음부터 설계·구현했고, 최근에는 12일 동안 혼자 AI 웹툰 제작 도구 MVP를 Next.js와 Gemini, Claude Code 하네스 기반 에이전트 팀으로 199 plan·760 커밋까지 밀어냈습니다. 설계부터 운영, AI 도구 도입·확산까지 전 과정을 주도한 경험을 살려 기여하고 싶습니다.
+> NHN에서 4년간 Java 백엔드 개발을 해온 김병태입니다. 소셜 카지노 슬롯팀에서는 Spring Boot 멀티모듈 MSA 환경에서 신규 슬롯 게임 5종 이상과 RTP 편차 보정 시스템(RCC)을 만들었고, 다중 서버 인메모리 캐시 정합성 문제를 RabbitMQ Fanout과 StampedLock으로 직접 풀었습니다. 이후 AI 서비스팀으로 이동해 Confluence 문서를 OpenSearch에 벡터 색인하는 Spring Batch 파이프라인을 11개 Step과 [AsyncItemProcessor](../java/spring-batch/async-item-processor.md)로 처음부터 설계·구현했고, 최근에는 12일 동안 혼자 AI 웹툰 제작 도구 MVP를 Next.js와 Gemini, Claude Code 하네스 기반 에이전트 팀으로 199 plan·760 커밋까지 밀어냈습니다. 설계부터 운영, AI 도구 도입·확산까지 전 과정을 주도한 경험을 살려 기여하고 싶습니다.
 
 ---
 
@@ -27,7 +27,7 @@
 |------|------|------|----------------|
 | 2026.04 (12일) | NHN AI 서비스팀 | 단독 풀스택 MVP 리드 | Next.js 16 + Gemini + Claude Code 하네스 기반 4인 에이전트 팀(planner/critic/executor/docs-verifier)으로 199 plan/760 커밋. Gemini Pro 기본 + 429 fallback, 전역 Rate Limit Tracking, Project Context Cache, Grounding 재주입, Container/Presenter + 파일 소유권 매트릭스 |
 | 2026.01 ~ 2026.03 | NHN AI 서비스팀 | RAG 배치 파이프라인 설계·구현 | Spring Batch 11 Step + `AsyncItemProcessor` 병렬 임베딩, `@JobScope` 인메모리 홀더, ADF → Markdown 변환, 전략 패턴 기반 `EmbeddingMetadataProvider`, 삭제 동기화 (`status=DELETED,TRASHED` 재사용) |
-| 2025.12 ~ | NHN AI 서비스팀 | 백엔드 | OCR 서버 Graceful Shutdown 503 수정, 임베딩 메타데이터 blocklist → allowlist 전환 |
+| 2025.12 ~ | NHN AI 서비스팀 | 백엔드 | OCR 서버 [Graceful Shutdown](../devops/graceful-shutdown.md) 503 수정, 임베딩 메타데이터 blocklist → allowlist 전환 |
 | 2025.07 ~ 2025.10 | NHN NSC 슬롯팀 | RCC·엔진 추상화 리드 | RTP Cache Control 6종 대응, `SlotTemplate`/`BaseSlotService`/`ExtraConfig` 분리, `StampedLock` 도입으로 refresh 중 NPE 제거, Alias 테이블 `IN`절 일괄 조회 |
 | 2025.02 ~ 2025.08 | NHN NSC 슬롯팀 | 신규 슬롯 5종 | Slot 36/38/41/44/47, Cursor Rules 20+로 AI 에이전트 단독 구현 3종, 스핀 최적화(AliasMethod O(1), `SecureRandom` → `ThreadLocalRandom`), 시뮬레이터 OOM 해결(Welford's Online Algorithm) |
 | 2024.06 ~ 2024.12 | NHN NSC 슬롯팀 | 합류 첫 해 | Slot 21/33 신규 게임, Admin Alpha↔Real 비교/복사, BuyFeature 티켓·시나리오 스핀 플랫폼 기능, 다중 서버 캐시 정합성 (RabbitMQ Fanout + StampedLock), Kafka 비동기 발행 (AFTER_COMMIT + Dead Letter Store 재시도) |
@@ -223,7 +223,7 @@
 - **문제 정의**: 순수 확률 기반 슬롯은 짧은 세션에서 RTP(Return to Player) 편차가 큼. 운이 나쁜 유저가 오랫동안 보상을 받지 못해 이탈하는 것을 구조적으로 방지해야 함.
 - **해결 접근**: 백그라운드에서 "좋은 결과"를 미리 생성해 DB에 저장해두고, 조건을 충족하는 스핀에서 이 결과를 꺼내 제공. 이름은 Cache Control이지만 **응답성 최적화가 아니라 RTP 편차 보정이 목적**. 슬롯 6종 대응 + `RccSpinResultAnalyzer` 인터페이스로 슬롯별 캐시 조건 분리(OCP). 여러 인스턴스 동시 생성은 DB 유니크 키 + 예외 처리로 제어. 슬롯 엔진 추상화(`SlotTemplate`, `BaseSlotService`, `ExtraConfig` 분리)와 병행.
 - **기술적 핵심**: Spring `@Async` 백그라운드 생성, Strategy Pattern(`RccSpinResultAnalyzer`), DB 유니크 키 기반 동시성 제어, 복합 인덱스 기반 쿼리 최적화(COUNT 풀스캔 해소).
-- **면접 방어 포인트**: 이름 때문에 Cache-Aside로 오해받기 쉬우나 **RTP 보장을 위한 결과 보정 시스템**이라는 본질을 먼저 짚고 들어가야 함. 커머스 비유는 추천 품질 폴백·대체 상품 제안·개인화 콜드 스타트 보정 쪽이 정합적.
+- **면접 방어 포인트**: 이름 때문에 [Cache-Aside](../database/redis/cache-aside.md)로 오해받기 쉬우나 **RTP 보장을 위한 결과 보정 시스템**이라는 본질을 먼저 짚고 들어가야 함. 커머스 비유는 추천 품질 폴백·대체 상품 제안·개인화 콜드 스타트 보정 쪽이 정합적.
 
 ---
 

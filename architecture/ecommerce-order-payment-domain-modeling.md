@@ -114,7 +114,7 @@ F&B 도메인의 재고는 e-Commerce 일반과 다르다. 매장 단위 한정 
 
 ## 정합성, 멱등성, Outbox/Saga
 
-서비스 경계가 여러 개라면 분산 트랜잭션 대신 **Outbox 패턴 + 보상 트랜잭션**(Saga) 조합을 쓴다. 면접에서는 이 부분이 가장 자주 나온다.
+서비스 경계가 여러 개라면 분산 트랜잭션 대신 **[Outbox 패턴](distributed-transaction-outbox-pattern.md) + 보상 트랜잭션**(Saga) 조합을 쓴다. 면접에서는 이 부분이 가장 자주 나온다.
 
 ### Outbox 패턴 한 줄 요약
 

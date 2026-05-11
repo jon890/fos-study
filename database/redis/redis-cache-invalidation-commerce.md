@@ -8,7 +8,7 @@
 
 ## 핵심 개념 정리
 
-### Cache-Aside (Lazy Loading)
+### [Cache-Aside](cache-aside.md) (Lazy Loading)
 
 가장 흔한 패턴이다. 애플리케이션이 캐시를 먼저 조회하고, miss면 DB에서 읽어 캐시에 채운 뒤 응답한다.
 
