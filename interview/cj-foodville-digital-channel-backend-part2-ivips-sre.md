@@ -1,6 +1,6 @@
 # [초안] CJ푸드빌 디지털 채널 — Part 2: ivips.co.kr SRE 외부 진단
 
-> 1편 [`cj-foodville-digital-channel-backend.md`](cj-foodville-digital-channel-backend.md) 의 후속.
+> [CJ푸드빌 디지털 채널 Back-end 직무 분석 (1편)](cj-foodville-digital-channel-backend.md) 의 후속.
 > 2차 면접관 커피챗 (2026-05-18 월) 어필용 외부 진단 리포트.
 > **톤**: 비판이 아니라 **"외부에서 SRE 관점으로 봤을 때 이게 눈에 들어왔고, 합류하면 첫 90일에 이 순서로 보겠다"** 공동 작업자 톤.
 > **모든 측정은 합류 전 외부 일반 사용자 환경에서 한 것** — 내부 메트릭·SLO·실사용자 데이터에 접근하지 않은 상태의 추론이라는 점을 분명히 한다.
@@ -26,7 +26,7 @@
 | 축 | 평가 | 요약 |
 |---|---|---|
 | **가용성 / DNS / 인증서** | ◯ | CloudFront + AWS ALB 정상, TLS 1.3 + HTTP/3, TLS 1.0/1.1 차단. DNSSEC·CAA 없음. |
-| **성능 (홈 1차 방문)** | ✕ | **11.4MB / 111 자원**. Pretendard 9개 weight × 800KB woff2, **unicode-range subset 분할 0**. |
+| **성능** (홈 1차 방문) | ✕ | **11.4MB / 111 자원**. Pretendard 9개 weight × 800KB woff2, **unicode-range subset 분할 0**. |
 | **캐싱 정책** | △ | `s-maxage=31536000` 인데 매번 `x-cache: Miss`. `Vary` 5개 토큰 → 캐시 키 폭발 의심. |
 | **보안 헤더** | ✕ | HSTS·CSP·X-Content-Type-Options·Referrer-Policy 전부 없음. **CORS `*` + `Credentials: true`** 모든 응답에 부착. |
 | **쿠키 위생** | △ | `WMONID` Secure·HttpOnly 없음 (1년 만료). `JSESSIONIDSSO` 는 정상. |
@@ -110,9 +110,9 @@ Pretendard 는 한글 폰트라서 통 파일이 무거운 게 정상이다. 하
 
 ##### 권장 액션 (합류 후 실험)
 
-- 옵션 A: **Pretendard 공식 subset (`Pretendard-subset-*`)** 사용 — 라틴/한글 자주 쓰이는 글리프만, 한 weight 당 \~30KB
+- 옵션 A: **Pretendard 공식 subset** (`Pretendard-subset-*`) 사용 — 라틴/한글 자주 쓰이는 글리프만, 한 weight 당 \~30KB
 - 옵션 B: `unicode-range` 로 [U+0020-007F (영문/숫자)] / [U+AC00-D7A3 (한글 음절)] / [기타] 분할 → 첫 페인트에 영문 chunk 만 다운로드
-- 옵션 C: **가변 폰트 (variable font) `PretendardVariable.woff2`** 1개 (\~250KB) 로 9개 weight 통합
+- 옵션 C: **가변 폰트** (variable font, `PretendardVariable.woff2`) 1개 (\~250KB) 로 9개 weight 통합
 - 가장 큰 win 은 B+C 조합. C 단독으로도 800KB × 9 → 250KB × 1 (-96%)
 
 #### 2.3 2차 방문 (웜, HTTP/3 승격)
@@ -279,7 +279,7 @@ GET https://www.ivips.co.kr/
 
 ##### 면접 어필 포인트와 직결
 
-이 구조가 정확이라면 멀티브랜드 코드베이스 운영 = 브랜드별 캐시 무효화 / 정책 동기화 / A/B 분기 같은 문제가 NSC 슬롯팀에서 풀던 **다중 서버 인메모리 캐시 정합성** 과 동형. 1편 [`cj-foodville-digital-channel-backend.md`](cj-foodville-digital-channel-backend.md) 의 "강점 매칭" 표 1번이 그대로 매핑된다.
+이 구조가 정확이라면 멀티브랜드 코드베이스 운영 = 브랜드별 캐시 무효화 / 정책 동기화 / A/B 분기 같은 문제가 NSC 슬롯팀에서 풀던 **다중 서버 인메모리 캐시 정합성** 과 동형. 1편의 [강점 매칭 표 — 다중 서버 캐시 정합성](cj-foodville-digital-channel-backend.md#강점-매칭) 이 그대로 매핑된다.
 
 ---
 
@@ -303,7 +303,7 @@ GET https://www.ivips.co.kr/
 
 ### 7. 종합
 
-이 사이트는 **"비교적 모던한 스택 (Next.js + CloudFront + HTTP/3) 위에 운영형 빠진 곳들이 누적된"** 상태로 보인다.
+이 사이트는 **"비교적 모던한 스택 — Next.js + CloudFront + HTTP/3 — 위에 운영형 빠진 곳들이 누적된"** 상태로 보인다.
 
 - 잘 된 것: 스택 선택, TLS 1.3 + HTTP/3, 3rd party 절제, 접근성 기본, 코드 스플릿
 - 빠진 것: 보안 헤더, 폰트 최적화, 캐시 정책 정합성, 쿠키 위생, 404 처리
@@ -468,7 +468,7 @@ font:9  image:4  script:2  style:6
 
 ## 근거 자료
 
-- 1편: [`cj-foodville-digital-channel-backend.md`](cj-foodville-digital-channel-backend.md)
+- 1편: [CJ푸드빌 디지털 채널 Back-end 직무 분석](cj-foodville-digital-channel-backend.md)
 - 측정 도구:
   - agent-browser 0.27.0 (Chromium CDP 기반) — https://github.com/vercel-labs/agent-browser
   - `curl`, `openssl s_client`, `dig` — 표준 CLI
