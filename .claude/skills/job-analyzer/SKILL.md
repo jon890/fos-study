@@ -79,9 +79,9 @@ quality: high
 
 기술 블로그를 찾지 못하면 뉴스, 채용 다른 공고, GitHub 등에서 보완.
 
-### 3. 지원자 경력 파악
+### 3. 지원자 경력 + fos-study 자료 파악
 
-`task/` 폴더를 탐색해 지원자의 실제 경험을 파악한다.
+`task/` 폴더를 탐색해 지원자의 실제 구현 경험을 파악한다. 동시에 `architecture/`, `database/`, `kafka/`, `rabbitmq/`, `java/`, `web/`, `interview/` 같은 **개념·패턴 폴더도 인지**한다. 답변 작성 시 cross-link 후보로 활용해야 한다 (실제 발굴은 Step 3.5 에서).
 
 ```
 /Users/nhn/personal/fos-study/task/
@@ -95,6 +95,29 @@ quality: high
 - 성능 최적화, 트러블슈팅 경험
 - 아키텍처 설계 경험 (추상화, 공통화, 표준화)
 - 규모 관련 경험 (트래픽, 데이터량, 동시성)
+
+### 3.5. fos-study 전역 키워드 스캔 (cross-link 후보 발굴)
+
+Step 1 에서 추출한 JD 핵심 키워드 (필수 스택 / 우대 항목 / 담당 업무 명사) 로 fos-study 전역을 ripgrep 한다. 매칭된 문서가 분석 문서 본문에서 cross-link 가능 후보다.
+
+```bash
+# 예시 — JD 키워드를 KEYWORDS 배열에 담아 일괄 스캔
+KEYWORDS=("JPA" "캐시 정합성" "Outbox" "graceful shutdown" "Hexagonal" "MyBatis" "JSP" "결제" "쿠폰" "멤버십" "주문 상태")
+for kw in "${KEYWORDS[@]}"; do
+  echo "== $kw =="
+  rg -l --type md "$kw" /Users/nhn/personal/fos-study/ \
+    | grep -v "^/Users/nhn/personal/fos-study/interview/cj-" \
+    | head -5
+done
+```
+
+매칭된 후보는 각 키워드별로 메모해 두고, Step 4 본문 작성 시 해당 키워드가 등장하는 줄/표 옆에 `[H1 제목](상대경로)` 형태로 link 박는다.
+
+**작성 원칙**:
+- 링크 표시 텍스트는 경로가 아닌 대상 문서의 **H1 제목** 사용 (`[캐시 설계 전략 총정리](../architecture/cache-strategies.md)` ← O / `[architecture/cache-strategies.md](...)` ← X)
+- H1 제목 추출: `grep -m1 '^# ' <file> | sed 's/^# //'`
+- 한 줄에 link 3개 넘으면 가독성 떨어짐 — 가장 가까운 1\~2개만 박고 나머지는 별도 줄
+- Step 4 의 "강점 매칭", "예상 면접 질문", "면접 준비 포인트" 섹션이 cross-link 가장 자연스럽게 들어가는 자리
 
 ### 4. 분석 문서 작성
 
@@ -209,7 +232,9 @@ quality: high
 1. 공고 URL 확인 (없으면 요청)
 2. **[병렬]** WebFetch로 공고 크롤링 + WebSearch로 회사 기술 블로그 탐색
 3. **[병렬]** 기술 블로그 글 2~3개 WebFetch + task/ 폴더 탐색
-4. 분석 문서 작성
-5. `interview/{파일명}.md` 저장
-6. `interview/README.md` 업데이트 (있을 경우)
-7. 사용자에게 저장 경로 + 핵심 분석 요약 (어느 직무가 더 어울리는지 포함) 전달
+4. **fos-study 전역 키워드 스캔** — JD 키워드로 architecture/, database/, interview/ 등 cross-link 후보 발굴 (Step 3.5)
+5. 분석 문서 작성 (본문 작성 시 키워드 옆에 cross-link 박기, 표시 텍스트는 대상 문서 H1 제목)
+6. `interview/{파일명}.md` 저장
+7. `interview/README.md` 업데이트 (있을 경우)
+8. **작성 후 자가 audit** — `/docs-audit scope=single-file target=interview/{파일명}.md axes=cross-link` 호출. 누락된 cross-link 후보가 보고되면 사용자 동의 후 일괄 보강하고 별도 commit 으로 분리
+9. 사용자에게 저장 경로 + 핵심 분석 요약 (어느 직무가 더 어울리는지 포함) 전달
