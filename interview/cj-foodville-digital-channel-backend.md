@@ -4,6 +4,12 @@
 > 내부 비공개 정보나 확인되지 않은 성과 수치는 포함하지 않는다.
 >
 > **후속 문서**: [Part 2 — ivips.co.kr SRE 외부 진단](cj-foodville-digital-channel-backend-part2-ivips-sre.md) — 2026-05-18 사전 커피챗 어필용 빕스 공식 사이트 7개 축 외부 진단.
+>
+> **관련 면접 문서**:
+> - [시니어 Java 백엔드 면접 마스터 플레이북](senior-backend-master-playbook.md)
+> - [슬롯 도메인 경험을 커머스/F&B 설계로 번역](commerce-interview-answer-slot-experience-mapping.md)
+> - [Observability 면접 답변 프레임](observability-interview-frame.md)
+> - [F&B 운영 모니터링과 장애 대응 인터뷰 정리](fnb-ecommerce-operations-monitoring-interview.md)
 
 ## 분석 요약
 
@@ -37,13 +43,13 @@
 | JD 요건 | 후보자 증거 |
 |---------|-------------|
 | Java + Spring Framework 기반 | Java 17·21 / Spring Boot 3.x 4년 운영 (`task/nsc-slot/`, `task/ai-service-team/`) |
-| JPA/Hibernate | `PostCommitUpdateEventListener`, `@TransactionalEventListener(AFTER_COMMIT)`, `REQUIRES_NEW` 운영 (`resume/cj-foodville-resume-backend.html`) |
-| MySQL RDBMS | MySQL 8.x 운영 + 복합 인덱스 추가로 캐시 충족 판정 쿼리 개선 ([`task/nsc-slot/rcc-rtp-cache-control.md`](../task/nsc-slot/rcc-rtp-cache-control.md)) |
+| JPA/Hibernate | `PostCommitUpdateEventListener`, `@TransactionalEventListener(AFTER_COMMIT)`, `REQUIRES_NEW` 운영 (`resume/cj-foodville-resume-backend.html`) — 패턴 정리: [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md), [Outbox / Inbox Pattern 심화](../architecture/outbox-inbox-pattern.md) |
+| MySQL RDBMS | MySQL 8.x 운영 + 복합 인덱스 추가로 캐시 충족 판정 쿼리 개선 ([RCC RTP 캐시 제어](../task/nsc-slot/rcc-rtp-cache-control.md)) — 개념: [DB 인덱스 — 성능 최적화의 핵심](../database/index.md), [JPA N+1과 커머스 조회 모델](../database/jpa-n-plus-one-commerce-read-model.md) |
 | 클라우드 환경 (Azure 명시) | NHN Cloud + **Azure 이중화** 운영, Azure Service Bus, Azure Blob (`task/sb-dev-team/`) |
 | 성능 개선 및 품질 향상 | AliasMethod O(n)→O(1), 시뮬레이터 OOM 해소 ([slot-spin-performance.md](../task/nsc-slot/slot-spin-performance.md), [slot-simulator-oom.md](../task/nsc-slot/slot-simulator-oom.md)), gRPC graceful shutdown ([graceful-shutdown-503-fix.md](../task/ai-service-team/graceful-shutdown-503-fix.md)) |
 | 기획 조직과의 커뮤니케이션 | 의사결정 문서화 습관, AI 웹툰 MVP에서 디자이너·기획과 협업 ([`task/ai-service-team/webtoon-maker-ai-pipeline.md`](../task/ai-service-team/webtoon-maker-ai-pipeline.md)) |
 | (우대) 운영 오픈 경험 | NSC 슬롯 8종 신규 개발/오픈, Spring Boot 3 기반 신규 팀 셋업 |
-| (우대) 안정적 프러덕트 운영 | 다중 서버 캐시 정합성, Outbox Pattern, 447개 테스트 파일 |
+| (우대) 안정적 프러덕트 운영 | 다중 서버 캐시 정합성 ([Spring Boot 인메모리 캐시 다중 인스턴스 정합성](../task/sb-dev-team/cache-architecture.md), [캐시 설계 전략 총정리](../architecture/cache-strategies.md)), Outbox Pattern ([Outbox / Inbox Pattern 심화](../architecture/outbox-inbox-pattern.md)), 447개 테스트 파일 |
 
 ---
 
@@ -51,11 +57,11 @@
 
 1. **Kotlin** — 출처 문서에 운영 기재 없음. JD 필수 항목에 Java와 병기되어 있어 **선택 가능**해 보이나, Kotlin 비중 확인 필요. (현 MVP 정책상 제외 중이지만, 이 공고에 지원하려면 단기 학습 검토)
 2. **MyBatis** — 프로필에 운영 기재 없음. JPA 기반이 강하므로 **MyBatis가 메인 스택일 경우 갭이 큼**. 면접에서 비중을 물어볼 것.
-3. **JSP + jQuery**(우대) — 직접 운영 경험 없음. 레거시 화면이 일부 있는 환경일 가능성. **읽고 수정 가능 수준**으로 자기 평가할 것 (없다면 그대로 말하기).
+3. **JSP + jQuery**(우대) — 직접 운영 경험 없음. 레거시 화면이 일부 있는 환경일 가능성. **읽고 수정 가능 수준**으로 자기 평가할 것 (없다면 그대로 말하기). 답변 프레임: [레거시 JSP/jQuery와 신규 API 공존 백엔드 운영 전략](../architecture/legacy-jsp-jquery-api-coexistence.md), [HTTP/Cookie/Session/Token 인증 기본기 — 레거시 JSP와 모바일 API 공존 관점](../web/http-session-cookie-api-auth-basics.md).
 4. **AWS / GCP** — 명시 없음. Azure는 운영. JD가 "Azure, AWS, GCP **등**"이므로 Azure 경험으로 갈음 가능하나, 운영 클라우드 확인 필요.
 5. **Oracle** — 명시 없음. MySQL 운영. JD는 "MySQL 또는 Oracle"이므로 충족.
-6. **Hexagonal / Clean Architecture**(우대) — 명시적 도입 기재 없음. 단, **SlotTemplate / EmbeddingMetadataProvider / `RccSpinResultAnalyzer` 인터페이스 분리** 등 포트-어댑터적 사고는 보유. 면접에서 "이름은 안 붙였지만 동일한 원칙으로" 답변 가능.
-7. **F&B / e-Commerce 도메인** — 무경험. 도메인 학습 의지를 말로 보완해야 함.
+6. **Hexagonal / Clean Architecture**(우대) — 명시적 도입 기재 없음. 단, **SlotTemplate / EmbeddingMetadataProvider / `RccSpinResultAnalyzer` 인터페이스 분리** 등 포트-어댑터적 사고는 보유. 면접에서 "이름은 안 붙였지만 동일한 원칙으로" 답변 가능. 답변 프레임: [Hexagonal/Clean Architecture를 Spring 백엔드에 적용하기](../architecture/hexagonal-clean-architecture-spring.md), [커머스 Spring 서비스에 Clean/Hexagonal Architecture 실용 적용](../architecture/clean-architecture-pragmatic-spring-commerce.md).
+7. **F&B / e-Commerce 도메인** — 무경험. 도메인 학습 의지를 말로 보완해야 함. 학습 자료: [F&B·e-Commerce 디지털 채널 도메인 한 장 정리](../architecture/fnb-ecommerce-domain-overview.md), [CJ푸드빌 커머스/F&B 도메인 설계 면접 대비](../architecture/cj-foodville-commerce-domain-design-interview.md).
 8. **Bitbucket** — Git은 운영, Bitbucket UI는 직접 기재 없음. 사실상 동등하므로 무리 없이 답변 가능.
 
 ---
@@ -64,11 +70,11 @@
 
 > **이 공고에서는 "운영 안정성 + 성능 개선 + 장애 대응" 서사가 가장 잘 먹힘.** AI/Agent 서사는 부차로.
 
-1. **다중 서버 인메모리 캐시 정합성 설계**(SB 개발팀 + NSC 슬롯팀 통합) — JD의 "성능 개선 / 품질 향상 / 운영" 키워드와 가장 직결. JPA 이벤트 리스너 + MQ Fanout + StampedLock + 멀티클라우드(Azure 포함) 풀스택. **메인으로 앞세울 것.**
-2. **Kafka Outbox Pattern 설계** — 트랜잭션·메시지 경계 이해. AFTER_COMMIT + REQUIRES_NEW + 재전송 스케줄러. **시니어 백엔드 면접관이 좋아하는 깊이.**
+1. **다중 서버 인메모리 캐시 정합성 설계**(SB 개발팀 + NSC 슬롯팀 통합) — JD의 "성능 개선 / 품질 향상 / 운영" 키워드와 가장 직결. JPA 이벤트 리스너 + MQ Fanout + StampedLock + 멀티클라우드(Azure 포함) 풀스택. **메인으로 앞세울 것.** ([Spring Boot 인메모리 캐시 다중 인스턴스 정합성](../task/sb-dev-team/cache-architecture.md), [RCC RTP 캐시 제어](../task/nsc-slot/rcc-rtp-cache-control.md))
+2. **Kafka Outbox Pattern 설계** — 트랜잭션·메시지 경계 이해. AFTER_COMMIT + REQUIRES_NEW + 재전송 스케줄러. **시니어 백엔드 면접관이 좋아하는 깊이.** ([블록체인 토큰 기반 추천 프로그램](../task/sb-dev-team/referral-program.md), [Outbox / Inbox Pattern 심화](../architecture/outbox-inbox-pattern.md))
 3. **NHN Cloud Container 503 graceful shutdown 해결** — 정확히 JD의 "장애/이슈 분석 대응" 항목. preStop 15s + gRPC grace 12s + 여유 3s 예산 설계 서사가 강력.
-4. **슬롯 스핀 성능 최적화**(AliasMethod + ThreadLocalRandom) — "성능 개선" 어필용 보조 카드. 알고리즘/RNG 교체 의사결정 서사로 활용.
-5. **(보조) Confluence RAG 벡터 색인 배치 파이프라인** — Spring Batch + 운영형 파이프라인. AI 색채를 빼고 "**대용량 배치 + 재시작 안전성 + I/O 병렬화**" 관점으로 재포장.
+4. **슬롯 스핀 성능 최적화**(AliasMethod + ThreadLocalRandom) — "성능 개선" 어필용 보조 카드. 알고리즘/RNG 교체 의사결정 서사로 활용. ([슬롯 스핀 성능 최적화](../task/nsc-slot/slot-spin-performance.md), [슬롯 아키텍처 1년 진화](../task/nsc-slot/slot-architecture-evolution.md))
+5. **(보조) Confluence RAG 벡터 색인 배치 파이프라인** — Spring Batch + 운영형 파이프라인. AI 색채를 빼고 "**대용량 배치 + 재시작 안전성 + I/O 병렬화**" 관점으로 재포장. ([Confluence 문서를 OpenSearch에 벡터 색인하기 — Spring Batch 파이프라인 설계기](../task/ai-service-team/rag-vector-search-batch.md))
 
 > **빼거나 줄일 것**: AI 웹툰 MVP, AI 에이전트 단독 슬롯 구현. 이 공고에서는 차별화보다 "본업 안 챙긴" 인상을 줄 위험. **언급은 하되 메인으로 두지 말 것.**
 
@@ -90,27 +96,27 @@
 ## 예상 면접 질문
 
 ### 기술 (필수 스택 검증)
-1. JPA의 N+1 문제를 언제 어떻게 인지하는가? `@EntityGraph` vs fetch join vs `default_batch_fetch_size`는 어떻게 선택?
+1. JPA의 N+1 문제를 언제 어떻게 인지하는가? `@EntityGraph` vs fetch join vs `default_batch_fetch_size`는 어떻게 선택? → 답변 베이스: [JPA N+1과 커머스 조회 모델](../database/jpa-n-plus-one-commerce-read-model.md)
 2. EXPLAIN 결과에서 가장 먼저 보는 컬럼은? 복합 인덱스 leftmost prefix가 깨지는 케이스?
-3. **(강점)** 다중 서버에서 캐시 정합성이 깨지는 시나리오와 본인이 푼 방식?
+3. **(강점)** 다중 서버에서 캐시 정합성이 깨지는 시나리오와 본인이 푼 방식? → 답변 베이스: [Spring Boot 인메모리 캐시 다중 인스턴스 정합성](../task/sb-dev-team/cache-architecture.md), [캐시 설계 전략 총정리](../architecture/cache-strategies.md)
 4. `@TransactionalEventListener(AFTER_COMMIT)`는 왜 필요? `REQUIRES_NEW`는 왜 결합했나?
 5. MyBatis 운영 경험이 어느 정도인가? JPA만 쓰던 팀에서 MyBatis가 도입되어야 하는 상황을 어떻게 판단할까?
 6. Kotlin 경험은? Java 팀이 Kotlin으로 마이그레이션한다면 무엇부터 보는가?
 
 ### 아키텍처
-7. Hexagonal Architecture를 도입할 때 "포트가 너무 많아져" 단순한 CRUD가 비대해지는 문제를 어떻게 다루나?
-8. 레거시 JSP+jQuery 화면과 신규 SPA가 공존하는 환경의 백엔드 API 설계 원칙?
+7. Hexagonal Architecture를 도입할 때 "포트가 너무 많아져" 단순한 CRUD가 비대해지는 문제를 어떻게 다루나? → 답변 베이스: [커머스 Spring 서비스에 Clean/Hexagonal Architecture 실용 적용](../architecture/clean-architecture-pragmatic-spring-commerce.md)
+8. 레거시 JSP+jQuery 화면과 신규 SPA가 공존하는 환경의 백엔드 API 설계 원칙? → 답변 베이스: [레거시 JSP/jQuery와 신규 API 공존 백엔드 운영 전략](../architecture/legacy-jsp-jquery-api-coexistence.md)
 9. 도메인 모델 경계를 정할 때 본인의 휴리스틱은? (SlotTemplate 도입 타이밍 사례 답변 가능)
 
 ### 운영·장애
 10. **(강점)** 본인이 가장 어려웠던 장애 사례와 RCA. → graceful shutdown 503 사례.
-11. 새벽 장애 알림이 왔을 때 첫 5분 동안 보는 것 3가지?
+11. 새벽 장애 알림이 왔을 때 첫 5분 동안 보는 것 3가지? → 답변 베이스: [Observability 면접 답변 프레임](observability-interview-frame.md), [F&B 운영 모니터링과 장애 대응 인터뷰 정리](fnb-ecommerce-operations-monitoring-interview.md)
 12. 성능 개선을 의사결정으로 입증한 사례. → AliasMethod 도입 / RNG 교체 서사 (정량 수치는 본인이 직접 측정한 부분만 인용).
 
 ### 도메인·협업
 13. F&B 도메인은 처음인데 어떤 식으로 학습 계획을 잡을 것인가?
 14. 기획자가 비현실적인 일정을 들고 왔을 때 어떻게 협상하는가?
-15. e-Commerce 주문/결제 흐름에서 가장 자주 발생하는 데이터 정합성 이슈는?
+15. e-Commerce 주문/결제 흐름에서 가장 자주 발생하는 데이터 정합성 이슈는? → 답변 베이스: [커머스 주문 상태와 데이터 정합성 기본기](../architecture/commerce-order-state-consistency-fundamentals.md), [쿠폰/프로모션 동시성과 정합성 기본기](../architecture/coupon-promotion-concurrency-basics.md), [결제 멱등성과 트랜잭션 재시도 기본기](../architecture/payment-idempotency-transaction-basics.md)
 16. Confluence/Jira에서 본인이 정착시킨 운영 루틴이 있나?
 
 ### 압박/검증
@@ -200,40 +206,40 @@ CJ푸드빌 앱 소개 페이지와 빕스 공식 사이트 단서 기준.
 
 공개 자료로 직접 확인된 서비스 기능을 기준으로 보면, 이 포지션의 디지털 채널 백엔드는 다음 bounded context를 다룰 가능성이 높다.
 
-1. 회원/인증
+1. 회원/인증 — 답변 베이스: [F&B 쿠폰·프로모션·멤버십·포인트 설계](../architecture/fnb-coupon-promotion-membership-design.md), [HTTP/Cookie/Session/Token 인증 기본기](../web/http-session-cookie-api-auth-basics.md)
    - CJ ONE 계정 연동
    - 브랜드 앱 약관 동의
    - 멤버십 등급/혜택 조회
 
-2. 매장/브랜드/메뉴
+2. 매장/브랜드/메뉴 — 답변 베이스: [F&B·e-Commerce 디지털 채널 도메인 한 장 정리](../architecture/fnb-ecommerce-domain-overview.md)
    - 브랜드별 매장 검색
    - 매장 영업시간/예약 가능 여부
    - 메뉴/옵션/품절/매장별 판매 가능 여부
 
-3. 주문/픽업/딜리버리/사전예약
+3. 주문/픽업/딜리버리/사전예약 — 답변 베이스: [F&B 주문/매장/픽업 상태머신 설계](../architecture/fnb-order-store-pickup-state-machine.md), [e-Commerce 주문·결제 도메인 모델링](../architecture/ecommerce-order-payment-domain-modeling.md)
    - 주문 생성/접수/취소
    - 픽업 시간 선택
    - 사전예약 상품 처리
    - 배달 연동 또는 자체 주문 채널 연동
 
-4. 결제/포인트/상품권
+4. 결제/포인트/상품권 — 답변 베이스: [F&B 이커머스 결제·환불·정산 운영 가이드](../architecture/fnb-payment-refund-settlement-operations.md), [결제 멱등성과 트랜잭션 재시도 기본기](../architecture/payment-idempotency-transaction-basics.md)
    - 앱 결제
    - CJ ONE 포인트 적립/사용
    - 모바일 상품권/금액권/제품교환권
    - 결제 실패/취소/환불/부분취소
 
-5. 쿠폰/프로모션/프리퀀시
+5. 쿠폰/프로모션/프리퀀시 — 답변 베이스: [F&B 쿠폰·프로모션·멤버십·포인트 설계](../architecture/fnb-coupon-promotion-membership-design.md), [쿠폰/프로모션 동시성과 정합성 기본기](../architecture/coupon-promotion-concurrency-basics.md)
    - 등급별 쿠폰
    - 웰컴 쿠폰/선착순 쿠폰
    - 이벤트/프리퀀시
    - 중복 사용 방지/복구/CS 처리
 
-6. 예약
+6. 예약 — 답변 베이스: [F&B 주문/매장/픽업 상태머신 설계](../architecture/fnb-order-store-pickup-state-machine.md)
    - 빕스 예약 가능 매장 추천
    - 예약 확인/변경/취소
    - 매장 좌석/시간대 가용성
 
-7. 운영/백오피스/알림
+7. 운영/백오피스/알림 — 답변 베이스: [F&B 운영 모니터링과 장애 대응 인터뷰 정리](fnb-ecommerce-operations-monitoring-interview.md), [Observability 입문 — 시니어 백엔드가 장애를 탐지하고 대응하는 방식](../architecture/observability-basics.md)
    - 브랜드/매장 공지
    - 이벤트 관리
    - 장애/이슈 대응
@@ -243,11 +249,11 @@ CJ푸드빌 앱 소개 페이지와 빕스 공식 사이트 단서 기준.
 
 - “F&B/e-Commerce 경험은 없다”에서 멈추지 말고, 슬롯팀의 복잡한 상태/정책/정합성 설계를 F&B 디지털 채널의 주문/예약/쿠폰/멤버십 설계로 번역해야 한다.
 - 가장 맞는 어필 축:
-  - SlotTemplate/BaseSlotService: 도메인별 공통 흐름과 개별 정책 분리
-  - RCC/캐시 시스템: 메뉴/프로모션/매장 정책 캐시 정합성으로 연결
+  - SlotTemplate/BaseSlotService: 도메인별 공통 흐름과 개별 정책 분리 ([슬롯 아키텍처 1년 진화](../task/nsc-slot/slot-architecture-evolution.md), [슬롯 엔진 추상화 및 구조 개선](../task/nsc-slot/slot-engine-abstraction.md), [템플릿 메서드 패턴](../architecture/template-method-pattern.md))
+  - RCC/캐시 시스템: 메뉴/프로모션/매장 정책 캐시 정합성으로 연결 ([RCC RTP 캐시 제어](../task/nsc-slot/rcc-rtp-cache-control.md))
   - StampedLock: 운영 중 정책 갱신과 조회 안정성
-  - Kafka Outbox: 주문/결제/쿠폰 이벤트 유실 방지
-  - 장애 대응: 앱/웹 디지털 채널 장애 첫 5분 대응과 postmortem
+  - Kafka Outbox: 주문/결제/쿠폰 이벤트 유실 방지 ([Outbox / Inbox Pattern 심화](../architecture/outbox-inbox-pattern.md))
+  - 장애 대응: 앱/웹 디지털 채널 장애 첫 5분 대응과 postmortem ([Observability 면접 답변 프레임](observability-interview-frame.md))
 - CJ푸드빌 포지션은 “신규 서비스 개발 + 운영 안정화 + 레거시/신규 공존” 성격이 강해 보인다.
 
 ## 확인 필요 질문
