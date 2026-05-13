@@ -3,7 +3,9 @@
 > 이 문서는 공개 채용공고와 공개 서비스 자료, 그리고 후보자 이력 기반 매칭을 바탕으로 정리한 지원 준비용 직무 분석이다.
 > 내부 비공개 정보나 확인되지 않은 성과 수치는 포함하지 않는다.
 >
-> **후속 문서**: [Part 2 — ivips.co.kr SRE 외부 진단](cj-foodville-digital-channel-backend-part2-ivips-sre.md) — 2026-05-18 사전 커피챗 어필용 빕스 공식 사이트 7개 축 외부 진단.
+> **후속 문서**:
+> - [Part 2 — ivips.co.kr SRE 외부 진단](cj-foodville-digital-channel-backend-part2-ivips-sre.md) — 2026-05-18 사전 커피챗 어필용 빕스 공식 사이트 7개 축 외부 진단.
+> - [커피챗 준비](cj-foodville-digital-channel-backend-coffeechat.md) — IT 담당자/파트 리드와의 30분 커피챗 대화 흐름, 질문, 답변 프레임.
 >
 > **관련 면접 문서**:
 > - [시니어 Java 백엔드 면접 마스터 플레이북](senior-backend-master-playbook.md)
