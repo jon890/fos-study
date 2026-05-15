@@ -69,7 +69,7 @@ spring:
 
 추가로 JDBC URL 옵션에 socket timeout을 반드시 걸어준다. MySQL 기준:
 
-```
+```text
 jdbc:mysql://db:3306/app?connectTimeout=2000&socketTimeout=3000&useSSL=true&serverTimezone=Asia/Seoul
 ```
 
@@ -165,7 +165,7 @@ Supplier<Stock> decorated = CircuitBreaker
 
 Resilience4j의 데코레이션 순서는 **바깥쪽이 먼저 실행**된다. 일반적으로 권장되는 순서:
 
-```
+```text
 Bulkhead → TimeLimiter → CircuitBreaker → Retry → 실제 호출
 ```
 
@@ -360,7 +360,7 @@ def flaky():
     return jsonify(ok=True)
 ```
 
-```
+```bash
 pip install flask
 python fake_upstream.py
 ```
@@ -419,7 +419,7 @@ management:
 
 ### 부하 주입
 
-```
+```bash
 brew install hey     # 또는 apt install hey
 hey -z 60s -c 50 http://localhost:8080/call
 ```
