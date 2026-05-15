@@ -12,7 +12,7 @@
 - 어떤 인덱스를 새로 추가할 것인가 (복합 인덱스, 커버링 인덱스, 정렬/페이지네이션 고려)
 - 인덱스를 추가하면 어떤 부작용이 있는가 (쓰기 비용, 디스크, 락, 옵티마이저 오판)
 
-이 문서는 이 다섯 가지를 커머스 API 시나리오 위에서 실제 SQL과 함께 풀어낸다. 인덱스 자체의 자료구조에 대한 깊은 설명은 별도 문서(예: `database/mysql/mysql-innodb-index.md`, `database/mysql/btree-index.md` 같은 개념 문서)가 있다면 그쪽을 우선 참고하고, 여기서는 "현장에서 어떻게 진단하고 어떻게 고치는가"에 집중한다.
+이 문서는 이 다섯 가지를 커머스 API 시나리오 위에서 실제 SQL과 함께 풀어낸다. 인덱스 자체의 자료구조와 컬럼 순서 결정 트리, EXPLAIN 컬럼 해석은 같은 디렉터리의 [b-tree-index.md](./b-tree-index.md), [composite-index.md](./composite-index.md), [explain-plan.md](./explain-plan.md)에 두고, 여기서는 "현장에서 어떻게 진단하고 어떻게 고치는가"에 집중한다. 면접 직전 1페이지 리뷰는 [review-index-design.md](./review-index-design.md)를 펼친다.
 
 ## 핵심 개념을 다시 정리
 
