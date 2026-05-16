@@ -6,6 +6,8 @@
 
 > 다른 변경 없이 커넥션 풀 크기만 줄였더니 애플리케이션 응답 시간이 약 100ms에서 약 2ms로, 50배 이상 단축됐다 — HikariCP 공식 글 사례.
 
+풀 사이징을 넘어 saturation 진단, Tomcat worker 연쇄 포화, bulkhead/backpressure 설계까지 이어지는 운영 레이어는 [DB Connection Pool Saturation과 Thread Pool 격리](./connection-pool-saturation-thread-pool-isolation.md)를 함께 보면 좋다.
+
 ## 왜 작아야 하나
 
 CPU 코어가 하나뿐인 컴퓨터도 수십·수백 개 스레드를 "동시에" 돌리는 것처럼 보인다. 하지만 실제로는 OS가 **타임 슬라이싱**으로 만들어낸 환상이고, 한 코어는 한 번에 하나의 스레드만 실행한다. 스레드를 늘릴수록 컨텍스트 스위칭 비용이 커지고, 코어 수를 넘어가면 추가하는 만큼 오히려 느려진다.

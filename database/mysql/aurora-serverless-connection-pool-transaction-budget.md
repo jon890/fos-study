@@ -8,6 +8,8 @@ Aurora Serverless는 "필요할 때만 늘어나고 줄어드는 MySQL"이라는
 
 이 글은 그 묶음을 "트랜잭션 예산(transaction budget)"이라는 운영 감각으로 풀어낸다. 인덱스나 쿼리 튜닝 같은 한 단계 안쪽 주제는 [MySQL 인덱스 설계 회고](./review-index-design.md) 등 기존 문서를 가볍게 참조하고, 여기서는 "서버리스 + 풀 + 예산"의 결합 지점에 집중한다.
 
+일반적인 HikariCP/Tomcat worker 포화, timeout 부등호, bulkhead/backpressure 운영 패턴은 [DB Connection Pool Saturation과 Thread Pool 격리](../connection-pool-saturation-thread-pool-isolation.md)에서 별도로 정리한다.
+
 ## 핵심 개념: Aurora Serverless의 동작 모델부터 다시
 
 ### v1 vs v2 — 같은 이름, 다른 짐승
