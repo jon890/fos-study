@@ -392,6 +392,105 @@ VALUES ('uuid-1', 100, JSON_OBJECT('status','PAID'), NOW(3));
 - **이벤트 발행을 트랜잭션 commit 전에 한다**: DB 롤백되어도 이벤트는 나간다. Outbox로 해결.
 - **유니크 키 없이 "코드로 중복 검사"**: 동시성에서 그대로 깨진다.
 
+## 장애 복구 운영 플레이북
+
+운영 사고는 "잘못된 상태가 이미 DB에 박혀서 트래픽을 받는 중"이라는 시점부터 시작된다. 코드 수정만으로 끝나지 않고 **이미 잘못된 row**를 어떻게 되돌릴지가 본격적인 일이다. 면접에서 "운영 사고 어떻게 복구해요?"라는 질문은 사실상 이 플레이북을 보고 있다.
+
+### 상태 변경 이력 테이블
+
+복구의 출발점은 "언제, 어디서, 무엇이, 왜" 바뀌었는지가 남아 있는가다. 모든 상태 전이가 같은 트랜잭션에서 history에 적재되도록 한다.
+
+```sql
+CREATE TABLE order_status_history (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id     BIGINT       NOT NULL,
+    from_status  VARCHAR(20)  NOT NULL,
+    to_status    VARCHAR(20)  NOT NULL,
+    reason       VARCHAR(64)  NOT NULL,
+    actor        VARCHAR(64)  NOT NULL,   -- user / pos / pg-webhook / scheduler / admin
+    trace_id     VARCHAR(64)  NOT NULL,
+    changed_at   DATETIME(3)  NOT NULL,
+    INDEX idx_order_time (order_id, changed_at),
+    INDEX idx_to_status_time (to_status, changed_at)
+) ENGINE=InnoDB;
+```
+
+도메인 메서드에서 상태가 바뀔 때마다 항상 history 한 줄을 적재한다. 별도 트랜잭션이 아니라 **같은 트랜잭션**이라는 점이 중요하다 — 그래야 "DB의 status는 PAID인데 history엔 PAID가 없다"가 발생하지 않는다.
+
+### 영향 범위 식별 쿼리
+
+사고가 터지면 가장 먼저 **얼마나 퍼졌는지** 본다. 잘못된 전이를 만든 코드가 며칠 동안 돌았는지에 따라 보정 단위가 다르다.
+
+```sql
+-- 사고 의심 구간에서 잘못된 to_status 전이가 일어난 주문 집합
+SELECT order_id, changed_at, from_status, to_status, actor, trace_id
+  FROM order_status_history
+ WHERE changed_at BETWEEN '2026-05-15 10:00:00' AND '2026-05-15 12:30:00'
+   AND to_status = 'ACCEPTED'
+   AND from_status NOT IN ('PAID');   -- 정상 진입 경로가 아닌 케이스
+```
+
+이 쿼리 자체가 **체크 제약을 안 걸어둔 경우 사고가 어떻게 생기는지** 를 그대로 보여준다. 사후엔 DB CHECK 또는 도메인 검증으로 같은 조합이 못 들어가게 막는다.
+
+### 보정 스크립트 단계화
+
+영향받은 주문 집합을 그대로 update 하지 않는다. 항상 세 단계로 나눈다.
+
+1. **dry-run** — `SELECT`만으로 보정 대상과 보정 후 기대 상태를 출력. 운영에 변경을 일으키지 않는다.
+2. **샘플 보정** — 영향 집합 중 10\~20건만 별도 트랜잭션으로 보정. 결과를 history와 외부 시스템(매장 POS / PG / 알림)에서 검증.
+3. **전체 보정** — 청크 단위(예: 500건씩) 트랜잭션 분리, 각 청크 사이에 짧은 sleep과 lag 모니터링. 중간 실패 시 어디까지 처리됐는지 history로 추적 가능해야 한다.
+
+```sql
+-- 1) dry-run: 보정 후 어떤 상태가 될지만 확인
+SELECT o.id, o.status AS current_status, 'CANCELED' AS would_be
+  FROM orders o
+ WHERE o.id IN (...영향 집합...)
+   AND o.status = 'ACCEPTED';
+
+-- 2) 샘플 보정: 한 트랜잭션에서 update + history 적재
+START TRANSACTION;
+UPDATE orders
+   SET status = 'CANCELED', updated_at = NOW(3)
+ WHERE id IN (1001, 1002, 1003)
+   AND status = 'ACCEPTED';
+INSERT INTO order_status_history (order_id, from_status, to_status, reason, actor, trace_id, changed_at)
+SELECT id, 'ACCEPTED', 'CANCELED', 'incident-2026-05-15', 'ops-admin', 'recover-batch-1', NOW(3)
+  FROM orders WHERE id IN (1001, 1002, 1003);
+COMMIT;
+```
+
+스크립트 본체는 보통 별도 잡(`Spring Batch`, 운영 콘솔에서 호출하는 admin API)으로 만들고 **항상 dry-run 모드를 기본값**으로 둔다. `--apply` 플래그 없이는 절대 update 하지 않는다.
+
+### 외부 부수 효과 보정
+
+DB만 되돌린다고 사고가 끝나지 않는다. 같이 점검할 외부 효과는 다음과 같다.
+
+- **PG 결제** — 잘못 승인된 결제는 PG API로 환불(`refunded_amount += amount`). 부분 환불 모델이라야 안전하다.
+- **매장 POS** — 이미 조리지시가 들어갔다면 매장에 별도 연락. 자동 취소가 안 되는 경우가 많아 운영팀 콜이 끼는 게 정상이다.
+- **포인트/쿠폰 적립** — `event_id` 기반 dedup 테이블에서 이미 적립된 케이스를 식별, 회수 가능한 정책일 때만 회수. 회수 불가면 사후 보상 정책으로.
+- **사용자 알림** — 이미 "주문 접수 완료" 알림이 나갔다면 정정 알림 + CS 매뉴얼.
+
+각 효과별로 "보정 가능 / 부분 보정 / 보정 불가"를 미리 표로 정리해두면 사고 시점에 의사결정이 빠르다.
+
+### 모니터링 알람
+
+사고를 줄이려면 잘못된 전이가 "사람이 발견하기 전에" 알람으로 잡혀야 한다. 다음 네 가지를 dashboard + 알람으로 운영한다.
+
+- `order_status_history`에서 **허용되지 않은 from→to 조합** 카운트 (정상은 0이어야 한다)
+- `outbox`의 미발송 row 수 — 일정 임계치(예: 100건) 이상이면 publisher 또는 컨슈머 문제
+- PG webhook 중복 수신율 — 비정상적으로 높아지면 idempotency 문제
+- `paid_amount` vs `payment.amount` 합 불일치 row 수 — 결제 정합성 깨짐
+
+### 사후 — 같은 사고를 다시 못 일으키게
+
+복구가 끝나면 반드시 **이 사고가 다시 못 일어나도록** 코드/DB/모니터링 중 한 곳을 막는다. 가장 효과적인 순서:
+
+1. 도메인 검증 추가 (`canTransitTo`에 누락된 케이스) — 코드 한 줄로 막힌다면 그게 1순위
+2. DB CHECK 또는 trigger — 마이그레이션이 무겁지만 코드 우회를 막는다
+3. 모니터링/알람 — 위 4가지 메트릭이 빠져 있었다면 같은 사고가 한 번 더 일어나기 전에 알람으로 잡힌다
+
+postmortem 문서에는 "재발 방지" 항목 옆에 **PR 번호 또는 알람 ID**를 같이 적어두는 게 좋다. 액션이 실제로 들어갔는지 추적 가능해진다.
+
 ## 면접 답변 프레이밍 (시니어 백엔드 톤)
 
 ### "주문 처리 시스템 어떻게 설계할 건가요?"

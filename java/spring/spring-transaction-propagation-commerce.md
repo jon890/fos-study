@@ -100,6 +100,80 @@ public class PaymentApplier {
 
 해법은 두 가지 중 하나다. 트랜잭션이 필요한 메서드를 **다른 빈으로 분리**하거나, 정 같은 클래스에 둬야 하면 `AopContext.currentProxy()`로 프록시를 가져와 호출하는 방법이 있다. 실무에서는 클래스를 분리하는 쪽이 압도적으로 깨끗하다. 면접에서는 "왜 안 되는지"의 원인을 **CGLIB 또는 JDK 동적 프록시 기반 호출 흐름** 차원에서 설명할 수 있어야 한다.
 
+## @Async와 트랜잭션이 전파되지 않는 함정
+
+커머스에서 알림 발송, 분석 이벤트 전송, 외부 채널 동기화 같은 후처리를 `@Async`로 분리하는 패턴이 흔하다. 여기서 자주 놓치는 게 **Spring 트랜잭션은 ThreadLocal(`TransactionSynchronizationManager`) 기반이라 다른 스레드로 넘어가는 순간 전파되지 않는다**는 점이다.
+
+### Bad
+
+```java
+@Service
+@RequiredArgsConstructor
+public class OrderNotifyService {
+
+    private final NotificationRepository notificationRepository;
+
+    @Async
+    @Transactional
+    public void notifyOrderCreated(Long orderId, String channel) {
+        Notification n = notificationRepository.findByOrderIdAndChannel(orderId, channel)
+            .orElseThrow();
+        n.markSent();
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+    private final OrderNotifyService orderNotifyService;
+
+    @Transactional
+    public OrderResult placeOrder(OrderCommand cmd) {
+        Order order = orderRepository.save(Order.from(cmd));
+        // @Async가 즉시 다른 스레드로 위임 -> 바깥 트랜잭션이 아직 커밋되기 전에 조회 시도
+        orderNotifyService.notifyOrderCreated(order.id(), "push");
+        return OrderResult.of(order);
+    }
+}
+```
+
+문제점이 두 겹이다. 첫째, `@Async`는 호출 즉시 다른 스레드에 작업을 위임한다. 바깥 `placeOrder`가 아직 커밋되지 않은 시점에 비동기 스레드가 `findByOrderIdAndChannel`로 막 저장된 `Notification`을 조회하려 하면, 다른 트랜잭션이 본 적 없는 데이터를 찾는 격이라 `EntityNotFoundException`이 난다(REPEATABLE READ 기준 스냅샷 격리 때문). 둘째, 비동기 스레드의 `@Transactional`은 호출자 트랜잭션과 무관한 **새 트랜잭션**이 열린다. "참여(join)했다"고 생각하면 디버깅이 영원히 안 끝난다.
+
+### Improved
+
+```java
+@Component
+@RequiredArgsConstructor
+public class OrderCreatedNotifier {
+
+    private final OrderNotifyService orderNotifyService;
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void on(OrderCreatedEvent event) {
+        orderNotifyService.notifyOrderCreated(event.orderId(), event.channel());
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class OrderNotifyService {
+
+    private final NotificationRepository notificationRepository;
+
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void notifyOrderCreated(Long orderId, String channel) {
+        Notification n = notificationRepository.findByOrderIdAndChannel(orderId, channel)
+            .orElseThrow();
+        n.markSent();
+    }
+}
+```
+
+핵심은 두 가지를 분리한 것이다. **언제 실행할지**(AFTER\_COMMIT)와 **어디 스레드에서 실행할지**(@Async)는 별개 결정이라는 점을 코드 구조로 드러낸다. 이렇게 두면 바깥 커밋 후에만 비동기 스레드가 깨어나고, 그 스레드는 자기만의 새 트랜잭션을 명시적으로 연다. 면접에서는 "비동기와 트랜잭션은 같은 줄에 붙여 두지 않습니다"라는 한마디로 이 의사결정을 요약할 수 있다.
+
 ## REQUIRES\_NEW로 실패 로그 분리하기
 
 주문 트랜잭션이 롤백되더라도 "결제 시도가 있었다"는 사실은 감사/고객문의 대응을 위해 남아 있어야 한다. 이때 `REQUIRES_NEW`가 적절하다.
@@ -151,6 +225,52 @@ public class OrderPaidEventListener {
 둘째, 이벤트 리스너 안에서 발행 자체(예: Kafka producer 호출)를 직접 하면 **외부 시스템과 DB 사이에 이중 쓰기 정합성 문제**가 다시 생긴다. DB 커밋 후 발행 직전에 프로세스가 죽으면 이벤트가 사라진다. 그래서 실무에서는 발행을 직접 하지 않고, **같은 DB 트랜잭션 안에서 outbox 테이블에 이벤트 row를 함께 저장**하고, 별도 publisher 프로세스가 outbox를 폴링/CDC해서 Kafka로 흘려보내는 구조로 간다. 이 패턴이 Transactional Outbox다.
 
 `AFTER_COMMIT` 리스너는 이 흐름에서 보조적으로 쓴다. 예를 들어 outbox가 이미 도메인 트랜잭션 안에서 채워졌다면, `AFTER_COMMIT`에서는 publisher를 깨우는 신호 정도만 보내고 실제 발행은 publisher 쪽에서 책임지게 한다. 만약 outbox 저장 자체에 실패해 별도 데드레터로 옮겨야 하는 케이스가 생기면, 그건 다시 `REQUIRES_NEW` 트랜잭션으로 실패 기록을 남기는 흐름과 합쳐진다.
+
+## 멱등성 키 — 트랜잭션 경계 어디에 둘 것인가
+
+커머스 결제 도메인에서 같은 `idempotencyKey`로 두 번 들어오는 요청은 일상이다. 모바일 앱 재시도, 네트워크 타임아웃 후 PG 재호출, 사용자 더블 클릭. 면접관이 "결제 중복 어떻게 막아요?"라고 물었을 때 `unique constraint`까지만 답하면 절반만 맞췄다. 진짜 질문은 **그 unique 충돌을 어느 트랜잭션 경계에서 잡아 어떤 의미로 변환할 것인가**이다.
+
+```java
+@Service
+@RequiredArgsConstructor
+public class PaymentApplicationService {
+
+    private final PaymentRepository paymentRepository;
+    private final PgClient pgClient;
+    private final IdempotencyKeyRepository idempotencyKeyRepository;
+
+    public PaymentResult pay(PaymentCommand cmd) {
+        IdempotencyKey reserved = reserveKey(cmd);
+        if (reserved.isReplay()) {
+            return reserved.cachedResult();
+        }
+        PgResponse pg = pgClient.charge(cmd.toPgRequest());
+        return persistResult(cmd, pg);
+    }
+
+    @Transactional
+    protected IdempotencyKey reserveKey(PaymentCommand cmd) {
+        try {
+            return idempotencyKeyRepository.save(IdempotencyKey.fresh(cmd.key()));
+        } catch (DataIntegrityViolationException e) {
+            return idempotencyKeyRepository.findByKey(cmd.key()).orElseThrow();
+        }
+    }
+
+    @Transactional
+    protected PaymentResult persistResult(PaymentCommand cmd, PgResponse pg) {
+        Payment p = paymentRepository.save(Payment.from(cmd, pg));
+        idempotencyKeyRepository.attachResult(cmd.key(), p.id());
+        return PaymentResult.of(p);
+    }
+}
+```
+
+여기서 의도적으로 트랜잭션을 두 토막으로 잘랐다. **PG 호출은 트랜잭션 밖**이다. 외부 IO를 `@Transactional` 안에 묶어 두면 PG가 느려질 때마다 그 시간만큼 DB 커넥션과 락을 쥐고 있게 된다. 첫 토막은 멱등성 키 선점이라는 짧은 트랜잭션, 두 번째 토막은 결과 영속화라는 짧은 트랜잭션이다.
+
+면접에서 자주 따라붙는 함정 질문이 있다. "그러면 첫 토막은 성공하고 PG 호출은 됐는데 두 번째 토막에서 DB 오류로 실패하면요?" 정답은 "그래서 두 번째 토막은 idempotency key 상태 기반으로 재시도 가능해야 한다"이다. 첫 토막에서 PENDING으로 표기, PG 응답을 받고 두 번째 토막에서 SUCCEEDED로 전이. 두 번째 토막이 실패하면 다음 재시도가 PENDING 상태와 PG의 `approvalNumber`를 보고 같은 결과를 다시 영속화한다. 이때 두 번째 토막은 결제 row 저장에 `paymentRepository.save`의 unique key를 한 번 더 의지한다. **트랜잭션 + unique constraint + 상태 머신**, 세 축이 함께 가야 멱등성이 완성된다.
+
+본인의 Kafka Outbox 경험과 자연스럽게 연결되는 지점도 여기다. Outbox 폴러가 같은 이벤트를 두 번 발행하더라도 컨슈머가 멱등하다면 안전하다. 결제 도메인은 더 엄격해서 컨슈머만이 아니라 **요청 단위 멱등성**까지 보장해야 한다. 면접관 입장에서는 "Kafka 멱등성과 결제 멱등성을 같은 사고 프레임으로 본다"는 시그널 자체가 큰 가산점이다.
 
 ## rollbackOnly와 UnexpectedRollbackException
 
@@ -238,6 +358,10 @@ logging:
 - [ ] `transaction.interceptor` TRACE 로그로 propagation이 의도대로 적용되는지 한 번 이상 눈으로 확인했다
 - [ ] rollbackOnly / `UnexpectedRollbackException` 시나리오를 직접 재현해 봤다
 - [ ] 면접 답변에서 본인 Outbox 경험과 트랜잭션 전파 정책을 한 문단 안에서 자연스럽게 연결할 수 있다
+- [ ] `@Async`와 `@Transactional`을 같은 메서드에 묶어 두지 않았다 (스레드 경계 = 트랜잭션 경계)
+- [ ] 비동기 후처리는 `AFTER_COMMIT` 리스너에서 트리거하고, 비동기 스레드 내부는 자기 트랜잭션을 새로 연다
+- [ ] 멱등성 키는 짧은 별도 트랜잭션으로 선점하고, 외부 IO는 트랜잭션 밖에서 수행한다
+- [ ] 멱등성을 unique constraint 한 줄로만 답하지 않고 상태 머신 + 재시도 안전성까지 설명할 수 있다
 
 ## 관련
 

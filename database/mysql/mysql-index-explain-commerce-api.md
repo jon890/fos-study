@@ -259,6 +259,49 @@ LIMIT 100;
 
 면접에서 강조해야 할 포인트: **"왜 인덱스를 추가하지 않았는가"도 설계 결정의 일부다.** 인덱스를 늘리면 INSERT/UPDATE/DELETE 비용이 늘고, 쓰기 트래픽이 큰 테이블에서는 락과 페이지 분할 비용도 누적된다.
 
+### 사례 5. 주문 + 매장 JOIN — driving 테이블과 인덱스 매칭
+
+요구사항: "특정 브랜드의 매장에서 어제 들어온 결제 완료 주문을 보여준다."
+
+```sql
+SELECT o.id, o.member_id, o.total_price, s.name AS store_name
+FROM orders o
+JOIN stores s ON s.id = o.store_id
+WHERE s.brand_code = ?
+  AND o.status = 'PAID'
+  AND o.created_at >= ?
+  AND o.created_at <  ?
+ORDER BY o.created_at DESC
+LIMIT 200;
+```
+
+JOIN 쿼리에서 가장 먼저 봐야 할 것은 **driving 테이블이 누구인가**다. 옵티마이저는 보통 결과 row 수가 작을 것 같은 쪽을 driving으로 잡는다. 브랜드별 매장 수가 보통 수십\~수백 개라면 `stores`가 driving이 되어 brand_code로 좁히고, 각 매장당 주문을 lookup 하는 nested loop join이 만들어진다.
+
+이 모양에서 필요한 인덱스 두 개를 분리해서 본다.
+
+- `stores`: `KEY (brand_code, region_code)` — 이미 있다. driving 측 필터로 잘 작동한다.
+- `orders`: 매장당 lookup이므로 `(store_id, status, created_at)`이 가장 효율적이다. `store_id`로 좁히고 같은 prefix에서 `status` eq, `created_at` range가 그대로 떨어진다.
+
+```sql
+ALTER TABLE orders
+  ADD KEY idx_orders_store_status_created (store_id, status, created_at);
+```
+
+EXPLAIN을 찍으면 보통 이런 모양이 나온다.
+
+```text
+1 SIMPLE s  type=ref  key=idx_stores_brand        rows=120
+1 SIMPLE o  type=ref  key=idx_orders_store_status_created
+            Extra=Using index condition
+```
+
+흔한 함정 두 가지를 짚는다.
+
+- driving이 뒤집히는 경우 — `WHERE` 조건이 `orders` 쪽으로 강하게 좁히면(예: 특정 매장 1개) `orders`가 driving이 되고 `stores`는 PK lookup이 된다. `EXPLAIN`의 `id`/`select_type` 순서가 매번 같다고 가정하지 말고 새로 본다.
+- JOIN 컬럼 타입 불일치 — `orders.store_id BIGINT` vs `stores.id BIGINT UNSIGNED`처럼 signed/unsigned가 어긋나면 암시적 형 변환으로 인덱스 효율이 떨어진다. JOIN 키는 데이터 타입과 collation까지 맞춘다.
+
+면접에서 답할 때는 "driving 테이블을 먼저 식별하고, driven 쪽 인덱스를 lookup 패턴에 맞게 설계합니다. JOIN 컬럼 타입과 collation 불일치는 EXPLAIN의 `ref` 컬럼 값이나 `Using join buffer`로 잡힙니다." 정도가 무난하다.
+
 ## EXPLAIN을 읽는 순서 (면접용)
 
 낯선 슬로우 쿼리를 받았을 때 항상 같은 순서로 본다.
@@ -428,6 +471,7 @@ ORDER BY expires_at ASC LIMIT 50;
 - 상위 쿼리 각각에 대해 `EXPLAIN`/`EXPLAIN ANALYZE`.
 - 새 인덱스 후보를 검토할 때는 운영 트래픽 시간대를 피해 staging에서 추가하고, 추가 후 INSERT/UPDATE 지표가 바뀌는지 확인.
 - 사용되지 않는 인덱스는 `sys.schema_unused_indexes` 뷰로 점검.
+- 옵티마이저 추정 `rows`가 실제와 크게 어긋나면 `ANALYZE TABLE ... UPDATE HISTOGRAM ON column WITH N BUCKETS`로 히스토그램을 추가/갱신해 분포 정보를 보강.
 
 이 운영 흐름을 면접에서 같이 이야기하면, "인덱스 이론은 아는데 실제로 적용해본 사람"이라는 신호가 강하게 전달된다.
 
@@ -455,5 +499,6 @@ EXPLAIN/인덱스 질문이 들어오면 다음 4스텝으로 답한다.
 - 정렬/그룹 컬럼이 인덱스 끝에 들어가도록 설계해 `Using filesort`를 제거한다.
 - 정말 자주 호출되는 화면에 한해 covering index를 검토한다.
 - 인덱스를 추가할 때마다 쓰기 비용·디스크·옵티마이저 영향까지 같이 평가한다.
+- JOIN 쿼리는 driving 테이블 식별 → driven 쪽 lookup 인덱스 설계 순으로 본다. JOIN 키의 타입·collation 일치를 확인한다.
 - 추가 후 `ANALYZE TABLE`로 통계를 갱신하고, `sys.schema_unused_indexes`로 죽은 인덱스를 정기 점검한다.
 - 면접에서는 "왜 인덱스를 안 만들었는가"도 답할 수 있어야 한다.

@@ -154,12 +154,65 @@ enum StoreOperationalState {
 
 ## 운영 관측 — 면접에서 가산점이 되는 영역
 
-도메인 설계 답변에서 4년차+ 후보를 가르는 건 "이 모델이 운영 중에 어떻게 보일까"를 같이 말할 수 있는가다.
+도메인 설계 답변에서 4년차+ 후보를 가르는 건 "이 모델이 운영 중에 어떻게 보일까"를 같이 말할 수 있는가다. 도메인 이벤트 + 메트릭 + 알람을 한 답에 묶어야 운영 감각이 드러난다.
 
-- 주문 상태 전이마다 도메인 이벤트(`OrderPlaced`, `OrderAccepted`, `OrderCancelled`)를 발행하고, 이벤트 자체를 outbox 테이블에 기록한다. 이게 audit log + 분석 파이프라인 + 알림의 단일 진실 원본이 된다.
-- 결제 `PENDING_RECONCILIATION` 상태에 머무는 결제의 개수/시간을 메트릭으로 노출한다. 이게 임계치 넘으면 PG 장애 의심 신호다.
-- 쿠폰 발급 실패율을 `policy_id` 단위로 메트릭화한다. 한도 소진 vs 시스템 오류를 구분할 수 있어야 한다.
-- 매장 상태 전이가 캘린더와 어긋나는 케이스(수동 override가 풀리지 않은 상태)를 일일 리포트로 뽑는다.
+### 영역별 관측 포인트
+
+| 영역 | 핵심 신호 | 알람 임계치 예시 | 관측 방식 |
+| --- | --- | --- | --- |
+| 주문 | 상태 전이 이벤트(`OrderPlaced`, `OrderAccepted`, `OrderCancelled`) | `ACCEPTED` 평균 머무름 시간 > 정상 2배 | outbox 테이블 + Kafka topic + 분석 파이프라인 |
+| 결제 | `PENDING_RECONCILIATION` 잔존 건수/시간 | 동 상태 5분 이상 잔존 > N건 | reconciliation 잡 메트릭 + Prometheus gauge |
+| 쿠폰 | `policy_id` 단위 발급 실패율 + 실패 사유 | 한도 소진 외 사유 실패율 > 1% | 실패 로그를 `reason_code`로 라벨링 |
+| 매장 상태 | 캘린더 vs 실제 상태 mismatch | 수동 override 미해제 24h 초과 | 일일 리포트 잡 + Slack 알림 |
+
+### 4가지 운영 원칙
+
+- **이벤트는 outbox로 묶는다** — 도메인 트랜잭션과 같이 커밋되지 않은 이벤트는 분석/알림의 단일 진실 원본이 될 수 없다.
+- **상태별 잔존 시간을 메트릭화** — 단순 카운트가 아니라 "이 상태에 얼마나 오래 머물렀는가"가 PG 장애·POS 장애·결제 게이트웨이 지연을 가장 먼저 보여준다.
+- **실패 사유를 분리한다** — 한도 소진/네트워크 오류/시스템 오류를 같은 통계로 합치면 알람이 의미를 잃는다.
+- **traceId를 외부 호출 경계까지 전파** — PG, POS, 알림 시스템 호출에 traceId를 헤더로 박아 두면 운영 사고 분석이 분 단위로 줄어든다.
+
+## bad vs improved — 정책 코드를 도메인 안과 밖 어디에 둘 것인가
+
+면접 답변이 추상적으로 흐르는 가장 흔한 지점이 "정책을 어디에 둘 것인가" 다. 코드 형태로 짧게 비교해 둔다.
+
+### 나쁜 패턴 — 외부 서비스가 매번 정책을 주입
+
+```java
+public class OrderCancellationService {
+    public void cancel(Order order, Instant now, CancellationPolicy policy) {
+        if (!policy.canCancel(order, now)) {
+            throw new IllegalOrderStateException();
+        }
+        var fee = policy.calculateFee(order, now);
+        order.markCancelled(fee, now);
+    }
+}
+```
+
+문제: 운영자가 정책을 바꾸면 이미 진행 중인 주문이 새 정책에 노출된다. 정책 변경 직후의 5분 동안 "어제 주문한 손님에게 오늘 인상된 취소 수수료가 청구"되는 사고가 표준 패턴이다.
+
+### 개선된 패턴 — 도메인이 자기 시점의 정책 스냅샷을 보유
+
+```java
+public class Order {
+    private OrderStatus status;
+    private OrderSnapshot snapshot;
+
+    public CancellationResult cancel(Instant now) {
+        CancellationPolicy frozen = snapshot.cancellationPolicy();
+        if (!frozen.canCancel(this, now)) {
+            throw new IllegalOrderStateException(status);
+        }
+        Money fee = frozen.calculateFee(this, now);
+        this.status = OrderStatus.CANCELLED;
+        registerEvent(new OrderCancelled(id, fee, now));
+        return CancellationResult.of(fee);
+    }
+}
+```
+
+차이는 작아 보이지만 의미가 크다. 정책 객체는 외부에서 주입되는 게 아니라 주문이 생성될 때 스냅샷으로 **응고**된다. 슬롯의 `SlotTemplate` → `Slot` 응고와 동일 패턴이다. 면접에서 이 코드를 손으로 그려 보여 줄 수 있으면 4년차 답이 된다.
 
 ## 로컬 실습 환경
 
@@ -251,3 +304,18 @@ class Order {
 - [ ] 회사 내부 시스템 명/매출 수치 없이 일반화된 표현으로 경험을 말한다
 - [ ] 로컬 실습 3개를 직접 돌려서 숫자(처리량, 성공률, 타임아웃 비율)를 외워 두었다
 - [ ] DDD 용어를 쓰면 그 답의 코드 형태도 같은 패러다임으로 일관되게 답한다
+- [ ] 정책 객체를 외부 주입이 아니라 도메인 스냅샷으로 응고시키는 이유를 코드 비교로 설명할 수 있다
+- [ ] 도메인 이벤트 + 메트릭 + 알람을 한 답에 묶어 운영 감각을 드러낼 수 있다
+
+## 관련 문서
+
+- [`commerce-order-state-consistency-fundamentals.md`](./commerce-order-state-consistency-fundamentals.md) — 주문 상태머신·정합성 기본기 (이 문서의 상위 허브)
+- [`commerce-domain-modeling-order-inventory-display.md`](./commerce-domain-modeling-order-inventory-display.md) — Catalog/Display/Inventory/Order 4축 분리 모델링
+- [`ecommerce-order-payment-domain-modeling.md`](./ecommerce-order-payment-domain-modeling.md) — Order/Payment/Coupon/Promotion 경계
+- [`fnb-order-store-pickup-state-machine.md`](./fnb-order-store-pickup-state-machine.md) — F&B 픽업·배달 상태머신
+- [`fnb-coupon-promotion-membership-design.md`](./fnb-coupon-promotion-membership-design.md) — 쿠폰/멤버십 도메인 심화
+- [`fnb-payment-refund-settlement-operations.md`](./fnb-payment-refund-settlement-operations.md) — 결제/환불/정산 운영
+- [`coupon-promotion-concurrency-basics.md`](./coupon-promotion-concurrency-basics.md) — 쿠폰 동시성 기본기
+- [`payment-idempotency-transaction-basics.md`](./payment-idempotency-transaction-basics.md) — 결제 멱등성·트랜잭션 기본기
+- [`distributed-transaction-outbox-pattern.md`](./distributed-transaction-outbox-pattern.md) — Outbox 패턴 심화
+- [`ddd-domain-modeling.md`](./ddd-domain-modeling.md) — Bounded Context와 Aggregate 일반 원칙

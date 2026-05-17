@@ -211,6 +211,56 @@ AI 서비스팀에서 직접 풀었던 *graceful shutdown 503 제거* 사례([`t
 - 대신 *측정 단위가 명확한 결과*는 그 자리에서 인용한다. JMH 기준 `ThreadLocalRandom` **70.241 ops/s** vs `SecureRandom` **1.197 ops/s** (`task/nsc-slot/slot-spin-performance.md`), 447개 테스트 파일 운영 등 출처가 분명한 숫자.
 - "운영 감각은 TPS 숫자보다 *피크 시간대 어떤 카드를 사전 적재했고, 어떤 호출을 비동기로 떼냈는지, 어떤 fallback을 두었는지*로 증명한다고 생각합니다. 그 카드는 RCC·Outbox·503 예산 설계 세 가지로 보여드릴 수 있습니다." 로 정면 돌파한다.
 
+### Q9. "무거운 계산 결과를 미리 캐시해서 응답 시간을 줄인다 — 푸드빌에 적용한다면?"
+
+슬롯에서 운영한 RCC(RTP Cache Control) 패턴이 그대로 옮겨가는 카드다. 슬롯에서는 *"좋은 결과"* 를 사전에 DB에 캐시해 두고, 사용자 요청 시점에 즉시 내려준 뒤 다음 캐시를 비동기로 생성했다. 푸드빌에서는 *매장 혼잡도·픽업 대기시간·예약 가능 슬롯* 같이 계산 비용이 크고 짧은 시간 안에 결과가 자주 바뀌지 않는 데이터가 같은 패턴에 정확히 들어맞는다.
+
+```java
+@Service
+@RequiredArgsConstructor
+public class StoreCongestionService {
+
+    private final StoreCongestionCacheRepository cache;
+    private final StoreCongestionCalculator calculator;
+    private final ApplicationEventPublisher events;
+
+    @Transactional(readOnly = true)
+    public StoreCongestion query(long storeId, LocalDateTime requestedAt) {
+        StoreCongestionCache hit = cache.findValid(storeId, requestedAt).orElse(null);
+        if (hit != null) {
+            events.publishEvent(new CongestionPrefetchEvent(storeId, requestedAt.plusMinutes(15)));
+            return hit.toView();
+        }
+        return calculator.fallback(storeId, requestedAt);
+    }
+}
+
+@Component
+@RequiredArgsConstructor
+public class CongestionPrefetchHandler {
+
+    private final StoreCongestionCacheRepository cache;
+    private final StoreCongestionCalculator calculator;
+
+    @Async("congestionPrefetchExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onPrefetch(CongestionPrefetchEvent ev) {
+        try {
+            cache.upsert(calculator.compute(ev.storeId(), ev.targetTime()));
+        } catch (DuplicateKeyException dup) {
+            // 동시 prefetch 충돌 — 다른 워커가 이미 채움. 정상 케이스로 처리.
+        }
+    }
+}
+```
+
+답변 포인트:
+- **언제 사전 캐시를 쓰는가** — 계산 비용 ≥ N00ms + 결과 유효 시간 ≥ 분 단위 + 동일 결과 재사용 가능. 셋 중 하나라도 깨지면 *실시간 계산이 더 정직하다*는 의사결정을 슬롯 운영에서 배웠다.
+- **캐시 미스 fallback** — 슬롯은 "좋은 결과 없으면 일반 스핀"으로 빠졌다. 푸드빌은 *직전 10분 평균값*이나 *해당 요일·시간대 평균*으로 빠지면 사용자 체감 끊김 없이 흡수된다.
+- **충돌 처리는 DB 유니크 키 우선** — `(store_id, target_window)` 유니크 키 + `DuplicateKeyException` 무시. 분산 락(Redisson)은 *충돌 빈도를 측정한 뒤* 도입한다는 의사결정 원칙도 함께 말한다.
+- **피크 전 워밍** — 점심 11:30, 저녁 18:00 같은 확정 피크에는 prefetch 트리거를 10\~15분 앞당겨 사전 적재. RCC 운영에서 "스핀 직전이 아니라 그 전 분기에 캐시를 만들었다"는 디테일을 그대로 인용 가능.
+- **관측성** — RCC 운영 시 캐시 히트/미스/생성 실패를 로그 테이블 컬럼으로 따로 떼서 봤다. 푸드빌 환경에서도 매장별 prefetch 성공률을 대시보드에 두면 *어느 매장이 정책 변경을 자주 받는지*가 자연스럽게 보인다.
+
 ## 5. 압박 질문 정면 대응
 
 기본기 질문 외에 면접 후반에 던지는 *압박 질문*에 정직-방어 균형을 잡는 카드를 정리한다. 약점을 인정하면서 *학습 경로*로 즉시 연결하는 게 패턴이다.
@@ -273,7 +323,51 @@ AI 서비스팀에서 직접 풀었던 *graceful shutdown 503 제거* 사례([`t
 - [ ] 슬롯 → 외식 어휘 매핑 사전을 면접 직전 5분 안에 한 번 훑는다.
 - [ ] 역질문 4종을 외워둔다.
 
-## 9. 연결 문서
+## 9. 면접 직전 5분 cheatsheet
+
+면접실 입장 직전에 종이 한 장으로 훑을 핵심 키워드만 모아둔다. 길게 외운 답변이 무너져도 이 카드가 살아 있으면 핵심 메시지는 회수 가능하다.
+
+### 한 줄 자기 정체성
+
+"운영 안정성·트랜잭션 경계·캐시 정합성을 자사 서비스 백엔드 관점으로 풀어 본 4년차+ 시니어 Java 백엔드 개발자."
+
+### 5초 답변용 키워드 카드
+
+| 질문 패턴 | 핵심 키워드 |
+|----------|-------------|
+| 자기소개 | 슬롯/AI 두 도메인 연속, 캐시 정합성·Outbox·추상화 3축, 같은 기본기를 푸드빌로 |
+| 왜 푸드빌인가 | 시간대 편향 피크 + B2C 트랜잭션 정합성 + 매장 운영 매뉴얼 RAG 활용 |
+| 캐시 정합성 | MQ Fanout + StampedLock writeLock + tryReadLock 2.5s 타임아웃 |
+| 트랜잭션-메시지 | AFTER_COMMIT으로 거짓 후처리 차단 + REQUIRES_NEW로 실패 기록 보존 |
+| 동시성 선택 | 충돌 빈도 측정 → DB 유니크 키 우선 → 분산 락은 핫 키 한정 |
+| 가중치 샘플링 | AliasMethod O(1) + ThreadLocalRandom, JMH 58배 근거 |
+| 성능 의사결정 | 측정 → 의사결정 → 측정. JMH·EXPLAIN·로그 컬럼 셋 중 하나는 항상 |
+| 사전 캐시 (RCC) | 계산 비용 큰 + 분 단위 유효 + 피크 전 워밍 + DB 유니크 키 충돌 처리 |
+| 약점(DB) | EXPLAIN type/key/rows/Extra 4컬럼 + leftmost prefix + 커버링 인덱스 |
+| 장애 첫 5분 | 지표 → traceId 표본 → 외부 의존 → 직전 변경 diff |
+| TPS 숫자 | 출처 없으면 만들지 않음. JMH 70.241 ops/s 같은 측정된 부분만 인용 |
+| MyBatis/JSP | SI 시절 직접 경험. 신규는 JPA 중심. 기존 컨벤션을 1\~2주 흡수 후 따라감 |
+| Kotlin | Java 17·21 깊이 우선. Kotlin은 1\~2주 안에 일상 코드 작성 가능 라인 |
+
+### 호흡이 무너졌을 때 회복 문장 3종
+
+- "질문을 한 번만 다시 정리해 주실 수 있을까요." — 5초 시간을 확보한다.
+- "정확히 측정된 부분과 그렇지 않은 부분을 나눠서 답변드리겠습니다." — 숫자 압박을 정직-방어로 흡수한다.
+- "슬롯 도메인에서는 X였고, 푸드빌에서는 Y가 더 적합할 것 같습니다." — 도메인 차이 질문을 학습 답변으로 회수한다.
+
+### 절대 말하지 않을 단어
+
+- "잘 모르겠지만 공부하면 됩니다" — *학습 우선순위 4종* 카드(메뉴 옵션 모델 → 매장 정책 캐시 → 마감 배치 → KDS/POS 연동)로 대체.
+- "TPS 약 N입니다" (출처 미상 수치) — "측정 단위·측정 시점·체감 변화 기준으로 말씀드리면..." 으로 대체.
+- "AI가 대신 짜줬습니다" — *에이전트 파이프라인 설계자* 라는 정체성 문장과 *검토는 사람이 한다* 원칙으로 대체.
+
+### 마지막 30초 — 입장 직전 묵상
+
+1. 슬롯 어휘(RTP·페이라인·잭팟·Wild·Scatter)는 외식 어휘(메뉴·옵션·매장·재고·쿠폰)로 한 번 더 변환해서 입에 붙인다.
+2. 자기소개 1분 버전을 머릿속으로 한 번 읊는다 — 막히는 단어가 있으면 30초 버전으로 즉시 다운그레이드 가능하다는 점만 확인.
+3. 첫 질문이 어떤 카드든 *결국은 캐시 정합성·트랜잭션 경계·추상화 셋 중 하나로 회수* 한다는 큰 그림을 머릿속에 둔다.
+
+## 10. 연결 문서
 
 - 캐시 정합성 깊이 학습은 [Redis 캐시 무효화 (커머스)](../database/redis/redis-cache-invalidation-commerce.md)(개념) 또는 [SB 팀 캐시 아키텍처](../task/sb-dev-team/cache-architecture.md)(사례)로 분리 연결.
 - Outbox 패턴 깊이 학습은 [분산 트랜잭션 — Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md)으로 연결.
