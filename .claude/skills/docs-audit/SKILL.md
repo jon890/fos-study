@@ -1,7 +1,7 @@
 ---
 id: workflow-docs-audit
 name: docs-audit
-description: fos-study 저장소 전체의 문서 건전성을 7개 축으로 종합 감사한다. (1) 백틱으로만 적힌 path mention, (2) broken link, (3) orphan doc, (4) cross-link 제안, (5) 가시성·스캔 가능성, (6) 문체 정적 검사 (`~` 취소선, `§` 사용, Bold+괄호 패턴), (7) README ↔ 실제 파일 정합성. Hybrid 실행 모델 — 가벼운 정적 검사는 메인이 직접, 무거운 의미 검사(orphan/cross-link/README 정합성)는 sub-agent 병렬 위임. "문서 감사", "docs-audit", "문서 점검", "문서 종합 점검", "문서 링크 점검", "broken link", "orphan doc", "cross-link", "가시성 점검", "README 정합성", "전체 문서 검토" 같은 요청 시 반드시 이 스킬 사용. 저장소를 한 번 훑어 통합 리포트를 만들고, 사용자 승인 후 축 단위로 수정한다.
+description: fos-study 저장소 전체의 문서 건전성을 7개 축으로 종합 감사한다. (1) 백틱으로만 적힌 path mention, (2) broken link, (3) orphan doc, (4) cross-link 제안, (5) 가시성·스캔 가능성, (6) 문체 정적 검사 (`~` 취소선, `§` 사용, Bold+괄호 패턴), (7) README ↔ 실제 파일 정합성. Hybrid 실행 모델 — 가벼운 정적 검사는 메인이 직접, 무거운 의미 검사(orphan/cross-link/README 정합성)는 sub-agent 병렬 위임. "문서 감사", "docs-audit", "문서 점검", "문서 종합 점검", "문서 링크 점검", "broken link", "orphan doc", "cross-link", "가시성 점검", "README 정합성", "전체 문서 검토" 같은 요청 시 반드시 이 스킬 사용. 저장소를 한 번 훑어 통합 리포트를 만들고, 사용자 승인 후 축 단위로 수정한다. **추가로 Quality Loop 모드** — 7축 구조 감사와 별도로 *의미 품질* (유효성·중복도·역할 분명·학습/면접 가치·diff 실제 개선)을 검토하고 문서를 `keep / refresh-needed / merge / archive / delete-candidate` 5단계로 분류. 큰 정리 직후 또는 주기 품질 점검 시 명시 호출.
 source: conversation
 triggers:
   - "문서 감사"
@@ -20,6 +20,15 @@ triggers:
   - "가시성 점검"
   - "README 정합성"
   - "전체 문서 검토"
+  - "문서 품질 검토"
+  - "문서 품질 루프"
+  - "quality-loop"
+  - "diff-validation"
+  - "diff 검증"
+  - "refresh-needed"
+  - "허브 심화 역할"
+  - "주기 품질 점검"
+  - "큰 정리 직후"
 quality: high
 ---
 
@@ -276,6 +285,85 @@ notes: <짧은 메타 코멘트, 없으면 빈 문자열>
    ```
    docs: 종합 감사 — broken N건 + 문체 N건 + README 정합성 N건 수정
    ```
+
+## Quality Loop — 의미 품질 검토 (수동 판단 후보 확장)
+
+7축 정적 감사는 *구조 정합성*을 본다. Quality Loop는 *의미 품질*을 본다 — 사용자가 "큰 정리 직후 검토" 또는 "주기 품질 점검" 요청 시 추가 실행. 단순 docs-audit 호출 시에는 실행 안 함 (명시 호출 모드).
+
+### 트리거
+
+다음 중 하나면 Quality Loop 모드를 켠다.
+
+- "최근 mysql 정리 diff 기준으로 실제로 좋아졌는지 봐줘"
+- "spring 문서 품질 평가해줘"
+- "문서 품질 검토", "diff 검증", "quality-loop"
+- "최근 생성 문서 N개 품질 점검"
+- 슬래시 호출: `/docs-audit quality-loop`
+
+### 6 검사 축 (의미)
+
+| # | 축 | 내용 |
+|---|---|---|
+| Q1 | 유효성 | 문서가 지금도 유효한가 (옛 가정·룰·코드가 바뀌어 본문이 깨졌는가) |
+| Q2 | 중복도 | 다른 문서와 *본질적* 중복이 큰가 (허브-심화 역할 분명하면 중복 X) |
+| Q3 | 역할 분명함 | 허브 / 심화 / 사례 / 레퍼런스 역할이 명확한가 |
+| Q4 | 링크 자연스러움 | 관련 문서로 자연스럽게 이어지는가 (Step B 축 4 cross-link 와 다른 의미: 의미 흐름) |
+| Q5 | 학습·면접 가치 | 실무 학습 가치와 면접 가치가 있는가 |
+| Q6 | diff 품질 (writer/maintainer 직후) | 최근 diff가 실제 개선인지, 단지 문장을 옮긴 것인지 |
+
+Q6는 *writer/maintainer 사이클 직후* (예: study-pack-writer 호출 후 또는 큰 정리 commit 후) 특별히 활성. git diff 기준 판단.
+
+### 분류 라벨 (각 문서에 1개 부여)
+
+| 라벨 | 의미 | 다음 동작 |
+|---|---|---|
+| `keep` | 그대로 유지 | 변경 없음 |
+| `refresh-needed` | 내용은 유효하지만 현재 품질 기준 미달 | 다음 사이클에 갱신 후보 (즉시 X) |
+| `merge` | 다른 문서와 통합 권장 | 통합 대상 명시 + 사용자 검토 |
+| `archive` | 가치는 있지만 최신성 떨어짐 | archive 영역 이동 (즉시 삭제 X) |
+| `delete-candidate` | 즉시 삭제 후보 | 사용자 최종 확인 후 삭제 |
+
+### 추천 사용 시점
+
+1. **문서가 꽤 쌓였을 때** — 예: `mysql` 문서군 구조가 복잡해졌을 때, `spring` 문서군이 횡단 관심사·트랜잭션·JPA 축으로 늘어났을 때
+2. **Claude maintainer / writer가 큰 정리를 한 직후** — 반드시 diff-validation 모드로 본다 (Q6 축 활성). git diff 기준 *실제 개선인지 문장만 옮긴 건지* 판단
+3. **주기 점검** — 최근 생성 문서 2-5개 또는 특정 폴더 하나 골라 품질 점검
+
+### 운영 원칙
+
+- 바로 삭제하지 않는다 — 5 분류 라벨로 먼저 분류
+- 최근 문서는 공격적으로 정리하지 않는다 — `refresh-needed` 보수적 적용
+- 허브와 심화 문서는 역할 분명하면 *중복으로 간주하지 않는다* — Q2 판단 시 Q3 우선
+
+### 확인된 패턴 (참고)
+
+- MySQL 인덱스 문서군은 허브 + 심화 분리가 실제로 품질 개선 효과가 있었다
+- 오래된 학습 노트는 내용이 유효해도 현재 품질 기준에서는 `refresh-needed`로 판정될 수 있다
+- README / 허브 문서가 있으면 새 문서가 늘어도 역할 충돌을 줄이기 쉽다
+
+### Quality Loop 리포트 형식 (7축 리포트 뒤 추가 섹션)
+
+```markdown
+## Quality Loop — 의미 품질 (수동 판단)
+
+### 분류 요약
+- keep: N건
+- refresh-needed: N건
+- merge: N건 (통합 대상 명시)
+- archive: N건
+- delete-candidate: N건
+
+### 분류 상세
+| 파일 | 라벨 | 근거 (Q1~Q6 어느 축) | 다음 동작 |
+|---|---|---|---|
+| database/mysql/foo.md | refresh-needed | Q1 (옛 룰 기준), Q5 (면접 가치 약함) | 다음 사이클 |
+| algorithm/legacy-bar.md | delete-candidate | Q1 (가정 무효), Q5 (학습 가치 없음) | 사용자 확인 후 삭제 |
+
+### diff-validation (Q6, writer/maintainer 직후만)
+- 대상 commit / diff 범위: <hash 또는 path>
+- 판정: 실제 개선 / 단지 문장 옮김 / 부분 개선
+- 근거: <짧은 코멘트>
+```
 
 ## 안티패턴
 
