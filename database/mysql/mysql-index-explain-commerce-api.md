@@ -502,3 +502,18 @@ EXPLAIN/인덱스 질문이 들어오면 다음 4스텝으로 답한다.
 - JOIN 쿼리는 driving 테이블 식별 → driven 쪽 lookup 인덱스 설계 순으로 본다. JOIN 키의 타입·collation 일치를 확인한다.
 - 추가 후 `ANALYZE TABLE`로 통계를 갱신하고, `sys.schema_unused_indexes`로 죽은 인덱스를 정기 점검한다.
 - 면접에서는 "왜 인덱스를 안 만들었는가"도 답할 수 있어야 한다.
+
+## 2026-05-19 CJ푸드빌 부트캠프 보강 — 주문·쿠폰·메뉴 조회 인덱스 패턴
+
+CJ푸드빌/F&B 커머스 조회 성능 답변은 구체적인 화면을 잡고 시작하면 설득력이 좋아진다. 예를 들어 “내 주문 목록”, “사용 가능한 쿠폰”, “매장별 판매 메뉴”는 모두 where 조건과 정렬 기준이 고정된 API이므로 복합 인덱스 설계 문제로 바꿔 말할 수 있다.
+
+대표 패턴은 다음과 같다.
+
+- 내 주문 목록: `where member_id = ? and created_at between ? and ? order by created_at desc limit ?`라면 `(member_id, created_at, order_id)`를 우선 검토한다.
+- 주문 상태 필터가 자주 붙으면 `(member_id, status, created_at)`과 `(member_id, created_at)` 중 실제 cardinality와 쿼리 비율을 비교한다.
+- 사용 가능 쿠폰: `member_id`, `status`, `expired_at` 조건이 핵심이며, `status` 단독 prefix는 선택도가 낮아 피한다.
+- 매장 메뉴 조회: `brand_id/store_id`, `sale_status`, `display_order`가 반복되면 정렬까지 커버하는 복합 인덱스를 검토한다.
+- 커버링 인덱스는 목록 API의 projection 컬럼이 작을 때만 노리고, 상세 조회용 큰 컬럼까지 무리하게 넣지 않는다.
+- deep pagination은 `offset`이 커질수록 느려지므로 `created_at/order_id` 기반 seek pagination을 우선 설명한다.
+
+EXPLAIN을 볼 때는 `key`가 예상 인덱스인지, `rows`가 화면 규모에 비해 과도하지 않은지, `Extra`에 `Using filesort` 또는 `Using temporary`가 반복되는지부터 본다. 면접에서는 “인덱스 추가 전후 slow query p95/p99와 실행 계획을 비교하고, 쓰기 비용과 배치 영향까지 같이 확인한다”고 마무리한다.
