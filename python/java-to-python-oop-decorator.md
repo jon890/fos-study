@@ -124,7 +124,7 @@ class OcrEngine(ABC):
     @abstractmethod
     def recognize(self, image) -> list[str]: ...
 
-class NhnOcr(OcrEngine):
+class CloudOcr(OcrEngine):
     def recognize(self, image):
         return ["..."]
 ```
