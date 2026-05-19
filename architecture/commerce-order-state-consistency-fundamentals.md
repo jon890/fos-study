@@ -1,4 +1,4 @@
-# [초안] 커머스 주문 상태와 데이터 정합성 기본기 — CJ푸드빌 면접 대비
+# 커머스 주문 상태와 데이터 정합성 기본기 — CJ푸드빌 면접 대비
 
 ## 왜 중요한가
 
@@ -829,19 +829,52 @@ postmortem 문서에는 "재발 방지" 항목 옆에 **PR 번호 또는 알람 
 
 ## 체크리스트
 
-- [ ] 주문 상태 enum과 허용 전이를 한 곳에 모아두었는가
-- [ ] 상태 전이를 도메인 메서드로 강제하고, 직접 `setStatus`를 못 부르게 막았는가
-- [ ] 모든 외부 진입점(결제, 사용자 요청, webhook)에 idempotency-key 또는 동등한 유니크 제약이 있는가
-- [ ] 상태 전이 트랜잭션은 `SELECT ... FOR UPDATE` 또는 조건부 update로 동시성 안전한가
-- [ ] 외부 시스템 호출은 트랜잭션 밖(outbox 등)에서 처리되는가
-- [ ] outbox와 컨슈머가 멱등성을 갖추고 있는가
-- [ ] `paid_amount`, `refunded_amount` 같은 금액 불변 조건이 도메인 또는 DB CHECK로 강제되는가
-- [ ] 상태 변경 이력이 별도 테이블로 남는가
+### 설계 단계
+
+- [ ] 주문 상태 enum과 허용 전이를 한 곳(enum + ALLOWED map)에 모아두었는가
+- [ ] 상태 전이를 도메인 메서드로 강제하고, 직접 `setStatus`를 못 부르게 막았는가 (`private` setter 또는 캡슐화)
+- [ ] F&B 불변 조건(시간 순서, 금액 식, 분할 결제 합산)이 도메인 객체 안에 명시되는가
+- [ ] `paid_amount`, `refunded_amount` 같은 금액 불변 조건이 도메인 1차 + DB CHECK 2차로 다층 강제되는가
+- [ ] 상태 변경 이력이 같은 트랜잭션에서 `order_status_history`에 적재되는가
+
+### 멱등성·중복 방어
+
+- [ ] 모든 외부 진입점(결제, 사용자 요청, webhook, POS, push 딥링크)에 idempotency-key 또는 동등한 유니크 제약이 있는가
+- [ ] 클라이언트 키 / merchant_uid / pg_tid / event_id / pos_tx_id 5개 키가 진입점별로 분리되어 있는가
+- [ ] in-flight 동시 요청 정책(409 vs 대기)이 명시적으로 결정되어 있는가
+- [ ] idempotency 테이블에 TTL + archive 정책이 있는가
 - [ ] PG webhook 중복 수신을 `pg_tid` 유니크로 차단하는가
-- [ ] 데드락 가능 경로를 식별하고 락 획득 순서를 통일했는가
-- [ ] 운영에서 outbox 미발송, 환불 실패, 상태 불일치를 감지하는 알람이 있는가
-- [ ] 면접에서 위 답변 6가지 골격을 60초 안에 막힘없이 말할 수 있는가
+
+### 동시성·트랜잭션
+
+- [ ] 상태 전이 트랜잭션은 `SELECT ... FOR UPDATE` 또는 조건부 update로 동시성 안전한가
+- [ ] 락 쿼리가 항상 인덱스를 타는가 (테이블 전체 락 방지)
+- [ ] 데드락 가능 경로를 식별하고 락 획득 순서(`order_id ASC` 등)를 통일했는가
+- [ ] `DeadlockLoserDataAccessException`을 재시도 가능 예외로 보고 백오프 재시도 정책이 있는가
+- [ ] 격리 수준(RC vs RR) 선택의 trade-off를 설명할 수 있는가
+
+### Outbox·이벤트 발행
+
+- [ ] 외부 시스템 호출은 트랜잭션 밖(outbox 등)에서 처리되는가
+- [ ] outbox publisher가 `SKIP LOCKED`로 worker 동시 진입을 방어하는가
+- [ ] 순서가 필요한 이벤트는 `aggregate_id`를 partition key로 사용하는가
+- [ ] 컨슈머 측 inbox 테이블 또는 `event_id` dedup이 적용되어 있는가
+- [ ] 발행 실패 N회 초과 row를 DLQ로 격리하는 정책이 있는가
+- [ ] `@TransactionalEventListener(AFTER_COMMIT)` + `REQUIRES_NEW` 조합의 이유를 1분 안에 설명할 수 있는가
+
+### 운영·모니터링
+
+- [ ] outbox 미발송 건수 / 미발송 lag / DLQ 카운트 / 환불 실패 / 상태 불일치 알람이 있는가
+- [ ] 허용되지 않은 from→to 전이 카운트가 0인지 dashboard에서 보이는가
+- [ ] `paid_amount` vs `payment.amount` 합 불일치를 주기 배치로 점검하는가
+- [ ] 사고 시 트래픽 차단을 위한 feature flag 또는 rollback 경로가 준비되어 있는가
+- [ ] 보정 스크립트가 dry-run 기본값 + `--apply` 플래그 없이는 update 불가하게 작성되어 있는가
+
+### 면접 답변 준비
+
+- [ ] 면접 답변 6가지 골격을 60초 안에 막힘없이 말할 수 있는가
 - [ ] 본인의 Outbox / RabbitMQ Fanout / StampedLock 경험을 주문 도메인 언어로 30초 안에 번역할 수 있는가
+- [ ] 시간순 대응 체크리스트(0\~5분 트래픽 차단 / 30분 영향 집합 / 1\~2시간 샘플 보정)를 외우고 있는가
 
 ## 관련
 
