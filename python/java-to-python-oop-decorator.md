@@ -1,12 +1,12 @@
 # Java 개발자를 위한 Python 심화 — OOP·데코레이터·컨텍스트 매니저
 
-[Post 0 (Python 문법 핵심)](./java-to-python-syntax.md) 에서 클래스·데코레이터·`with`·`yield` 는 다음 글로 미뤘다. 이 글에서 마저 정리한다. 코드를 "쓰는" 단계로 넘어가려면 이 다섯을 알아야 한다.
+[Post 1 (Python 문법 핵심)](./java-to-python-syntax.md) 에서 클래스·데코레이터·`with`·`yield` 는 다음 글로 미뤘다. 이 글에서 마저 정리한다. 코드를 "쓰는" 단계로 넘어가려면 이 다섯을 알아야 한다.
 
 자바 record·Lombok·annotation·`AutoCloseable`·`Iterator` 와 1:1 로 비교해 가며 차이만 짚는다.
 
 ## dunder method — 자바의 `equals/hashCode/toString` 자리
 
-Post 0 에서 양 옆에 언더스코어 두 개가 박힌 메서드를 dunder 라 부른다고 짚었다. 자바의 `Object` 가 가지고 있는 핵심 메서드 자리에 Python 은 dunder 가 들어간다.
+Post 1 에서 양 옆에 언더스코어 두 개가 박힌 메서드를 dunder 라 부른다고 짚었다. 자바의 `Object` 가 가지고 있는 핵심 메서드 자리에 Python 은 dunder 가 들어간다.
 
 | 자바 | Python | 호출되는 시점 |
 |---|---|---|

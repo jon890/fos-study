@@ -130,7 +130,7 @@ def list_items(db: Session = Depends(get_db)):
     return db.query(Item).all()
 ```
 
-`yield` 를 쓰는 의존성은 자바의 `try-with-resources` 자리. 핸들러 종료 후 자동으로 `finally` 가 호출된다. 우리가 [Post 0b 에서 본 컨텍스트 매니저](./java-to-python-oop-decorator.md) 의 응용.
+`yield` 를 쓰는 의존성은 자바의 `try-with-resources` 자리. 핸들러 종료 후 자동으로 `finally` 가 호출된다. 우리가 [Post 2 에서 본 컨텍스트 매니저](./java-to-python-oop-decorator.md) 의 응용.
 
 Spring 의 `@Autowired` 는 클래스 필드/생성자에 박지만, FastAPI 는 핸들러 시그니처에 박는다. 클래스 단위가 아니라 **요청 단위**로 의존성이 새로 만들어지는 게 기본 (`Depends(use_cache=True)` 로 요청 안에서 캐시 가능).
 
