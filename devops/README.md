@@ -17,5 +17,6 @@
 ## 운영 플레이북·면접
 
 - [커머스 관측성 — 첫 5분 운영 플레이북](./commerce-observability-first-five-minutes.md)
+- [SLO·에러 버짓·장애 대응](./slo-error-budget-incident-response.md) — 신뢰성 운영의 공통 언어
 - [F&B 이커머스 운영·모니터링 면접 노트](./fnb-ecommerce-operations-monitoring-interview.md)
 

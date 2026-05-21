@@ -10,6 +10,10 @@
 
 - [[초안] AI 반도체/인프라 사이클: GPU 이후의 병목을 보는 법 (2026-05-07)](./industry-cycle/ai-semiconductor-infrastructure-cycle-2026-05-07.md)
 
+## [투자 기록](./investing/README.md)
+
+종목·테마 단위 투자 노트. AI / Tech 종목 일별 관찰 노트 묶음.
+
 ## [종목 관찰 노트](./stock-notes/README.md)
 
 개별 종목 단위의 관찰 기록. 날짜-티커 형식으로 파일명을 붙인다.

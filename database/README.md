@@ -12,6 +12,7 @@
 
 - [인덱스 개론](./index.md) — DB 성능 최적화의 핵심
 - [커넥션 풀 크기](./connection-pool.md) — 풀 사이즈 결정 기준
+- [커넥션 풀 포화와 스레드 풀 격리](./connection-pool-saturation-thread-pool-isolation.md) — Saturation·Exhaustion·Starvation 구분과 격리 패턴
 - [정규화](./정규화.md) / [역정규화](./역정규화.md)
 
 ## 도서

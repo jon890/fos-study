@@ -34,3 +34,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 ## 멀티모달
 
 - [멀티모달 LLM](./multimodal.md) — 이미지·음성을 함께 다루는 모델
+
+## 문서 도구
+
+- [Docling](./docling.md) — IBM Research 문서 변환 툴킷
