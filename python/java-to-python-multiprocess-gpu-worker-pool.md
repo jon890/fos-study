@@ -66,7 +66,7 @@ Python ProcessPool 의 워커는 라이프사이클이 더 명시적이다.
 1. **Spawn** — `os.fork()` 또는 `spawn` 방식으로 새 프로세스 생성 (Linux 기본 `fork`, macOS·Windows 기본 `spawn`)
 2. **Initialize** — `initializer` 호출, 모델 로딩, GPU 컨텍스트 생성. 5-30초 소요.
 3. **Process tasks** — 작업 큐에서 task pickle 을 받아 실행, 결과 pickle 로 반환
-4. **Recycle (선택)** — `max_tasks_per_child` 도달 시 종료, 새 워커가 자리에 spawn
+4. **Recycle**(선택) — `max_tasks_per_child` 도달 시 종료, 새 워커가 자리에 spawn
 5. **Death** — 예외·OOM·외부 시그널로 비정상 종료
 
 자바와 결정적으로 다른 점은 **3번에서 4번 사이의 비용**. 자바 스레드는 그냥 다음 작업을 받지만, Python 프로세스는 종료 후 새 프로세스가 모델을 다시 로드한다. 워밍업 비용 5.74초가 이 사이클의 핵심 부담이 된다.

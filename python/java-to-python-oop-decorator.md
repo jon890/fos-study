@@ -269,7 +269,7 @@ for s, e in page_numbers(75, 30):
 ## 다음 글로 넘기는 것
 
 - **async/await** — 자바 `CompletableFuture` 와 Reactor 와 모두 다르다. blocking I/O 함정과 함께 별도 글에서.
-- **GIL (Global Interpreter Lock)** — 왜 Python 멀티스레드가 자바 멀티스레드와 다른가. 워커를 thread 가 아닌 process 로 띄우는 이유.
+- **GIL**(Global Interpreter Lock) — 왜 Python 멀티스레드가 자바 멀티스레드와 다른가. 워커를 thread 가 아닌 process 로 띄우는 이유.
 - **typing 심화** — `TypeVar`, `Generic`, `Protocol`, `TypedDict`, `Annotated` (FastAPI 가 적극 활용)
 
 지금까지 두 글이면 우리가 다음 글들에서 다룰 코드를 줄 단위로 읽고, 적당히 수정할 수 있는 정도는 된다.

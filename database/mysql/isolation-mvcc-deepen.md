@@ -48,7 +48,7 @@ InnoDB가 표준에서 벗어나는 핵심 두 지점:
 |---|---|---|---|---|---|---|
 | READ UNCOMMITTED | 허용 | 허용 | 허용 | 허용 | 허용 | 허용 |
 | READ COMMITTED | 금지 | 허용 | 허용 | 허용 | 허용 | 허용 |
-| **InnoDB REPEATABLE READ** | 금지 | 금지 | 금지 | **금지(Next-Key Lock)** | 조건부 발생 | **허용** |
+| **InnoDB REPEATABLE READ** | 금지 | 금지 | 금지 | **금지**(Next-Key Lock) | 조건부 발생 | **허용** |
 | SERIALIZABLE | 금지 | 금지 | 금지 | 금지 | 금지 | 금지 |
 
 "조건부 발생"의 의미는 5장에서 다룬다.

@@ -75,7 +75,7 @@ output = model(input_tensor)         # 사실은 model.forward(input_tensor)
 
 자바 차이점:
 
-- 모델의 **상태 = parameter 들 (텐서)** 이 객체 안에 보유된다. `model.parameters()` 로 순회 가능.
+- 모델의 **상태 = parameter 들**(텐서) 이 객체 안에 보유된다. `model.parameters()` 로 순회 가능.
 - 모델 호출 시 `forward` 가 아니라 객체 자체를 함수처럼 부른다 (`model(x)`). [Python 데코레이터 글](./java-to-python-oop-decorator.md) 의 `__call__` dunder 가 동작.
 - `.to("cuda")` 한 번 부르면 **모든 parameter 텐서가 GPU 로 일괄 이동**. 자바의 `@Transactional` 처럼 모듈 전체에 적용되는 동작.
 

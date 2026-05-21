@@ -15,9 +15,9 @@
 
 용어부터 정리한다.
 
-- **Saturation (포화)**: 풀의 *사용 중* 커넥션 수가 maximum-pool-size에 도달하고, 신규 요청은 `connection-timeout`을 기다리다가 `SQLTransientConnectionException`으로 떨어지는 상태
-- **Exhaustion (고갈)**: Saturation이 지속되어 풀이 영구적으로 빈 슬롯을 못 만드는 상태. 보통 *트랜잭션이 끝나지 않는다*는 신호
-- **Starvation (기아)**: 풀은 살아있지만 특정 요청군이 다른 요청군에 밀려 계속 대기하는 상태. 우선순위/공정성 이슈
+- **Saturation**(포화): 풀의 *사용 중* 커넥션 수가 maximum-pool-size에 도달하고, 신규 요청은 `connection-timeout`을 기다리다가 `SQLTransientConnectionException`으로 떨어지는 상태
+- **Exhaustion**(고갈): Saturation이 지속되어 풀이 영구적으로 빈 슬롯을 못 만드는 상태. 보통 *트랜잭션이 끝나지 않는다*는 신호
+- **Starvation**(기아): 풀은 살아있지만 특정 요청군이 다른 요청군에 밀려 계속 대기하는 상태. 우선순위/공정성 이슈
 
 Google SRE 책의 **USE Method**(Utilization, Saturation, Errors)와 **RED Method**(Rate, Errors, Duration)를 풀에 그대로 매핑하면 진단이 빨라진다.
 
