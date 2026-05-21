@@ -3,7 +3,7 @@
 Spring Framework / Spring Boot 학습 기록. IoC, 생명주기, 트랜잭션, AOP, JPA, HTTP 클라이언트.
 
 이 폴더는 **Spring 학습 허브**다. 문서가 늘어나도 한 문서가 모든 걸 설명하지 않도록 역할을 나눠 유지한다.
-- 트랜잭션 실전 축은 `jpa-transaction.md`, `transaction-propagation-isolation-after-commit.md`, `transaction-synchronization.md`
+- 트랜잭션 실전 축은 [`jpa-transaction.md`](jpa-transaction.md), [`transaction-propagation-isolation-after-commit.md`](transaction-propagation-isolation-after-commit.md), [`transaction-synchronization.md`](transaction-synchronization.md)
 - 횡단 관심사 선택 축은 [Filter, Interceptor, AOP](./filter-interceptor-aop.md)
 - AOP 내부 동작 심화는 [Spring AOP와 프록시 심층 분석](./spring-aop-proxies-deep-dive.md)
 
