@@ -42,8 +42,13 @@ README 가 가리키는 파일이 실제로 없음. broken link 와 동일하지
 
 다음 폴더의 README 를 모두 검사:
 
-- `task/<팀명>/` 4개 폴더
-- 모든 기술 카테고리 폴더 (`architecture/`, `database/`, `database/mysql/`, `database/redis/`, `java/`, `java/spring/`, `devops/`, `devops/observability/`, `devops/k8s/`, `interview/`, `kafka/`, `finance/`, `finance/industry-cycle/`, `finance/stock-notes/`, `javascript/`, `testing/`, `network/`, `algorithm/`, `AI/`, `security/`, `git/`, `linux/`, `rabbitmq/`, `http/`, `resume/`, `travel/`, `기술공유/`)
+- `task/<팀명>/` 하위 폴더 — 팀별 업무 기록
+- 최상위 기술 카테고리 — 다음 그룹별로:
+  - 백엔드 코어: `architecture/`, `java/`, `java/spring/`, `database/`, `database/mysql/`, `database/redis/`, `database/opensearch/`
+  - 인프라·운영: `devops/`, `devops/observability/`, `devops/k8s/`, `kafka/`, `rabbitmq/`, `linux/`, `git/`
+  - 언어·도구: `python/`, `javascript/`, `testing/`, `network/`, `http/`, `security/`
+  - 응용·학습: `algorithm/`, `AI/`, `AI/RAG/`, `AI/agent/`, `interview/`, `resume/`, `기술공유/`
+  - 기타: `finance/`, `finance/industry-cycle/`, `finance/investing/`, `finance/investing/ai-tech-stock/`, `travel/`
 - 그 외 README 가 있는 모든 폴더 (`Glob` 으로 자동 발견)
 
 ## 출력 형식
