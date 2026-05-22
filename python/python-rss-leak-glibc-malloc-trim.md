@@ -8,6 +8,10 @@ Python 으로 long-running 서버 (FastAPI / Flask / Celery / uWSGI 등) 를 운
 
 이 글은 그 안에서 무슨 일이 일어나는지 — 한국 개발자가 가끔 헷갈리는 **CPython 의 메모리 관리 계층** 과 **glibc malloc 의 동작** 을 한 번에 정리한 문서다. 깊은 디버깅보다는 "구조를 이해하고 진단 출발선을 갖추는" 게 목적이다.
 
+### RSS 라는 용어 — 자바 백엔드 출신에게 한 줄
+
+**RSS** (Resident Set Size) 는 프로세스가 실제로 RAM 에 점유 중인 메모리 크기다. `ps`, `top`, `docker stats`, `kubectl top pod` 가 보여주는 그 값. 자바 시각으로는 "JVM heap 이 아니라 그 프로세스 전체가 OS 에서 잡고 있는 물리 메모리" 에 해당한다. heap 만 보는 자바 모니터링과 달리, Python·native 진영에서는 RSS 가 1차 지표다.
+
 ## 메모리 관리의 4 단계 계층
 
 CPython 의 메모리 흐름은 네 단계를 지난다.
