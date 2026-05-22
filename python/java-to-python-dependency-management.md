@@ -1,6 +1,13 @@
 # Python 의존성 관리 — Java Maven/Gradle 사용자가 만나는 첫 충격
 
-자바 백엔드만 다뤄오다가 Python 프로젝트를 처음 받았을 때 가장 황당했던 게 의존성 관리였다. Maven 이면 `pom.xml` 한 파일, Gradle 이면 `build.gradle` 한 파일에서 의존성·빌드·플러그인이 다 처리되는데, Python 프로젝트는 `requirements.txt`, `pyproject.toml`, `setup.py`, `Pipfile` 이 섞여 있고 어디서부터 봐야 할지도 모르겠다. `pip install` 한 줄로 시작하면 전역 환경이 오염되고, `venv` 가 등장하면서부터 다른 글이 또 필요하다.
+자바 백엔드만 다뤄오다가 Python 프로젝트를 처음 받았을 때 가장 황당했던 게 의존성 관리였다. Maven 이면 `pom.xml` 한 파일, Gradle 이면 `build.gradle` 한 파일에서 의존성·빌드·플러그인이 다 처리된다. Python 프로젝트는 다음 파일이 섞여 있어 어디서부터 봐야 할지도 모르겠다.
+
+- `requirements.txt`
+- `pyproject.toml`
+- `setup.py`
+- `Pipfile`
+
+게다가 `pip install` 한 줄로 시작하면 전역 환경이 오염되고, `venv` 가 등장하면서부터 다른 글이 또 필요하다.
 
 이 글은 자바 개발자가 Python 의존성 도구 풍경을 빠르게 따라잡기 위한 노트다. 2026 년 기준으로 정리하면 결론은 **uv 하나면 거의 다 된다**.
 

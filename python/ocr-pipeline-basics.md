@@ -30,7 +30,13 @@ OCR 시스템은 보통 다음 3단계로 나뉜다.
 
 ## 1단계 — Layout Detection
 
-목적: **이미지 안의 어디에 무엇이 있는지** 박스로 잡아낸다. 텍스트 영역, 테이블, 이미지, 헤더, 푸터, 페이지 번호 같은 구조 요소.
+목적: **이미지 안의 어디에 무엇이 있는지** 박스로 잡아낸다. 다음과 같은 구조 요소를 검출한다.
+
+- 텍스트 영역
+- 테이블
+- 이미지
+- 헤더 / 푸터
+- 페이지 번호
 
 대표 모델은 LayoutLM, DocLayout-YOLO, PubLayNet, Donut 류의 transformer 기반 모델. CV (computer vision) 의 object detection 기법을 문서 영역에 특화한 것.
 

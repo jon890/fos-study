@@ -4,7 +4,12 @@
 
 Python ML 서비스는 그림이 다르다. `ThreadPoolExecutor` 가 있지만 CPU/GPU 작업에서는 거의 안 쓰고, 대신 `ProcessPoolExecutor` (실제 OS 프로세스 풀) 를 쓴다. 우리 프로젝트도 KR 워커 2개 + JA 워커 1개를 모두 별도 프로세스로 띄운다. 자바 시각에서는 "왜 굳이 무거운 프로세스를?" 라는 의문이 자연스럽게 생긴다.
 
-이 글은 그 의문에 답하고, multi-process GPU 워크로드의 핵심 패턴 — worker 라이프사이클, MAX_TASKS_PER_WORKER, NVIDIA MPS, worker death monitor — 을 자바 ThreadPool 과 비교해 정리한다.
+이 글은 그 의문에 답하고, multi-process GPU 워크로드의 핵심 패턴 4개를 자바 ThreadPool 과 비교해 정리한다.
+
+- worker 라이프사이클
+- `MAX_TASKS_PER_WORKER`
+- NVIDIA MPS
+- worker death monitor
 
 ## 왜 thread 가 아니라 process 인가 — GIL 의 결정
 
