@@ -884,6 +884,8 @@ postmortem 문서에는 "재발 방지" 항목 옆에 **PR 번호 또는 알람 
 - [쿠폰 프로모션 동시성 기본기](./coupon-promotion-concurrency-basics.md) — 쿠폰 중복 사용 / 선착순 / 분산락
 - [Outbox Pattern 심화](./distributed-transaction-outbox-pattern.md) — CDC, 발행 순서, Saga 결합
 - [Outbox/Inbox Pattern](./outbox-inbox-pattern.md) — 컨슈머 측 멱등성과 inbox 테이블
+- [Spring 트랜잭션 전파·격리·afterCommit](../java/spring/transaction-propagation-isolation-after-commit.md) — 상태 전이를 트랜잭션 경계로 보장하는 코드 레벨 기법
+- [MySQL Deadlock 분석](../database/mysql/deadlock-analysis.md) — 주문/쿠폰 도메인 데드락 패턴과 락 순서 정렬
 
 ## 2026-05-19 CJ푸드빌 부트캠프 보강 — 주문 정합성 답변 프레임
 
