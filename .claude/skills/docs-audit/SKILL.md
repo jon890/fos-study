@@ -95,6 +95,14 @@ pwd  # /Users/nhn/personal/fos-study
 
 콤마-줄글 사례 단락, 긴 인라인 부연, 누적성 섹션 평탄화 부재, 인라인 링크 폭주 4가지 검사. 코드/표 마스킹 후 시그널 강도 순 보고. `interview/**`, `resume/**` 등 의도적 줄글 패턴은 제외.
 
+**Detector 운영 노하우 (실전 라운드 반영)**:
+
+- **node_modules / k8s-in-action 같은 외부 의존성 마스킹 필수** — 라이센스·라이브러리 README 가 콤마 8\~16회로 잡혀 신호를 묻는다. EXCLUDE_DIRS 에 추가.
+- **bullet list 안 sub-bullet 본문은 콤마 카운트에서 제외** — `1. 문제 재진술 ... 2. ...` 형태 narration 은 paragraph 자체는 bullet 인데 한 bullet 안 자연어가 콤마 7\~10회 등장. `bullet_ct >= len(plines) * 0.5` 임계치로 보수적으로 컷.
+- **`~` 짝수 카운트는 `\~` escape 인지 후 카운트** — 단순 `count('~')` 는 이미 escape 된 50건도 false positive 로 잡는다. paragraph 마스킹 단계에서 `\~` → 별도 sentinel 로 치환 후 카운트.
+- **임계치는 5\~7 사이가 실용적** — 4 회 콤마는 자연 산문에서도 흔함. 첫 라운드는 7+ 로 강한 신호만 보고하고, 이후 라운드에서 5+ 로 내려서 잔여 검토. 강한 신호는 거의 항상 enumeration 6\~8항목이라 bullet 분리 효과 큼.
+- **수정 적용률 ~10%가 정상** — 첫 라운드 보고된 paragraph 중 실제 손볼 산문은 10건 중 1\~2건. 나머지는 (a) bullet 내부, (b) 인라인 코드 마스킹 false positive, (c) 도입부 자연 산문이라 유지하는 게 맞다. 보고량에 압도되지 말 것.
+
 #### 축 6. 문체 정적 검사
 
 CLAUDE.md / blog-post-writer 룰 중 3가지: (1) `~` 취소선 함정, (2) `§` 특수문자 사용, (3) `**텍스트(영문)**` 패턴. 자동 수정 가능. 단 `~` 는 의도적 범위 표기일 수도 있어 paragraph 컨텍스트 보고 결정.
