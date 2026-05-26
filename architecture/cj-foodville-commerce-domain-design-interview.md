@@ -8,13 +8,13 @@ CJ푸드빌 디지털 채널 백엔드 면접에 슬롯/베팅/AI 배치 같은 
 
 관련 개념·세부 도메인은 본 저장소에 이미 정리돼 있으므로 깊이 들어가지 않고 링크로 넘긴다.
 
-- 주문·재고·노출 분리: [`commerce-domain-modeling-order-inventory-display.md`](./commerce-domain-modeling-order-inventory-display.md)
-- 주문 상태머신·멱등성·Outbox: [`ecommerce-order-payment-domain-modeling.md`](./ecommerce-order-payment-domain-modeling.md)
-- F&B 도메인 전체 그림: [`fnb-ecommerce-domain-overview.md`](./fnb-ecommerce-domain-overview.md)
-- 주문 상태 정합성 기본기: [`commerce-order-state-consistency-fundamentals.md`](./commerce-order-state-consistency-fundamentals.md)
-- 결제 멱등성: [`payment-idempotency-transaction-basics.md`](./payment-idempotency-transaction-basics.md)
-- 쿠폰 동시성 기본기: [`coupon-promotion-concurrency-basics.md`](./coupon-promotion-concurrency-basics.md)
-- F&B 주문/픽업 상태머신: [`fnb-order-store-pickup-state-machine.md`](./fnb-order-store-pickup-state-machine.md)
+- 주문·재고·노출 분리: [커머스 도메인 모델링](./commerce-domain-modeling-order-inventory-display.md)
+- 주문 상태머신·멱등성·Outbox: [e-Commerce 주문·결제 도메인 모델링](./ecommerce-order-payment-domain-modeling.md)
+- F&B 도메인 전체 그림: [F&B · e-Commerce 디지털 채널 도메인 한 장 정리](./fnb-ecommerce-domain-overview.md)
+- 주문 상태 정합성 기본기: [커머스 주문 상태와 데이터 정합성 기본기](./commerce-order-state-consistency-fundamentals.md)
+- 결제 멱등성: [결제 도메인 멱등성과 트랜잭션 재시도 기본기](./payment-idempotency-transaction-basics.md)
+- 쿠폰 동시성 기본기: [쿠폰/프로모션 동시성과 정합성 기본기](./coupon-promotion-concurrency-basics.md)
+- F&B 주문/픽업 상태머신: [F&B 주문/매장/픽업 상태머신 설계](./fnb-order-store-pickup-state-machine.md)
 
 ## 핵심 통찰: 도메인 단어는 다르고, 의사결정 축은 같다
 

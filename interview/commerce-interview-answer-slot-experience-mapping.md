@@ -4,17 +4,17 @@
 
 CJ푸드빌 디지털 채널 백엔드 면접에 슬롯·베팅·AI 배치 같은 이력으로 들어가면, 면접관이 처음 30초 안에 결정하는 한 가지가 있다. "이 사람이 자기 경험을 *우리 도메인 언어*로 다시 말할 수 있는 사람인가, 아니면 회사 단어만 모르는 게 아니라 사고의 축 자체가 어긋난 사람인가." 슬롯 RTP·RCC·페이라인 같은 단어를 그대로 던지면 그림이 안 그려진다. 반대로 "비슷할 거예요"로 도망가면 도메인 깊이 점수를 못 받는다.
 
-이 문서는 그 사이를 메우는 *면접 답변 playbook*이다. 매핑의 *개념과 6축*은 [`../architecture/cj-foodville-commerce-domain-design-interview.md`](../architecture/cj-foodville-commerce-domain-design-interview.md)에서 정리했으므로 여기서는 복습하지 않고, *실제 면접에서 1분 안에 말할 답변 + 꼬리 질문 방어*에 집중한다. 자기소개 60초, "왜 우리 회사인가" 60초, "커머스 도메인 처음 아니냐" 압박, 그리고 SlotTemplate / RCC / StampedLock / AliasMethod / Kafka Outbox / 캐시 정합성을 *주문·결제·쿠폰·메뉴·매장 정책* 설계로 옮겨 답하는 6세트가 본 문서의 본체다.
+이 문서는 그 사이를 메우는 *면접 답변 playbook*이다. 매핑의 *개념과 6축*은 [CJ푸드빌 디지털 채널 면접](../architecture/cj-foodville-commerce-domain-design-interview.md)에서 정리했으므로 여기서는 복습하지 않고, *실제 면접에서 1분 안에 말할 답변 + 꼬리 질문 방어*에 집중한다. 자기소개 60초, "왜 우리 회사인가" 60초, "커머스 도메인 처음 아니냐" 압박, 그리고 SlotTemplate / RCC / StampedLock / AliasMethod / Kafka Outbox / 캐시 정합성을 *주문·결제·쿠폰·메뉴·매장 정책* 설계로 옮겨 답하는 6세트가 본 문서의 본체다.
 
 연결 문서:
 
-- [`../architecture/cj-foodville-commerce-domain-design-interview.md`](../architecture/cj-foodville-commerce-domain-design-interview.md) — 슬롯 → 커머스 매핑의 6축 개념 정리
-- [`../architecture/commerce-order-state-consistency-fundamentals.md`](../architecture/commerce-order-state-consistency-fundamentals.md) — 주문 상태 정합성 기본기
-- [`../architecture/payment-idempotency-transaction-basics.md`](../architecture/payment-idempotency-transaction-basics.md) — 결제 멱등성
-- [`../architecture/coupon-promotion-concurrency-basics.md`](../architecture/coupon-promotion-concurrency-basics.md) — 쿠폰 동시성 기본기
-- [`../architecture/fnb-order-store-pickup-state-machine.md`](../architecture/fnb-order-store-pickup-state-machine.md) — F&B 주문/픽업 상태머신
-- [`slot-team-question-bank.md`](./slot-team-question-bank.md) — 슬롯 경험 자체에 대한 깊이 질문 은행 (꼬리 질문이 그쪽으로 흐를 때 대응)
-- [`senior-backend-master-playbook.md`](./senior-backend-master-playbook.md) — 자기소개·강점·기술 의사결정 종합 자료 (본 문서와 톤을 맞춤)
+- [CJ푸드빌 디지털 채널 면접](../architecture/cj-foodville-commerce-domain-design-interview.md) — 슬롯 → 커머스 매핑의 6축 개념 정리
+- [커머스 주문 상태와 데이터 정합성 기본기](../architecture/commerce-order-state-consistency-fundamentals.md) — 주문 상태 정합성 기본기
+- [결제 도메인 멱등성과 트랜잭션 재시도 기본기](../architecture/payment-idempotency-transaction-basics.md) — 결제 멱등성
+- [쿠폰/프로모션 동시성과 정합성 기본기](../architecture/coupon-promotion-concurrency-basics.md) — 쿠폰 동시성 기본기
+- [F&B 주문/매장/픽업 상태머신 설계](../architecture/fnb-order-store-pickup-state-machine.md) — F&B 주문/픽업 상태머신
+- [NSC 슬롯팀 경험 기반 질문 은행](./slot-team-question-bank.md) — 슬롯 경험 자체에 대한 깊이 질문 은행 (꼬리 질문이 그쪽으로 흐를 때 대응)
+- [시니어 Java 백엔드 면접 마스터 플레이북](./senior-backend-master-playbook.md) — 자기소개·강점·기술 의사결정 종합 자료 (본 문서와 톤을 맞춤)
 
 ## 매핑 한 줄 요약: 도메인 단어는 바뀌어도, 의사결정 축은 같다
 

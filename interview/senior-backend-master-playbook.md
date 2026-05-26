@@ -41,14 +41,14 @@
 - **문제**: 다중 서버가 각자 정적 설정 데이터를 인메모리 캐시로 가지는 상황에서, 어드민 변경 시 갱신 중 조회 요청이 일시적 정합성 오류를 냄.
 - **해결**: `PostCommitUpdateEventListener`로 커밋 후에만 RabbitMQ Fanout Exchange로 변경 ID 발행 → 각 인스턴스가 자신의 큐에서 수신 후 해당 항목만 선택 갱신. 갱신/조회 경합은 `StampedLock` writeLock + `tryReadLock(2500ms)` 타임아웃으로 흡수. `StaticDataManager` 인터페이스로 init/refresh/clear 책임 분리 → 새 캐시 타입 추가해도 기존 코드 무변경.
 - **커머스 전이 관점**: 상품 캐시로 확장할 때는 Caffeine(L1) + Redis(L2) **2-tier 구조**로 피크 TPS를 흡수하고, 인스턴스 수가 수십~백 대 규모로 늘어나면 RabbitMQ Fanout 대신 Kafka 토픽(인스턴스마다 독립 consumer group)이나 Redis Pub/Sub이 더 적합하다는 점을 인지하고 있습니다. Cache Stampede는 핫키에 대한 probabilistic early expiration + single-flight로 대응.
-- **증거**: `resume/cj-foodville-resume-backend.html` 문항 1, [`task/nsc-slot/slot-engine-abstraction.md`](../task/nsc-slot/slot-engine-abstraction.md) "StaticDataLoader 개선", [`architecture/cache-strategies.md`](../architecture/cache-strategies.md) 개인 학습 기록.
+- **증거**: `resume/cj-foodville-resume-backend.html` 문항 1, [슬롯 엔진 추상화 및 구조 개선](../task/nsc-slot/slot-engine-abstraction.md) "StaticDataLoader 개선", [캐시 설계 전략 총정리](../architecture/cache-strategies.md) 개인 학습 기록.
 
 ### 4-2. Kafka 비동기 흐름의 신뢰성을 구조로 확보했다
 
 - 금액/레벨처럼 즉시 응답이 필요한 로직은 DB 트랜잭션 내, 미션·통계·알림 후처리는 Kafka로 분리.
 - `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 이후에만 발행해 롤백된 트랜잭션 이벤트의 외부 유출을 차단. 전송 실패 시 `Propagation.REQUIRES_NEW` 별도 트랜잭션으로 실패 메시지를 DB에 저장하고 스케줄러가 재전송하는 **Dead Letter Store + 재시도 구조**. traceId 동반 저장으로 실패 원인 추적.
 - **정식 Transactional Outbox와의 차이 인지**: AFTER_COMMIT과 Kafka 발행 사이의 짧은 구간(JVM 크래시·SIGKILL)에 대한 유실 가능성이 남음. 해당 도메인(통계·알림)의 특성상 수용 가능한 수준으로 판단한 설계 선택이며, 커머스처럼 정합성이 더 엄격한 도메인에서는 이벤트를 비즈니스 데이터와 같은 트랜잭션에 저장 후 relay하는 **정식 Outbox 구조**로 강화할 계획입니다.
-- 증거: `resume/cj-foodville-resume-backend.html` 문항 1, [`architecture/distributed-transaction-outbox-pattern.md`](../architecture/distributed-transaction-outbox-pattern.md) 개인 학습 기록.
+- 증거: `resume/cj-foodville-resume-backend.html` 문항 1, [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md) 개인 학습 기록.
 
 ### 4-3. 대용량 배치 파이프라인을 처음부터 설계했다
 
@@ -56,7 +56,7 @@
 - I/O 바운드 임베딩 호출은 `AsyncItemProcessor` + `AsyncItemWriter`로 병렬화. 청크 내 문서를 스레드풀에서 동시 처리.
 - Reader에 `ItemStream` 구현으로 커서 위치를 `ExecutionContext`에 저장 → 중간 실패 후에도 마지막 처리 지점에서 재시작.
 - `@JobScope` 홀더(`ConfluenceJobDataHolder`) 도입으로 `JobExecutionContext` 직렬화 부하 회피 (경량 커서 상태 vs 도메인 데이터 분리 판단).
-- 증거: [`task/ai-service-team/rag-vector-search-batch.md`](../task/ai-service-team/rag-vector-search-batch.md).
+- 증거: [Confluence 문서를 OpenSearch에 벡터 색인하기](../task/ai-service-team/rag-vector-search-batch.md).
 
 ### 4-4. 성능 의사결정을 수치 기반으로 한다
 
@@ -64,20 +64,20 @@
 - 시뮬레이터 OOM: `List<Long> winmoneyList` 누적 구조를 Welford's Online Algorithm 기반 1-pass 통계로 교체해 메모리 상수화.
 - Context Cache: 원작 소설(수십만 토큰)을 Gemini Project 단위 cachedContent로 묶어 Analysis/Content-review/Treatment/Conti/Continuation 5단계 공유 → 재결제 비용 제거.
 - 통합 분석: Step1 소설 분석 5개 영역을 단일 Structured Output 호출로 합쳐 토큰 75% 절감, 26.8s → 13.1s.
-- 증거: [`task/nsc-slot/slot-spin-performance.md`](../task/nsc-slot/slot-spin-performance.md), [`task/nsc-slot/slot-simulator-oom.md`](../task/nsc-slot/slot-simulator-oom.md), [`task/ai-service-team/webtoon-maker-ai-pipeline.md`](../task/ai-service-team/webtoon-maker-ai-pipeline.md) (ADR-059, ADR-069).
+- 증거: [슬롯 스핀 성능 최적화](../task/nsc-slot/slot-spin-performance.md), [시뮬레이터 OOM](../task/nsc-slot/slot-simulator-oom.md), [12일간 AI 웹툰 제작 도구 MVP 만들기](../task/ai-service-team/webtoon-maker-ai-pipeline.md) (ADR-059, ADR-069).
 
 ### 4-5. 에이전트 파이프라인을 설계·운영하는 엔지니어
 
 - "Cursor Rules를 쓴다"가 아니라 20개 이상 직접 구축해 슬롯 도메인 컨텍스트를 문서화하고, 이 규칙 위에서 신규 게임 3종을 에이전트 단독으로 구현.
 - AI 웹툰 MVP에서는 Claude Code 하네스 위에 **planner → critic → executor → docs-verifier** 4역할 에이전트 팀을 조립. `/planning` → `/plan-and-build` → `/build-with-teams` → `/integrate-ux`로 vibe 코딩을 spec 기반 코딩으로 단계적 전환.
 - 개인 성과에 그치지 않고 팀에 활용 방법을 전파해 반복 개발 사이클 단축.
-- 증거: [`task/nsc-slot/ai-tool-adoption.md`](../task/nsc-slot/ai-tool-adoption.md)(목차), [`task/ai-service-team/webtoon-maker-ai-pipeline.md`](../task/ai-service-team/webtoon-maker-ai-pipeline.md) "하네스 진화".
+- 증거: [AI 개발 도구 도입 및 Cursor Rules 구축](../task/nsc-slot/ai-tool-adoption.md)(목차), [12일간 AI 웹툰 제작 도구 MVP 만들기](../task/ai-service-team/webtoon-maker-ai-pipeline.md) "하네스 진화".
 
 ### 4-6. 테스트 인프라를 안전망으로 만든다
 
 - 슬롯 도메인: 제네릭 추상 테스트 클래스 `AbstractSlotTest`로 게임 타입별 초기화 자동화, 총 447개 테스트 파일에서 핵심 비즈니스 로직 / AOP 검증 / Kafka 이벤트 발행 / Redis 통합 테스트까지 커버.
 - 배치 도메인: `@BatchComponentTest` 커스텀 애노테이션으로 외부 API만 모킹하고 Spring 컨텍스트에서 실제 빈을 엮어 테스트해 `@Qualifier` 충돌·`@StepScope` 빈 중복 같은 실수를 빌드 타임에 차단.
-- 증거: `resume/cj-foodville-resume-backend.html` 문항 1, [`task/ai-service-team/rag-vector-search-batch.md`](../task/ai-service-team/rag-vector-search-batch.md) "테스트 전략".
+- 증거: `resume/cj-foodville-resume-backend.html` 문항 1, [Confluence 문서를 OpenSearch에 벡터 색인하기](../task/ai-service-team/rag-vector-search-batch.md) "테스트 전략".
 
 ---
 
@@ -87,9 +87,9 @@
 
 - 슬롯/AI 서비스 모두 사내·B2C 환경이긴 하지만, **초 단위 수만 TPS 수준의 커머스 피크 트래픽**을 내가 직접 튜닝하며 살려낸 경험은 아직 부족합니다.
 - 보완: 최근 올리브영 기술 블로그의 MSA 데이터 연동 전략, 무중단 OAuth2 전환(Feature Flag + Shadow Mode + Resilience4j 3단 보호 + ±30s Jitter로 Peak TPS 40% 감소) 글을 정독하며, 슬롯에서 푼 캐시 정합성 문제가 커머스 상품·전시 도메인에 어떻게 매핑되는지 역산 중입니다. 관련 개념을 개인 블로그에 사전 학습으로 정리해뒀습니다:
-  - [`architecture/cache-strategies.md`](../architecture/cache-strategies.md) — 캐시 패턴 전체 + Cache Stampede 대응
-  - [`architecture/resilience-patterns.md`](../architecture/resilience-patterns.md) — Timeout/Retry/CB/Bulkhead/Backpressure
-  - [`architecture/high-traffic-commerce-patterns.md`](../architecture/high-traffic-commerce-patterns.md) — 1,600만 고객 + 올영세일 대비 설계
+  - [캐시 설계 전략 총정리](../architecture/cache-strategies.md) — 캐시 패턴 전체 + Cache Stampede 대응
+  - [시니어 백엔드를 위한 Resilience 패턴 실전 가이드](../architecture/resilience-patterns.md) — Timeout/Retry/CB/Bulkhead/Backpressure
+  - [대규모 커머스 트래픽 처리 패턴](../architecture/high-traffic-commerce-patterns.md) — 1,600만 고객 + 올영세일 대비 설계
 - 입사 후에는 관찰 기간을 짧게 가져가되 Datadog APM과 기존 장애 리포트를 먼저 읽고 병목·핫 쿼리 가설을 수립한 뒤 말하는 방식으로 접근하겠습니다.
 
 ### 5-2. Kotlin
@@ -106,7 +106,7 @@
 
 - 게임 도메인은 **월 단위 배포 주기**로 움직였기에, 라이브 서비스 리팩토링을 **완전 대체 마이그레이션**으로 수행한 경험만 있습니다. Feature Flag 기반 런타임 전환, Shadow Mode로 신·구 양쪽 결과 비교, Canary 배포로 트래픽 일부만 전환하는 실전 경험은 아직 없습니다.
 - 대신 이 공백은 **테스트 안전망**으로 메워왔습니다. Spring Test Execution Listener 기반 게임 데이터 프리로딩 + 게임 플레이 시뮬레이션 테스트 + QA 협업 시나리오(일반·튜토리얼·치트)로 배포 전 회귀를 차단했습니다.
-- 보완: 커머스의 실시간 배포 + 무중단 요구가 다른 차원의 문제임을 인지하고, CJ 올리브영 **무중단 OAuth2 전환기**(Feature Flag + Shadow Mode + Resilience4j 3단 + Jitter) 사례를 정독하며 [`architecture/zero-downtime-migration.md`](../architecture/zero-downtime-migration.md)에 스터디 기록을 남겼습니다. 입사 후 1개월 내 실 사례에 체득하는 것이 목표입니다.
+- 보완: 커머스의 실시간 배포 + 무중단 요구가 다른 차원의 문제임을 인지하고, CJ 올리브영 **무중단 OAuth2 전환기**(Feature Flag + Shadow Mode + Resilience4j 3단 + Jitter) 사례를 정독하며 [대규모 트래픽 중 무중단 마이그레이션](../architecture/zero-downtime-migration.md)에 스터디 기록을 남겼습니다. 입사 후 1개월 내 실 사례에 체득하는 것이 목표입니다.
 
 ---
 
@@ -119,7 +119,7 @@
 - 초기: 단가가 낮은 Flash를 기본으로 사용 → 운영자가 결과를 보고 재생성하는 빈도가 높아 **총 호출 횟수·시간 비용 증가**.
 - 재결정 (ADR-072): Pro 기본, 429 발생 시 Flash → Lite로 fallback. 전역 `Rate Limit Tracking`(429 맞은 모델을 일정 시간 skip 대상으로 마킹)으로 다른 요청이 같은 모델을 또 두드리지 않게.
 - 30초 재시도 로직 제거: TPM은 분 단위로 풀리는데 30초는 또 실패만 불러와 즉시 다음 fallback이 더 빠르고 안정.
-- Trade-off: 단가는 오르지만 **"한 번에 만족하는 결과"가 총비용을 낮춘다**는 관점으로 뒤집은 의사결정. 증거: [`task/ai-service-team/webtoon-maker-ai-pipeline.md`](../task/ai-service-team/webtoon-maker-ai-pipeline.md).
+- Trade-off: 단가는 오르지만 **"한 번에 만족하는 결과"가 총비용을 낮춘다**는 관점으로 뒤집은 의사결정. 증거: [12일간 AI 웹툰 제작 도구 MVP 만들기](../task/ai-service-team/webtoon-maker-ai-pipeline.md).
 
 ### 사례 2 — 60컷 일괄 생성: SSE → `Promise.allSettled` 구조 전환
 
@@ -277,7 +277,7 @@
   3. 쓰기는 청크 단위 트랜잭션 + 멱등 키로 중복 실행 방어.
   4. **Shadow 이행** (구 → 신 병기 기록) 단계로 운영 데이터와 이행 데이터를 비교한 뒤, Feature Flag로 읽기 경로만 점진 전환(올리브영 OAuth2 전환 사례와 같은 결).
   5. 실패 메시지는 `REQUIRES_NEW` 별도 트랜잭션 + traceId로 저장, 재처리 큐로 흘려보냄.
-- 실제 근거: `AsyncItemProcessor` + 커서 재시작([`task/ai-service-team/rag-vector-search-batch.md`](../task/ai-service-team/rag-vector-search-batch.md)), `REQUIRES_NEW` 기반 Dead Letter Store 재시도(`resume 문항 1`).
+- 실제 근거: `AsyncItemProcessor` + 커서 재시작([Confluence 문서를 OpenSearch에 벡터 색인하기](../task/ai-service-team/rag-vector-search-batch.md)), `REQUIRES_NEW` 기반 Dead Letter Store 재시도(`resume 문항 1`).
 
 ### Q3. "주니어가 합류하면 리뷰 정책은 어떻게 세팅하시겠어요?"
 
@@ -335,12 +335,12 @@
 - **Cache Stampede 대응**: 핫키 만료 순간 DB 폭주 방지를 위한 3중 방어 — probabilistic early expiration(만료 전 확률적 갱신), single-flight(request coalescing으로 한 번만 DB 조회), Redis 분산 락.
 - **TTL에 Jitter**: 같은 시각 대량 만료로 cliff가 생기는 걸 막기 위해 TTL에 ±10% 난수 가감.
 - **전파 채널 선택**: 인스턴스 수가 적으면 RabbitMQ Fanout, 많아지면 Kafka 토픽(인스턴스마다 독립 group) 또는 Redis Pub/Sub. 메시지 보장이 필요한지가 선택 기준.
-- 근거: [`architecture/cache-strategies.md`](../architecture/cache-strategies.md), [`architecture/high-traffic-commerce-patterns.md`](../architecture/high-traffic-commerce-patterns.md).
+- 근거: [캐시 설계 전략 총정리](../architecture/cache-strategies.md), [대규모 커머스 트래픽 처리 패턴](../architecture/high-traffic-commerce-patterns.md).
 
 ### Q11. "라이브 운영 중인 시스템을 리팩토링하실 때 어떤 전환 방식을 쓰시나요?"
 
 - **정직한 전제**: 슬롯 도메인은 월 단위 배포 주기여서 **완전 대체 마이그레이션** + 테스트 안전망(게임 플레이 시뮬레이션 + QA 시나리오 검증) + 팀 QA 협업으로 풀어왔습니다. Feature Flag/Shadow Mode/Canary 같은 실시간 무중단 전환 경험은 아직 없습니다.
-- **커머스 환경의 필요성 인지**: 1,600만 고객 + 실시간 배포 환경에선 다른 차원의 전환 전략이 필요하다는 걸 알고 있고, CJ 올리브영 무중단 OAuth2 전환기(Feature Flag + Shadow Mode + Resilience4j 3단 + Jitter)를 정독하며 [`architecture/zero-downtime-migration.md`](../architecture/zero-downtime-migration.md)에 스터디 기록을 남겼습니다.
+- **커머스 환경의 필요성 인지**: 1,600만 고객 + 실시간 배포 환경에선 다른 차원의 전환 전략이 필요하다는 걸 알고 있고, CJ 올리브영 무중단 OAuth2 전환기(Feature Flag + Shadow Mode + Resilience4j 3단 + Jitter)를 정독하며 [대규모 트래픽 중 무중단 마이그레이션](../architecture/zero-downtime-migration.md)에 스터디 기록을 남겼습니다.
 - **커머스에서 쓸 접근 순서** (도입 시):
   1. **Feature Flag**로 신·구 로직을 런타임 전환 가능하게 (배포 없이 30초 내 반영)
   2. **Shadow Mode**로 신 로직을 read-only로 병행 실행 → 결과 비교 대시보드(diff rate 알람)

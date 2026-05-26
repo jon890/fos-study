@@ -10,7 +10,7 @@
 - "어드민에서 메뉴를 내렸는데 일부 매장에서 5분간 더 보였다." → Display 캐시 정합성.
 - "재고는 0인데 상품이 검색에 떠 있다." → 재고와 노출의 데이터 출처 분리 실패.
 
-[`commerce-order-state-consistency-fundamentals.md`](./commerce-order-state-consistency-fundamentals.md), [`ecommerce-order-payment-domain-modeling.md`](./ecommerce-order-payment-domain-modeling.md), [`fnb-order-store-pickup-state-machine.md`](./fnb-order-store-pickup-state-machine.md)이 주문·결제·상태머신을 다룬다면, 이 문서는 그 옆에 빠져 있던 **재고와 노출**을 채운다. 면접에서 "주문 시스템 어떻게 설계하시겠어요"에 결제·상태머신만 답하면 50점이고, 재고와 노출까지 자르면 70점, 셋 사이의 동기화·캐시 전략까지 말하면 90점이다.
+[커머스 주문 상태와 데이터 정합성 기본기](./commerce-order-state-consistency-fundamentals.md), [e-Commerce 주문·결제 도메인 모델링](./ecommerce-order-payment-domain-modeling.md), [F&B 주문/매장/픽업 상태머신 설계](./fnb-order-store-pickup-state-machine.md)이 주문·결제·상태머신을 다룬다면, 이 문서는 그 옆에 빠져 있던 **재고와 노출**을 채운다. 면접에서 "주문 시스템 어떻게 설계하시겠어요"에 결제·상태머신만 답하면 50점이고, 재고와 노출까지 자르면 70점, 셋 사이의 동기화·캐시 전략까지 말하면 90점이다.
 
 ## 핵심 통찰: 같은 "상품"이 컨텍스트마다 다른 모델이다
 
@@ -23,7 +23,7 @@
 | Inventory (재고) | 매장별 잔여 수량, 예약/확정/취소 | 매우 높음(초 단위) | 강한 일관성 (트랜잭션) |
 | Order (주문) | 주문 시점의 가격·옵션 스냅샷 | 한 번만 쓰임 | 불변(스냅샷) |
 
-각 컨텍스트는 자체 Aggregate Root를 갖고, 컨텍스트 간 참조는 객체가 아니라 **ID와 도메인 이벤트**로만 한다. 이 원칙은 [`ddd-domain-modeling.md`](./ddd-domain-modeling.md)의 Bounded Context를 커머스 도메인에 그대로 적용한 결과다.
+각 컨텍스트는 자체 Aggregate Root를 갖고, 컨텍스트 간 참조는 객체가 아니라 **ID와 도메인 이벤트**로만 한다. 이 원칙은 [DDD와 도메인 모델링](./ddd-domain-modeling.md)의 Bounded Context를 커머스 도메인에 그대로 적용한 결과다.
 
 ## Catalog: 변하지 않아야 할 진실의 원천
 
@@ -408,10 +408,10 @@ CREATE TABLE order_reservation (
 
 ## 관련 문서
 
-- [`commerce-order-state-consistency-fundamentals.md`](./commerce-order-state-consistency-fundamentals.md) — 주문 상태머신과 정합성 기본기 허브
-- [`ecommerce-order-payment-domain-modeling.md`](./ecommerce-order-payment-domain-modeling.md) — Order/Payment/Coupon/Promotion 도메인 경계
-- [`fnb-order-store-pickup-state-machine.md`](./fnb-order-store-pickup-state-machine.md) — F&B 픽업·배달 상태머신 운영
-- [`coupon-promotion-concurrency-basics.md`](./coupon-promotion-concurrency-basics.md) — 쿠폰/프로모션 동시성
-- [`ddd-domain-modeling.md`](./ddd-domain-modeling.md) — Bounded Context와 Aggregate 일반 원칙
-- [`distributed-transaction-outbox-pattern.md`](./distributed-transaction-outbox-pattern.md) — Outbox 패턴 심화
-- [`outbox-inbox-pattern.md`](./outbox-inbox-pattern.md) — Inbox 측 멱등성 보장
+- [커머스 주문 상태와 데이터 정합성 기본기](./commerce-order-state-consistency-fundamentals.md) — 주문 상태머신과 정합성 기본기 허브
+- [e-Commerce 주문·결제 도메인 모델링](./ecommerce-order-payment-domain-modeling.md) — Order/Payment/Coupon/Promotion 도메인 경계
+- [F&B 주문/매장/픽업 상태머신 설계](./fnb-order-store-pickup-state-machine.md) — F&B 픽업·배달 상태머신 운영
+- [쿠폰/프로모션 동시성과 정합성 기본기](./coupon-promotion-concurrency-basics.md) — 쿠폰/프로모션 동시성
+- [DDD와 도메인 모델링](./ddd-domain-modeling.md) — Bounded Context와 Aggregate 일반 원칙
+- [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md) — Outbox 패턴 심화
+- [Outbox / Inbox Pattern 심화](./outbox-inbox-pattern.md) — Inbox 측 멱등성 보장
