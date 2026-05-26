@@ -7,7 +7,7 @@
 - 왜 HikariCP 풀이 빈 게 아니라 *꽉 찬 채로* 멈춰 있는가
 - WAS의 Tomcat worker thread는 왜 같이 죽어나가는가
 - 한 다운스트림(쿠폰 API, PG, 추천 서비스)의 지연이 어떻게 전체 인스턴스를 마비시키는가
-- 다음에 같은 일이 또 안 나려면 어디에 *격벽(bulkhead)*을 세우는가
+- 다음에 같은 일이 또 안 나려면 어디에 **격벽**(bulkhead)을 세우는가
 
 본 문서는 이 네 개 질문에 답할 수 있는 구조로 정리한다. 단순 풀 사이즈 튜닝은 [커넥션 풀 크기는 얼마나 조정해야 할까?](./connection-pool.md), Aurora Serverless 특수성은 [Aurora Serverless 환경의 커넥션 풀과 트랜잭션 예산 설계](./mysql/aurora-serverless-connection-pool-transaction-budget.md), 트랜잭션 경계 이슈는 [Spring 트랜잭션 전파·격리수준·AFTER_COMMIT 실전 정리](../java/spring/transaction-propagation-isolation-after-commit.md)로 분리되어 있다. 여기서는 그 위의 *운영 레이어*에 집중한다.
 
