@@ -114,6 +114,75 @@ public TaskDecorator mdcTaskDecorator() {
 
 실전에서는 **API 서비스는 RED로, DB/캐시/큐는 USE로** 본다. 둘 다 본다는 것이 핵심이다. Utilization이 60%로 여유로워 보여도 Saturation(예: connection pool이 꽉 차서 대기)이 있으면 사용자는 이미 느려졌다.
 
+## Latency 백분위수 — p50, p95, p99, p99.9 가 무엇인가
+
+운영에서 latency 를 볼 때 **평균은 거의 쓰지 않는다**. 대신 `p50`, `p95`, `p99` 같은 **백분위수**(percentile) 를 쓴다. 시니어 백엔드 면접에서 자주 등장하는 표현이라 한 번에 정리한다.
+
+### 정의
+
+**백분위수**(percentile, 분위수라고도 부른다) 는 "이 값보다 작거나 같은 데이터가 전체의 N% 다" 라는 표현이다.
+
+- **p50** (= 중앙값, median) — 요청의 절반은 이 값보다 빨랐다
+- **p95** — 요청의 95% 가 이 값보다 빨랐다. 뒤집어 말하면 **5% 의 사용자는 이 값보다 느린 경험**
+- **p99** — 요청의 99% 가 이 값보다 빨랐다. **1% 의 사용자가 이 값 이상 기다림**
+- **p99.9** — 1,000 명 중 1 명 (0.1%) 이 이 값 이상 기다림
+
+### 왜 평균이 아니라 백분위수인가
+
+같은 평균 200ms 라도 분포가 완전히 다를 수 있다.
+
+| 시나리오 | 평균 | p50 | p95 | p99 | 사용자 경험 |
+|---|---|---|---|---|---|
+| A: 거의 모든 요청이 200ms | 200ms | 200ms | 220ms | 250ms | 일관되게 빠름 |
+| B: 대부분 50ms + 일부 5s 튐 | 200ms | 50ms | 800ms | **5,000ms** | 일부 사용자가 매우 느림 |
+
+평균만 보면 둘 다 "정상" 으로 보이지만, B 시나리오는 1% 사용자가 5초를 기다린다.
+
+**평균의 함정** (Latency Average Trap) — 평균은 outlier 에 둔감하다. p99 가 5,000ms 인데 평균은 200ms 로 평온하게 보일 수 있다. 사용자 경험은 평균이 아니라 **꼬리**(tail) 에서 결정된다.
+
+### 어디서 어느 백분위수를 보는가
+
+대략의 운영 감각:
+
+| 백분위수 | 어디서 쓰나 | 의미 |
+|---|---|---|
+| p50 | 대시보드의 기본 추세선 | "평소 응답 시간" 한눈에 |
+| p95 | SLO 알람 기본값 | "약속한 사용자 경험" — 트래픽 적은 시간대에도 안정 |
+| p99 | 장애 감지 / 회고 | "꼬리 사용자 1%" — 이게 튀면 사용자 불만이 들어오기 시작 |
+| p99.9 | 대규모 서비스 / 결제 | 분당 1만 건이면 매분 10건이 이 값 이상. 결제·인증처럼 실패 비용이 큰 경로 |
+
+**규모와 함께 본다** — p99 가 100ms 인 서비스가 분당 100 만 요청을 처리한다면, 매분 1만 건의 사용자가 그 이상을 기다린다. p99 만 단독으로 보면 안 되고 **트래픽 규모와 함께** 봐야 한다.
+
+### 흔히 받는 면접 꼬리 질문
+
+- **"p99 와 평균의 차이?"** → 평균은 outlier 에 둔감. p99 는 꼬리 사용자 1% 의 경험을 직접 보여준다.
+- **"왜 p95 만 보고 p99 도 봐야 하나?"** → p95 는 알람에 좋지만 (덜 튐), p99 는 회고에 좋다 (꼬리를 봐야 사용자 불만의 원인을 찾는다).
+- **"p99 가 안 좋은데 어떻게 시작하나?"** → 단일 메트릭으로 알람 걸지 말고, **분포 자체**(histogram) 와 **외부 호출 segment** 별로 쪼개 본다. 우리 서버 saturation 은 정상인데 PG 호출 p99 만 튀면 외부 의존 쪽이 원인.
+- **"p99.9 까지 본다는 건 어떤 의미?"** → 대규모 트래픽에서는 0.1% 도 매분 수십 건이다. 결제·인증처럼 비용 큰 경로는 p99.9 까지 본다.
+
+### Prometheus 에서 p99 구하기
+
+Prometheus 의 `histogram` 메트릭은 bucket 단위로 카운팅한다. 그 위에 `histogram_quantile` 함수로 백분위수를 추정한다.
+
+```promql
+# 주문 API p99 latency (1분 window)
+histogram_quantile(0.99,
+  sum by (le) (rate(http_server_requests_seconds_bucket{uri="/orders"}[1m])))
+
+# p50 / p95 / p99 한 번에
+histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket[1m])))
+histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket[1m])))
+histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket[1m])))
+```
+
+bucket 경계가 거칠면 백분위 추정도 거칠어진다 — Spring Boot 의 Micrometer 는 `@Timed` 또는 `management.metrics.distribution.percentiles-histogram` 설정으로 bucket 을 자동 박는다.
+
+### 백분위수의 한계
+
+- **여러 인스턴스의 p99 를 단순 평균하면 틀린다** — 백분위수는 산술 평균이 불가능. Prometheus 도 `histogram_quantile` 로 bucket 합산 후 추정한다.
+- **window 가 짧으면 흔들린다** — 트래픽이 적으면 p99 가 단일 요청에 좌우된다. 알람은 1분 window 보다 5분 / 1시간 window 를 함께 본다.
+- **bucket 해상도가 부족하면 정밀도 떨어짐** — Prometheus histogram 은 미리 정의한 bucket 경계로만 추정한다. p99 = 1.2s 인데 bucket 이 `[0.5s, 2.5s, 5s]` 면 어디인지 알 수 없다.
+
 ## Prometheus: scrape 모델과 4가지 타입
 
 Prometheus는 **pull 기반 scrape 모델**이다. Prometheus 서버가 각 타겟(`/actuator/prometheus` 엔드포인트)을 주기적으로(보통 15s~30s) HTTP GET으로 긁어온다. 이 모델은:
