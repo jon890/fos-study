@@ -305,6 +305,96 @@ ls /Users/nhn/personal/fos-study/java/spring-batch/
 
 없는 파일에 링크를 걸지 않는다. 상세 문서가 없으면 링크 없이 섹션 제목만 쓴다.
 
+#### 10-A. 표시 텍스트는 H1 제목 — 백틱 경로 금지
+
+자동 변환 / 무심결에 만들어지는 `[\`path.md\`](path.md)` 패턴은 fos-blog 렌더링 시 백틱과 경로가 그대로 노출돼 부자연스럽다. **반드시 대상 문서의 H1 제목을 표시 텍스트로** 사용한다.
+
+```markdown
+# ❌ 잘못 — 경로가 본문에 노출
+관련 개념은 [`connection-pool.md`](./connection-pool.md) 참고.
+
+# ✅ 올바름 — H1 제목으로
+관련 개념은 [커넥션 풀 크기](./connection-pool.md) 참고.
+```
+
+H1 추출 + 정리 규칙 (긴 H1 은 짧게):
+
+```bash
+# 대상 문서의 H1 추출
+grep -m1 '^# ' /Users/nhn/personal/fos-study/database/connection-pool.md | sed 's/^# //'
+# → "커넥션 풀 크기는 얼마나 조정해야 할까?"
+```
+
+- `^\[초안\]\s*` prefix 제거
+- ` — `, `: `, ` (` 중 첫 매치 앞부분만 사용 (긴 부제 제거)
+- 그래도 40자 초과 시 `?` / `.` 위치에서 자르기
+
+#### 10-B. 앵커 link — 특정 섹션 깊은 link
+
+다른 문서의 특정 섹션이 진입점이라면 `path.md#섹션-앵커` 형태로 깊은 link 를 박는다. fos-blog 의 `resolveMarkdownLink()` 가 앵커를 그대로 보존한다.
+
+```markdown
+# 같은 문서 내 섹션
+백분위수 정의는 [Latency 백분위수](#latency-백분위수--p50-p95-p99-p999-가-무엇인가) 참고.
+
+# 다른 문서 특정 섹션
+백분위수 표현이 익숙하지 않으면
+[Observability 입문](../architecture/observability-basics.md#latency-백분위수--p50-p95-p99-p999-가-무엇인가)
+의 "Latency 백분위수" 섹션 먼저.
+```
+
+앵커 생성 규칙 (GFM kebab-case):
+
+- 헤딩 텍스트 → 소문자 변환
+- 공백 → `-`
+- 특수문자 (`?`, `,`, `.`, `:`, `(`, `)` 등) 제거
+- 연속된 `-` 는 그대로 유지 (예: ` — ` → `--`)
+- 한글은 그대로 유지
+
+**렌더러 차이 주의** — anchor 변환 규칙은 렌더러마다 미세하게 다르다. 박은 후 fos-blog 에서 실제로 점프되는지 한 번 확인 권장. 안 되면 "{문서}의 \"{섹션}\" 섹션" 형태 본문 참조 + 문서 link 만 박는 fallback.
+
+#### 10-C. 이탤릭+괄호 강조는 bold+괄호 분리로
+
+`*한글(영문)*` 같은 이탤릭+괄호 조합은 GFM/fos-blog 파서가 단어 경계 인식 못 해 강조가 렌더링 안 된다. **반드시 bold + 괄호 분리** 형태로 작성.
+
+```markdown
+# ❌ 잘못 — 이탤릭이 안 걸림
+운영에서 어디에 *격벽(bulkhead)*을 세우는가
+Union-Find 는 정확히 *연결성(connectivity)*만을 다룬다
+
+# ✅ 올바름 — CLAUDE.md Bold+괄호 룰 일관
+운영에서 어디에 **격벽**(bulkhead)을 세우는가
+Union-Find 는 정확히 **연결성**(connectivity)만을 다룬다
+```
+
+CLAUDE.md "마크다운 Bold + 괄호 패턴" 룰의 자연스러운 확장.
+
+### 10.5. Cross-link 후보 발굴 (작성 직전 자동 실행)
+
+본문 작성 직전에 글의 핵심 키워드로 fos-study 전역을 ripgrep 해 link 후보를 자동 발굴한다. 작성자가 "이 글에서 다른 어디로 link 걸지" 를 머릿속으로만 떠올리면 빠뜨리기 쉽다.
+
+**절차** (writer 가 자동 실행):
+
+1. **키워드 추출** — 글의 H1·H2 / 주요 강조점에서 5\~10개 키워드 골라 배열로
+2. **전역 grep**:
+   ```bash
+   KEYWORDS=("Outbox" "HikariCP" "Circuit Breaker" "p99 latency" "Bulkhead")
+   for kw in "${KEYWORDS[@]}"; do
+     echo "== $kw =="
+     rg -l --type md "$kw" /Users/nhn/personal/fos-study/ \
+       | grep -v "/node_modules/" | grep -v "$(basename {현재 글 경로})" | head -5
+   done
+   ```
+3. **후보 평가** — 각 매치 파일의 H1 추출 → 본문 흐름상 자연스러운 자리 1\~2건만 선정
+4. **링크 박기** — 표시 텍스트는 H1 제목 (10-A 규칙), 깊은 link 면 앵커 (10-B)
+5. **작성 직후 자가 audit** — `docs-audit` 의 축 4 (cross-link) 가 추가 후보를 보고하면 사용자 동의 후 보강
+
+**작성 원칙**:
+
+- 한 paragraph 에 link 3개 넘으면 가독성 떨어짐 — 가장 가까운 1\~2개만 박고 나머지는 별도 줄
+- 자기소개·도입부에는 link 자제 — 본문 흐름이 깨진다
+- "관련 / 참고" 섹션에는 link 모아두기 OK
+
 ### 11. 글 구성
 
 필수 섹션:
@@ -602,6 +692,7 @@ GitHub Flavored Markdown은 한 paragraph 안에 `~`가 두 번 이상 등장하
 5. `ls /Users/nhn/personal/fos-study/`로 폴더 구조 확인 → 적절한 위치 결정
 6. **L2 공개 수위 점검** (3번, 4번 항목) — 비즈니스 도메인 고유 클래스명 / 상품명 / 사업 의사결정 일반화
 7. 관련 상세 문서 존재 여부 확인 → 링크 결정 (존재 검증 필수)
+7-A. **Cross-link 후보 발굴** (10.5 절차) — 글 키워드 5\~10개 추출 → `rg -l` 로 전역 grep → H1 추출 → 본문 흐름상 자연스러운 자리 1\~2건만 선정. 표시 텍스트는 H1 제목 (10-A), 깊은 link 면 앵커 (10-B), 이탤릭+괄호 강조는 bold+괄호 (10-C).
 8. 마크다운 작성 — 자연스러운 문체, AI 티 제거, 1인칭 단수, **"내 기여 + 협업 방식 + 짧은 회고"** 섹션 포함
 9. **글 자가 점검** —
     - `grep -n "~" <file>` (paragraph당 2개 이상이면 이스케이프/표현 변경, 14번 항목 G)
@@ -617,6 +708,7 @@ GitHub Flavored Markdown은 한 paragraph 안에 `~`가 두 번 이상 등장하
 1. **WebSearch로 정보 수집** — 공식 docs/GitHub → 실용 사례 → 한계/비판 순으로 검색
 2. `ls /Users/nhn/personal/fos-study/`로 저장 위치 결정 (`task/` 아닌 해당 기술 폴더)
 3. 저장소 내 관련 기존 문서 확인 → 링크 연결
+3-A. **Cross-link 후보 발굴** (10.5 절차) — 글 키워드 5\~10개 추출 → `rg -l` 로 전역 grep → H1 추출 → 본문 흐름상 자연스러운 자리 1\~2건만 선정. 표시 텍스트는 H1 제목 (10-A), 깊은 link 면 앵커 (10-B), 이탤릭+괄호 강조는 bold+괄호 (10-C).
 4. 마크다운 작성 — 검색 결과 번역 말고, 본인이 이해한 방식으로 재해석
 5. 글 하단에 **참고 링크 섹션** 포함 (URL 명시)
 6. **글 자가 점검** — `~` 취소선 (14번 항목 G), `§` 잔존 (14번 항목 H), 영문 용어 직역 점검 (14번 항목 I — 의심 단어만 `WebSearch`로 짧게 확인), heading 숫자 prefix + 본문 숫자 cross-ref 점검 (14번 항목 K)
