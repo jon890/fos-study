@@ -53,7 +53,7 @@
 
 비즈니스 지표로 "어디 영역인가"를 좁혔다면, 그 영역에 대해 **golden signals**를 본다. Google SRE 책의 latency / traffic / errors / saturation 4종을 커머스/F&B에 맞게 재정의한다.
 
-- **Latency**: 주문 API p50/p95/p99. 평균은 무시한다. p99가 200ms → 1.2s로 튀는데 평균은 50ms 정도밖에 안 움직이는 일이 흔하다.
+- **Latency**: 주문 API p50/p95/p99. 평균은 무시한다 — 백분위수가 익숙하지 않으면 [Observability 입문](../architecture/observability-basics.md) 의 "Latency 백분위수" 섹션 먼저. p99가 200ms → 1.2s로 튀는데 평균은 50ms 정도밖에 안 움직이는 일이 흔하다.
 - **Traffic**: 분당 요청 수. 단순 RPS가 아니라 **결제까지 도달한 요청 수**가 더 의미 있다. 장바구니 RPS는 정상인데 결제 RPS만 빠질 수 있다.
 - **Errors**: HTTP 5xx, 4xx, 그리고 우리 도메인 에러 코드 셋. 4xx 중 401/409/422는 사용자 측 문제로 보일 수 있어도 인증/재고 락/검증 실패 등 서버 이슈일 수 있다.
 - **Saturation**: CPU, 힙 사용률, DB 커넥션 풀 사용률, 외부 호출 큐 깊이. 특히 **커넥션 풀 saturation**이 결제 실패의 가장 흔한 숨은 원인이다.

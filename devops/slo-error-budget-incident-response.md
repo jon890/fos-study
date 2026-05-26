@@ -6,7 +6,7 @@
 
 - “장애를 어떻게 탐지하고 대응하나요?”
 - “알람이 너무 많이 울리면 어떻게 줄이나요?”
-- “p99 latency가 튀는데 CPU는 정상입니다. 어디를 보겠습니까?”
+- “p99 latency가 튀는데 CPU는 정상입니다. 어디를 보겠습니까?” (p50/p95/p99 가 익숙하지 않으면 [Observability 입문](../architecture/observability-basics.md) 의 "Latency 백분위수" 섹션 참고)
 - “신규 기능 출시 속도와 안정성은 어떻게 조율하나요?”
 
 이 질문의 핵심은 도구 이름이 아니다. Prometheus, Grafana, Datadog, OpenTelemetry를 안다는 것보다 중요한 것은 **사용자 영향 기준으로 신뢰성을 정의하고, 그 신뢰성 예산 안에서 출시와 장애 대응을 의사결정하는 능력**이다.
