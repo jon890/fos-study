@@ -252,6 +252,93 @@ public TokenResponse issue(@RequestBody TokenRequest req) {
 - **Logout**(토큰 무효화): 블랙리스트 저장소를 공유하거나, 양쪽 모두에 invalidate 요청을 보낸다.
 - **Claim 스키마 drift**: 두 발급자가 같은 claim을 다른 타입으로 넣는 순간 리소스 서버의 권한 판정이 깨진다. Shadow Mode로 먼저 claim diff를 수집하는 것이 필수다.
 
+## F&B / e-Commerce 주문·결제 경로 무중단 전환 시나리오
+
+앞의 OAuth2 시나리오가 **인증 경로** 전환이라면, 커머스 백엔드에서 더 자주 마주치는 건 **주문 생성 로직**과 **결제 PG 연동**을 무중단으로 교체하는 일이다.
+인증과 달리 이 두 경로는 돈과 재고가 걸려 있어 Shadow Mode 적용 규칙이 정반대로 갈린다.
+F&B 디지털 채널처럼 점심·저녁 주문 러시와 선착순 쿠폰 오픈이 겹치는 환경에서는 "전환 중에 결제가 한 건이라도 깨지면 안 된다"가 제약 조건이 된다.
+
+### 주문 생성 — 계산은 Shadow, 쓰기는 Canary
+
+레거시 `OrderService`의 가격·쿠폰·재고 판정 로직을 신규 정책 엔진으로 옮기는 경우를 보자.
+같은 주문이라도 "계산"과 "쓰기"를 분리해서 전환 기법을 다르게 적용해야 한다.
+
+- **순수 계산**(금액 합산, 쿠폰 적용 가능 여부, 프로모션 우선순위, 멤버십 등급 할인)은 Shadow로 검증한다. 사용자에게는 레거시 결과만 내려주고 신규 엔진 결과는 diff만 기록한다.
+- **쓰기**(재고 차감, 주문 INSERT, 포인트 적립)는 Shadow로 돌리면 중복 차감·중복 주문이 생긴다. 이건 Shadow 금지. Canary로 실트래픽 1%만 신규 경로에 직접 넘기되 멱등키로 보호한다.
+
+```java
+@Component
+@RequiredArgsConstructor
+public class OrderPricingRouter {
+    private final Map<String, OrderPricingStrategy> strategies; // "legacy", "new-policy-engine"
+    private final FeatureFlagService flags;
+    private final ShadowExecutor shadow;
+
+    public PricingResult price(OrderContext ctx) {
+        // 계산은 Shadow로 비교 — 사용자 응답은 항상 legacy
+        return shadow.runWithShadow(
+            () -> strategies.get("legacy").price(ctx),
+            () -> strategies.get("new-policy-engine").price(ctx),
+            "order.pricing");
+    }
+
+    public OrderWriteStrategy resolveWriter(String userId) {
+        // 쓰기는 Canary — hash(userId) 퍼센트 롤아웃, Shadow 아님
+        boolean useNew = flags.isEnabledFor("order.new-write-path", userId);
+        return useNew ? newWriter : legacyWriter;
+    }
+}
+```
+
+주문 계산의 Shadow diff에서 가장 자주 잡히는 불일치는 **쿠폰·프로모션 적용 우선순위**다.
+레거시가 "정액 → 정률" 순으로 깎던 걸 신규 엔진이 반대로 처리하면 최종 결제 금액이 몇 원 단위로 어긋난다.
+이건 스테이징 부하 테스트로는 거의 못 잡고, 실제 쿠폰 조합 분포가 흐르는 프로덕션 Shadow에서만 드러난다.
+
+### 결제 PG 전환 — Shadow 금지, Canary + 멱등키 + Outbox
+
+결제 승인은 외부 PG에 실제로 돈을 청구하는 side effect다.
+**절대 Shadow로 두 번 호출하면 안 된다.** 같은 주문에 이중 승인이 나간다.
+그래서 결제 PG 어댑터 교체는 Shadow 단계를 건너뛰고 멱등키 기반 Canary로 직접 검증한다.
+
+```java
+@Component
+@RequiredArgsConstructor
+public class PaymentGatewayRouter {
+    private final FeatureFlagService flags;
+    private final CircuitBreaker newPgBreaker;
+    private final PaymentGateway legacyPg;
+    private final PaymentGateway newPg;
+
+    public PaymentResult approve(PaymentCommand cmd) {
+        boolean useNew = flags.isEnabledFor("payment.new-pg-adapter", cmd.getOrderId());
+        if (!useNew) return legacyPg.approve(cmd);
+        try {
+            // 멱등키(idempotencyKey)로 재시도·중복 승인 방지
+            return CircuitBreaker.decorateSupplier(newPgBreaker, () -> newPg.approve(cmd)).get();
+        } catch (CallNotPermittedException e) {
+            // 신규 PG 회로 open → 즉시 레거시로 강제 복귀
+            flags.forceOff("payment.new-pg-adapter", Duration.ofMinutes(5));
+            return legacyPg.approve(cmd);
+        }
+    }
+}
+```
+
+핵심 주의점:
+
+- **fail-safe default는 "레거시 PG"**다. 플래그 시스템이 죽거나 신규 PG가 흔들리면 결제는 무조건 검증된 레거시 경로로 떨어져야 한다.
+- **주문-결제 상태 분리**: "결제는 승인됐는데 주문 전환이 실패"하는 사고를 막으려면, 결제 결과를 Outbox에 적재하고 `@TransactionalEventListener(AFTER_COMMIT)`으로 주문 상태를 후처리한다. 발행 실패는 `REQUIRES_NEW`로 별도 저장 후 스케줄러 재전송한다.
+- **부분 취소·환불**은 보상 트랜잭션이다. 전환 기간에 "레거시 PG로 승인된 결제를 신규 어댑터로 취소"하는 교차 케이스가 반드시 생기므로, 취소 라우팅은 발급(승인) 경로와 무관하게 **원 결제의 PG**로 보내야 한다. OAuth2의 `iss` claim 라우팅과 같은 원리다.
+
+### 피크 트래픽 — 쿠폰 오픈과 Jitter
+
+F&B 커머스의 피크는 토큰 만료보다 **선착순 쿠폰 오픈**과 **오픈런 주문**에서 온다.
+"11시 정각 쿠폰 1만 장" 같은 이벤트는 동일 초에 수만 요청이 몰리는 전형적 thundering herd다.
+여기서도 Jitter 원리는 같지만 적용 지점이 다르다.
+
+- 쿠폰 발급 자체는 Jitter로 늦출 수 없다(선착순이 깨진다). 대신 **재고 차감을 Redis 원자 연산 + 분산락**으로 막고, 실패한 요청은 즉시 `429` + `Retry-After`로 돌려보낸다.
+- Jitter는 **캐시 워밍·재시도 백오프·재고 동기화 스케줄러**에 적용한다. 매장별 메뉴·재고 캐시를 정각마다 한꺼번에 갱신하면 그 순간 DB가 스파이크를 맞는다. 갱신 시각에 ±수십 초 jitter를 주어 평탄화한다.
+
 ## Resilience4j — Circuit Breaker + Timeout + Retry 3단계 방어
 
 신규 Authorization Server가 트래픽 10배 상황에서 불안정하면, 인증 실패가 전체 서비스로 번진다. 이를 막는 것이 **3단계 방어**다.
@@ -448,6 +535,24 @@ public boolean isEnabledFor(String key, String userId) {
 - **"Refresh token 호환성은?"** → 토큰 자체에 `iss` claim을 넣고 리소스 서버에서 발급자별 decoder 라우팅. 전환 완료 후 일정 기간 레거시 decoder 유지.
 - **"퍼센트 롤아웃 중 사용자가 새로고침하면?"** → hash(userId) 기반 bucketing이므로 동일 유저는 동일 경로 고정. Math.random() 쓰면 이 질문에서 바로 걸린다.
 
+## CJ Foodville 1차 면접 답변 — F&B 디지털 채널 언어로 번역
+
+F&B/e-Commerce 자사 백엔드 면접에서는 "무중단 배포 해봤나요"가 아니라 **"주문·결제처럼 돈이 걸린 경로를 운영 중에 어떻게 바꾸나요"**로 들어온다.
+이때 일반론(Feature Flag 좋아요)이 아니라 **본인 경험을 커머스 도메인 언어로 번역**해서 답해야 밀도가 산다.
+
+경험 → 도메인 매핑 가이드:
+
+- **Kafka Transactional Outbox 경험** → "결제 승인 결과를 Outbox에 적재하고 AFTER_COMMIT으로 주문 상태를 후처리해서, PG 어댑터를 바꾸는 동안에도 결제-주문 정합성이 깨지지 않게 합니다. 발행 실패는 REQUIRES_NEW로 따로 저장하고 스케줄러로 재전송합니다."
+- **다중 서버 캐시 정합성**(JPA 이벤트 → MQ Fanout → StampedLock) → "메뉴·프로모션 정책 캐시를 어드민에서 바꿔도 전 인스턴스가 같은 시점에 갱신되도록 Fanout으로 무효화하고, 갱신 구간은 락으로 보호합니다. Feature Flag 값 전파도 같은 메커니즘으로 30초 내 반영합니다."
+- **graceful shutdown 503 해결**(preStop + grace 예산 설계) → "전환·롤백 중 재배포가 일어나도 in-flight 주문이 끊기지 않게 readiness를 먼저 내리고 preStop으로 드레인합니다. 플래그 전환은 이 재배포 자체를 줄여줘서 503 노출 창을 더 좁힙니다."
+- **StampedLock / 동시성 기본기** → "선착순 쿠폰 오픈처럼 동시 요청이 몰리는 구간은 재고 차감을 원자 연산으로 막고, 실패는 429로 빠르게 돌려보내 큐가 쌓이지 않게 합니다."
+
+1차 면접 답변 1분 버전 예시:
+
+> 주문·결제 로직을 운영 중에 바꿔야 한다면 재배포 전환이 아니라 **Feature Flag + 단계별 검증**을 씁니다. 다만 경로 성격에 따라 기법을 나눕니다. 금액·쿠폰 계산처럼 side effect 없는 부분은 **Shadow Mode**로 프로덕션 트래픽을 신규 엔진에도 흘려 결과 diff를 먼저 모읍니다. 여기서 쿠폰 적용 우선순위 같은 미묘한 불일치가 잡힙니다. 반대로 결제 승인·재고 차감처럼 돈과 재고가 걸린 쓰기는 Shadow를 금지하고 **멱등키 기반 Canary 1%**로 직접 검증합니다. 결제 PG 어댑터는 **Circuit Breaker로 감싸 신규 PG가 흔들리면 즉시 레거시로 fallback**하고, 플래그 fail-safe default도 레거시 PG입니다. 결제-주문 정합성은 제가 슬롯팀에서 운영했던 **Kafka Outbox + AFTER_COMMIT** 패턴을 그대로 적용해 "결제는 됐는데 주문은 실패" 같은 사고를 막습니다.
+
+이 답변이 강한 이유: (1) 경로별로 기법을 나눠 "다 해봤다"가 아니라 "왜 다르게 하는지"를 보여주고, (2) 결제·쿠폰·재고라는 F&B 도메인 언어를 쓰며, (3) Outbox·캐시 정합성이라는 **검증된 본인 경험**으로 닫는다.
+
 ## 최종 체크리스트
 
 - [ ] 플래그는 런타임 전환 가능한가 (재배포 없이 30초 내 반영)
@@ -473,3 +578,5 @@ public boolean isEnabledFor(String key, String userId) {
 - [Resilience 패턴](./resilience-patterns.md) — Timeout/Retry/CircuitBreaker 체인 상세
 - [Observability 입문](./observability-basics.md) — Shadow 경로 모니터링
 - [대규모 커머스 트래픽 처리 패턴](./high-traffic-commerce-patterns.md) — 피크 트래픽 대응과의 결합
+- [F&B 주문·매장·픽업 상태머신](./fnb-order-store-pickup-state-machine.md) — 주문 경로 전환 시 상태 정합성
+- [F&B 결제·환불·정산 운영](./fnb-payment-refund-settlement-operations.md) — 결제 PG 전환과 보상 트랜잭션
