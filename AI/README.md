@@ -13,6 +13,13 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 
 - [LLM Tool Calling 에이전트 워크플로](./agent/llm-tool-calling-agent-workflow.md) — Tool Use 루프, 결정성/관측성 설계
 - [멀티턴 메모리 헬스케어 에이전트](./agent/multi-turn-memory-healthcare-agent.md) — 4계층 메모리, 헬스케어 도메인 특화 정책
+- [Agentic Workflow 상태 관리](./agent/agentic-workflow-state-management-langgraph.md) — LangGraph State Graph, Checkpoint, HITL, Tool 권한 경계
+- [Agentic Workflow 평가와 Risk Gate](./agent/agentic-workflow-evaluation-risk-gate.md) — 궤적 평가, LLM-as-a-judge, HITL, 안전 게이트
+
+## 평가와 운영 (Applied AI)
+
+- [LLM 평가 프레임워크](./llm-evaluation-framework.md) — 골든셋·회귀 테스트·LLM-as-a-judge·사람 피드백 루프
+- [AI 제품 백엔드 안정성](./backend-reliability-for-ai-products.md) — 지연·비용·도구 실패·폴백/재시도/사람 에스컬레이션
 
 ## 하네스 엔지니어링
 
