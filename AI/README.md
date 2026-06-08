@@ -25,6 +25,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 - [Claude Teams 기본 개념](./claude-teams.md) — Agent Teams, SendMessage, 에이전트 타입
 - [Claude Code 11일 사용 회고](./claude-code-usage-reflection.md) — 1탄: 데이터로 본 사용 패턴
 - [Claude Code 5주 더 쓴 결과](./claude-code-usage-reflection-2.md) — 2탄: 스킬·CLAUDE.md를 키워가는 방식
+- [Claude Code 메모리 규칙](./claude-code-memory-rules.md) — CLAUDE.md와 .claude/rules를 규칙으로 쓰는 법
 
 ## 방법론
 
