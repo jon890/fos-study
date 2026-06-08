@@ -38,7 +38,7 @@ user request
 
 추상적인 "잘한다"를 측정 가능한 지표로 내려야 한다. 자주 쓰는 묶음은 다음과 같다.
 
-- **Task success** — rubric 기반 pass/fail 또는 0\~1 점수. 핵심 outcome 지표.
+- **Task success** — rubric(채점 기준표) 기반 pass/fail 또는 0\~1 점수. 핵심 outcome 지표.
 - **Tool-call correctness** — 호출한 도구가 적절했는지, 인자가 유효했는지. golden trajectory와 비교하거나 judge로 채점.
 - **Step efficiency** — 정답 경로 대비 step 수. 불필요한 루프 탐지.
 - **Cost / latency budget 준수율** — 요청당 토큰·시간·금액 예산을 넘긴 비율.
