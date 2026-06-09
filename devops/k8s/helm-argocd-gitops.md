@@ -14,7 +14,7 @@
 
 ## Helm — 쿠버네티스 YAML의 템플릿 엔진
 
-Helm은 **"템플릿 + 값 → 최종 YAML"**을 만들어주는 도구다. 매번 YAML을 손으로 쓰는 대신, 빈칸(`{{ }}`)이 뚫린 템플릿을 만들어두고 값만 갈아끼운다.
+Helm은 **템플릿 + 값 → 최종 YAML**을 만들어주는 도구다. 매번 YAML을 손으로 쓰는 대신, 빈칸(`{{ }}`)이 뚫린 템플릿을 만들어두고 값만 갈아끼운다.
 
 이 패키지 단위를 **Chart**라고 부른다. 차트 디렉터리 구조는 대략 이렇게 생겼다.
 
@@ -59,7 +59,7 @@ Helm이 YAML을 만들어준다면, ArgoCD는 그 YAML을 **언제 어떻게 클
 
 ## ArgoCD Application — "이 차트를 배포해라"는 선언
 
-ArgoCD에게 **"어느 git의 / 어느 경로 차트를 / 어느 값으로 / 어느 클러스터·namespace에 배포할지"**를 알려주는 리소스가 **Application**이다. 대략 이렇게 생겼다.
+ArgoCD에게 **어느 git의 / 어느 경로 차트를 / 어느 값으로 / 어느 클러스터·namespace에 배포할지**를 알려주는 리소스가 **Application**이다. 대략 이렇게 생겼다.
 
 ```yaml
 kind: Application
@@ -75,7 +75,7 @@ spec:
     namespace: my-component                  # 어느 namespace
 ```
 
-여기서 한 가지 헷갈렸던 게 있다. **"배포할 내용(차트)"과 "배포하라는 선언(Application)"은 별개**라는 점이다. 차트만 있고 Application이 없으면 ArgoCD는 그 차트의 존재를 모른다. 둘 다 있어야 동작한다.
+여기서 한 가지 헷갈렸던 게 있다. **배포할 내용(차트)과 배포하라는 선언(Application)은 별개**라는 점이다. 차트만 있고 Application이 없으면 ArgoCD는 그 차트의 존재를 모른다. 둘 다 있어야 동작한다.
 
 ### app-of-apps 패턴
 
@@ -94,23 +94,20 @@ argocd/templates/
 
 지금까지를 한 그림으로 묶으면 이렇다.
 
-```
-Git repo
-│
-├── applications/{name}/                       ← [무엇을 배포] Helm 차트
-│     (Chart.yaml, values, templates/...)
-│
-└── argocd/templates/{name}-application.yaml    ← [배포하라는 선언] Application
-              │
-              │  ArgoCD가 git 감시 + sync
-              ▼
-       ArgoCD Application 리소스 (클러스터에 생성됨)
-              │  차트를 렌더해서 적용
-              ▼
-       실제 쿠버네티스 리소스 (Deployment, Service, Ingress, ...)
+```mermaid
+flowchart TB
+    subgraph GIT["Git repo"]
+        CHART["applications/{name}/<br>[무엇을 배포] Helm 차트<br>(Chart.yaml, values, templates/...)"]
+        APP["argocd/templates/{name}-application.yaml<br>[배포하라는 선언] Application"]
+    end
+    ARGO["ArgoCD Application 리소스<br>(클러스터에 생성됨)"]
+    K8S["실제 쿠버네티스 리소스<br>(Deployment, Service, Ingress, ...)"]
+    APP -->|"ArgoCD가 git 감시 + sync"| ARGO
+    ARGO -->|"차트를 렌더해서 적용"| K8S
+    CHART -.참조.-> ARGO
 ```
 
-두 갈래만 기억하면 된다. **"배포할 내용(차트)"은 `applications/`에, "배포하라는 선언(Application)"은 `argocd/templates/`에.** 둘 다 있어야 한 컴포넌트가 동작한다.
+두 갈래만 기억하면 된다. **배포할 내용(차트)은 `applications/`에, 배포하라는 선언(Application)은 `argocd/templates/`에.** 둘 다 있어야 한 컴포넌트가 동작한다.
 
 ## 새 컴포넌트를 추가한다면 — 어디서 시작하나
 
@@ -139,7 +136,7 @@ Git repo
 - manual sync라면 사람이 sync를 눌러야 실제로 배포된다.
 - sync 후 `kubectl get`으로 실제로 떴는지 확인한다.
 
-여기까지 밟고 나서 잡힌 감각은 이거다. **"내가 만들 건 결국 차트(`applications/`)와, 그걸 배포하라는 Application(`argocd/templates/`) 두 개다. 그리고 클러스터에 손대기 전에 `helm template`로 먼저 눈으로 확인하고, git을 통해서만 배포한다."** 이 흐름만 잡으면 새 컴포넌트 추가는 거의 같은 패턴의 반복이었다.
+여기까지 밟고 나서 잡힌 감각은 이거다. **내가 만들 건 결국 차트(`applications/`)와, 그걸 배포하라는 Application(`argocd/templates/`) 두 개다. 그리고 클러스터에 손대기 전에 `helm template`로 먼저 눈으로 확인하고, git을 통해서만 배포한다.** 이 흐름만 잡으면 새 컴포넌트 추가는 거의 같은 패턴의 반복이었다.
 
 ## 관련 글
 

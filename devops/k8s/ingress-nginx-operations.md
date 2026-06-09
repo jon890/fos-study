@@ -80,7 +80,7 @@ affinity:
         weight: 1
 ```
 
-길어 보이지만 뜻은 한 줄이다. **"이 controller의 Pod들끼리는 가능하면 서로 다른 노드에 배치해라."**
+길어 보이지만 뜻은 한 줄이다. **이 controller의 Pod들끼리는 가능하면 서로 다른 노드에 배치해라.**
 
 - `podAntiAffinity` — anti(반대), 즉 "이런 Pod들끼리는 떨어뜨려 놔라".
 - `preferredDuringScheduling...` — `preferred`는 **선호**(강제 아님). 가능하면 지키되 안 되면 그냥 배치한다. (반대인 `required`로 하면 못 지킬 때 Pod가 아예 안 뜬다.)

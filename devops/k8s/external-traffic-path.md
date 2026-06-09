@@ -2,7 +2,7 @@
 
 회사에서 "API Gateway를 걷어내고, 쿠버네티스 앞에 LoadBalancer를 직접 붙여서 외부로 노출하자"는 작업을 맡게 됐다. 그런데 막상 들여다보니 나는 Ingress가 뭔지도 제대로 몰랐다. "외부 요청이 들어와서 서버가 응답한다" 정도로만 알고 있었지, 그 사이에 LoadBalancer니 Ingress Controller니 하는 것들이 몇 겹으로 끼어 있는지는 감이 없었다.
 
-그래서 외부 트래픽이 인터넷에서 출발해 Pod 안의 애플리케이션까지 닿는 전체 경로를 한 번 정리하기로 했다. Service와 Ingress의 기본 개념은 [Service와 Ingress](./service-ingress.md)에 따로 정리해 뒀으니, 이 글은 그 위에서 "그래서 외부에서 진짜로 어떻게 들어오는가"에 집중한다.
+그래서 외부 트래픽이 인터넷에서 출발해 Pod 안의 애플리케이션까지 닿는 전체 경로를 한 번 정리하기로 했다. Service와 Ingress의 기본 개념은 [쿠버네티스 핵심 객체 4종](./k8s-core-objects.md)에 따로 정리해 뒀으니, 이 글은 그 위에서 "그래서 외부에서 진짜로 어떻게 들어오는가"에 집중한다.
 
 ## 먼저, Pod는 믿을 수 없는 주소다
 
@@ -10,7 +10,7 @@
 
 그래서 Pod IP를 직접 부르는 건 의미가 없다. 대신 그 앞에 **Service**를 둔다. Service는 뒤에 있는 Pod 묶음에게 트래픽을 나눠주는 고정된 내부 진입점이다. 비유하자면 Pod는 자주 자리를 옮기는 직원이고, Service는 바뀌지 않는 부서 대표번호다.
 
-여기까지가 [Service와 Ingress](./service-ingress.md)에서 정리한 내용이고, 이 글의 출발점이다.
+여기까지가 [쿠버네티스 핵심 객체 4종](./k8s-core-objects.md)에서 정리한 내용이고, 이 글의 출발점이다.
 
 ## ClusterIP만으로는 외부에서 못 들어온다
 
@@ -53,29 +53,25 @@ metadata:
     service.beta.kubernetes.io/openstack-internal-load-balancer: "true"
 ```
 
-이 annotation이 붙어 있으면 LB가 사설 VIP만 받아서, 같은 VPC 안에서만 닿는다. 이걸 빼면 공인 IP를 받아 인터넷에 열린다. 클라우드 벤더마다 annotation 이름은 다르다(Azure는 `azure-load-balancer-internal` 같은 식). 개념은 같다 — **"이 LB를 안쪽으로만 열까, 바깥까지 열까"**를 선언으로 정한다.
+이 annotation이 붙어 있으면 LB가 사설 VIP만 받아서, 같은 VPC 안에서만 닿는다. 이걸 빼면 공인 IP를 받아 인터넷에 열린다. 클라우드 벤더마다 annotation 이름은 다르다(Azure는 `azure-load-balancer-internal` 같은 식). 개념은 같다 — **이 LB를 안쪽으로만 열까, 바깥까지 열까**를 선언으로 정한다.
 
 공인 IP를 다룰 때 내가 처음에 오해했던 게 있다. "공인 IP를 먼저 발급받아서 지정해야 하는 줄" 알았는데, 실제로는 반대였다. **LB를 먼저 만들면 클라우드가 공인 IP를 자동으로 할당해준다.** 그 다음 할당된 IP를 `spec.loadBalancerIP`에 적어서 "앞으로도 이 IP를 고정해서 써라"라고 못 박는 식이다. 발급이 먼저가 아니라 생성이 먼저고, 고정은 나중이다.
 
 ## Ingress Controller 앞에도 LB가 있다
 
-여기서 Ingress가 다시 등장한다. [기본 개념 글](./service-ingress.md)에서 정리했듯, Ingress는 "어느 도메인의 어느 경로를 어느 Service로 보낼지"를 적은 규칙(YAML)이고, 그 규칙을 실제로 실행하는 건 **Ingress Controller**(nginx 같은 reverse proxy가 도는 Pod)다.
+여기서 Ingress가 다시 등장한다. [쿠버네티스 핵심 객체 4종](./k8s-core-objects.md)에서 정리했듯, Ingress는 "어느 도메인의 어느 경로를 어느 Service로 보낼지"를 적은 규칙(YAML)이고, 그 규칙을 실제로 실행하는 건 **Ingress Controller**(nginx 같은 reverse proxy가 도는 Pod)다.
 
 내가 놓쳤던 연결고리가 이거였다. Ingress Controller도 결국 **Pod**다. Pod는 외부에서 직접 못 닿는다. 그러니 Ingress Controller 앞에도 외부 진입점이 필요하고, 그게 바로 앞에서 말한 **LoadBalancer 타입 Service**다.
 
 즉 실무에서 흔한 구성은 이렇다.
 
-```
-LoadBalancer Service (공인 IP)
-        │
-        ▼
-Ingress Controller Pod (nginx)   ← Ingress 규칙들을 읽어서 라우팅
-        │
-        ▼
-여러 개의 일반 Service (ClusterIP)
-        │
-        ▼
-Pod (애플리케이션)
+```mermaid
+flowchart TB
+    LB["LoadBalancer Service (공인 IP)"]
+    IC["Ingress Controller Pod (nginx)<br/>Ingress 규칙들을 읽어서 라우팅"]
+    SVC["여러 개의 일반 Service (ClusterIP)"]
+    POD["Pod (애플리케이션)"]
+    LB --> IC --> SVC --> POD
 ```
 
 Ingress Controller 하나가 여러 Ingress 규칙을 한꺼번에 처리한다. 그래서 LB는 보통 Controller 앞에 하나만 두고, 도메인·경로 분기는 Controller가 Ingress 규칙으로 처리한다.
@@ -84,18 +80,18 @@ Ingress Controller 하나가 여러 Ingress 규칙을 한꺼번에 처리한다.
 
 이제 인터넷에서 출발한 요청이 Pod까지 닿는 전체 여정을 한 줄로 이으면 이렇게 된다.
 
-```
-인터넷 사용자
-   │  https://my-service.com/api/v1/hello
-   ▼
-공인 LoadBalancer (클라우드 LB, 공인 IP)
-   ▼
-Ingress Controller Pod (nginx)
-   │  도메인 my-service.com + 경로 /api 매칭
-   ▼
-api-service (ClusterIP)
-   ▼
-Pod (애플리케이션) → 응답
+```mermaid
+flowchart TB
+    U["인터넷 사용자"]
+    LB["공인 LoadBalancer<br/>클라우드 LB, 공인 IP"]
+    IC["Ingress Controller Pod (nginx)"]
+    SVC["api-service (ClusterIP)"]
+    POD["Pod (애플리케이션)"]
+    U -->|"https://my-service.com/api/v1/hello"| LB
+    LB --> IC
+    IC -->|"도메인·경로 /api 매칭"| SVC
+    SVC --> POD
+    POD -.응답.-> U
 ```
 
 중간에 한 가지 더 알아두면 좋은 게 **경로 재작성(path rewrite)**이다. 외부에 노출하는 경로와 애플리케이션이 실제로 받는 경로가 다를 때가 많다. 예를 들어 외부에는 `/api/v1/hello`로 열어두고, 안에서는 `/internal/api/v1/hello`로 바꿔서 보내는 식이다. 이런 변환을 Ingress Controller가 규칙(annotation)으로 처리한다. 예전에 API Gateway가 하던 경로 변환을 Controller로 옮기는 것도 같은 얘기다.
