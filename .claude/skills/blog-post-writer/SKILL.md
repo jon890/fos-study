@@ -231,8 +231,22 @@ python3 scripts/blog_score.py --json <글.md>    # 기계 판독용
 채점 축 (정적): `bold_quote`, `bold_paren`, `heading_number`, `ascii_box`, `tilde`, `section_sign`, `italic_paren`, `number_crossref`.
 위반 0이면 1계층 통과. 위반이 있으면 저장 전 교정한다.
 
-### 2계층 reward (다음 단계 — 아직 미구현)
+### 2계층 reward — blog_judge (LLM judge)
 
 정적 위반 0은 *회귀가 없다*는 바닥일 뿐, *글이 좋다*는 보장이 아니다.
-인사이트 독창성·AI 티·흐름 같은 **의미 품질은 LLM judge(rubric)** 가 채점한다 — 1계층 통과분만 2계층에 올린다.
-이 구조가 세션이 거듭될수록 글쓰기 스킬이 복리로 개선되는 피드백 루프의 채점 엔진이다.
+인사이트 독창성·AI 티·서사 흐름·회고 자연스러움 같은 **의미 품질은 `scripts/blog_judge.py` 가 claude CLI 로 채점**한다.
+
+```bash
+python3 scripts/blog_judge.py <글.md>        # 품질 채점 (기본 3회 다수결)
+```
+
+grade inflation·비결정을 두 장치로 막는다:
+
+- **다수결** — N회 호출의 median (이상치 제거)
+- **adversarial** — 매 호출이 "약점 3개를 먼저 찾고" 채점 (후한 점수 방어)
+
+1계층(blog_score 위반 0) 통과분만 2계층에 올려 LLM 호출 비용을 아낀다.
+실측 — 좋은 글 0.62 vs AI 티 나는 글 0.05 (구분 폭 0.57, 점수 분산 거의 0).
+
+이 1계층(정적)+2계층(LLM)이 **세션이 거듭될수록 글쓰기 스킬이 복리로 개선되는 피드백 루프의 채점 엔진**이다.
+SkillOpt-Sleep 에 두 reward 를 judge 로 주입하면 글 작성 스킬이 자동 학습된다.
