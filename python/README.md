@@ -14,3 +14,7 @@
 8. [Multi-process GPU 워커 풀](./java-to-python-multiprocess-gpu-worker-pool.md) — ThreadPool 사용자가 만나는 모델 차이
 9. [OCR 동작 원리](./ocr-pipeline-basics.md) — Layout · Text · Post-process 3단계
 10. [ML 서비스 성능 분석 워크플로](./ml-service-perf-analysis-workflow.md) — 자바 백엔드 트러블슈팅과 다른 점
+
+## 성능 트러블슈팅
+
+- [Python 서버의 RSS 가 안 줄어드는 이유](./python-rss-leak-glibc-malloc-trim.md) — gc.collect 의 한계와 malloc_trim

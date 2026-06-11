@@ -20,6 +20,7 @@ AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
 | 기간    | 업무                                                                          | 문서                                                                   |
 | ------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | 2026.04 | OCR 서버 배포·스케일인 시 503 에러 수정 — [Graceful Shutdown](../../devops/graceful-shutdown.md) 미적용 | [graceful-shutdown-503-fix.md](graceful-shutdown-503-fix.md) |
+| 2026.05 | Python 서버 RSS 누수 — gc.collect 한계, malloc_trim 적용 | [glibc-malloc-trim-python-leak.md](glibc-malloc-trim-python-leak.md) |
 
 ### 리팩터링
 
