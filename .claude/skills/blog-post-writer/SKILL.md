@@ -200,7 +200,7 @@ WebSearch: "<기술명> limitations tradeoffs when to use"
 7. 관련 상세 문서 존재 여부 확인 → 링크 결정 (존재 검증 필수)
 7-A. **Cross-link 후보 발굴** ([markdown-pitfalls](./references/markdown-pitfalls.md)) — 글 키워드 5\~10개 추출 → `rg -l` 로 전역 grep → H1 추출 → 본문 흐름상 자연스러운 자리 1\~2건만 선정. 표시 텍스트는 H1 제목, 깊은 link 면 앵커, 이탤릭+괄호 강조는 bold+괄호.
 8. 마크다운 작성 — 자연스러운 문체, AI 티 제거, 1인칭 단수, **"내 기여 + 협업 방식 + 짧은 회고"** 섹션 포함
-9. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다.
+9. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다. **정적 위반은 `scripts/blog_score.py <글>` 로 한 번에 측정한다** ([1계층 reward](#자가점검-자동화--blog_score-1계층-reward)).
 10. 파일 저장 (파일명도 L2 적용) 후 경로 알려주기
 
 ---
@@ -213,5 +213,26 @@ WebSearch: "<기술명> limitations tradeoffs when to use"
 3-A. **Cross-link 후보 발굴** ([markdown-pitfalls](./references/markdown-pitfalls.md)) — 글 키워드 5\~10개 추출 → `rg -l` 로 전역 grep → H1 추출 → 본문 흐름상 자연스러운 자리 1\~2건만 선정. 표시 텍스트는 H1 제목, 깊은 link 면 앵커, 이탤릭+괄호 강조는 bold+괄호.
 4. 마크다운 작성 — 검색 결과 번역 말고, 본인이 이해한 방식으로 재해석
 5. 글 하단에 **참고 링크 섹션** 포함 (URL 명시)
-6. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다.
+6. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다. **정적 위반은 `scripts/blog_score.py <글>` 로 한 번에 측정한다** ([1계층 reward](#자가점검-자동화--blog_score-1계층-reward)).
 7. 파일 저장 후 경로 알려주기
+
+---
+
+## 자가점검 자동화 — blog_score (1계층 reward)
+
+[markdown-pitfalls](./references/markdown-pitfalls.md) 의 수동 grep 체크리스트를 `scripts/blog_score.py` 가 한 번에 측정한다.
+docs-audit 의 docs_score 와 같은 패턴이며, **글 품질 2계층 reward 의 1계층(정적·회귀 방지)** 이다.
+
+```bash
+python3 scripts/blog_score.py <글.md>          # 위반 리포트
+python3 scripts/blog_score.py --json <글.md>    # 기계 판독용
+```
+
+채점 축 (정적): `bold_quote`, `bold_paren`, `heading_number`, `ascii_box`, `tilde`, `section_sign`, `italic_paren`, `number_crossref`.
+위반 0이면 1계층 통과. 위반이 있으면 저장 전 교정한다.
+
+### 2계층 reward (다음 단계 — 아직 미구현)
+
+정적 위반 0은 *회귀가 없다*는 바닥일 뿐, *글이 좋다*는 보장이 아니다.
+인사이트 독창성·AI 티·흐름 같은 **의미 품질은 LLM judge(rubric)** 가 채점한다 — 1계층 통과분만 2계층에 올린다.
+이 구조가 세션이 거듭될수록 글쓰기 스킬이 복리로 개선되는 피드백 루프의 채점 엔진이다.
