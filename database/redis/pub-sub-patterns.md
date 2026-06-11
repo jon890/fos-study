@@ -288,7 +288,7 @@ Logout API ──> Redis SADD revoked:tokens <jti> EX 3600
 |---|---|---|
 | 어드민이 메뉴/프로모션 정책 변경 → 다중 서버 L1 캐시 무효화 | **Pub/Sub** | 유실해도 L1 TTL이 안전망, 새 broker 도입 부담 |
 | 매장 영업 상태 변경 (open/close) 즉시 전파 | **Pub/Sub + Redis Hash** | Hash가 권위 출처, Pub/Sub은 L1 즉시 갱신 트리거 |
-| 주문 생성 → 결제 모듈로 비동기 알림 | **Kafka (Outbox)** | 유실 = 결제 누락. AFTER\_COMMIT + Outbox + 재전송 |
+| 주문 생성 → 결제 모듈로 비동기 알림 | **Kafka**(Outbox) | 유실 = 결제 누락. AFTER\_COMMIT + Outbox + 재전송 |
 | 결제 승인 → 매장 POS로 주문 전달 | **RabbitMQ ack** 또는 **Kafka** | 매장 POS가 잠시 끊겨도 큐에 적재 + 재시도 |
 | 쿠폰 발급 이벤트 (선착순) | **Redis Lua + 분산 락** | 메시징이 아니라 원자적 차감. 별도 채널 |
 | 사용자 로그아웃 / 토큰 폐기 브로드캐스트 | **Pub/Sub + Redis Set** | Set이 권위 출처, Pub/Sub은 빠른 전파 |

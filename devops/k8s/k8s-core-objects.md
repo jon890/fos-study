@@ -35,7 +35,7 @@ IP가 계속 바뀌니까, **누구도 Pod IP를 직접 부를 수 없다.** 프
 
 ## Service — 변하지 않는 진입점 (L4)
 
-Service는 Pod 묶음 앞에 세우는 **고정된 IP와 고정된 DNS 이름**이다. 네트워크 계층으로 보면 IP·포트 기반으로 트래픽을 넘기는 **L4(전송 계층)** 로드밸런서다. Pod가 아무리 죽고 새로 떠도 이 IP는 변하지 않는다. 비유하면 Pod는 자주 자리를 옮기는 직원이고, Service는 바뀌지 않는 부서 대표번호다.
+Service는 Pod 묶음 앞에 세우는 **고정된 IP와 고정된 DNS 이름**이다. 네트워크 계층으로 보면 IP·포트 기반으로 트래픽을 넘기는 **L4**(전송 계층) 로드밸런서다. Pod가 아무리 죽고 새로 떠도 이 IP는 변하지 않는다. 비유하면 Pod는 자주 자리를 옮기는 직원이고, Service는 바뀌지 않는 부서 대표번호다.
 
 Service가 Pod를 어떻게 찾을까? **label selector**다.
 
@@ -54,7 +54,7 @@ spec:
 
 ## Ingress — 외부에서 Service로 가는 라우팅 규칙 (L7)
 
-Ingress는 **어느 도메인의 어느 경로를 어느 Service로 보낼지**를 적은 HTTP 라우팅 규칙이다. Service가 L4라면 Ingress는 HTTP의 호스트·경로를 보고 분기하는 **L7(응용 계층)** 이다. `/api`로 온 요청은 `api-service`로, `/admin`으로 온 요청은 `admin-service`로 보내는 식이다.
+Ingress는 **어느 도메인의 어느 경로를 어느 Service로 보낼지**를 적은 HTTP 라우팅 규칙이다. Service가 L4라면 Ingress는 HTTP의 호스트·경로를 보고 분기하는 **L7**(응용 계층) 이다. `/api`로 온 요청은 `api-service`로, `/admin`으로 온 요청은 `admin-service`로 보내는 식이다.
 
 여기서 헷갈리기 쉬운 게 하나 있다. **Ingress는 규칙(YAML)일 뿐, 그 규칙을 실제로 실행하는 건 Ingress Controller**다. Ingress 리소스만 만들어두고 Controller가 없으면 아무 일도 안 일어난다. 안내판(Ingress)을 붙여놨는데 안내데스크 직원(Controller)이 없는 셈이다.
 
@@ -67,8 +67,8 @@ Namespace는 클러스터를 논리적으로 나누는 **가상 구획**이다. 
 Namespace가 주는 것:
 
 - **이름 충돌 방지** — 리소스 이름은 같은 namespace 안에서만 유일하면 된다. 다른 namespace엔 같은 이름이 있어도 괜찮다.
-- **권한 경계(RBAC)** — "이 팀은 이 namespace에만 접근" 같은 권한을 namespace 단위로 건다.
-- **자원 할당 경계(ResourceQuota)** — "이 namespace는 CPU 몇 개까지" 같은 제한을 건다.
+- **권한 경계**(RBAC) — "이 팀은 이 namespace에만 접근" 같은 권한을 namespace 단위로 건다.
+- **자원 할당 경계**(ResourceQuota) — "이 namespace는 CPU 몇 개까지" 같은 제한을 건다.
 
 ## namespaced vs cluster-scoped — 모든 리소스가 namespace에 속하진 않는다
 

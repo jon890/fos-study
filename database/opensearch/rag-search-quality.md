@@ -87,7 +87,7 @@ BoolQuery hybridQuery = BoolQuery.of(b -> b
 );
 ```
 
-점수 정규화가 중요하다. BM25 점수는 문서 길이와 빈도에 따라 범위가 다르기 때문에 `(score / (score + 1)) * 0.3` 공식으로 0~0.3 사이로 눌러주고, kNN은 cosine similarity 특성상 이미 0~1 범위라 boost 0.7을 곱해 0~0.7로 맞춘다. 두 점수의 합이 최종 hybrid score가 된다.
+점수 정규화가 중요하다. BM25 점수는 문서 길이와 빈도에 따라 범위가 다르기 때문에 `(score / (score + 1)) * 0.3` 공식으로 0\~0.3 사이로 눌러주고, kNN은 cosine similarity 특성상 이미 0\~1 범위라 boost 0.7을 곱해 0\~0.7로 맞춘다. 두 점수의 합이 최종 hybrid score가 된다.
 
 ### 세 가지 검색 API
 

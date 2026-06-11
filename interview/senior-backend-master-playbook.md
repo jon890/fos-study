@@ -26,11 +26,11 @@
 | 기간 | 소속 | 역할 | 대표 기술 결정 |
 |------|------|------|----------------|
 | 2026.04 (12일) | NHN AI 서비스팀 | 단독 풀스택 MVP 리드 | Next.js 16 + Gemini + Claude Code 하네스 기반 4인 에이전트 팀(planner/critic/executor/docs-verifier)으로 199 plan/760 커밋. Gemini Pro 기본 + 429 fallback, 전역 Rate Limit Tracking, Project Context Cache, Grounding 재주입, Container/Presenter + 파일 소유권 매트릭스 |
-| 2026.01 ~ 2026.03 | NHN AI 서비스팀 | RAG 배치 파이프라인 설계·구현 | Spring Batch 11 Step + `AsyncItemProcessor` 병렬 임베딩, `@JobScope` 인메모리 홀더, ADF → Markdown 변환, 전략 패턴 기반 `EmbeddingMetadataProvider`, 삭제 동기화 (`status=DELETED,TRASHED` 재사용) |
-| 2025.12 ~ | NHN AI 서비스팀 | 백엔드 | OCR 서버 [Graceful Shutdown](../devops/graceful-shutdown.md) 503 수정, 임베딩 메타데이터 blocklist → allowlist 전환 |
-| 2025.07 ~ 2025.10 | NHN NSC 슬롯팀 | RCC·엔진 추상화 리드 | RTP Cache Control 6종 대응, `SlotTemplate`/`BaseSlotService`/`ExtraConfig` 분리, `StampedLock` 도입으로 refresh 중 NPE 제거, Alias 테이블 `IN`절 일괄 조회 |
-| 2025.02 ~ 2025.08 | NHN NSC 슬롯팀 | 신규 슬롯 5종 | Slot 36/38/41/44/47, Cursor Rules 20+로 AI 에이전트 단독 구현 3종, 스핀 최적화(AliasMethod O(1), `SecureRandom` → `ThreadLocalRandom`), 시뮬레이터 OOM 해결(Welford's Online Algorithm) |
-| 2024.06 ~ 2024.12 | NHN NSC 슬롯팀 | 합류 첫 해 | Slot 21/33 신규 게임, Admin Alpha↔Real 비교/복사, BuyFeature 티켓·시나리오 스핀 플랫폼 기능, 다중 서버 캐시 정합성 (RabbitMQ Fanout + StampedLock), Kafka 비동기 발행 (AFTER_COMMIT + Dead Letter Store 재시도) |
+| 2026.01 \~ 2026.03 | NHN AI 서비스팀 | RAG 배치 파이프라인 설계·구현 | Spring Batch 11 Step + `AsyncItemProcessor` 병렬 임베딩, `@JobScope` 인메모리 홀더, ADF → Markdown 변환, 전략 패턴 기반 `EmbeddingMetadataProvider`, 삭제 동기화 (`status=DELETED,TRASHED` 재사용) |
+| 2025.12 \~ | NHN AI 서비스팀 | 백엔드 | OCR 서버 [Graceful Shutdown](../devops/graceful-shutdown.md) 503 수정, 임베딩 메타데이터 blocklist → allowlist 전환 |
+| 2025.07 \~ 2025.10 | NHN NSC 슬롯팀 | RCC·엔진 추상화 리드 | RTP Cache Control 6종 대응, `SlotTemplate`/`BaseSlotService`/`ExtraConfig` 분리, `StampedLock` 도입으로 refresh 중 NPE 제거, Alias 테이블 `IN`절 일괄 조회 |
+| 2025.02 \~ 2025.08 | NHN NSC 슬롯팀 | 신규 슬롯 5종 | Slot 36/38/41/44/47, Cursor Rules 20+로 AI 에이전트 단독 구현 3종, 스핀 최적화(AliasMethod O(1), `SecureRandom` → `ThreadLocalRandom`), 시뮬레이터 OOM 해결(Welford's Online Algorithm) |
+| 2024.06 \~ 2024.12 | NHN NSC 슬롯팀 | 합류 첫 해 | Slot 21/33 신규 게임, Admin Alpha↔Real 비교/복사, BuyFeature 티켓·시나리오 스핀 플랫폼 기능, 다중 서버 캐시 정합성 (RabbitMQ Fanout + StampedLock), Kafka 비동기 발행 (AFTER_COMMIT + Dead Letter Store 재시도) |
 
 ---
 
@@ -40,7 +40,7 @@
 
 - **문제**: 다중 서버가 각자 정적 설정 데이터를 인메모리 캐시로 가지는 상황에서, 어드민 변경 시 갱신 중 조회 요청이 일시적 정합성 오류를 냄.
 - **해결**: `PostCommitUpdateEventListener`로 커밋 후에만 RabbitMQ Fanout Exchange로 변경 ID 발행 → 각 인스턴스가 자신의 큐에서 수신 후 해당 항목만 선택 갱신. 갱신/조회 경합은 `StampedLock` writeLock + `tryReadLock(2500ms)` 타임아웃으로 흡수. `StaticDataManager` 인터페이스로 init/refresh/clear 책임 분리 → 새 캐시 타입 추가해도 기존 코드 무변경.
-- **커머스 전이 관점**: 상품 캐시로 확장할 때는 Caffeine(L1) + Redis(L2) **2-tier 구조**로 피크 TPS를 흡수하고, 인스턴스 수가 수십~백 대 규모로 늘어나면 RabbitMQ Fanout 대신 Kafka 토픽(인스턴스마다 독립 consumer group)이나 Redis Pub/Sub이 더 적합하다는 점을 인지하고 있습니다. Cache Stampede는 핫키에 대한 probabilistic early expiration + single-flight로 대응.
+- **커머스 전이 관점**: 상품 캐시로 확장할 때는 Caffeine(L1) + Redis(L2) **2-tier 구조**로 피크 TPS를 흡수하고, 인스턴스 수가 수십\~백 대 규모로 늘어나면 RabbitMQ Fanout 대신 Kafka 토픽(인스턴스마다 독립 consumer group)이나 Redis Pub/Sub이 더 적합하다는 점을 인지하고 있습니다. Cache Stampede는 핫키에 대한 probabilistic early expiration + single-flight로 대응.
 - **증거**: `resume/cj-foodville-resume-backend.html` 문항 1, [슬롯 엔진 추상화 및 구조 개선](../task/nsc-slot/slot-engine-abstraction.md) "StaticDataLoader 개선", [캐시 설계 전략 총정리](../architecture/cache-strategies.md) 개인 학습 기록.
 
 ### 4-2. Kafka 비동기 흐름의 신뢰성을 구조로 확보했다
@@ -95,12 +95,12 @@
 ### 5-2. Kotlin
 
 - Java 4년 / Spring Boot 3.x가 주력이고 업무 코드는 Java로 써왔습니다. Kotlin은 개인 학습과 AI 웹툰 MVP 외곽(스크립트)에서 간헐적으로만 사용했습니다.
-- 보완: 공고의 Java/Kotlin 병용 요건에 맞춰, 최근 Kotlin + Spring Boot의 `data class`·`null safety`·`coroutine` 관련 패턴을 집중 학습 중입니다. 기존 Java 설계 원칙(불변성, 단일 책임, 도메인 모델링)이 동일하게 적용되기 때문에, 초기 1~2주 안에 실무 생산성 수준으로 붙일 수 있다고 봅니다.
+- 보완: 공고의 Java/Kotlin 병용 요건에 맞춰, 최근 Kotlin + Spring Boot의 `data class`·`null safety`·`coroutine` 관련 패턴을 집중 학습 중입니다. 기존 Java 설계 원칙(불변성, 단일 책임, 도메인 모델링)이 동일하게 적용되기 때문에, 초기 1\~2주 안에 실무 생산성 수준으로 붙일 수 있다고 봅니다.
 
 ### 5-3. 성급한 추상화를 경계하는 성향 자체의 그림자
 
 - 반복이 충분히 쌓일 때까지 추상화를 미루는 성향이 있어, **조기에 공통 계층을 세팅했어야 했다**는 반성이 남은 경우가 있었습니다 (예: `SlotTemplate`/`BaseSlotService`는 신규 슬롯 5종을 만든 후에야 정돈).
-- 보완: 팀 합류 시에는 "현재 반복의 단계(1~2회 / 3회 이상)"를 명시적으로 체크리스트화해, 3회 이상 반복이 보일 때 즉시 ADR 후보로 올리는 리듬을 갖추려 합니다.
+- 보완: 팀 합류 시에는 "현재 반복의 단계(1\~2회 / 3회 이상)"를 명시적으로 체크리스트화해, 3회 이상 반복이 보일 때 즉시 ADR 후보로 올리는 리듬을 갖추려 합니다.
 
 ### 5-4. 무중단 배포·점진 전환 경험 부재
 
@@ -168,14 +168,14 @@
 
 ### 7-4. 코드 리뷰 관점: 트레이드오프 근거를 ADR/문서로 남긴다
 
-- AI 웹툰 MVP에서 12일간 134개 ADR(001~134)을 생성. 한 ADR이 1,581줄로 비대해지자 docs-verifier 지적을 받아 700줄대로 축약 — **"ADR도 AI 에이전트 컨텍스트"**라는 관점.
+- AI 웹툰 MVP에서 12일간 134개 ADR(001\~134)을 생성. 한 ADR이 1,581줄로 비대해지자 docs-verifier 지적을 받아 700줄대로 축약 — **"ADR도 AI 에이전트 컨텍스트"**라는 관점.
 - 슬롯 엔진 추상화(`SlotTemplate`/`BaseSlotService`) 도입 시에도 "**반복을 충분히 경험한 뒤 공통점을 뽑았다**"는 근거를 문서화. 후임이 맥락 없이도 의도 파악 가능.
 
 ---
 
 ## 8. 주요 프로젝트별 요약
 
-### 8-1. Confluence → OpenSearch RAG 배치 파이프라인 (2026.01 ~ 2026.03)
+### 8-1. Confluence → OpenSearch RAG 배치 파이프라인 (2026.01 \~ 2026.03)
 
 - **문제 정의**: 사내 AI Playground가 RAG 검색 품질을 올리려면 Confluence 문서를 벡터로 사전 색인해야 하는데, 포맷(ADF), 첨부파일, 다중 스페이스, 삭제 동기화, 재시작 요구가 얽힘.
 - **해결 접근**: Spring Batch 기반 11 Step 분리 파이프라인. `CompositeItemProcessor`로 `ChangeFilter → Enrichment → BodyConvert → Embedding` 단계를 체이닝, I/O 바운드 임베딩은 `AsyncItemProcessor` + `AsyncItemWriter`로 병렬화. `@JobScope` 홀더로 Step 간 경량 공유, `JobExecutionContext`는 재시작 커서로만 사용. 전략 패턴(`ConfluenceDocumentMetadataProvider`)으로 스페이스별 메타데이터 포맷 차이 흡수. 삭제 동기화는 `status=DELETED,TRASHED` 재사용으로 별도 ID 집합 비교 없이 처리.
@@ -196,7 +196,7 @@
   - 타입 시스템: Zod 단일 소스(ADR-109) + 레이어별 분리(ADR-131, Action=Zod / Repository=Prisma / mapper).
   - 디자이너 협업: Semantic 토큰 + Container/Presenter + Layout Primitives + 파일 소유권 매트릭스 (ADR-129/130).
 
-### 8-3. 다중 서버 인메모리 캐시 정합성 (2024~2025)
+### 8-3. 다중 서버 인메모리 캐시 정합성 (2024\~2025)
 
 - **문제 정의**: 정적 설정 데이터를 여러 인스턴스가 메모리에 캐싱하는데, 어드민에서 한 곳이 바뀌면 나머지 서버도 갱신돼야 하고, 갱신 중 조회 요청에서 일시적 정합성 오류 발생.
 - **해결 접근**: Hibernate `PostCommitUpdateEventListener` → RabbitMQ Fanout Exchange 발행 → 각 인스턴스가 자신의 큐에서 수신해 **해당 슬롯만 선택 갱신**. 갱신/조회 경합은 `StampedLock` writeLock + `tryReadLock(2500ms)`. `StaticDataManager` 인터페이스로 init/refresh/clear 책임 분리.
@@ -218,7 +218,7 @@
 - **측정 가능한 결과**: 스핀 경로 핫스팟 제거, 시뮬레이터 OOM 해소.
 - **기술적 핵심**: 자료구조 선택의 체감 효과, `SecureRandom` 경합 병목 이해, 수치 안정성(Welford).
 
-### 8-6. RCC (RTP Cache Control, 2025.07 ~ 2025.10)
+### 8-6. RCC (RTP Cache Control, 2025.07 \~ 2025.10)
 
 - **문제 정의**: 순수 확률 기반 슬롯은 짧은 세션에서 RTP(Return to Player) 편차가 큼. 운이 나쁜 유저가 오랫동안 보상을 받지 못해 이탈하는 것을 구조적으로 방지해야 함.
 - **해결 접근**: 백그라운드에서 "좋은 결과"를 미리 생성해 DB에 저장해두고, 조건을 충족하는 스핀에서 이 결과를 꺼내 제공. 이름은 Cache Control이지만 **응답성 최적화가 아니라 RTP 편차 보정이 목적**. 슬롯 6종 대응 + `RccSpinResultAnalyzer` 인터페이스로 슬롯별 캐시 조건 분리(OCP). 여러 인스턴스 동시 생성은 DB 유니크 키 + 예외 처리로 제어. 슬롯 엔진 추상화(`SlotTemplate`, `BaseSlotService`, `ExtraConfig` 분리)와 병행.
@@ -250,7 +250,7 @@
 - **상품·전시·검색·ORM**: JPA 도메인 모델링 + 이벤트 리스너 + 다중 서버 캐시 정합성 4년 경험이 상품·전시의 실시간 변경·다중 서버 동기화 문제에 직접 매핑됩니다.
 - **MSA·Kafka·캐싱**: `AFTER_COMMIT` 발행 + Dead Letter Store 재시도, RabbitMQ Fanout, Spring Batch 11 Step + AsyncItemProcessor까지 운영 경험이 검색·알림·주문 도메인 간 이벤트 연동에 바로 적용 가능합니다.
 - **AI 도구 도입**: Cursor Rules 20+로 슬롯 도메인 컨텍스트 문서화 → 신규 게임 3종 에이전트 단독 구현, AI 웹툰 MVP 4인 에이전트 팀 운영 경험을 팀에 들여와 반복 개발 사이클을 단축하는 데 쓰고 싶습니다.
-- **Kotlin**: 초기 학습 필요. 공고의 Java/Kotlin 병용 요건에 맞춰 1~2주 안에 실무 생산성 수준까지 끌어올리겠습니다.
+- **Kotlin**: 초기 학습 필요. 공고의 Java/Kotlin 병용 요건에 맞춰 1\~2주 안에 실무 생산성 수준까지 끌어올리겠습니다.
 
 ### 9-5. 기여 포지셔닝 — 한 줄 클로징
 
@@ -260,7 +260,7 @@
 
 ## 10. 시니어 백엔드 공통 질문 + 답변 프레이밍 가이드
 
-> 공통 프레이밍: **맥락(왜 문제였는지) → 트레이드오프 → 결정 → 측정 결과 → 회고**. 한 답변 60~90초 기준.
+> 공통 프레이밍: **맥락(왜 문제였는지) → 트레이드오프 → 결정 → 측정 결과 → 회고**. 한 답변 60\~90초 기준.
 
 ### Q1. "설계 결정을 되돌려야 했던 경험이 있나요?"
 
@@ -374,7 +374,7 @@
 
 ### 회사 방향
 
-1. 커머스플랫폼유닛이 향후 1~2년 안에 **가장 투자하려는 기술 영역**(예: 검색 고도화, 추천, 결제, 물류 연계 등)은 무엇인가요?
+1. 커머스플랫폼유닛이 향후 1\~2년 안에 **가장 투자하려는 기술 영역**(예: 검색 고도화, 추천, 결제, 물류 연계 등)은 무엇인가요?
 2. B2C 트래픽 외에 **B2B 파트너·입점사 API** 쪽의 아키텍처 방향은 따로 있나요?
 3. Kotlin 도입 비중은 현재 어느 정도이고, Java/Kotlin 혼용에서 팀 컨벤션은 어떻게 정리되어 있나요?
 
@@ -402,16 +402,16 @@
 ### 시간 배분 (60분 기준)
 
 - 자기소개 60초 (1번 항목 그대로).
-- 이력·경험 설명 10~15분: 슬롯 캐시 정합성 / Kafka 비동기 발행 / RAG 배치 / AI 웹툰 MVP 중 **면접관이 관심 보이는 축을 빠르게 감지**해 거기에 무게.
-- 기술 심화 QnA 20~25분: 10번 항목의 프레이밍 그대로 사용.
-- 라이브 코딩/화이트보드 10~15분.
+- 이력·경험 설명 10\~15분: 슬롯 캐시 정합성 / Kafka 비동기 발행 / RAG 배치 / AI 웹툰 MVP 중 **면접관이 관심 보이는 축을 빠르게 감지**해 거기에 무게.
+- 기술 심화 QnA 20\~25분: 10번 항목의 프레이밍 그대로 사용.
+- 라이브 코딩/화이트보드 10\~15분.
 - 역질문 5분: 11번 항목에서 **기술 1 + 팀 1 + 회사 방향 1** 세 개 우선.
 - 마지막 1분: "오늘 이야기에서 제가 더 설명드리면 좋을 부분이 있는지" 역질문으로 닫기.
 
 ### 말하기 지침
 
 - 속도: 평소보다 **20% 느리게**. 숫자·고유명사(StampedLock, `AsyncItemProcessor`, `@TransactionalEventListener(AFTER_COMMIT)`)는 또박또박.
-- 한 답변 60~90초 원칙. 길어지면 "핵심 먼저 → 이후 더 깊게 가실지 여쭤봐도 될까요?"로 끊기.
+- 한 답변 60\~90초 원칙. 길어지면 "핵심 먼저 → 이후 더 깊게 가실지 여쭤봐도 될까요?"로 끊기.
 - "잘 모르겠다"는 세 단계로: (1) 현재 아는 범위, (2) 비슷한 경험에서의 가설, (3) 입사 후 어떻게 검증할지. **모른다는 걸 숨기지 않는다**.
 - 재사용 가능한 클로징 문장 한 줄 준비:
   > "저는 기능을 만드는 것보다 팀이 같은 기능을 더 빠르고 안전하게 다시 만들 수 있는 구조를 남기는 데 동기부여되는 사람입니다. 오늘 이야기한 경험들을 이 팀에서 상품·전시·주문 도메인에 다시 적용해 보고 싶습니다."
@@ -420,5 +420,5 @@
 
 - [ ] 이 문서 1번 항목, 3번 항목, 8번 항목, 11번 항목만 재독 (전체 아님).
 - [ ] 최근 3개월 사내 수정 사항(임베딩 메타데이터 allowlist 전환, OCR Graceful Shutdown, AI 웹툰 MVP 12일 회고) 키워드 복기.
-- [ ] 물 500ml, 사탕 1~2개. 긴장 완화용.
+- [ ] 물 500ml, 사탕 1\~2개. 긴장 완화용.
 - [ ] 이동 시간 + 30분 여유. 근무지: 서울.

@@ -44,7 +44,7 @@ spec:
 
 ## 사설 LB와 공인 LB — annotation 한 줄의 차이
 
-여기서 한 단계 더 들어간다. 같은 LoadBalancer 타입이라도, 받는 IP가 **사설(내부망 전용)**일 수도 있고 **공인(인터넷에서 닿는)**일 수도 있다. 이걸 가르는 건 annotation 한 줄이다.
+여기서 한 단계 더 들어간다. 같은 LoadBalancer 타입이라도, 받는 IP가 **사설**(내부망 전용)일 수도 있고 **공인**(인터넷에서 닿는)일 수도 있다. 이걸 가르는 건 annotation 한 줄이다.
 
 ```yaml
 metadata:
@@ -94,7 +94,7 @@ flowchart TB
     POD -.응답.-> U
 ```
 
-중간에 한 가지 더 알아두면 좋은 게 **경로 재작성(path rewrite)**이다. 외부에 노출하는 경로와 애플리케이션이 실제로 받는 경로가 다를 때가 많다. 예를 들어 외부에는 `/api/v1/hello`로 열어두고, 안에서는 `/internal/api/v1/hello`로 바꿔서 보내는 식이다. 이런 변환을 Ingress Controller가 규칙(annotation)으로 처리한다. 예전에 API Gateway가 하던 경로 변환을 Controller로 옮기는 것도 같은 얘기다.
+중간에 한 가지 더 알아두면 좋은 게 **경로 재작성**(path rewrite)이다. 외부에 노출하는 경로와 애플리케이션이 실제로 받는 경로가 다를 때가 많다. 예를 들어 외부에는 `/api/v1/hello`로 열어두고, 안에서는 `/internal/api/v1/hello`로 바꿔서 보내는 식이다. 이런 변환을 Ingress Controller가 규칙(annotation)으로 처리한다. 예전에 API Gateway가 하던 경로 변환을 Controller로 옮기는 것도 같은 얘기다.
 
 ## 내부 서비스와 외부 서비스를 한 Controller에 섞으면 생기는 일
 

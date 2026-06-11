@@ -12,7 +12,7 @@ JVM 튜닝은 "옵션 플래그를 외우는 것"이 아니다. 힙이 어떻게
 
 JVM이 프로세스로 올라왔을 때 차지하는 메모리는 크게 네 영역이다.
 
-**Heap**. 애플리케이션 객체가 사는 곳. `-Xms`(초기값), `-Xmx`(최대값)로 크기를 지정한다. G1GC는 이 Heap을 Region(기본 1MB~32MB 사이 2의 거듭제곱) 단위로 쪼개서 관리한다.
+**Heap**. 애플리케이션 객체가 사는 곳. `-Xms`(초기값), `-Xmx`(최대값)로 크기를 지정한다. G1GC는 이 Heap을 Region(기본 1MB\~32MB 사이 2의 거듭제곱) 단위로 쪼개서 관리한다.
 
 **Metaspace**. 클래스 메타데이터(클래스 구조, 메서드 바이트코드, 상수 풀 등)가 들어간다. Java 8에서 PermGen을 대체해서 나왔다. 네이티브 메모리에 잡히고, `-XX:MaxMetaspaceSize`로 상한을 안 걸면 시스템 메모리를 무제한 먹을 수 있다. 동적 클래스 로딩이 많은 애플리케이션(JSP, Groovy, JPA Entity 프록시 대량 생성)은 여기서 터진다.
 
@@ -20,7 +20,7 @@ JVM이 프로세스로 올라왔을 때 차지하는 메모리는 크게 네 영
 
 **Direct memory / Native memory**. `ByteBuffer.allocateDirect()`, Netty, DirectBuffer 기반 I/O, JNI 라이브러리 등이 여기에 잡힌다. `-XX:MaxDirectMemorySize`로 상한을 건다. Heap 모니터링만 하고 있으면 이쪽이 터져도 원인을 못 찾는다.
 
-컨테이너 환경에서 특히 주의할 점: 컨테이너 메모리 한도가 4GB인데 `-Xmx3g`를 잡았다고 해서 나머지 1GB가 Metaspace + Thread stack + Direct + JVM 자체 오버헤드로 다 쓸 수 있는 건 아니다. 보통 Heap은 컨테이너 메모리의 50~70% 정도로 시작해서 실측으로 조정한다.
+컨테이너 환경에서 특히 주의할 점: 컨테이너 메모리 한도가 4GB인데 `-Xmx3g`를 잡았다고 해서 나머지 1GB가 Metaspace + Thread stack + Direct + JVM 자체 오버헤드로 다 쓸 수 있는 건 아니다. 보통 Heap은 컨테이너 메모리의 50\~70% 정도로 시작해서 실측으로 조정한다.
 
 ```
 [컨테이너 4GB]
@@ -228,8 +228,8 @@ double getVariance() {
 | 지표 | 변경 전 | 변경 후 |
 |---|---|---|
 | 스핀 1회당 allocation | `Long` 박싱 + ArrayList 확장 | 0 (스칼라 변수 갱신만) |
-| 1억 스핀 누적 메모리 | ~800MB/스레드 | 20 bytes/스레드 |
-| 4명 동시 실행 피크 | ~3.2GB + merge concat 피크 | ~80 bytes |
+| 1억 스핀 누적 메모리 | \~800MB/스레드 | 20 bytes/스레드 |
+| 4명 동시 실행 피크 | \~3.2GB + merge concat 피크 | \~80 bytes |
 | Young GC 빈도 | 매우 높음 (allocation rate 급증) | 급감 |
 | Old 승격 | 장수 객체 winmoneyList → Old 이동 | 없음 |
 | Full GC / GC overhead limit | 발생 가능 | 사실상 사라짐 |
@@ -283,7 +283,7 @@ public static AccumulateData initWithWelfordOnlineCalculator() {
 1. **힙 확장은 임시 대응이다.** `-Xmx`를 늘리는 것은 원인을 가리는 행위다. 필요하면 해야 하지만, 동시에 힙 덤프를 떠서 근본 원인을 추적하는 작업을 시작해야 한다.
 2. **Heap OOM은 대부분 allocation rate 또는 retained heap의 문제다.** 전자는 "많이 만들어서", 후자는 "붙잡고 안 놓아서". 이 케이스는 둘 다 해당한다 — 스핀마다 Long을 박싱해 allocation rate가 높고, 리스트가 시뮬레이션 끝까지 참조를 유지해 retained heap이 크다.
 3. **멀티스레드에서 "스레드당 상태 크기"가 입력 크기에 선형으로 증가하면 위험하다.** 스레드 수 × 동시 사용자 수로 곱해지면 작은 상수도 폭발한다. JVM 튜닝 전에 **알고리즘의 공간 복잡도**를 먼저 본다.
-4. **힙 사이즈 옵션은 항상 명시적으로 지정한다.** 컨테이너 환경에서 기본값을 쓰면 컨테이너 한도와 맞지 않아 예측 불가능한 동작을 한다. 본 문서 앞부분의 "컨테이너 50~70%" 가이드라인을 그대로 적용한다.
+4. **힙 사이즈 옵션은 항상 명시적으로 지정한다.** 컨테이너 환경에서 기본값을 쓰면 컨테이너 한도와 맞지 않아 예측 불가능한 동작을 한다. 본 문서 앞부분의 "컨테이너 50\~70%" 가이드라인을 그대로 적용한다.
 5. **"느려졌다/터졌다"의 진단 순서는 동일하다.** GC 로그 → jstat으로 Old/Full GC 확인 → 힙 덤프 → MAT로 retained heap top 객체 → 그 객체의 설계 자체를 의심. 이 사례는 5번째 단계, 즉 **"왜 이 객체가 원래 필요했는가"**까지 올라가 구조를 바꾼 예다.
 6. **JVM 튜닝과 알고리즘 설계는 연속된 스펙트럼이다.** `-Xmx` 플래그 조정, GC 선택, 데이터 구조 교체, 알고리즘 교체는 같은 문제에 대한 서로 다른 강도의 개입이다. 상위로 올라갈수록 근본적이고 효과가 크지만 리스크도 크다.
 
@@ -337,7 +337,7 @@ jstat -gcutil <pid> 1000
 
 **기존 Platform Thread 모델의 한계**. 1 Java Thread = 1 OS Thread. 스택 1MB × 수만 스레드 = 메모리 폭발. 그래서 Tomcat, Netty, Spring MVC는 "스레드 풀 200개로 수천 RPS를 받기 위해" async, NIO, CompletableFuture, Reactor 등 비동기 프로그래밍을 동원해왔다.
 
-**Virtual Thread**는 JVM이 관리하는 경량 스레드다. `Thread.startVirtualThread()` 또는 `Executors.newVirtualThreadPerTaskExecutor()`로 만든다. OS 스레드(= Carrier thread, ForkJoinPool 기반)에 올라탔다가, **블로킹 I/O를 만나면 언마운트해서 다른 가상 스레드에게 carrier를 양보**한다. 수만~수백만 개의 가상 스레드를 띄워도 OS 스레드는 CPU 코어 수만큼만 쓴다.
+**Virtual Thread**는 JVM이 관리하는 경량 스레드다. `Thread.startVirtualThread()` 또는 `Executors.newVirtualThreadPerTaskExecutor()`로 만든다. OS 스레드(= Carrier thread, ForkJoinPool 기반)에 올라탔다가, **블로킹 I/O를 만나면 언마운트해서 다른 가상 스레드에게 carrier를 양보**한다. 수만\~수백만 개의 가상 스레드를 띄워도 OS 스레드는 CPU 코어 수만큼만 쓴다.
 
 ```java
 try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
@@ -561,7 +561,7 @@ public Response handle() {
 ```bash
 java -jar app.jar  # Xmx가 컨테이너 한도와 무관하게 설정됨
 ```
-**개선**: 컨테이너 메모리의 50~70%로 명시
+**개선**: 컨테이너 메모리의 50\~70%로 명시
 ```bash
 java -Xms4g -Xmx4g -XX:+HeapDumpOnOutOfMemoryError -Xlog:gc* -jar app.jar
 ```
@@ -585,7 +585,7 @@ STAR 구조로 정리한 모범 답변 뼈대:
 
 5단계 — GC가 아니면 async-profiler로 CPU flame graph를 뜹니다. 블로킹 호출이 특정 메서드에 집중되는지, lock contention(`-e lock`)이 있는지 확인합니다."
 
-**Result framing**. "최종적으로 원인이 GC인지 아닌지 **두 개 이하의 지표**로 판단할 수 있어야 한다고 생각합니다. 저는 보통 `jstat`의 GCT 증가율과 GC 로그의 throughput, 이 두 개로 결정합니다. GC가 아니라는 걸 2~3분 안에 배제할 수 있으면 나머지 시간을 실제 원인에 쓸 수 있습니다. 그리고 GC가 맞다고 판단되면, 플래그 튜닝이 먼저인지 구조 변경이 먼저인지를 **임시 대응인지 근본 해결인지** 축으로 판단합니다."
+**Result framing**. "최종적으로 원인이 GC인지 아닌지 **두 개 이하의 지표**로 판단할 수 있어야 한다고 생각합니다. 저는 보통 `jstat`의 GCT 증가율과 GC 로그의 throughput, 이 두 개로 결정합니다. GC가 아니라는 걸 2\~3분 안에 배제할 수 있으면 나머지 시간을 실제 원인에 쓸 수 있습니다. 그리고 GC가 맞다고 판단되면, 플래그 튜닝이 먼저인지 구조 변경이 먼저인지를 **임시 대응인지 근본 해결인지** 축으로 판단합니다."
 
 이 답변의 핵심은 "도구 이름을 많이 나열하는 것"이 아니라, **판단 기준과 배제 로직이 명확한 것**, 그리고 **임시 대응과 근본 해결을 구분하는 사고 프레임**이 있다는 점이다.
 

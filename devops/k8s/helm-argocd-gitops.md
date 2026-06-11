@@ -113,14 +113,14 @@ flowchart TB
 
 내가 실제로 ingress controller를 하나 추가하며 밟은 단계를 정리하면, 비슷한 컴포넌트를 추가할 때 이대로 따라가면 된다.
 
-**차트 만들기 (`applications/{name}/`)**
+**차트 만들기**(`applications/{name}/`)
 - 디렉터리를 만든다.
 - `Chart.yaml`을 쓴다. 공식 차트에 의존한다면 `dependencies`에 명시한다.
 - 의존 차트를 `charts/`에 압축 파일로 둔다. (기존에 쓰던 걸 복사하면 된다.)
 - `values.yaml`에 공통 설정을 쓴다.
 - `{stage}-values.yaml`에 환경별로 다른 부분만 쓴다.
 
-**ArgoCD Application 추가 (`argocd/templates/{name}-application.yaml`)**
+**ArgoCD Application 추가**(`argocd/templates/{name}-application.yaml`)
 - 기존 Application 파일 하나를 복사해서 고친다.
 - `path`(차트 위치), `namespace`(배포 대상), `valueFiles`를 지정한다.
 - 리소스 생성 순서가 중요하면 `sync-wave`로 순서를 제어한다.

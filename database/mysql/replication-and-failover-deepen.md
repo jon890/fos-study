@@ -6,7 +6,7 @@
 
 읽기 부하 분산은 인덱스 + read replica + `@Transactional(readOnly=true)` 조합으로 대부분 해결된다. 진짜 시험대는 **primary가 죽었을 때 무슨 일이 일어나는가**다. 이 질문이 깊은 이유는 단순히 "다른 노드로 트래픽이 넘어간다"가 아니라, 그 사이에 발생할 수 있는 데이터 유실(RPO), 서비스 가용성 단절(RTO), 잘못 살아남은 트랜잭션(errant transaction), 클라이언트 커넥션 stuck, 두 노드가 동시에 쓰기를 받는 split-brain까지 전부 트레이드오프 관계로 묶여 있기 때문이다.
 
-면접관이 "Aurora의 페일오버는 보통 몇 초가 걸리고 그동안 클라이언트가 무엇을 하나요"라고 묻는 이유는 단편적인 숫자를 듣고 싶어서가 아니라, 그 30~60초가 **DNS TTL + 클러스터 컨센서스 + 클라이언트 reconnect + 인플라이트 트랜잭션 처리**의 합성이라는 것을 후보자가 분해해서 말할 수 있는지를 본다.
+면접관이 "Aurora의 페일오버는 보통 몇 초가 걸리고 그동안 클라이언트가 무엇을 하나요"라고 묻는 이유는 단편적인 숫자를 듣고 싶어서가 아니라, 그 30\~60초가 **DNS TTL + 클러스터 컨센서스 + 클라이언트 reconnect + 인플라이트 트랜잭션 처리**의 합성이라는 것을 후보자가 분해해서 말할 수 있는지를 본다.
 
 ## RPO와 RTO를 복제 모델로 환산하기
 
@@ -20,9 +20,9 @@
 | 모델 | 이론적 RPO | 실제 RTO | 비고 |
 |---|---|---|---|
 | 비동기 binlog 복제 | replica lag만큼 (0초가 아님) | promotion 수동 시 분 단위 | 가장 흔하지만 무손실 아님 |
-| 반동기 복제(semi-sync) | 0초에 근접 (ACK 받은 트랜잭션은 보존) | 보통 30~60초 | primary 응답 지연 trade |
-| Aurora 6-way quorum | 사실상 0초 (스토리지 레이어 합의) | 30~60초 (DNS + reconnect) | 단일 region 가정 |
-| Aurora Global Database | 보조 region까지 < 1초 | 1~2분 (region promotion) | 멀티 region DR |
+| 반동기 복제(semi-sync) | 0초에 근접 (ACK 받은 트랜잭션은 보존) | 보통 30\~60초 | primary 응답 지연 trade |
+| Aurora 6-way quorum | 사실상 0초 (스토리지 레이어 합의) | 30\~60초 (DNS + reconnect) | 단일 region 가정 |
+| Aurora Global Database | 보조 region까지 < 1초 | 1\~2분 (region promotion) | 멀티 region DR |
 
 면접에서 자주 받는 함정 질문: "비동기 복제로도 데이터 유실 0이 보장되나요?" 답은 No. binlog이 replica에 도착하기 전에 primary 스토리지가 날아가면 그 트랜잭션은 사라진다. semi-sync 도 "binlog이 replica의 relay log에 디스크 fsync 되었음을 ACK" 받는 것이지 "replica가 실제로 SQL을 재실행했음을 보장"하는 것이 아니다. 그래서 lossless semi-sync(`AFTER_SYNC`)와 일반 semi-sync(`AFTER_COMMIT`)의 차이를 구분해야 한다.
 
@@ -58,7 +58,7 @@ primary가 죽었다는 판정은 단일 모니터의 한 번 ping 실패로 내
 여러 replica가 있을 때 선택 기준:
 
 - **가장 최신 GTID를 가진 replica**: 데이터 유실을 최소화. Orchestrator의 기본 정책.
-- **사전 지정된 우선순위**: Aurora의 `failover priority tier`(0~15). 일부 인스턴스를 reporting 전용으로 만들고 페일오버 후보에서 제외하고 싶을 때.
+- **사전 지정된 우선순위**: Aurora의 `failover priority tier`(0\~15). 일부 인스턴스를 reporting 전용으로 만들고 페일오버 후보에서 제외하고 싶을 때.
 - **AZ 동일성**: 같은 AZ의 replica를 우선해 네트워크 지연 최소화.
 
 Promote 자체는 빠르다(수 초). 다만 promote 직전에 **나머지 replica들 사이의 GTID 차이를 메우는 단계**가 있다. 예를 들어 primary가 GTID 100까지 발행했지만 replica A는 98, replica B는 100까지 받았다면, A를 promote하기 전에 B에서 99, 100 트랜잭션을 가져와야 한다. 이 catch-up이 lag이 컸던 만큼 시간을 잡아먹는다.
@@ -69,7 +69,7 @@ Promote 자체는 빠르다(수 초). 다만 promote 직전에 **나머지 repli
 
 - **DNS CNAME 갱신**: Aurora cluster endpoint가 새 writer로 CNAME 변경. 단, JVM의 `networkaddress.cache.ttl`이 기본값(infinity)이면 새 IP를 영영 안 본다.
 - **Proxy 갱신**: RDS Proxy / ProxySQL이 새 writer를 자동 감지. 클라이언트는 단일 endpoint 유지.
-- **Aurora JDBC Wrapper**(aws-mysql-jdbc / aws-advanced-jdbc-wrapper): 클러스터 토폴로지를 클라이언트가 알고 있어서 DNS 의존 없이 새 writer를 찾아간다. failover 평균 시간이 30초 → 7~10초로 단축.
+- **Aurora JDBC Wrapper**(aws-mysql-jdbc / aws-advanced-jdbc-wrapper): 클러스터 토폴로지를 클라이언트가 알고 있어서 DNS 의존 없이 새 writer를 찾아간다. failover 평균 시간이 30초 → 7\~10초로 단축.
 
 ## GTID continuity와 errant transaction
 
@@ -99,17 +99,17 @@ SET GTID_NEXT='AUTOMATIC';
 
 면접에서 "GTID는 페일오버를 어떻게 쉽게 만드나요"에 답할 때는 자동 좌표 추적 + errant transaction 위험 둘을 같이 말해야 깊이가 드러난다.
 
-## Aurora 클러스터 페일오버: 30~60초의 내부 분해
+## Aurora 클러스터 페일오버: 30\~60초의 내부 분해
 
 Aurora가 광고하는 "60초 이하 페일오버"가 실제 어떻게 구성되는지:
 
 | 구간 | 소요 시간 | 무슨 일이 일어나는가 |
 |---|---|---|
-| Failure detection | 5~15초 | health check 연속 실패 누적, quorum confirmation |
-| Cluster decision | 1~3초 | RDS control plane이 어느 replica를 promote할지 선정 |
-| Promotion | 1~2초 | 선택된 replica가 writer 역할로 전환 (스토리지 공유라 catch-up 불필요) |
-| DNS update | 5~30초 | cluster endpoint의 CNAME 갱신, TTL 5초지만 클라이언트 캐시는 별개 |
-| Client reconnect | 1~10초 | 기존 커넥션 끊김, 풀이 새 endpoint 해석 후 재연결 |
+| Failure detection | 5\~15초 | health check 연속 실패 누적, quorum confirmation |
+| Cluster decision | 1\~3초 | RDS control plane이 어느 replica를 promote할지 선정 |
+| Promotion | 1\~2초 | 선택된 replica가 writer 역할로 전환 (스토리지 공유라 catch-up 불필요) |
+| DNS update | 5\~30초 | cluster endpoint의 CNAME 갱신, TTL 5초지만 클라이언트 캐시는 별개 |
+| Client reconnect | 1\~10초 | 기존 커넥션 끊김, 풀이 새 endpoint 해석 후 재연결 |
 
 이 분해를 알고 있으면 "왜 우리 서비스는 페일오버가 2분 걸리나요"라는 질문에 정확히 답할 수 있다. 대부분의 경우 promotion 자체가 아니라 **클라이언트 DNS 캐시 + HikariCP 풀의 idle 커넥션 cleanup 지연**이 범인이다.
 

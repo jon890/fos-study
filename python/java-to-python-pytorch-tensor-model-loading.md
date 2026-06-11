@@ -91,7 +91,7 @@ output = model(input_tensor)         # 사실은 model.forward(input_tensor)
 
 ### 2단계: 모델 파일 디스크 읽기 (수 100MB)
 
-`torch.load("model.pt")` 또는 HuggingFace `from_pretrained(...)` 는 사실상 큰 binary file 을 디스크에서 읽어 파이썬 객체로 deserialize 한다. 모델 크기가 BERT-base 라면 ~440MB, 더 큰 모델은 수 GB.
+`torch.load("model.pt")` 또는 HuggingFace `from_pretrained(...)` 는 사실상 큰 binary file 을 디스크에서 읽어 파이썬 객체로 deserialize 한다. 모델 크기가 BERT-base 라면 \~440MB, 더 큰 모델은 수 GB.
 
 자바의 `ObjectInputStream` deserialization 과 같은 결인데 데이터 크기 자체가 큼.
 
@@ -125,11 +125,11 @@ torch.cuda.synchronize()
 
 | 단계 | 추정 시간 | 비고 |
 |---|---|---|
-| heavy import | ~1-2s | 두 번째 worker spawn 부터는 OS 페이지 캐시 덕에 빠름 |
-| PaddleOCR 모델 로드 | ~1s | det+rec+cls 세 모델 |
-| Docling converter 생성 | ~0.5-1s | layout, table, OCR pipeline 옵션 결합 |
-| GPU 로 transfer + CUDA context | ~0.5-1s | 모델이 GPU 모드일 때 |
-| warmup convert + MarkItDown sample | ~2-3s | `warmup.pdf` 4.67s + `warmup.docx` 0.55s 합산 |
+| heavy import | \~1-2s | 두 번째 worker spawn 부터는 OS 페이지 캐시 덕에 빠름 |
+| PaddleOCR 모델 로드 | \~1s | det+rec+cls 세 모델 |
+| Docling converter 생성 | \~0.5-1s | layout, table, OCR pipeline 옵션 결합 |
+| GPU 로 transfer + CUDA context | \~0.5-1s | 모델이 GPU 모드일 때 |
+| warmup convert + MarkItDown sample | \~2-3s | `warmup.pdf` 4.67s + `warmup.docx` 0.55s 합산 |
 
 부팅 시점에는 모델 파일 다운로드 (HuggingFace) 까지 포함되어 16.5s 가 걸린다. 그 이후 respawn 은 디스크 캐시 덕에 5.7s 수준. 우리 분석에서 "모델 다시 로딩하는 비용이 워밍업 시간 차이를 만든다" 가 핵심 결론.
 

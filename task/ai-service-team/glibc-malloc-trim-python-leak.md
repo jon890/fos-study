@@ -32,8 +32,8 @@
 
 glibc 의 `malloc()` 은 요청 크기에 따라 두 경로로 갈린다.
 
-- **작은 청크 (< `M_MMAP_THRESHOLD`, 기본 128 KiB)**: `brk(2)` / `sbrk(2)` 로 확장된 heap 영역에 배치. 우리가 흔히 "프로세스의 heap" 이라고 부르는 영역
-- **큰 청크 (≥ 임계값)**: `mmap(2)` 으로 별도 영역을 잡아 단독 chunk 로 둔다
+- **작은 청크**(< `M_MMAP_THRESHOLD`, 기본 128 KiB): `brk(2)` / `sbrk(2)` 로 확장된 heap 영역에 배치. 우리가 흔히 "프로세스의 heap" 이라고 부르는 영역
+- **큰 청크**(≥ 임계값): `mmap(2)` 으로 별도 영역을 잡아 단독 chunk 로 둔다
 
 큰 청크가 free 될 때는 `munmap(2)` 으로 OS 에 즉시 반환된다. 그래서 큰 텐서나 이미지 버퍼처럼 단일 할당이 큰 객체는 해제 직후 RSS 가 잘 줄어든다. 문제는 **작은 청크**다. brk heap 안에서 free 된 청크는 OS 로 안 가고 glibc 의 bin 자료구조 — fastbin, smallbin, largebin, unsorted bin — 중 하나로 들어간다.
 
@@ -95,7 +95,7 @@ def release_unused_memory() -> None:
 설계 결정 몇 가지를 메모로 남겨둔다.
 
 - **모듈 로드 시 1회 분기** — 런타임마다 `sys.platform` 체크하는 비용을 회피. mac 로컬 개발 환경에서는 `_libc = None` 이 되어 noop
-- **env 토글 (`ENABLE_MALLOC_TRIM`, 기본 `true`)** — 운영 사고 시 즉시 비활성할 수 있는 hot config. 트림 자체가 일으킨 회귀가 의심되면 컨테이너 재시작 없이 끄려고 했지만, 결국 env 변경 자체가 재시작을 요구한다는 한계는 있다
+- **env 토글**(`ENABLE_MALLOC_TRIM`, 기본 `true`) — 운영 사고 시 즉시 비활성할 수 있는 hot config. 트림 자체가 일으킨 회귀가 의심되면 컨테이너 재시작 없이 끄려고 했지만, 결국 env 변경 자체가 재시작을 요구한다는 한계는 있다
 - **`mallopt(M_TRIM_THRESHOLD)` 임계값 낮춤은 기각** — 매 `free()` 마다 자동 적용되어 호출 overhead. 우리 patch 의 명시 호출(청크 단위) 이 비용 통제하기 쉽다
 
 ## ca901 카나리에서 검증

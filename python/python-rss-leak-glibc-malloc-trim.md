@@ -65,7 +65,7 @@ PyTorch 의 큰 텐서, NumPy 의 큰 배열, Pillow 의 큰 이미지 버퍼는
 
 이 자료구조는 **재사용 효율** 을 위한 것이다. 다음 malloc 이 같은 크기를 요구하면 bin 에서 꺼내쓴다. 매번 OS 에 syscall 을 보내지 않아도 되니 빠르다.
 
-대가는 — heap 중간에 free chunk 가 흩어진 채로 남는다는 것. 이게 **단편화(fragmentation)** 다.
+대가는 — heap 중간에 free chunk 가 흩어진 채로 남는다는 것. 이게 **단편화**(fragmentation) 다.
 
 ### 자동 트림 (M_TRIM_THRESHOLD)
 

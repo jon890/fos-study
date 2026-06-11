@@ -89,7 +89,7 @@ my-chart/
 
 ## 의존성과 Subchart
 
-큰 애플리케이션은 여러 컴포넌트(앱 + Redis + MySQL 등)로 쪼개진다. 이때 다른 차트를 **의존성(subchart)**으로 가져와 조합할 수 있다.
+큰 애플리케이션은 여러 컴포넌트(앱 + Redis + MySQL 등)로 쪼개진다. 이때 다른 차트를 **의존성**(subchart)으로 가져와 조합할 수 있다.
 
 ```yaml
 # Chart.yaml

@@ -38,7 +38,7 @@ metadata:
 
 (이 "cluster-scoped"라는 성질은 [쿠버네티스 핵심 객체 4종](./k8s-core-objects.md#namespaced-vs-cluster-scoped--모든-리소스가-namespace에-속하진-않는다)에서 다룬, namespace에 속하지 않는 전역 리소스 얘기와 같은 맥락이다.)
 
-그래서 외부용 controller를 추가하면 webhook도 하나 더 생기는데, 이 새 webhook은 "외부 class만"이 아니라 **모든 Ingress(내부 것 포함)**를 검문한다. 여기서 사고 시나리오가 나온다.
+그래서 외부용 controller를 추가하면 webhook도 하나 더 생기는데, 이 새 webhook은 "외부 class만"이 아니라 **모든 Ingress**(내부 것 포함)를 검문한다. 여기서 사고 시나리오가 나온다.
 
 1. 외부 controller의 webhook Pod가 죽는다.
 2. 그런데 이 webhook은 모든 Ingress 요청을 검문하도록 등록돼 있다.
