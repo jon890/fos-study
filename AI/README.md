@@ -38,6 +38,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 
 - [BMAD Method](./bmad-method.md) — AI 에이전트로 애자일 개발하는 방법론
 - [AI 에이전트와 함께 MVP 만들기 (dooray-cli 사례)](./mvp-with-ai-agent.md)
+- [SkillOpt — 스킬 문서를 신경망처럼 학습시킨다](./skillopt-skill-as-trainable-artifact.md) — 텍스트 공간 옵티마이저, 검증 게이트, 개인 스킬 적용 한계
 
 ## 멀티모달
 
