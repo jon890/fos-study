@@ -250,3 +250,18 @@ grade inflation·비결정을 두 장치로 막는다:
 
 이 1계층(정적)+2계층(LLM)이 **세션이 거듭될수록 글쓰기 스킬이 복리로 개선되는 피드백 루프의 채점 엔진**이다.
 SkillOpt-Sleep 에 두 reward 를 judge 로 주입하면 글 작성 스킬이 자동 학습된다.
+
+### 자동 트리거 — 사람이 시작하지 않아도 도는 루프
+
+채점 엔진이 자동으로 돌도록 두 부품을 얹었다.
+
+- **자동 채점** — `scripts/autoscore_hook.sh` 를 PostToolUse(Write|Edit) hook 으로 등록(`.claude/settings.local.json`).
+  fos-study 글을 저장하는 순간 `blog_score --log` 가 자동 실행돼 위반을 노출하고
+  `.skill-loop/violations.jsonl` 에 축별로 누적한다.
+- **개선 신호** — `scripts/evolve_check.py` 가 누적 로그를 집계해 반복 위반 축을 SKILL.md 강화 후보로 보고한다.
+  ```bash
+  python3 scripts/evolve_check.py        # 누적 집계 + 강화 권장 축
+  ```
+
+루프 — 글 저장 → 자동 채점·누적 → (반복 시) evolve_check 신호 → 사람이 규칙 강화 → 다음 글 개선.
+실제 SKILL.md 수정은 자동으로 하지 않는다(안전) — 반복되는 위반만 사람이 규칙으로 승격한다(거부 편집 버퍼 정신).

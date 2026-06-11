@@ -94,11 +94,26 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("file")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--log", default="", help="축별 위반을 이 경로에 누적 기록 (hook 용)")
     args = ap.parse_args()
 
     text = Path(args.file).read_text(encoding="utf-8", errors="ignore")
     total, d = score_text(text)
     pen = penalty(d)
+
+    if args.log:
+        import datetime
+        rel = args.file.split("/fos-study/")[-1]
+        rec = {
+            "file": rel, "violations": total,
+            "counts": {k: len(v) for k, v in d.items()},
+            "ts": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        }
+        with open(args.log, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        if total > 0:
+            print(f"⚠ 자동 채점 — {rel} 정적 문체 위반 {total}건 (blog_score.py 로 상세 확인)")
+        return 0
 
     if args.json:
         print(json.dumps({

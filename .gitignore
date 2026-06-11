@@ -12,3 +12,9 @@ node_modules/
 
 # SkillOpt-Sleep 실험 산출물 (staging)
 .skillopt-sleep/
+
+# blog-post-writer 자동 채점 누적 로그
+.claude/skills/blog-post-writer/.skill-loop/
+
+# Python 캐시
+__pycache__/
