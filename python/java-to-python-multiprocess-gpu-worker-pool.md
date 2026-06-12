@@ -86,7 +86,7 @@ Python ProcessPool 의 워커는 라이프사이클이 더 명시적이다.
 
 비용은 명확하다. 매번의 워밍업 시간이 누적된다. 우리 운영의 `MAX_TASKS=3` 은 12시간 동안 1,565회 워밍업 = 약 150분의 누적 다운타임을 만든다. 적정값을 찾으려면 메모리 추세를 실측한 뒤 점진적 상향을 권한다 (우리 케이스는 50 수준이 안전한 것으로 판단).
 
-자바의 `Tomcat` 가 worker 스레드를 자동 재활용하지 않는 것과 대비된다. 자바는 그 자리에 heap dump + GC tuning 으로 대응. Python ML 서비스는 더 외과적인 "주기적 reset" 방식.
+자바의 `Tomcat` 가 worker 스레드를 자동 재활용하지 않는 것과 대비된다. 자바는 그 자리에 heap dump + GC tuning 으로 대응. Python ML 서비스는 더 국소적인 "주기적 reset" 방식.
 
 ## NVIDIA MPS — multi-process GPU 효율화
 
