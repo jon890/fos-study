@@ -32,6 +32,16 @@ WEIGHTS = {
     "section_sign": 2,    # § 특수문자
     "italic_paren": 2,    # *한글(영문)* — 이탤릭 렌더 실패
     "number_crossref": 1, # "위 3번", "섹션 2" — 자동번호와 어긋남
+    "awkward_term": 1,    # 외과적·트리아지 류 — 영어 직역/생소 비유어 (가독성)
+}
+
+# 영어 직역·생소 비유어 → 한국 독자가 한 번에 못 읽는 표현.
+# korean-style.md 매핑 표의 *명백한* 항목만 좁게 담는다. 맥락 의존(폭주 등)은
+# false positive 가 잦아 LLM judge(blog_judge.py)에 맡긴다.
+AWKWARD_TERMS = {
+    "외과적": "정밀한 / 국소적 / 범위를 좁힌",
+    "트리아지": "분류 / 분류 작업",
+    "오살": "엉뚱한 프로세스를 죽이는 문제",
 }
 
 CODE_FENCE = re.compile(r"```.*?```", re.DOTALL)
@@ -76,6 +86,9 @@ def score_text(text):
         d["italic_paren"].append("italic+paren")
     for m in NUMBER_CROSSREF.finditer(masked):
         d["number_crossref"].append(m.group(0))
+    for term, alt in AWKWARD_TERMS.items():
+        if term in masked:
+            d["awkward_term"].append(f"{term} → {alt}")
     # tilde — paragraph 내 unescaped non-homepath ~ 2개+
     for para in re.split(r"\n\s*\n", masked):
         tmp = re.sub(r"~/[\w./-]+", "", para.replace("\\~", ""))
