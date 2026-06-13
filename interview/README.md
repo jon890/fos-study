@@ -26,7 +26,6 @@
 
 ### 회사 무관 재사용 자료
 
-- [F&B / e-Commerce 운영 모니터링과 장애 대응 인터뷰 정리](./fnb-ecommerce-operations-monitoring-interview.md)
 - [커머스/F&B 면접 답변집 — 슬롯 경험 매핑](./commerce-interview-answer-slot-experience-mapping.md) — 슬롯 도메인 경험을 주문·결제·쿠폰·매장 설계로 매핑
 
 - [시니어 Java 백엔드 면접 마스터 플레이북](./senior-backend-master-playbook.md) — 자기소개·강점·프로젝트·공통 질문 프레이밍
