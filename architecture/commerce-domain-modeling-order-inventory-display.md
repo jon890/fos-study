@@ -118,7 +118,7 @@ public record DisplayItem(
 - **매장 단위 캐시 + 무효화**: Redis에 `display:store:{storeId}` 전체 목록 캐시. 도메인 이벤트로 무효화. F&B/커머스 대부분이 여기.
 - **CDC 기반 비동기 read model**: Catalog/Display/Inventory 변경을 CDC로 받아 별도 검색 인덱스(OpenSearch)에 투영. 검색·랭킹 요구가 강할 때.
 
-후보자 경험과 연결하면, RabbitMQ Fanout으로 다중 서버 인메모리 캐시를 무효화한 사례가 이 패턴의 변형이다. "정적 설정 데이터 갱신 시 전 서버 동시 무효화 + StampedLock으로 갱신 구간 보호"를 매장 메뉴 캐시로 옮기면 동일한 구조가 된다.
+이 패턴의 대표 사례로, RabbitMQ Fanout으로 다중 서버 인메모리 캐시를 무효화하는 구조가 있다. 정적 설정 데이터 갱신 시 전 서버 동시 무효화 + StampedLock으로 갱신 구간을 보호하는 방식을 매장 메뉴 캐시에 적용하면 동일한 구조가 된다.
 
 ## Inventory: 트랜잭션이 가장 짧아야 하는 곳
 
@@ -369,20 +369,6 @@ CREATE TABLE order_reservation (
 ### "재고가 0이면 PLP에 안 보이게 하시나요, 품절 표시하시나요?"
 
 > 운영 정책에 따라 다르지만, 기본은 **품절 표시 + 노출 유지**가 더 좋습니다. 안 보이면 사용자가 "내가 잘못 봤나" 혼동하고, 매장에서는 "그 메뉴 있는 줄 알고 왔는데" 컴플레인이 옵니다. Display read model에 `soldOut=true` 플래그로 노출하고, 정렬 우선순위만 뒤로 미루는 게 일반적입니다. 단, 시즌 메뉴처럼 "끝났음"을 명확히 알려야 하는 경우는 운영자가 명시적으로 내리도록 합니다.
-
-## 후보자 경험을 세 축으로 번역하기
-
-### StampedLock 기반 정적 데이터 캐시 경험
-
-> 정적 설정 데이터를 다중 서버 인메모리 캐시로 운영할 때 갱신 빈도는 낮고 조회가 압도적이라 `StampedLock` + optimistic read로 reader가 락 없이 흐르게 만들고, writer 진입 시점에만 `tryWriteLock` 타임아웃을 박았습니다. 커머스로 옮기면 매장 메뉴 노출 캐시가 정확히 같은 패턴입니다 — 운영자 변경 빈도는 낮고 PLP 조회는 매장 트래픽 그대로 받는 영역.
-
-### RabbitMQ Fanout 캐시 정합성 경험
-
-> 어드민 변경 시 다중 서버 정합성이 깨져 일시적 NPE가 났던 사고를 Hibernate `PostCommitUpdateEventListener` → RabbitMQ Fanout으로 전 서버 동시 무효화하면서 해소했습니다. Display 컨텍스트의 매장별 메뉴 노출 정책 변경도 같은 구조로 무효화합니다 — 변경은 한 곳에서, 무효화 신호는 fanout으로.
-
-### Kafka Transactional Outbox 경험
-
-> 주문 생성 트랜잭션 안에서 `outbox_message`에 `OrderPlacedEvent`를 같이 INSERT하고, 별도 publisher가 polling/CDC로 Kafka에 발행하는 구조를 운영했습니다. 커머스에서는 Order/Inventory/Display/Payment 네 컨텍스트가 각자 자기 consumer로 자기 사실만 책임지는 구조가 자연스럽게 따라옵니다. 매장 거절 같은 보상 흐름도 Saga로 풀립니다.
 
 ## 운영 모니터링 체크리스트
 

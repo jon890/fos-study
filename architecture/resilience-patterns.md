@@ -270,7 +270,7 @@ Flux.from(incoming)
 
 ## Graceful Shutdown: 배포 중에 500을 찍지 않는 법
 
-후보자 경험(오리진 처리 시스템, 쿠팡·NHN 트래픽 운영)에서 가장 자주 마주치는 이슈 중 하나다. 배포·오토스케일 축소 때 in-flight 요청을 중간에 끊으면 사용자는 500을 본다.
+대규모 트래픽 운영에서 가장 자주 마주치는 이슈 중 하나다. 배포·오토스케일 축소 때 in-flight 요청을 중간에 끊으면 사용자는 500을 본다.
 
 ### Spring Boot 2.3+ 내장 Graceful Shutdown
 
