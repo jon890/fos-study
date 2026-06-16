@@ -31,7 +31,7 @@ spec.loader.exec_module(bs)
 
 AUTO = {"bold_quote", "heading_number"}
 CODE_FENCE = re.compile(r"```.*?```", re.DOTALL)
-EXCLUDE = (".git/", ".claude/", ".agents/", "node_modules/")
+EXCLUDE = (".git/", ".claude/", ".agents/", "node_modules/", "k8s-in-action/")  # 외부 책 노트는 챕터 번호 보존
 
 
 def _fenced_line_indices(text):
@@ -50,9 +50,9 @@ def fix(text):
     out = []
     for i, ln in enumerate(text.split("\n")):
         if i not in fenced:
-            ln = re.sub(r"^(#{2,6})\s+\d+\.\s", r"\1 ", ln)        # ## 1. → ##
-            ln = re.sub(r"^(#{2,6})\s+\d+-\d+\.\s", r"\1 ", ln)     # ### 3-1. → ###
-            ln = re.sub(r'\*\*"([^"]*)"\*\*', r"**\1**", ln)        # **"x"** → **x**
+            ln = re.sub(r"^(#{2,6})\s+\d+(\.\d+)*\.?\s+", r"\1 ", ln)  # ## 1. / ### 2.1 / 2.1.3 → ##
+            ln = re.sub(r"^(#{2,6})\s+\d+-\d+\.\s+", r"\1 ", ln)        # ### 3-1. → ###
+            ln = re.sub(r'\*\*"([^"]*)"\*\*', r"**\1**", ln)           # **"x"** → **x**
         out.append(ln)
     return "\n".join(out)
 
