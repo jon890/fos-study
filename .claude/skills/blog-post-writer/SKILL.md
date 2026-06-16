@@ -231,6 +231,17 @@ python3 scripts/blog_score.py --json <글.md>    # 기계 판독용
 채점 축 (정적): `bold_quote`, `bold_paren`, `heading_number`, `ascii_box`, `tilde`, `section_sign`, `italic_paren`, `number_crossref`.
 위반 0이면 1계층 통과. 위반이 있으면 저장 전 교정한다.
 
+**안전 위반 일괄 교정 — `scripts/blog_fix.py`**:
+`heading_number`(`## N.` 자동번호)와 `bold_quote`(`**"..."**`)는 기계적으로 안전하게 되돌릴 수 있어 `blog_fix.py` 가 일괄 교정한다.
+
+```bash
+python3 scripts/blog_fix.py            # 현재 경로 이하 전체
+python3 scripts/blog_fix.py <dir>      # 특정 폴더만
+```
+
+- 안전 조건 — `number_crossref` 가 없고(heading 번호를 떼도 "섹션 N" 참조가 안 깨짐), `bold_quote`/`heading_number` 외 축이 없는 글만 손댄다. 나머지(`ascii_box`·`tilde` 등)는 수동 판단.
+- 코드펜스 인식은 blog_score 와 **동일한 정규식 쌍 매칭**(```` ```...``` ````)을 쓴다. 단순 `startswith("```")` 토글은 리스트 안 들여쓴 펜스(`  - ```md`)를 놓쳐 이후 줄을 통째로 코드펜스로 오판한다(실측: agents-md 누락).
+
 ### 2계층 reward — blog_judge (LLM judge)
 
 정적 위반 0은 *회귀가 없다*는 바닥일 뿐, *글이 좋다*는 보장이 아니다.
