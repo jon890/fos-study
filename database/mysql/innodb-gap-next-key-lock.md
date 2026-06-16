@@ -609,7 +609,7 @@ UPDATE point SET amount = amount + 100 WHERE user_id BETWEEN 1000 AND 2000;
 - [ ] 큐 테이블 컨슈머 경합에 `SKIP LOCKED`를 도입해야 하는 이유를 Gap Lock 관점에서 말할 수 있다.
 - [ ] "select-then-insert" 안티패턴을 Gap+Insert Intention 데드락과 연결해 설명할 수 있다.
 - [ ] 범위 상한의 '한 칸 더' 현상을 고려해 BETWEEN 경계값과 배치 크기를 설계할 수 있다.
-- [ ] 본인 경험(예: 복합 인덱스 튜닝으로 Next-Key Lock 범위 축소, UNIQUE 키로 중복 발급 데드락 제거)을 이 문서의 개념 용어로 설명할 수 있다.
+- [ ] 복합 인덱스 튜닝으로 Next-Key Lock 범위를 축소하거나 UNIQUE 키로 중복 발급 데드락을 막는 사례를 이 문서의 개념 용어로 설명할 수 있다.
 
 ---
 

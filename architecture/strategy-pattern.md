@@ -288,7 +288,7 @@ public class ExcelParsingStrategy implements FileParsingStrategy {
 }
 ```
 
-### 슬롯 엔진 / 핸들러 분리 (본인 경험과의 연결)
+### 슬롯 게임 엔진 — 게임 타입별 처리 분리
 
 슬롯 게임 엔진처럼 **게임 타입별로 다른 처리 로직**이 필요한 경우가 있다. 각 게임 유형(클래식 슬롯, 멀티라인, 보너스 슬롯 등)이 공통 인터페이스를 구현하는 ConcreteStrategy가 된다.
 
