@@ -26,6 +26,11 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 - [하네스 엔지니어링 이론편](./harness-engineering.md) — 개념, Anthropic/Fowler 사례, 설계 원칙
 - [하네스 엔지니어링 실전편](./harness-engineering-practice.md) — 4인 에이전트 팀 파이프라인의 진화
 
+## 에이전트 프레임워크
+
+- [OpenClaw는 context와 memory를 어떻게 관리하나](./openclaw-context-memory.md) — SOUL.md·MEMORY.md·progressive disclosure·heartbeat, 나만의 에이전트 구성
+- [OpenClaw vs Hermes Agent](./openclaw-vs-hermes-agent.md) — 메모리·구성·UI·self-improving 비교, 갈아탈지 선택 가이드
+
 ## Claude Code
 
 - [Claude Code 스킬 시스템](./claude-code-skill-system.md)
