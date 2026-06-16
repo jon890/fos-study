@@ -303,23 +303,23 @@ Logout API ──> Redis SADD revoked:tokens <jti> EX 3600
 
 ## 자주 빠지는 함정
 
-### 1. Pub/Sub과 Redis Cluster
+### Pub/Sub과 Redis Cluster
 
 Redis Cluster의 일반 Pub/Sub은 *전 노드 broadcast*다. 채널이 어느 슬롯에 속한다는 개념 자체가 없다 (Redis 7 미만). 노드 수가 많아지면 노드 간 트래픽이 증폭된다. Redis 7+의 *Sharded Pub/Sub*(`SSUBSCRIBE`)이 슬롯 기반으로 노드 안에만 전달하지만 클라이언트 라이브러리 지원이 균일하지 않다. 운영 중 Cluster 전환을 고려한다면 Pub/Sub 사용 패턴을 미리 정리해 두자.
 
-### 2. 발행 시점의 트랜잭션 경계
+### 발행 시점의 트랜잭션 경계
 
 DB 커밋 이전에 발행하면 다른 인스턴스가 *commit 직전 상태*를 보고 캐시를 만든다. `@TransactionalEventListener(phase = AFTER_COMMIT)`로 분리하는 게 표준. 분리 안 하면 정합성 버그가 production에서만 산발적으로 재현된다.
 
-### 3. 메시지 페이로드를 크게 만들지 않기
+### 메시지 페이로드를 크게 만들지 않기
 
 Pub/Sub은 인메모리 fanout이라 페이로드 크기가 곧 인스턴스 수 만큼 곱해진다. *키만 보내고 본문은 Redis 또는 DB에서 다시 읽는다*가 기본 패턴. 본문을 직접 실으면 hot key fanout 시 네트워크 폭주가 된다.
 
-### 4. 메시지를 동기 처리하지 않기
+### 메시지를 동기 처리하지 않기
 
 `MessageListener#onMessage`는 Redis 리스너 스레드 풀(기본 1개)에서 호출된다. 여기서 무거운 I/O(DB 조회, 외부 API)를 하면 다음 메시지 처리가 막힌다. 받자마자 자체 워커 풀로 dispatch.
 
-### 5. 패턴 구독 남발
+### 패턴 구독 남발
 
 `PSUBSCRIBE *` 같은 와일드카드는 모든 발행에 매칭된다. 채널이 늘어날수록 매 발행에서 패턴 매칭 비용 + 라우팅 오버헤드가 커진다. 패턴은 *명확한 prefix 안에서만* 쓴다.
 
