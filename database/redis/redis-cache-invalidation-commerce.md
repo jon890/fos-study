@@ -62,7 +62,7 @@ Admin → Redis Pub/Sub channel:menu-invalidate → 모든 API 서버 SUBSCRIBE
 
 ## 커머스에서 자주 만나는 정합성 문제
 
-### 1. 메뉴 가격/노출 변경
+### 메뉴 가격/노출 변경
 
 운영자가 어드민에서 메뉴 가격을 조정한다. cache-aside만 쓰고 invalidation을 안 하면 TTL 만료 전까지 옛 가격이 유지된다. 가격은 결제까지 이어지므로 stale은 곧 컴플레인이다.
 
@@ -71,7 +71,7 @@ Admin → Redis Pub/Sub channel:menu-invalidate → 모든 API 서버 SUBSCRIBE
 - 같은 카테고리 리스트 캐시도 같이 무효화
 - 다중 인스턴스 L1 캐시는 Pub/Sub fanout으로 정리
 
-### 2. 프로모션 시작/종료 경계
+### 프로모션 시작/종료 경계
 
 프로모션은 "12:00:00 시작"처럼 분 단위 경계가 중요하다. TTL 10분짜리 캐시에 11:55에 조회된 프로모션 응답이 들어가면, 12:00\~12:05 사이에는 시작된 프로모션이 보이지 않을 수 있다.
 
@@ -80,7 +80,7 @@ Admin → Redis Pub/Sub channel:menu-invalidate → 모든 API 서버 SUBSCRIBE
 - 시작/종료 시각 가까운 키는 별도로 짧은 TTL
 - 시작·종료 스케줄러가 명시적으로 `DEL` 호출
 
-### 3. 회원 등급/포인트 변경
+### 회원 등급/포인트 변경
 
 회원 등급이 VIP로 올라갔는데 일부 서버는 GENERAL을 들고 있어서 등급 할인 미적용. 이런 류는 사용자에게 직접 보이고 CS로 직행한다.
 
@@ -89,7 +89,7 @@ Admin → Redis Pub/Sub channel:menu-invalidate → 모든 API 서버 SUBSCRIBE
 - 회원별 캐시는 `cache:member:{id}` 한 키로 통합해 무효화 단위를 단순화
 - 결제 같은 critical path에서는 캐시를 신뢰하지 말고 DB 한 번 더 조회
 
-### 4. Cache Stampede (캐시 쇄도)
+### Cache Stampede (캐시 쇄도)
 
 인기 상품의 캐시 키가 동시에 만료되면 수백 개의 요청이 동시에 DB로 몰린다. 캐시 무효화 패턴 자체가 stampede를 만들 수도 있다 — `DEL` 직후 첫 요청 수백 개가 한꺼번에 miss를 본다.
 
@@ -98,7 +98,7 @@ Admin → Redis Pub/Sub channel:menu-invalidate → 모든 API 서버 SUBSCRIBE
 - **Probabilistic early expiration**: TTL이 가까워지면 일부 요청이 미리 갱신
 - **Stale-While-Revalidate**: 만료 직후에도 옛 값을 잠깐 더 응답하고, 백그라운드로 갱신
 
-### 5. 분산 락의 무효화 보장
+### 분산 락의 무효화 보장
 
 여러 서버가 동시에 같은 키를 갱신하려 할 때 Redlock이나 `SET NX EX`로 락을 잡는다. 락을 잡은 서버만 DB 조회 → 캐시 갱신. 락을 못 잡은 서버는 짧게 sleep 후 캐시 재조회.
 

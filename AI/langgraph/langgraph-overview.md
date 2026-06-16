@@ -16,7 +16,7 @@ LangChain v1.0부터는 모든 LangChain 에이전트가 LangGraph 위에서 동
 
 ## 핵심 개념 4가지
 
-### 1. State — 그래프를 흐르는 공유 메모리
+### State — 그래프를 흐르는 공유 메모리
 
 State는 그래프 전체를 흐르는 공유 상태 객체다. 메시지 히스토리, 중간 결과, 변수, 판단 이력 같은 정보를 담는다. 각 노드는 State를 받아서 처리하고, 업데이트된 State를 다음 노드로 넘긴다.
 
@@ -31,7 +31,7 @@ class State(TypedDict):
 
 `add_messages`처럼 **reducer 함수**를 붙이면 State 필드를 어떻게 병합할지 정의할 수 있다. 메시지는 덮어쓰지 않고 누적되어야 하니까.
 
-### 2. Nodes — 실제 작업을 하는 함수
+### Nodes — 실제 작업을 하는 함수
 
 노드는 Python 함수다. State를 받아서 처리하고, 업데이트할 State 딕셔너리를 반환한다. LLM 호출, 툴 실행, 데이터 처리 — 실제 작업은 모두 노드 안에서 일어난다.
 
@@ -45,7 +45,7 @@ def run_tool(state: State):
     return {"messages": [tool_result]}
 ```
 
-### 3. Edges — 다음에 어디로 갈지
+### Edges — 다음에 어디로 갈지
 
 엣지는 노드 간 연결이다. 두 종류가 있다.
 
@@ -67,7 +67,7 @@ graph.add_conditional_edges("llm", should_continue)
 
 LLM 응답에 툴 호출이 있으면 툴 노드로, 없으면 종료. 이 패턴이 ReAct 에이전트의 기본 루프다.
 
-### 4. Graph — 전체 흐름 조립
+### Graph — 전체 흐름 조립
 
 노드와 엣지를 조립해서 그래프를 만든다.
 

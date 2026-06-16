@@ -3,7 +3,7 @@
 - `AbstractApplicationContext.refresh()` 메서드의 흐름과 동일하다.
 - 이 과정 중, 단 한 단계라도 예외가 발생하면 리프레시는 중단되며, `has not been refreshed yet` 에러가 발생한다.
 
-## 1. 초기화 단계 (Bootstrap & Refresh)
+## 초기화 단계 (Bootstrap & Refresh)
 
 - **1. 준비**(prepareRefresh)
   - 컨텍스트의 상태를 'active'로 전환하기 위한 준비 작업을 한다.
@@ -45,7 +45,7 @@
   - `ContextRefreshedEvent` 이벤트를 발행한다.
   - 이 단계까지 에러 없이 도달해야 비로소 컨텍스트가 **완전한 "Refreshed" 상태**가 된다.
 
-## 2. 실행 단계 (Active & Running)
+## 실행 단계 (Active & Running)
 
 리프레시가 성공적으로 끝나면 컨텍스트는 `Running` 상태가 된다.
 
@@ -53,7 +53,7 @@
 - **이벤트 발행**: `publishEvent()`를 통해 이벤트를 전파한다.
 - **웹 요청 처리**: `DispatcherServlet`이 들어오는 요청을 받아 컨트롤러로 라우팅한다.
 
-## 3. 종료 단계 (Destory & Close)
+## 종료 단계 (Destory & Close)
 
 애플리케이션 종료나 테스트 종료 시 `close()`가 호출된다.
 

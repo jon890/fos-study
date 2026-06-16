@@ -69,7 +69,7 @@ if (documentType == DocumentType.TASK) {
 
 ## 해결: EmbeddingMetadataProvider 도입
 
-핵심 아이디어는 단순했다. **"제거할 필드를 관리하지 말고, 포함할 필드를 명시적으로 관리하자"**
+핵심 아이디어는 단순했다. **제거할 필드를 관리하지 말고, 포함할 필드를 명시적으로 관리하자**
 
 ```java
 public interface EmbeddingMetadataProvider {

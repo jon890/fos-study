@@ -319,10 +319,10 @@ public void recommend(OrderEvent e) { recommender.update(e); }
 
 ## 자주 받는 변형 질문 대비
 
-- **"이벤트 순서 보장 어떻게 하나요?"** → Kafka는 같은 key가 같은 partition으로 가도록 보장하고, 그 partition은 단일 컨슈머가 순차 처리. RabbitMQ는 단일 큐 + 단일 컨슈머 + prefetch=1 조합이 정공법.
-- **"중복 메시지 어떻게 막나요?"** → 둘 다 기본은 at-least-once. 컨슈머에서 idempotent 처리(요청 ID 기반 중복 제거 테이블)가 정석. Kafka는 transactional producer + EOS 옵션도 있지만 처리량 비용 있음.
-- **"메시지가 유실되면 어떻게 추적하나요?"** → 발행자에서 publish confirm/acks=all로 도착 보장, 처리 단계별 trace id 로깅, DLQ/DLT 적재량 모니터링, lag/queue depth 알람.
-- **"배치 vs 스트림 어디에 어떤 걸 쓰나요?"** → 즉시성·단건 워크로드는 RabbitMQ, 대용량 연속 스트림과 후속 분석은 Kafka.
+- **이벤트 순서 보장 어떻게 하나요?** → Kafka는 같은 key가 같은 partition으로 가도록 보장하고, 그 partition은 단일 컨슈머가 순차 처리. RabbitMQ는 단일 큐 + 단일 컨슈머 + prefetch=1 조합이 정공법.
+- **중복 메시지 어떻게 막나요?** → 둘 다 기본은 at-least-once. 컨슈머에서 idempotent 처리(요청 ID 기반 중복 제거 테이블)가 정석. Kafka는 transactional producer + EOS 옵션도 있지만 처리량 비용 있음.
+- **메시지가 유실되면 어떻게 추적하나요?** → 발행자에서 publish confirm/acks=all로 도착 보장, 처리 단계별 trace id 로깅, DLQ/DLT 적재량 모니터링, lag/queue depth 알람.
+- **배치 vs 스트림 어디에 어떤 걸 쓰나요?** → 즉시성·단건 워크로드는 RabbitMQ, 대용량 연속 스트림과 후속 분석은 Kafka.
 
 ## 실전 체크리스트
 

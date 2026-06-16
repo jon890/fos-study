@@ -8,7 +8,7 @@
 
 ---
 
-## 1. 대용량 파일은 `readFileSync` 대신 Streams
+## 대용량 파일은 `readFileSync` 대신 Streams
 
 ### 문제 — `fs.readFileSync`
 
@@ -34,7 +34,7 @@ for await (const line of rl) {
 
 ---
 
-## 2. Streams Backpressure — 생산 속도 > 소비 속도일 때 무엇이 일어나는가
+## Streams Backpressure — 생산 속도 > 소비 속도일 때 무엇이 일어나는가
 
 ### 정의
 
@@ -54,7 +54,7 @@ for await (const line of rl) {
 
 ---
 
-## 3. `pipe()` vs `pipeline()`
+## `pipe()` vs `pipeline()`
 
 ### `pipe()`
 
@@ -82,7 +82,7 @@ await pipeline(
 
 ---
 
-## 4. 멱등성 키(Idempotency Key) vs 분산 락 — 역할 분리
+## 멱등성 키(Idempotency Key) vs 분산 락 — 역할 분리
 
 POS / 결제처럼 네트워크 지연이나 timeout 이 흔한 환경에서는 **두 메커니즘을 혼동하지 말고 역할을 분리해야** 한다.
 

@@ -3,7 +3,7 @@
 - OpenSearch의 데이터 타입은 인덱스의 **Mapping**을 통해 결정 됨
   - 데이터가 어떻게 저장되고 검색될지 결정하는 핵심 요소
 
-## 1. OpenSearch의 주요 데이터 타입
+## OpenSearch의 주요 데이터 타입
 
 - **String Types**:
   - `text` : 전문 검색(Full-text search)용. Analyzed
@@ -26,7 +26,7 @@
 - **Specialised Types**:
   - `ip`, `completion` (자동완성), `token_count`, `percolator`
 
-## 2. `text` vs `keyword`의 결정적 차이
+## `text` vs `keyword`의 결정적 차이
 
 이 두 타입의 차이는 **데이터를 저장할 떄 분석기(Analyzer)를 거치느냐, 거치지 않느냐**에 있다. <br>
 이 차이가 검색(Search), 정렬(Sorting), 집계(Aggregation)의 동작 방식을 완전히 바꾼다.
@@ -55,7 +55,7 @@
   - `apple`로 검색하면 검색되지 않는다. 반드시 `Apple Pie` 전체가 일치해야 한다.
   - **Doc Values**라는 열 지향(Columnar) 저장소 구조를 사용하여 **정렬과 집계**에 최적화 되어있다.
 
-## 3. 비교 예시 및 검증
+## 비교 예시 및 검증
 
 가장 흔히 하는 실수는 `keyword` 필드에 대해 부분 검색을 시도하거나, `text` 필드에 대해 정확한 일치를 기대하는 것이다.
 
@@ -92,7 +92,7 @@ POST /dev_index/_doc/1
 | Term      | product_category | "Electronics"       | 성공 | 저장된 값 Electronics와 정확히 일치                              |
 | Term      | product_category | "electronics"       | 실패 | keyword는 대소문자를 구분함                                      |
 
-## 4. 실무 팁: Multi-fields (멀티 필드)
+## 실무 팁: Multi-fields (멀티 필드)
 
 실무에서는 하나의 필들르 검색 용도와 정렬/집계 용도로 모두 사용해야 하는 경우가 많다 <br>
 이 때 `fields` 속성을 사용한다

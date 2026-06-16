@@ -47,7 +47,7 @@ ZCARD leaderboard
 
 ## 구현 패턴
 
-### 1. 단순 글로벌 랭킹
+### 단순 글로벌 랭킹
 
 ```bash
 # 게임 점수 기록
@@ -64,7 +64,7 @@ ZREVRANK game:leaderboard "user:1001"
 ZREVRANGE game:leaderboard 3 7 WITHSCORES
 ```
 
-### 2. 기간별 랭킹 (일간/주간/월간)
+### 기간별 랭킹 (일간/주간/월간)
 
 날짜를 키에 포함시켜 자연스럽게 기간을 분리한다.
 
@@ -90,7 +90,7 @@ ZREVRANGE leaderboard:weekly:2026-W13 0 9 WITHSCORES
 결과 캐시 (인기 랭킹은 1~5초 TTL로 별도 캐싱)
 ```
 
-### 3. 카테고리별 랭킹
+### 카테고리별 랭킹
 
 ```bash
 # 장르별 게임 랭킹
@@ -101,7 +101,7 @@ ZINCRBY leaderboard:genre:rpg   150 "user:1001"
 ZINCRBY leaderboard:region:seoul 300 "user:1001"
 ```
 
-### 4. 동점자 처리
+### 동점자 처리
 
 Sorted Set은 score가 같으면 **멤버 이름의 사전순**으로 정렬한다. 동점자를 먼저 달성한 순으로 처리하려면 score에 타임스탬프를 소수점으로 인코딩하는 방법을 쓴다.
 

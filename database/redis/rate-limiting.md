@@ -4,7 +4,7 @@
 
 ---
 
-## 1. 고정 윈도우 (Fixed Window)
+## 고정 윈도우 (Fixed Window)
 
 가장 단순한 방식. 분 단위나 시간 단위 키를 만들고 `INCR`로 카운트한다.
 
@@ -42,7 +42,7 @@ if (count > 100) {  // 분당 100회 초과
 
 ---
 
-## 2. 슬라이딩 윈도우 (Sliding Window) — Sorted Set
+## 슬라이딩 윈도우 (Sliding Window) — Sorted Set
 
 현재 시각 기준으로 과거 N초 이내의 요청만 카운트한다. 경계 문제가 없다.
 
@@ -117,7 +117,7 @@ if (result == 0L) {
 
 ---
 
-## 3. 토큰 버킷 (Token Bucket)
+## 토큰 버킷 (Token Bucket)
 
 버킷에 일정 속도로 토큰이 채워지고, 요청마다 토큰을 소모한다. 순간적인 버스트를 허용하면서도 평균 처리량을 제한할 수 있다.
 
@@ -163,7 +163,7 @@ end
 
 ---
 
-## 4. 계층별 Rate Limiting
+## 계층별 Rate Limiting
 
 사용자 등급, API 엔드포인트, IP 등 여러 기준을 조합한다.
 

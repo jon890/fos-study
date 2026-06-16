@@ -1,6 +1,6 @@
 # AsyncItemProcessor
 
-## 1. 아키텍처 및 Executor 구성
+## 아키텍처 및 Executor 구성
 
 이 구조의 핵심은 **읽기는 동기, 처리는 비동기, 쓰기는 동기**(Future Unwrapping)이다.
 
@@ -19,7 +19,7 @@
 > 핵심: Writer가 `Future.get()`으로 대기하는 동안, Processor의 스레드 풀에서는 병렬로 로직이 수행된다. <br>
 > Writer는 단지 "결과 수집기" 역할을 할 뿐이다.
 
-## 2. Chunk Size vs Thread Pool Size는 어떻게 조정해야할까?
+## Chunk Size vs Thread Pool Size는 어떻게 조정해야할까?
 
 `AsyncItemProcessor`를 사용할 떄 성능 병목은 **Chunk Size와 Thread Pool Size의 불일치**에서 발생한다.
 

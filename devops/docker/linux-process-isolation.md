@@ -4,7 +4,7 @@
 
 이 두 개를 이해하면 "컨테이너가 어떻게 격리되는지"와 "Docker / K8s가 왜 가능한지"를 완전히 이해하게 됨
 
-## 1. Linux Namespace - 리소스를 분리하여 "겉보기 환경"을 따로 만드는 기술
+## Linux Namespace - 리소스를 분리하여 "겉보기 환경"을 따로 만드는 기술
 
 - Namespace는 프로세스마다 **보이는 세계를 다르게 만드는 기술**
 - 예를 들어 A 프로세스는 PID 1로 보이는데, B 프로세스는 A를 PID 500으로 봄
@@ -33,7 +33,7 @@ sudo unshare --pid --fork --mount-proc bash
 ps -ef # bash pid가 1로 보임, 즉 프로세스 트리가 신규 환경처럼 보임
 ```
 
-## 2. Cgroups - "CPU, 메모리 등 자원 제한"
+## Cgroups - "CPU, 메모리 등 자원 제한"
 
 Namespace가 "보이는 세게"를 분리하는 것이라면, **Cgroups은 실제 리소스를 제한하고 관리하는 기술**이다
 
@@ -54,7 +54,7 @@ echo <pid> > /sys/fs/cgroup/mygroup/cgorup.procs
 
 -> pid 프로세스는 100MB 이상 메모리를 사용하면 OOM 발생
 
-## 3. Namespaces + Cgroups 조합하면 컨테이너가 됨
+## Namespaces + Cgroups 조합하면 컨테이너가 됨
 
 도커가 하는 일은 사실 **리눅스 커널의 기능을 "편하게 쓰도록" 래핑한 것**이다
 
@@ -74,7 +74,7 @@ echo <pid> > /sys/fs/cgroup/mygroup/cgorup.procs
 > 컨테이너 = Namespace (격리) + Cgroup (자원제한) + Filesystem Overlay (루트FS)
 > Docker는 이걸 자동으로 만들어주는 도구
 
-## 4. 프로세스 격리가 어떻게 보안과 직결되는가?
+## 프로세스 격리가 어떻게 보안과 직결되는가?
 
 Namespace가 없으면:
 

@@ -7,7 +7,7 @@
   - 브라우저에서는 Chrome
   - 서버에서는 Node, Deno, Bun 등 많은 런타임이 V8을 중심으로 움직인다.
 
-### 1. V8의 전체 구조 개요
+### V8의 전체 구조 개요
 
 - V8은 대략 다음 구성 요소로 이루어짐
 
@@ -26,14 +26,14 @@
 - 즉 "처음엔 인터프리터, 나중엔 JIT 컴파일러"
 - -> 실행 시간이 길어질수록 성능이 빨라진다.
 
-### 2. 간략 정리
+### 간략 정리
 
 > V8은 Node.js에서 JS를 빠르게 돌려주는 JIT + GC 기반 엔진이고, </br>
 > Node는 이 위에 이벤트 루프/비동기 IO를 얹은 런타임이다. </br>
 > Java(JVM)랑 비교하면, IO-bound에는 개발, 운영이 가볍고, </br>
 > CPU-bound나 강한 타입/툴링 면에서는 Java가 더 유리하다.
 
-### 3. Java(JVM) vs Node.js(V8) - 백엔드 관점에서 장단점 비교
+### Java(JVM) vs Node.js(V8) - 백엔드 관점에서 장단점 비교
 
 - 공통점
 
@@ -75,7 +75,7 @@
 
 ## Node.js 운영시 주의해야하는 핵심 포인트 10가지
 
-### 1. CPU-bound 작업을 메인 스레드에서 돌리지 말 것
+### CPU-bound 작업을 메인 스레드에서 돌리지 말 것
 
 - Node는 JS 실행이 싱글 스레드라서 CPU를 많이 쓰는 코드를 돌리면 이벤트 루프가 막힌다
 - 막히면?
@@ -95,7 +95,7 @@
   - 복잡한 JSON 변환
   - 암호화 연산
 
-### 2. 큰 객체/배열/Buffer를 오래 들고 있지 않기
+### 큰 객체/배열/Buffer를 오래 들고 있지 않기
 
 - V8 힙은 기본적으로 1.5~2GB 정도 크기 제한이 걸려있음
   - 큰 배열/버퍼를 오래 잡고 있으면
@@ -113,7 +113,7 @@
     - Buffer pooling
     - 압축/압축해제 과정에서도 스트림 사용
 
-### 3. JSON.parse / stringify 과사용 피하기
+### JSON.parse / stringify 과사용 피하기
 
 - Node.js에서 JSON 처리 비용이 생각보다 큼
 - 문제
@@ -125,7 +125,7 @@
   - 객체 복제할 떄 structruedClone 또는 shallow copy
   - 대용량 JSON을 stream 기반 파싱 (JSONStream 등)
 
-### 4. Promise 폭주 / 메모리 누수 주의
+### Promise 폭주 / 메모리 누수 주의
 
 - 비동기 leak이 실무에서 진짜 많이 발생함
 
@@ -170,7 +170,7 @@
     - emitter.once
     - 리스너 개수 확인
 
-### 6. 클러스터링 / 다중 프로세스 활용
+### 클러스터링 / 다중 프로세스 활용
 
 - Node는 싱글 스레드라 CPU 코어를 하나만 씀, 인스턴스를 늘리지 않으면 성능 제대로 나오지 않음
 - 대안
@@ -179,7 +179,7 @@
   - Docker/K8s 에서 복수 replica
   - Worker Threads로 CPU offload 패턴
 
-### 7. 동시성 제어 필요할 떄 Lock/Mutex 개념 의식하기
+### 동시성 제어 필요할 떄 Lock/Mutex 개념 의식하기
 
 - Node는 싱글 스레드지만 I/O 비동기기 때문에 race condition은 존재함
 - Node의 싱글 스레드는 공유 메모리 문제는 적지만, 공유 리소스(DB/Redis/S3)을 다룰 떄는 여전히 race condition 생김
@@ -189,7 +189,7 @@
   - queue 기반 처리
   - Atomic operation 적극 사용
 
-### 8. 메모리 프로파일링 / CPU 프로파일링을 할 줄 알아야 함
+### 메모리 프로파일링 / CPU 프로파일링을 할 줄 알아야 함
 
 - 필수 도구
   - Chrome DevTools (Profiler)
@@ -199,7 +199,7 @@
   - flamegraph
 - 특히 메모리 누수와 CPU block은 Node 운영의 큰 이슈
 
-### 9. GC Pause 고려
+### GC Pause 고려
 
 - Node는 GC가 자동이라 편하지만, latency-sensitive 서비스에서는 중요한 문제
 - 문제 시나리오

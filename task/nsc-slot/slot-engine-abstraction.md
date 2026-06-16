@@ -17,7 +17,7 @@
 
 ---
 
-## 1. SlotTemplate — 페이 방식 추상화
+## SlotTemplate — 페이 방식 추상화
 
 슬롯 게임의 당첨 계산 방식은 크게 세 가지다.
 
@@ -55,7 +55,7 @@ public class Slot47Service extends BaseSlotService {
 
 ---
 
-## 2. BaseSlotService — 서비스 공통 구현 추출
+## BaseSlotService — 서비스 공통 구현 추출
 
 `SlotService` 인터페이스에 `default` 구현이 점점 늘어나고 있었다. 인터페이스에 구현 로직이 있으면 테스트하기도 어렵고, Java의 `default` 메서드는 상태를 가질 수 없어서 한계가 있었다.
 
@@ -71,7 +71,7 @@ SlotService (인터페이스) → 계약 정의
 
 ---
 
-## 3. Config 구조 개선
+## Config 구조 개선
 
 ### ExtraConfig 분리
 
@@ -120,7 +120,7 @@ public class Slot47Service extends BaseSlotService {
 
 ---
 
-## 4. BuyFeature 옵션 파싱 추상화
+## BuyFeature 옵션 파싱 추상화
 
 바이피처 슬롯마다 옵션 구조가 달라서 각각 파싱 로직을 구현하고 있었다.
 
@@ -130,7 +130,7 @@ public class Slot47Service extends BaseSlotService {
 
 ---
 
-## 5. StaticDataLoader 개선
+## StaticDataLoader 개선
 
 ### refreshAll 후 일시적 NPE — StampedLock 도입
 

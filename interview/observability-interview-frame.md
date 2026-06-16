@@ -38,7 +38,7 @@ trace_id 가 SLF4J MDC에 자동 주입되도록 구성한다. Tracer agent가 `
 
 ## 곁다리 질문에 대비할 거리
 
-- **"메트릭 카디널리티 폭발은 어떻게 다루나요?"** — `user_id` / `order_id` 같은 고유 식별자는 메트릭 태그가 아니라 로그/trace 의 필드로 보낸다. Custom metric cardinality 는 주기적으로 모니터링한다.
-- **"샘플링 전략은?"** — Tail-based sampling 으로 에러/slow trace 는 100% 보존, 정상은 저율 샘플링한다. 정상 trace 도 일부는 보존해야 baseline 이 흔들리지 않는다.
-- **"alert false positive 가 많으면?"** — Composite monitor 로 조건을 결합하거나, anomaly monitor 의 민감도 파라미터를 조정한다. 알람을 끄는 게 아니라 **신호를 정제** 한다.
-- **"postmortem 은 어떤 흐름으로 정리하시나요?"** — Notebook 템플릿 사용 (timeline / impact / RCA / action item). 알람 → Service Map → Error Trace → Deploy Diff → Mitigation 순으로 trace 를 따라가며 시간 축을 박제한다.
+- **메트릭 카디널리티 폭발은 어떻게 다루나요?** — `user_id` / `order_id` 같은 고유 식별자는 메트릭 태그가 아니라 로그/trace 의 필드로 보낸다. Custom metric cardinality 는 주기적으로 모니터링한다.
+- **샘플링 전략은?** — Tail-based sampling 으로 에러/slow trace 는 100% 보존, 정상은 저율 샘플링한다. 정상 trace 도 일부는 보존해야 baseline 이 흔들리지 않는다.
+- **alert false positive 가 많으면?** — Composite monitor 로 조건을 결합하거나, anomaly monitor 의 민감도 파라미터를 조정한다. 알람을 끄는 게 아니라 **신호를 정제** 한다.
+- **postmortem 은 어떤 흐름으로 정리하시나요?** — Notebook 템플릿 사용 (timeline / impact / RCA / action item). 알람 → Service Map → Error Trace → Deploy Diff → Mitigation 순으로 trace 를 따라가며 시간 축을 박제한다.

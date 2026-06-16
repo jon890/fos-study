@@ -14,7 +14,7 @@
 
 ## 주요 변경 사항
 
-### 1. 환경 변수 prefix 추가
+### 환경 변수 prefix 추가
 
 Rollup 때는 환경 변수를 자유롭게 사용할 수 있었는데, Vite는 클라이언트 측 환경 변수에 `VITE_` prefix를 강제한다. 기존 `.env` 파일을 전부 수정해야 했다.
 
@@ -28,7 +28,7 @@ VITE_API_BASE_URL=https://...
 
 코드에서는 `import.meta.env.VITE_API_BASE_URL` 형태로 접근한다.
 
-### 2. env 파일 디렉터리 분리
+### env 파일 디렉터리 분리
 
 환경 파일이 프로젝트 루트에 섞여 있어서 별도 폴더로 정리했다.
 
@@ -40,7 +40,7 @@ export default defineConfig({
 })
 ```
 
-### 3. base path 설정
+### base path 설정
 
 배포 환경에서는 `/sports` 경로 하위에 올라가는 구조였다. Rollup 때는 이걸 별도 처리했는데 Vite는 `base` 옵션 하나로 해결됐다.
 
@@ -50,7 +50,7 @@ base: mode !== 'localdev' ? '/sports' : '/',
 
 로컬에서는 `/` 그대로, 배포 환경에서는 `/sports`를 기본 경로로 쓴다.
 
-### 4. sourcemap 제어
+### sourcemap 제어
 
 릴리즈 빌드에서는 소스맵을 포함하지 않도록 명시적으로 설정했다.
 
@@ -60,7 +60,7 @@ build: {
 }
 ```
 
-### 5. 빌드 버전 주입
+### 빌드 버전 주입
 
 빌드 시각을 `import.meta.env.VITE_BUILD_TIME`으로 주입해 런타임에서 확인할 수 있게 했다.
 

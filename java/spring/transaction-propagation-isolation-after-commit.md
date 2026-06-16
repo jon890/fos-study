@@ -32,7 +32,7 @@
 
 ## 핵심 개념: 전파(Propagation)
 
-전파는 **"현재 스레드에 이미 활성 트랜잭션이 있을 때, 지금 호출되는 메서드가 어떻게 행동할지"** 를 결정한다. 즉 전파는 혼자 동작하는 설정이 아니라 **호출 체인 안에서의 규칙**이다.
+전파는 **현재 스레드에 이미 활성 트랜잭션이 있을 때, 지금 호출되는 메서드가 어떻게 행동할지** 를 결정한다. 즉 전파는 혼자 동작하는 설정이 아니라 **호출 체인 안에서의 규칙**이다.
 
 ### REQUIRED (기본값)
 
@@ -407,11 +407,11 @@ logging:
 
 ### 흔히 따라오는 꼬리 질문과 답변 포인트
 
-- **"REQUIRED와 REQUIRES_NEW 차이가 뭔가요?"** → 기존 트랜잭션 참여 vs 신규 시작, 새 커넥션 점유, 독립 커밋/롤백.
-- **"self-invocation은 왜 안 되나요?"** → 프록시 기반 AOP, 같은 빈 내부 호출은 프록시 우회.
-- **"트랜잭션 롤백이 안 돼요."** → 기본은 `RuntimeException`만 롤백. checked exception은 `rollbackFor=Exception.class` 필요. 또는 catch로 예외를 먹는 경우.
-- **"Kafka와 DB 트랜잭션을 어떻게 묶나요?"** → 완벽히 못 묶는다, Outbox로 DB 쪽에 위임 + 컨슈머 멱등.
-- **"phantom read가 InnoDB REPEATABLE READ에서 안 나는 이유?"** → Consistent nonlocking read는 MVCC snapshot, locking read는 next-key lock.
+- **REQUIRED와 REQUIRES_NEW 차이가 뭔가요?** → 기존 트랜잭션 참여 vs 신규 시작, 새 커넥션 점유, 독립 커밋/롤백.
+- **self-invocation은 왜 안 되나요?** → 프록시 기반 AOP, 같은 빈 내부 호출은 프록시 우회.
+- **트랜잭션 롤백이 안 돼요.** → 기본은 `RuntimeException`만 롤백. checked exception은 `rollbackFor=Exception.class` 필요. 또는 catch로 예외를 먹는 경우.
+- **Kafka와 DB 트랜잭션을 어떻게 묶나요?** → 완벽히 못 묶는다, Outbox로 DB 쪽에 위임 + 컨슈머 멱등.
+- **phantom read가 InnoDB REPEATABLE READ에서 안 나는 이유?** → Consistent nonlocking read는 MVCC snapshot, locking read는 next-key lock.
 
 ## 후보자 경험과의 연결 포인트
 

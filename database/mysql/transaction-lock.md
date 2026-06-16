@@ -160,7 +160,7 @@ T1: COMMIT (한참 뒤)
 
 InnoDB의 행 잠금은 테이블의 실제 행이 아닌 **인덱스 레코드**를 기준으로 작동한다.
 
-#### 1. Record Lock
+#### Record Lock
 인덱스 레코드 자체를 잠근다.
 
 ```
@@ -169,7 +169,7 @@ InnoDB의 행 잠금은 테이블의 실제 행이 아닌 **인덱스 레코드*
 id=3 Record Lock: [3]만 잠금
 ```
 
-#### 2. Gap Lock
+#### Gap Lock
 인덱스 레코드 사이의 빈 공간(Gap)을 잠근다. 그 범위에 새 레코드가 삽입되는 것을 막는다.
 
 ```
@@ -180,7 +180,7 @@ id=3 Gap Lock: (2, 3) 범위의 삽입 차단
 
 Phantom Read 방지가 목적이다. REPEATABLE READ에서 범위 조건 쿼리에 자동으로 걸린다.
 
-#### 3. Next-Key Lock
+#### Next-Key Lock
 Record Lock + Gap Lock의 조합. InnoDB의 기본 잠금 방식이다.
 
 ```

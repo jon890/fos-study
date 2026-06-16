@@ -18,7 +18,7 @@ public ConfluencePageItemReader confluencePageItemReader(
 
 ## 왜 필요한가
 
-### 1. Job Parameter를 빈 생성 시점에 주입받기 위해
+### Job Parameter를 빈 생성 시점에 주입받기 위해
 
 `@StepScope` 없이 싱글톤 빈으로 만들면, 애플리케이션 컨텍스트가 로딩되는 시점에 빈이 생성된다. 이 시점에는 Job Parameter가 아직 없다. `@Value("#{jobParameters['spaceKey']}")`를 쓰면 null이 들어온다.
 
@@ -30,13 +30,13 @@ public ConfluencePageItemReader confluencePageItemReader(
 배치 실행 요청 (spaceKey=MY_SPACE) → Step 시작 → @StepScope 빈 생성 → "MY_SPACE" 주입 ✅
 ```
 
-### 2. Step 실행마다 상태를 초기화하기 위해
+### Step 실행마다 상태를 초기화하기 위해
 
 Reader, Processor 같은 Step 컴포넌트는 내부 상태를 가지는 경우가 많다. 예를 들어 페이지네이션 커서, 읽은 데이터 버퍼 같은 것들이다.
 
 싱글톤이면 두 번째 Job 실행 시 이전 실행의 상태가 남아있을 수 있다. `@StepScope`로 Step마다 새 인스턴스를 만들면 이런 상태 누수를 원천 차단한다.
 
-### 3. 여러 Job이 동시에 실행될 때 격리하기 위해
+### 여러 Job이 동시에 실행될 때 격리하기 위해
 
 Job A와 Job B가 같은 Reader 타입을 쓰는데 싱글톤이라면, 두 Job이 같은 Reader 인스턴스를 공유하게 된다. `@StepScope`를 쓰면 각 Step 실행마다 독립적인 인스턴스가 생기므로 Job 간 간섭이 없다.
 

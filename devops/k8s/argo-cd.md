@@ -2,7 +2,7 @@
 
 - "k8s를 제어하는 컨트롤러"
 
-## 1. ArgoCD의 정체 : Kubernetes Controller
+## ArgoCD의 정체 : Kubernetes Controller
 
 ArgoCD는 웹 UI가 있는 툴처럼 보이지만, 기술적으로는 **K8s Custom Controller**이다.
 
@@ -11,7 +11,7 @@ ArgoCD는 웹 UI가 있는 툴처럼 보이지만, 기술적으로는 **K8s Cust
 - **동작 원리**: 우리가 YAML 파일로 `Application` 객체를 생성하면, ArgoCD 컨트롤러가 이를 감지한다.
   - "이 Git 주소에 있는 내용을 저 클러스터에 배포하라는 거구나"라고 해석해서 일을 시작한다.
 
-## 2. 핵심 아키텍처
+## 핵심 아키텍처
 
 ArgoCD는 마이크로서비스 구조로 되어 있다. 내부 동작을 알아보자.
 
@@ -26,7 +26,7 @@ ArgoCD는 마이크로서비스 구조로 되어 있다. 내부 동작을 알아
   - `Live State`(K8s의 현재 상태)와 `Target State`(Repo Server가 준 Git 상태)를 비교한다.
   - 다르면 `Sync`(동기화) 로직을 실행한다.
 
-## 3. 핵심 리소스 : Application
+## 핵심 리소스 : Application
 
 ArgoCD에서 가장 많이 다루게 될 `Application` 리소스의 실제 모습이다. <br />
 이 YAML 하나가 서비스 하나의 배포 파이프라인을 정의한다.
@@ -60,7 +60,7 @@ spec:
       - CreateNamespace=true # 네임스페이스가 없으면 생성
 ```
 
-## 4. 고급 기능: Sync Waves & Hooks (순서 제어)
+## 고급 기능: Sync Waves & Hooks (순서 제어)
 
 K8s는 기본적으로 비동기 병렬로 뜬다. <br />
 하지만 백엔드 앱은 **DB 마이그레이션이 끝나야 서버가 떠야 한다**와 같은 순서가 필요한 경우도 있다. <br />
@@ -78,21 +78,21 @@ K8s는 기본적으로 비동기 병렬로 뜬다. <br />
   - `SyncFail`: 실패 시 실행
     - 예: 롤백 트리거
 
-## 5. ArgoCD 사용 시 주의사항
+## ArgoCD 사용 시 주의사항
 
-#### 1. OutofSync 상태:
+#### OutofSync 상태:
 
 - Git과 K8s가 다르다는 뜻이다.
 - UI에서 `Diff` 탭을 눌러서 **무엇이 다른지**확인하는 습관이 필요하다.
 - 때로는 K8s가 자동으로 생성하는 필드 떄문에 가짜 차이가 발생할 수 있는데, 이는 `ignoreDifferences` 설정으로 무시할 수 있다.
 
-#### 2. 무한 Sync 루프:
+#### 무한 Sync 루프:
 
 - 가끔 ArgoCD가 고치고 -> K8s가 다시 원래대로 돌리고 -> ArgoCD가 다시 고치고를 반복할 때가 있다.
 - 보통 서로 다른 컨트롤러가 충돌할 떄 발생한다.
   - 예: HPA와 Deployment의 replicas 설정
 
-#### 3. Secret 관리:
+#### Secret 관리:
 
 - Git에는 비밀번호를 평문으로 올리면 안된다.
 - 보통 `SealedSecrets`나 `Vault`, `SOPS` 같은 도구를 써서 암호화된 파일을 Git에 올리고, ArgoCD가 배포할 떄 복호화하거나 참조하도록 구성한다.

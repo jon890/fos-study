@@ -9,15 +9,14 @@ OpenClaw 자체의 내부 구조는 [OpenClaw는 context와 memory를 어떻게 
 > - **OpenClaw** — 채팅 앱에 붙어 사는 local-first 비서. config-first(SOUL.md + JSON5). TypeScript/Node 생태계.
 > - **Hermes Agent** — Nous Research가 만든 self-improving 에이전트. Python 기반, MIT 라이선스. 스킬을 스스로 쓰고 고치는 학습 루프가 핵심.
 
-## 한 줄로 줄인 정체성 차이
+## 정체성 차이
 
-세부로 들어가기 전에 두 프레임워크의 지향점을 한 줄로 줄이면 이렇게 갈린다.
+세부로 들어가기 전에 두 프레임워크의 지향점을 줄이면 이렇게 갈린다.
 
 - **OpenClaw** — "내가 이미 쓰는 채팅 앱 안에 비서를 들여놓는다." 도달 범위(어디서 말을 거는가)가 강점.
 - **Hermes** — "나만의 에이전트를 키운다." 자기개선과 구성 유연성이 강점.
 
-내 고민이 "에이전트를 구성하고 화면을 얹는다"는 방향이라면, 이 한 줄에서 이미 Hermes 쪽으로 무게가 실린다.
-다만 그 대가가 무엇인지를 봐야 한다.
+내 고민이 "에이전트를 구성하고 화면을 얹는다"는 방향이라 여기서 이미 Hermes 쪽으로 무게가 실리는데, 그 대가가 무엇인지를 함께 봐야 한다.
 
 ## 메모리 — 수동 큐레이션 vs 다층 자동화
 
@@ -36,7 +35,7 @@ Hermes는 한 발 더 나갔다.
 여기에 **Honcho** 같은 외부 메모리 provider를 꽂으면, 대화가 끝난 뒤 사후 추론(dialectic reasoning)으로 사용자의 선호·말투·목표를 자동으로 누적한다.
 대화를 저장하는 게 아니라 거기서 결론을 도출하는 방식이다.
 
-트레이드오프는 분명하다.
+트레이드오프가 갈린다.
 OpenClaw는 투명하고 단순한 대신 손이 간다.
 Hermes는 자동화 폭이 넓은 대신 동작이 그만큼 불투명하고, provider를 붙이면 외부 의존이 늘어난다.
 
@@ -61,8 +60,8 @@ Hermes의 자기개선은 **실시간 강화학습이 아니다.** 두 축으로
 - **스킬 누적**(런타임) — 에이전트가 도구를 5번 넘게 써서 어려운 작업을 끝내거나 막힌 길을 뚫으면, "다시 알아내지 않도록 스킬을 써라"는 시스템 프롬프트 유도에 따라 `skill_manage`로 `~/.hermes/skills/`에 절차를 기록한다. 다음에 같은 일을 만나면 그 스킬을 `patch`로 다듬는다. 이게 디스크에 영속된다.
 - **GEPA 오프라인 진화**(별도 트랙) — `hermes-agent-self-evolution`이라는 **별개 연구 repo**에서, 실행 trace를 평가 데이터로 만들어 스킬·프롬프트를 진화시키고 사람 리뷰를 거쳐 PR로 제안한다. in-session 루프가 아니라 벤치마크 기반 batch 최적화다.
 
-정리하면 Hermes의 "self-improving"은 **절차 메모리(스킬)를 스스로 쌓고 다듬는 능력**이지, 모델 가중치가 실시간으로 학습되는 게 아니다.
-그래도 OpenClaw와 비교하면 차이는 분명하다 — OpenClaw에서 스킬은 기본적으로 사람이 쓰고 고치는 반면, Hermes는 에이전트가 자기 경험에서 스킬을 만들어 낸다.
+정리하면 Hermes의 "self-improving"은 절차 메모리(스킬)를 스스로 쌓고 다듬는 능력이지, 모델 가중치가 실시간으로 학습되는 게 아니다.
+OpenClaw와 갈리는 지점은 여기다 — OpenClaw에서 스킬은 기본적으로 사람이 쓰고 고치는 반면, Hermes는 에이전트가 자기 경험에서 스킬을 만들어 낸다.
 스킬을 학습 가능한 산출물로 보는 관점은 [SkillOpt 분석](./skillopt-skill-as-trainable-artifact.md)과 같은 결이다.
 
 안전장치도 있다 — `skills.write_approval: true`로 두면 모든 스킬 쓰기가 `~/.hermes/pending/`에 staging되고, `/skills diff`·`/skills approve`로 검토한 뒤에야 반영된다.
@@ -82,9 +81,9 @@ Hermes의 자기개선은 **실시간 강화학습이 아니다.** 두 축으로
 - **Web UI** (`hermes web`) — React SPA + FastAPI. Status·Sessions(FTS5 검색)·Config·Cron·Skills 탭. 기본 `http://localhost:8000`.
 - **Hermes Studio** — 별도 데스크톱 앱 + 로컬 런타임 + 웹 콘솔. **Vue 3 + Naive UI** 스택. 채팅·모델/프로필 관리·플랫폼 채널 연결·잡 자동화·파일 검사·웹 터미널·Kanban 보드까지 로컬로 묶는다.
 
-차이가 분명하다.
-OpenClaw는 "남이 만든 채팅 화면을 빌려 쓰고", Hermes는 "에이전트 위에 내 화면(TUI → Web → Studio)을 직접 얹는" 경로를 공식으로 깔아 둔다.
-에이전트를 구성하고 그 위에 화면을 올리려는 내 그림에는 Hermes 쪽이 확실히 더 맞는다.
+방향이 갈린다.
+OpenClaw는 남이 만든 채팅 화면을 빌려 쓰고, Hermes는 에이전트 위에 내 화면(TUI → Web → Studio)을 직접 얹는 경로를 공식으로 깔아 둔다.
+에이전트를 구성하고 그 위에 화면을 올리려는 내 그림에는 Hermes 쪽이 더 맞는다.
 
 한 가지 사실 정정 — Hermes Web UI를 "3-panel Claude 스타일"로 소개하는 글이 있는데, 공식 소스에는 그런 표현이 없다.
 메인 repo의 `hermes web`은 탭 기반 React UI이고, Vue 3 데스크톱/웹 콘솔은 Hermes Studio라는 별도 산출물이다.

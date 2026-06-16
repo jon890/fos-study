@@ -171,7 +171,7 @@ public class PaymentService {
 
 ## 백엔드 실무 적용 패턴 5가지
 
-### 1. 할인 정책 (Discount Policy)
+### 할인 정책 (Discount Policy)
 
 이커머스, 헬스케어 플랫폼에서 할인 구조는 시간이 지날수록 복잡해진다.
 
@@ -214,7 +214,7 @@ public class CouponDiscountPolicy implements DiscountPolicy {
 
 할인이 중첩 적용되어야 한다면 `List<DiscountPolicy>`를 모두 순회하며 합산하는 방식으로 확장할 수 있다.
 
-### 2. 알림 채널 (Notification Channel)
+### 알림 채널 (Notification Channel)
 
 ```java
 public interface NotificationStrategy {
@@ -249,7 +249,7 @@ public class EmailNotificationStrategy implements NotificationStrategy {
 }
 ```
 
-### 3. 파싱 전략 (File Format Parsing)
+### 파싱 전략 (File Format Parsing)
 
 배치나 데이터 수집 파이프라인에서 파일 포맷이 다양한 경우:
 
@@ -288,7 +288,7 @@ public class ExcelParsingStrategy implements FileParsingStrategy {
 }
 ```
 
-### 4. 슬롯 엔진 / 핸들러 분리 (본인 경험과의 연결)
+### 슬롯 엔진 / 핸들러 분리 (본인 경험과의 연결)
 
 슬롯 게임 엔진처럼 **게임 타입별로 다른 처리 로직**이 필요한 경우가 있다. 각 게임 유형(클래식 슬롯, 멀티라인, 보너스 슬롯 등)이 공통 인터페이스를 구현하는 ConcreteStrategy가 된다.
 
@@ -346,7 +346,7 @@ public class SlotEngineService {
 
 이 구조의 장점은 게임 타입이 수십 개로 늘어나도 `SlotEngineService` 코드를 한 줄도 수정하지 않아도 된다는 것이다. 이것이 바로 실무에서 Strategy Pattern이 갖는 진짜 가치다.
 
-### 5. 외부 API 연동 추상화 (Provider Abstraction)
+### 외부 API 연동 추상화 (Provider Abstraction)
 
 헬스케어 플랫폼에서 여러 물류사, 배송 추적 API를 연동할 때:
 

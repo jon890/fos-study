@@ -20,7 +20,7 @@
 
 LLM agent의 메모리를 한 덩어리로 다루면 설계가 무너진다. 다음 4계층으로 분리해서 본다.
 
-### 1. Conversation State (working memory)
+### Conversation State (working memory)
 
 현재 진행 중인 한 turn~몇 turn에 걸친 즉시 컨텍스트. LLM 호출 시 system prompt 다음에 그대로 들어가는 영역.
 
@@ -29,7 +29,7 @@ LLM agent의 메모리를 한 덩어리로 다루면 설계가 무너진다. 다
 - 구조: `messages: [{role, content, timestamp}]`
 - 크기: 토큰 한도 내에서 sliding window 또는 summarization
 
-### 2. Session Summary (mid-term memory)
+### Session Summary (mid-term memory)
 
 한 대화 세션이 끝났을 때, 핵심만 요약해서 들고 가는 layer. 다음 대화에서 "어제 그 얘기"를 꺼낼 수 있게 해 준다.
 
@@ -37,7 +37,7 @@ LLM agent의 메모리를 한 덩어리로 다루면 설계가 무너진다. 다
 - 수명: 정책에 따라 30일/90일/사용자 동의 기반
 - 구조: `session_id, user_id, summary_text, intents[], entities[], created_at, expires_at`
 
-### 3. User Profile Memory (long-term structured)
+### User Profile Memory (long-term structured)
 
 장기적으로 유지할 가치가 있는 사실들. 헬스케어에서는 신중하게 다뤄야 하는 영역.
 
@@ -45,7 +45,7 @@ LLM agent의 메모리를 한 덩어리로 다루면 설계가 무너진다. 다
 - 보관 위치: 암호화된 RDB
 - 수명: 사용자 동의 기간, 삭제 요청 시 cascade delete
 
-### 4. Vector Memory (semantic recall)
+### Vector Memory (semantic recall)
 
 과거 발화·문서·FAQ를 의미 기반으로 검색하기 위한 layer. RAG의 retrieval 부분.
 
@@ -185,7 +185,7 @@ def handle_user_message(user_id, session_id, text):
     return answer
 ```
 
-여기서 면접에서 강조할 포인트는 **"왜 이렇게 나눴는가"**다.
+여기서 면접에서 강조할 포인트는 **왜 이렇게 나눴는가**다.
 
 - short-term을 Redis stream으로 둔 이유: 시간 순서 보장 + TTL + 빠른 trim
 - long-term을 RDB에 둔 이유: 동의 단위로 row 삭제·만료가 깔끔

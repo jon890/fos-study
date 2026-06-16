@@ -37,7 +37,7 @@ deleteAllJackpotPool(simulationSpinInfo.slotGame());  // 각 스레드마다 자
 
 ## 해결: AtomicReference 기반 공유 풀 + 생명주기 분리
 
-### 1. ThreadLocal 제거 → AtomicReference 공유 맵
+### ThreadLocal 제거 → AtomicReference 공유 맵
 
 `SimulatorProgressiveJackpotRepositoryImpl`을 삭제하고, 전체 스레드가 하나의 맵을 공유하는 `AtomicProgressiveJackpotRepositoryImpl`로 교체했다.
 
@@ -57,7 +57,7 @@ final Double accumulateAmount = atomic.getAndSet(0.0);
 
 Redis의 `HINCRBYFLOAT`과 Lua 스크립트가 하는 역할을 JVM 수준에서 `AtomicReference`로 대체한 구조다.
 
-### 2. 잭팟 풀 생명주기를 시뮬레이션 단위로 올림
+### 잭팟 풀 생명주기를 시뮬레이션 단위로 올림
 
 풀 생성과 삭제를 각 스레드 태스크 내부에서 꺼내 시뮬레이션 전체를 감싸는 바깥 계층으로 올렸다.
 

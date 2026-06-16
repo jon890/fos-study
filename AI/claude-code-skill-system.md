@@ -8,7 +8,7 @@
 
 ---
 
-## 1. Skill이란 정확히 무엇인가?
+## Skill이란 정확히 무엇인가?
 
 ### 기본 개념: 재사용 가능한 워크플로우
 
@@ -49,7 +49,7 @@ Claude Code의 built-in Skill들은 매우 다양하다:
 
 ---
 
-## 2. Oh-My-Claudecode의 Built-in Skills 둘러보기
+## Oh-My-Claudecode의 Built-in Skills 둘러보기
 
 Claude Code는 기본적으로 제공하는 Skill들이 있다. 특히 **oh-my-claudecode** 프로젝트에서 제공하는 skills들이 강력하다.
 
@@ -107,7 +107,7 @@ Ralph는 한 번에 여러 파일을 수정할 수 있고, 각 수정 사항을 
 
 ---
 
-## 3. Skill 사용하기
+## Skill 사용하기
 
 ### 기본 사용법
 
@@ -158,7 +158,7 @@ Skill(skill="autopilot")
 
 ---
 
-## 4. Skill Creator: 나만의 Skill 만들기
+## Skill Creator: 나만의 Skill 만들기
 
 여기부터가 정말 신나는 부분이다. built-in Skill들도 좋지만, **나만의 Skill을 만들어서 반복되는 내 개발 패턴을 자동화할 수 있다.**
 
@@ -246,7 +246,7 @@ MySQL의 테이블 구조를 PostgreSQL로 변환합니다.
 
 ---
 
-## 5. Skill 성능 테스트와 벤치마크
+## Skill 성능 테스트와 벤치마크
 
 만든 Skill이 제대로 작동하는지 검증하는 것도 중요하다.
 
@@ -285,7 +285,7 @@ Skill: auto-docstring
 
 ---
 
-## 6. 실제 사용 사례 - 내가 만든 Skill들
+## 실제 사용 사례 - 내가 만든 Skill들
 
 ### 사례 1: blog-post-writer
 
@@ -396,7 +396,7 @@ grid.setValue(target.rowKey, 'workRate', 60);
 
 ---
 
-## 7. Skill 만들 때의 팁과 주의사항
+## Skill 만들 때의 팁과 주의사항
 
 ### 좋은 Skill의 특징
 
@@ -433,7 +433,7 @@ grid.setValue(target.rowKey, 'workRate', 60);
 
 ---
 
-## 8. Skill이 가져온 변화
+## Skill이 가져온 변화
 
 개인적으로 Skill 시스템을 쓰면서 느낀 변화들:
 
@@ -467,7 +467,7 @@ grid.setValue(target.rowKey, 'workRate', 60);
 
 ---
 
-## 9. 마치며
+## 마치며
 
 Claude Code의 Skill 시스템은 단순한 "명령어 모음"이 아니다. 이것은 **당신의 개발 패턴을 학습하고, 반복되는 작업을 지능적으로 처리하고, 더 중요한 일에 집중하게 해주는 개인 AI 어시스턴트를 만드는 도구**다.
 

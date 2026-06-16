@@ -9,7 +9,7 @@
 - **네트워크 실패**: TCP RST, DNS 조회 지연, LB의 idle timeout, VPC peering 구간의 packet loss. 애플리케이션은 정상인데 패킷이 못 돌아오는 상황이다.
 - **GC / 자원 고갈 실패**: 본인 JVM의 Full GC로 수백 ms~수 초 멈춤, 스레드풀 고갈, 파일 디스크립터 한도, 커넥션풀 고갈.
 
-실패는 "예외 케이스"가 아니라 "항상 일정 확률로 일어나는 사건"이다. 시니어 백엔드 엔지니어의 역할은 **"실패가 발생했을 때 전파를 어디에서 끊을 것인가"** 를 설계하는 것이다. 한 다운스트림의 지연이 내 스레드풀을 다 먹어치우고, 그것이 업스트림의 SLA를 깨뜨리고, 결국 전체 플랫폼이 시나리오 그대로 죽는 **cascading failure**를 막는 것이 핵심이다.
+실패는 "예외 케이스"가 아니라 "항상 일정 확률로 일어나는 사건"이다. 시니어 백엔드 엔지니어의 역할은 **실패가 발생했을 때 전파를 어디에서 끊을 것인가** 를 설계하는 것이다. 한 다운스트림의 지연이 내 스레드풀을 다 먹어치우고, 그것이 업스트림의 SLA를 깨뜨리고, 결국 전체 플랫폼이 시나리오 그대로 죽는 **cascading failure**를 막는 것이 핵심이다.
 
 면접에서 "외부 API가 느려지면 어떻게 대응하시나요?" 라는 질문은 사실상 **Timeout → Retry → Circuit Breaker → Bulkhead → Fallback → Backpressure → [Graceful Shutdown](../devops/graceful-shutdown.md)** 의 스택을 차례로 이해하고 있느냐는 질문이다. 이 문서는 그 전체 스택을 실행 가능한 수준으로 정리한다.
 
@@ -25,9 +25,9 @@
 | Backpressure | 유입 속도를 처리 속도에 맞춤 | 큐 폭주 방지 |
 | Graceful Shutdown | 배포·축소 시 in-flight 보존 | 5xx 최소화 |
 
-이 스택은 "아무거나 다 붙이면 된다" 가 아니라 **"계층적 조합을 잘못 짜면 오히려 장애를 확대시킨다"** 는 점이 중요하다. 특히 Timeout과 Retry는 Circuit Breaker 없이 붙이면 재시도 폭주(retry storm)를 유발한다.
+이 스택은 "아무거나 다 붙이면 된다" 가 아니라 **계층적 조합을 잘못 짜면 오히려 장애를 확대시킨다** 는 점이 중요하다. 특히 Timeout과 Retry는 Circuit Breaker 없이 붙이면 재시도 폭주(retry storm)를 유발한다.
 
-## 1. Timeout: 모든 Resilience의 출발점
+## Timeout: 모든 Resilience의 출발점
 
 Timeout이 없는 호출은 resilience 전략의 대상이 될 수 없다. "언제 실패로 간주할 것인가" 가 정의되지 않았기 때문이다.
 
@@ -90,7 +90,7 @@ ClientOptions options = ClientOptions.builder()
 
 Redis는 응답이 매우 빠르기 때문에 timeout을 짧게(수십~수백 ms) 잡아야 한다. 길게 잡으면 Redis 한 번의 네트워크 지연에 내 스레드가 통째로 물린다.
 
-## 2. Retry: 멱등성과 백오프가 전부다
+## Retry: 멱등성과 백오프가 전부다
 
 Retry는 강력하지만 잘못 쓰면 장애를 직접 만든다. 세 가지 전제를 반드시 확인한다.
 
@@ -128,7 +128,7 @@ Retry retry = Retry.of("inventoryApi", config);
 - 재시도 횟수 × 시도당 timeout 이 **상위 call timeout을 초과하면 안 된다**.
 - 재시도 예산(retry budget) 을 둬서, 전체 요청 중 재시도 비율이 10% 를 넘으면 재시도 자체를 중단한다.
 
-## 3. Circuit Breaker: 빠른 실패와 자가 복구
+## Circuit Breaker: 빠른 실패와 자가 복구
 
 Circuit Breaker는 "지속적으로 실패하는 대상을 일정 기간 차단해서, 의미 없는 호출을 빠르게 실패시키는" 장치다. 세 상태를 갖는다.
 
@@ -171,7 +171,7 @@ Bulkhead → TimeLimiter → CircuitBreaker → Retry → 실제 호출
 
 즉 가장 안쪽에 Retry, 그 바깥에 CircuitBreaker. 이렇게 해야 Retry가 열린 회로를 계속 때리지 않는다. 반대로 두면 Retry가 서킷을 넘어서 계속 재시도를 시도하게 된다.
 
-## 4. Bulkhead: 자원 격리로 blast radius 줄이기
+## Bulkhead: 자원 격리로 blast radius 줄이기
 
 Bulkhead는 배의 격벽에서 따온 이름이다. 한 부분이 침수되어도 전체가 가라앉지 않도록 **자원을 물리적으로 격리**한다.
 
@@ -202,9 +202,9 @@ ThreadPoolBulkhead paymentBulkhead =
 
 ### 실제 장애 사례 패턴
 
-"쇼핑몰 홈 API가 추천 서비스 호출이 느려지자 전체 홈이 3초 이상 지연됨"이라는 장애는 bulkhead 부재의 전형이다. 홈 컴포지션에서 추천을 **독립 스레드풀 + 200ms timeout + 서킷** 으로 감싸고, 실패 시 **"인기 상품 캐시"** 로 fallback하면 추천 API가 죽어도 홈은 정상 응답한다.
+"쇼핑몰 홈 API가 추천 서비스 호출이 느려지자 전체 홈이 3초 이상 지연됨"이라는 장애는 bulkhead 부재의 전형이다. 홈 컴포지션에서 추천을 **독립 스레드풀 + 200ms timeout + 서킷** 으로 감싸고, 실패 시 **인기 상품 캐시** 로 fallback하면 추천 API가 죽어도 홈은 정상 응답한다.
 
-## 5. Fallback 전략
+## Fallback 전략
 
 Fallback은 "실패를 숨기는 것"이 아니라 "실패했을 때 무엇을 보여줄 것인가" 에 대한 제품 결정이다.
 
@@ -227,7 +227,7 @@ Supplier<Recommendations> withFallback = () -> {
 
 Fallback은 **항상 메트릭으로 측정**해야 한다. "Fallback으로 응답했다"는 곧 사용자에게 열화된 경험을 줬다는 뜻이기 때문에, fallback rate는 SLO의 핵심 지표가 된다.
 
-## 6. Backpressure: 유입을 처리 속도에 맞추기
+## Backpressure: 유입을 처리 속도에 맞추기
 
 Resilience는 "실패 처리"뿐 아니라 "과부하를 받지 않기" 이기도 하다. 서버가 처리 속도보다 빠르게 요청을 받으면 큐가 무한히 쌓이고, 결국 OOM이나 전체 지연으로 이어진다.
 
@@ -255,20 +255,20 @@ Flux.from(incoming)
 - **503**: "지금 서버가 과부하/점검". 가능하면 `Retry-After` 헤더 동반.
 - **502 / 504**: 게이트웨이 관련. 대개 업스트림 장애 또는 타임아웃 문제로, 내 서비스가 아니라 중간 프록시 이슈일 수 있음.
 
-이 구분은 면접에서 "429와 503의 차이는?" 으로 자주 나온다. 핵심은 **"누구의 책임인가"** 다. 429는 클라이언트 책임, 503은 서버 측 일시 상태.
+이 구분은 면접에서 "429와 503의 차이는?" 으로 자주 나온다. 핵심은 **누구의 책임인가** 다. 429는 클라이언트 책임, 503은 서버 측 일시 상태.
 
-## 7. 계층적 조합 설계 원칙 (cascading failure 방지)
+## 계층적 조합 설계 원칙 (cascading failure 방지)
 
 개별 패턴보다 훨씬 중요한 것이 이들의 조합 규칙이다.
 
-1. **Timeout 예산(timeout budget) 원칙**: 상위 호출의 timeout이 하위 호출 timeout 합보다 커야 한다. 프론트 → API → 결제 → PG 4단 호출에서, API 단에서 3초로 잡아놓고 PG에 5초 타임아웃을 걸면 API는 무조건 먼저 끊긴다. 이때 결제는 PG에는 계속 보내지만 API는 실패로 응답하므로 **"돈은 빠졌는데 주문은 실패"** 같은 일관성 사고가 난다.
+1. **Timeout 예산(timeout budget) 원칙**: 상위 호출의 timeout이 하위 호출 timeout 합보다 커야 한다. 프론트 → API → 결제 → PG 4단 호출에서, API 단에서 3초로 잡아놓고 PG에 5초 타임아웃을 걸면 API는 무조건 먼저 끊긴다. 이때 결제는 PG에는 계속 보내지만 API는 실패로 응답하므로 **돈은 빠졌는데 주문은 실패** 같은 일관성 사고가 난다.
 2. **재시도는 한 layer에서만**: 전체 스택 중 가장 가까운 한 지점에서만 재시도한다. 그 외 layer는 실패를 그대로 전파한다.
 3. **CB는 재시도 바깥**: Retry는 CircuitBreaker 안쪽에서 실행되어야 open 상태를 존중한다.
 4. **Bulkhead는 가장 바깥**: 리소스 격리는 모든 내부 로직을 감싸야 의미가 있다.
 5. **Fallback은 명시적**: silent fallback 금지. 항상 메트릭과 로그 한 줄이 있어야 한다.
 6. **Deadline propagation**: gRPC의 deadline 처럼, 상위에서 남은 시간을 하위로 전파한다. 자체 구현 시 `X-Deadline-Ms` 헤더로 넘긴다.
 
-## 8. Graceful Shutdown: 배포 중에 500을 찍지 않는 법
+## Graceful Shutdown: 배포 중에 500을 찍지 않는 법
 
 후보자 경험(오리진 처리 시스템, 쿠팡·NHN 트래픽 운영)에서 가장 자주 마주치는 이슈 중 하나다. 배포·오토스케일 축소 때 in-flight 요청을 중간에 끊으면 사용자는 500을 본다.
 
@@ -317,7 +317,7 @@ spec:
 - **Kafka consumer**: shutdown hook에서 `consumer.wakeup()` + `close(Duration)` 로 rebalance를 깔끔하게 유도.
 - **DB connection drain**: Hikari `allowPoolSuspension` 대신, Spring lifecycle에 맞춰 자연 종료되도록 둔다.
 
-## 9. 관측성(Observability) 결합
+## 관측성(Observability) 결합
 
 Resilience는 "동작했는지 확인할 수 있어야" 의미가 있다. Resilience4j는 Micrometer 통합을 기본 제공한다.
 
@@ -335,7 +335,7 @@ Resilience는 "동작했는지 확인할 수 있어야" 의미가 있다. Resili
 2. **Retry / fallback board**: 재시도율, 재시도 성공률, fallback 비율
 3. **Saturation board**: bulkhead / thread pool / connection pool 사용률
 
-알람은 **"회로가 N분 이상 열려 있음"**, **"fallback rate > 5%"**, **"재시도율 > 10%"** 를 기본으로 둔다.
+알람은 **회로가 N분 이상 열려 있음**, **fallback rate > 5%**, **재시도율 > 10%** 를 기본으로 둔다.
 
 ## 로컬 실습 환경
 

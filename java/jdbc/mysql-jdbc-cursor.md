@@ -27,7 +27,7 @@ executeQuery() 호출
 
 ### 활성화 방법
 
-#### 1. URL 파라미터 방식 (useCursorFetch)
+#### URL 파라미터 방식 (useCursorFetch)
 
 ```
 jdbc:mysql://localhost:3306/database?useCursorFetch=true
@@ -44,7 +44,7 @@ while (rs.next()) {
 }
 ```
 
-#### 2. Integer.MIN_VALUE 방식 (Streaming)
+#### Integer.MIN_VALUE 방식 (Streaming)
 
 `useCursorFetch` 없이도 `setFetchSize(Integer.MIN_VALUE)`를 설정하면 스트리밍 모드가 활성화된다.
 

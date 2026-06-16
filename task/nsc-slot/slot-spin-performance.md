@@ -10,7 +10,7 @@
 
 ---
 
-## 1. 가중치 랜덤 선택 — Alias Method
+## 가중치 랜덤 선택 — Alias Method
 
 ### 기존 방식
 
@@ -82,7 +82,7 @@ public String pick() {
 
 ---
 
-## 2. 게임에서 Random은 무엇을 써야 하는가
+## 게임에서 Random은 무엇을 써야 하는가
 
 ### SecureRandom이 슬롯에 있었다
 
@@ -111,7 +111,7 @@ final int random = RANDOM.nextInt(maxRandom);
 
 ---
 
-## 3. ThreadLocalRandom 올바른 사용법
+## ThreadLocalRandom 올바른 사용법
 
 `ThreadLocalRandom`으로 바꾸면 끝이 아니다. 잘못 쓰면 의도한 대로 동작하지 않는다.
 

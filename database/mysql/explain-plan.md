@@ -1,6 +1,6 @@
 # [초안] MySQL EXPLAIN / EXPLAIN ANALYZE 완전 정복 — 실행 계획 읽기부터 Aurora 인터뷰 대비까지
 
-## 1. 왜 알아야 하는가
+## 왜 알아야 하는가
 
 백엔드 인터뷰에서 "N+1 문제를 어떻게 해결했나요?"에 "JOIN FETCH를 썼습니다"라고 답하면 반타작입니다.
 면접관이 바로 묻습니다. "EXPLAIN으로 확인해봤나요? 실행 계획이 어떻게 달라졌나요?"
@@ -12,9 +12,9 @@ CJ 올리브영 웰니스 플랫폼처럼 상품·주문·사용자 데이터가
 
 ---
 
-## 2. 핵심 개념
+## 핵심 개념
 
-### 2-1. EXPLAIN vs EXPLAIN ANALYZE
+### EXPLAIN vs EXPLAIN ANALYZE
 
 | 구분 | 실행 여부 | 출력 |
 |------|-----------|------|
@@ -26,7 +26,7 @@ CJ 올리브영 웰니스 플랫폼처럼 상품·주문·사용자 데이터가
 
 ---
 
-### 2-2. EXPLAIN 출력 컬럼 해석
+### EXPLAIN 출력 컬럼 해석
 
 ```
 +----+-------------+-------+------+---------------+-----+---------+------+------+----------+----------------+
@@ -82,7 +82,7 @@ CJ 올리브영 웰니스 플랫폼처럼 상품·주문·사용자 데이터가
 
 ---
 
-## 3. 로컬 실습 환경 구성 (MySQL 8 Docker)
+## 로컬 실습 환경 구성 (MySQL 8 Docker)
 
 ```bash
 docker run --name mysql8-explain \
@@ -159,9 +159,9 @@ FROM gen;
 
 ---
 
-## 4. 실행 계획 실습
+## 실행 계획 실습
 
-### 4-1. 풀스캔 → 인덱스 스캔
+### 풀스캔 → 인덱스 스캔
 
 ```sql
 -- 인덱스 없음: 풀스캔
@@ -180,7 +180,7 @@ EXPLAIN SELECT * FROM product WHERE status = 'ACTIVE';
 
 ---
 
-### 4-2. 커버링 인덱스
+### 커버링 인덱스
 
 ```sql
 -- 커버링 인덱스 없음
@@ -196,7 +196,7 @@ EXPLAIN SELECT id, name FROM product WHERE category_id = 3;
 
 ---
 
-### 4-3. filesort 발생과 제거
+### filesort 발생과 제거
 
 ```sql
 -- filesort 발생
@@ -212,7 +212,7 @@ EXPLAIN SELECT * FROM product WHERE category_id = 3 ORDER BY created_at DESC;
 
 ---
 
-## 5. EXPLAIN ANALYZE 실습
+## EXPLAIN ANALYZE 실습
 
 ```sql
 EXPLAIN ANALYZE
@@ -247,7 +247,7 @@ LIMIT 10;
 
 ---
 
-## 6. JPA N+1 vs JOIN FETCH — EXPLAIN 비교
+## JPA N+1 vs JOIN FETCH — EXPLAIN 비교
 
 ### N+1 발생 패턴
 
@@ -321,9 +321,9 @@ WHERE p.category_id = 1;
 
 ---
 
-## 7. 나쁜 예 vs 개선 예
+## 나쁜 예 vs 개선 예
 
-### 7-1. 인덱스 컬럼에 함수 적용 → 인덱스 무효화
+### 인덱스 컬럼에 함수 적용 → 인덱스 무효화
 
 ```sql
 -- Bad: 함수로 인덱스 컬럼 변환 → 풀스캔
@@ -338,7 +338,7 @@ WHERE created_at >= '2025-01-01' AND created_at < '2026-01-01';
 
 ---
 
-### 7-2. OR 조건으로 인덱스 분산
+### OR 조건으로 인덱스 분산
 
 ```sql
 -- Bad: OR로 인덱스 분리 → index_merge 또는 풀스캔
@@ -353,7 +353,7 @@ EXPLAIN
 
 ---
 
-### 7-3. SELECT * 와 커버링 인덱스
+### SELECT * 와 커버링 인덱스
 
 ```sql
 -- Bad: 불필요한 컬럼 포함 → 테이블 랜덤 I/O 발생
@@ -366,7 +366,7 @@ SELECT id, name FROM product WHERE category_id = 3 LIMIT 20;
 
 ---
 
-### 7-4. 복합 인덱스 선두 컬럼 원칙 위반
+### 복합 인덱스 선두 컬럼 원칙 위반
 
 ```sql
 -- 인덱스: (category_id, status, created_at)
@@ -382,7 +382,7 @@ WHERE category_id = 1 AND status = 'ACTIVE' AND created_at > '2025-01-01';
 
 ---
 
-## 8. Aurora MySQL 특이사항
+## Aurora MySQL 특이사항
 
 Aurora MySQL은 MySQL 8 호환이지만 실행 계획 해석 시 알아야 할 차이점이 있습니다.
 
@@ -414,7 +414,7 @@ ANALYZE TABLE orders;
 
 ---
 
-## 9. 인터뷰 답변 프레이밍
+## 인터뷰 답변 프레이밍
 
 ### Q. 쿼리 성능 문제를 어떻게 찾고 해결하나요?
 
@@ -434,7 +434,7 @@ ANALYZE TABLE orders;
 
 ---
 
-## 10. 시니어 레벨 체크리스트
+## 시니어 레벨 체크리스트
 
 ```
 [ ] EXPLAIN type 컬럼에서 ALL, index를 즉시 알아보고 위험 신호로 인식한다

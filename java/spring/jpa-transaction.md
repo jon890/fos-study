@@ -6,7 +6,7 @@ Spring Data JPA + `@Transactional`을 쓰면서 실수하기 쉬운 패턴들을
 
 ---
 
-## 1. Self-invocation — 같은 빈 안에서 호출하면 트랜잭션이 안 걸린다
+## Self-invocation — 같은 빈 안에서 호출하면 트랜잭션이 안 걸린다
 
 `@Transactional`은 Spring AOP 프록시로 동작한다. 프록시 바깥에서 호출할 때만 가로챈다.
 
@@ -41,7 +41,7 @@ public void process(Long orderId) {
 
 ---
 
-## 2. private 메서드에 @Transactional — 조용히 무시된다
+## private 메서드에 @Transactional — 조용히 무시된다
 
 Spring AOP 프록시는 `public` 메서드만 가로챌 수 있다. `private`이나 `protected`에 붙은 `@Transactional`은 아무 효과가 없다. 에러도 발생하지 않고 그냥 무시된다.
 
@@ -56,7 +56,7 @@ private void saveInternal(Entity entity) {
 
 ---
 
-## 3. @Transactional(readOnly = true) — 단순 힌트가 아니다
+## @Transactional(readOnly = true) — 단순 힌트가 아니다
 
 `readOnly = true`는 두 가지 효과가 있다.
 
@@ -76,7 +76,7 @@ public List<Order> findAll() {
 
 ---
 
-## 4. LazyInitializationException — 트랜잭션 밖에서 Lazy 로딩
+## LazyInitializationException — 트랜잭션 밖에서 Lazy 로딩
 
 JPA의 연관관계 기본 fetch 전략은 `LAZY`다. 엔티티를 조회해온 뒤 트랜잭션이 끝나면 영속성 컨텍스트가 닫히고, 이후 Lazy 필드에 접근하면 터진다.
 
@@ -113,7 +113,7 @@ public OrderDto findOrder(Long id) {
 
 ---
 
-## 5. REQUIRES_NEW 트랜잭션 중첩 — 예외가 어디서 처리되는가
+## REQUIRES_NEW 트랜잭션 중첩 — 예외가 어디서 처리되는가
 
 `REQUIRES_NEW`는 기존 트랜잭션을 일시 중단하고 새 트랜잭션을 연다. 새 트랜잭션이 커밋/롤백해도 외부 트랜잭션은 독립적으로 유지된다.
 
@@ -151,7 +151,7 @@ public void outer() {
 
 ---
 
-## 6. @Version 낙관적 잠금 vs @Lock 비관적 잠금
+## @Version 낙관적 잠금 vs @Lock 비관적 잠금
 
 동시 수정 충돌을 처리하는 두 가지 방식이다.
 
@@ -192,7 +192,7 @@ SELECT * FROM product WHERE id=1 FOR UPDATE;
 
 ---
 
-## 7. 트랜잭션 안에서 외부 시스템 호출 — 잠금 유지 시간 문제
+## 트랜잭션 안에서 외부 시스템 호출 — 잠금 유지 시간 문제
 
 트랜잭션 안에서 HTTP 외부 API나 느린 작업을 호출하면 그동안 DB 잠금이 유지된다.
 
@@ -227,7 +227,7 @@ public void updateOrderStatus(Long orderId) {
 
 ---
 
-## 8. save() 시점 — flush 전까지 SQL이 안 나간다
+## save() 시점 — flush 전까지 SQL이 안 나간다
 
 `repository.save()`를 호출해도 즉시 INSERT/UPDATE SQL이 실행되지 않는다. Hibernate가 영속성 컨텍스트에 모아뒀다가 flush 시점에 한꺼번에 내보낸다.
 

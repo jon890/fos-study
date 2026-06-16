@@ -1,6 +1,6 @@
 # Refresh Interval
 
-## 1. 내부 동작 메커니즘: 데이터가 검색되기까지
+## 내부 동작 메커니즘: 데이터가 검색되기까지
 
 OpenSearch의 근간인 **Apache Lucene**은 불변의 **Segment** 단위로 데이터를 저장한다.
 
@@ -17,7 +17,7 @@ OpenSearch의 근간인 **Apache Lucene**은 불변의 **Segment** 단위로 데
 
 > 요약 : Refresh는 메모리 버퍼 -> 파일시스템 캐시(Segment 생성) 과정이며, 이 주기가 바로 `refresh_interval` 이다.
 
-## 2. 왜 실시간이 아닌가?
+## 왜 실시간이 아닌가?
 
 왜 들어오자마자 바로 Segment로 만들지 않느냐? 라고 물을 수 있다.
 
@@ -29,7 +29,7 @@ OpenSearch의 근간인 **Apache Lucene**은 불변의 **Segment** 단위로 데
 > 그래서 "기본 1초"라는 버퍼링 시간을 두어, 어느 정도 모아서 Segment를 만들게끔 설계된 것이다. <br>
 > 이를 Near Real Time(NRT)라고 부른다.
 
-## 3. 상황별 튜닝 전략
+## 상황별 튜닝 전략
 
 개발자로서 이 값을 언제, 어떻게 조절해야 할지 아는 것이 중요하다.
 

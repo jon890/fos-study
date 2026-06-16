@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/nhn/personal/fos-study/.claude/skills/blog-post-writer/scripts/autoscore_hook.sh 2>/dev/null || true",
+            "statusMessage": "blog_score 자동 채점"
+          }
+        ]
+      }
+    ]
+  }
+}

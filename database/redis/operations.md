@@ -194,7 +194,7 @@ redis-cli MEMORY DOCTOR                  # 메모리 상태 진단
 
 ## 장애 유형별 대응
 
-### 1. 메모리 부족 (OOM / Eviction)
+### 메모리 부족 (OOM / Eviction)
 
 **증상:**
 - `evicted_keys` 증가
@@ -224,7 +224,7 @@ redis-cli EXPIRE {key} 3600
 - 데이터 분산 (Redis Cluster)
 - 불필요한 데이터 캐싱 정책 재검토
 
-### 2. 서버 다운 / 재시작
+### 서버 다운 / 재시작
 
 **RDB만 사용 중:**
 ```bash
@@ -251,7 +251,7 @@ redis-server /etc/redis/redis.conf
 
 **복구 우선순위:** AOF > RDB (AOF가 더 최신 데이터)
 
-### 3. 복제 지연 (Replica Lag)
+### 복제 지연 (Replica Lag)
 
 **증상:**
 - `master_repl_offset`와 `slave_repl_offset` 차이가 큼
@@ -273,7 +273,7 @@ redis-cli INFO replication
 - Master 부하 과다 → Replica에 읽기 트래픽 분산
 - Replica 서버 성능 부족 → 서버 스펙 업그레이드
 
-### 4. Master 장애 (Failover)
+### Master 장애 (Failover)
 
 **Sentinel 환경:**
 ```bash
@@ -310,7 +310,7 @@ redis-cli -h replica-host REPLICAOF NO ONE
 redis-cli -h old-master REPLICAOF new-master-host 6379
 ```
 
-### 5. Cache Stampede (캐시 폭풍)
+### Cache Stampede (캐시 폭풍)
 
 **증상:**
 - TTL 만료 순간 DB CPU/응답 시간 급증

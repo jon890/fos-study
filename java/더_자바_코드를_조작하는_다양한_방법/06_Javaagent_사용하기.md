@@ -1,6 +1,6 @@
 # 2부. 바이트코드 조작
 
-## 6. javaagent 실습
+## javaagent 실습
 
 ```
 public class Masulsa {

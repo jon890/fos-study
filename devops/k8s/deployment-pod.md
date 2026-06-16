@@ -10,7 +10,7 @@
   - **ReplicaSet** : "인스턴스 개수 유지 장치" (Scale-out 담당)
   - **Pod** : 실제 실행중인 Spring Boot 프로세스
 
-## 1. Pod (파드): K8s의 가장 작은 원자 단위
+## Pod (파드): K8s의 가장 작은 원자 단위
 
 많은 사람이 "K8s는 컨테이너를 관리한다"고 생각하지만, 사실은 K8s는 **Pod**를 관리한다.
 
@@ -21,7 +21,7 @@
   - **다중 컨테이너** : 보통은 `Spring Boot` 컨테이너 1개만 들어가지만, 로그 수집기나 프록시 같은 보조 컨테이너(Sidecar)를 옆에 끼워서 같이 띄울 수도 있다.
     - 이들은 **localhost**로 통신한다.
 
-## 2. ReplicaSet (레플리카셋): 개수를 보장하는 중간 관리자
+## ReplicaSet (레플리카셋): 개수를 보장하는 중간 관리자
 
 ArgoCD 화면에서 `api-deployment-xxxxx` 같은 이름으로 여러 개 보였던 녀석들이다.
 
@@ -30,7 +30,7 @@ ArgoCD 화면에서 `api-deployment-xxxxx` 같은 이름으로 여러 개 보였
   - 단순 무식하게 숫자를 맞춘다.
 - **중요한 점**: 우리는 이 ReplicaSet을 직접 만들지 않는다. **Deployment가 알아서 만든다**
 
-## 3. Deployment: 진정한 관리자 (배포의 핵심)
+## Deployment: 진정한 관리자 (배포의 핵심)
 
 우리가 작성하는 YAML 파일의 90%는 바로 이 **Deployment**이다.
 
@@ -39,7 +39,7 @@ ArgoCD 화면에서 `api-deployment-xxxxx` 같은 이름으로 여러 개 보였
   - 배포 이력 관리 : ArgoCD에서 본 회색 박스(과거 ReplicaSet)을 보관하고 있어, 언제든 롤백이 가능하다.
   - 무중단 배포 : 기존 Pod를 하나씩 죽이면서, 새 버전 Pod를 하나씩 띄우는 과정을 쥐휘한다.
 
-## 4. 실제 YAML 뜯어보기
+## 실제 YAML 뜯어보기
 
 이제 "Deployment"가 어떻게 생겼는지 코드로 보자. <br />
 주석을 통해 각 설정이 Spring Boot 앱에 어떤 영향을 주는지 설명해 두었다.
@@ -77,7 +77,7 @@ spec:
             port: 8080
 ```
 
-## 5. 배포의 마법: Rolling Update 과정
+## 배포의 마법: Rolling Update 과정
 
 개발자가 이미지 태그를 `v1`에서 `v2`로 바꾸고 `kubectl apply`를 하면 무슨 일이 벌어질까?
 

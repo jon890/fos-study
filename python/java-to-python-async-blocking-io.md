@@ -59,7 +59,7 @@ Reactor 와 async/await 의 공통점:
 - Reactor 는 명시적으로 `subscribe()` 해야 실행. asyncio 는 `await` 또는 `gather/create_task` 가 실행 트리거.
 - Reactor 의 `Mono.fromCallable(...).subscribeOn(Schedulers.boundedElastic())` 패턴이 asyncio 의 `run_in_executor(...)` 와 의도는 같다 (블로킹 작업을 별도 스레드로).
 
-자바에서 `CompletableFuture` 든 Reactor 든 **"이 작업이 어떤 스레드에서 도는가"** 가 항상 명시적 또는 암묵적으로 추적된다. Python async 는 "**이 작업이 이벤트 루프를 양보하는가**" 가 중심 질문이 된다.
+자바에서 `CompletableFuture` 든 Reactor 든 **이 작업이 어떤 스레드에서 도는가** 가 항상 명시적 또는 암묵적으로 추적된다. Python async 는 "**이 작업이 이벤트 루프를 양보하는가**" 가 중심 질문이 된다.
 
 ## 결정적 함정 — async 안의 blocking I/O
 

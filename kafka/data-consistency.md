@@ -2,7 +2,7 @@
 
 - 메시징 시스템에서 '정확히 한 번 (Exactly-once)'을 보장하기 위한 전략들과 설정들을 살펴보자.
 
-## 1. 데이터 유실 방지 : Producer & Broker 설정
+## 데이터 유실 방지 : Producer & Broker 설정
 
 데이터 유실은 보통 Producer가 메시지를 보냈으나 Broker에 안전하게 저장되지 않았을 떄 발생한다.
 
@@ -15,7 +15,7 @@
   - 별도의 Pooling이나 CDC(Debezium 등)을 통해 이 테이블의 내용을 읽어 Kafka로 발행
   - 이를 통해 **DB는 수정됐는데 Kafka 전송은 실패**하는 상황을 방지한다.
 
-## 2. 중복 처리 방지 : 멱등성 및 컨슈머 설계
+## 중복 처리 방지 : 멱등성 및 컨슈머 설계
 
 네트워크 재시도 등으로 인해 발생할 수 있는 중복은 컨슈머 측에서 처리해야 한다.
 
@@ -32,7 +32,7 @@
 - Unique Key 활용 : 메시지에 고유 ID(예: 주문 번호, 요청 UUID)를 포함하고, 컨슈머는 이를 DB의 Unique 제약 조건이나 Redis의 Set 드으로 체크하여 이미 처리된 건인지 확인한다.
 - Upsert 로직 : 단순하게 데이터를 덮어쓰는(Update or Insert) 방식으로 설계하면 여러 번 실행되어도 결과가 동일하다.
 
-## 3. Kafka 옵션 상세 설명 : min.insync.replicas
+## Kafka 옵션 상세 설명 : min.insync.replicas
 
 `min.isr`은 데이터 유실 방지의 핵심이다.
 
@@ -47,7 +47,7 @@
 - RF=3, min.isr=2 : 브로커 1개가 장애가 나도 서비스가 지속되며 데이터 안정성도 확보된다.
 - RF=3, min.isr=3 : 브로커 1개라도 점검을 위해 내려가면 전체 서비스의 쓰기 작업이 중단된다 (가용성 저하)
 
-## 4. Exactly-once Semantics
+## Exactly-once Semantics
 
 Spring Kafka를 사용한다면 `DefaultKafkaProducerFactory`에서 트랜잭션 매니저를 설정하여 **Kafka 트랜잭션을** 사용할 수 있다.
 

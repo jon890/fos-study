@@ -4,7 +4,7 @@
 
 Java 백엔드 면접에서 "Spring Framework와 Spring Boot의 차이를 설명해보세요"는 거의 빠지지 않는 단골 질문이다. 표면적인 답변은 누구나 할 수 있다. "Boot는 자동 설정해주고, 내장 톰캣이 있고, 스타터 의존성이 있어요." 하지만 이 수준의 답변은 신입 수준에서 멈춘다.
 
-경력직 백엔드 개발자에게 면접관이 진짜 듣고 싶은 것은 다음과 같다. **"당신은 Spring Boot의 추상화 뒤에서 실제로 무슨 일이 일어나는지 이해하고 있는가? Auto-configuration이 언제 실패하고, 왜 실패하고, 그걸 어떻게 디버깅하는가? Boot가 제공하는 기본값을 언제 override해야 하고, 언제 그대로 두어야 하는가?"**
+경력직 백엔드 개발자에게 면접관이 진짜 듣고 싶은 것은 다음과 같다. **당신은 Spring Boot의 추상화 뒤에서 실제로 무슨 일이 일어나는지 이해하고 있는가? Auto-configuration이 언제 실패하고, 왜 실패하고, 그걸 어떻게 디버깅하는가? Boot가 제공하는 기본값을 언제 override해야 하고, 언제 그대로 두어야 하는가?**
 
 이 문서는 단순히 두 가지를 비교하는 표를 나열하지 않는다. 대신 Spring Framework의 핵심 추상(IoC Container, BeanFactory, ApplicationContext)부터 시작해서 Spring Boot가 그 위에 어떤 레이어를 올렸는지, 그리고 그 레이어가 만들어내는 실전 함정들을 풀어본다. 업무 현장에서 `@ConditionalOnMissingBean` 때문에 Bean 덮어쓰기가 안 되는 문제, Auto-configuration 순서 때문에 Flyway가 JPA 스키마 검증 전에 돌지 않는 문제, `application.yml`의 우선순위 때문에 로컬/스테이징 설정이 섞이는 문제 — 이런 것들이 실제로 면접에서 꼬리질문으로 들어온다.
 
