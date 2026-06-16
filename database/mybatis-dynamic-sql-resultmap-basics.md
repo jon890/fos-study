@@ -2,9 +2,9 @@
 
 ## 왜 지금 다시 보는가
 
-JPA 위주로 작업해 왔더라도, 레거시 비중이 큰 SI/유통 도메인에서는 MyBatis 코드를 읽고 고치는 능력이 곧 합류 첫 달의 생산성을 결정한다. CJ푸드빌처럼 메뉴/매장/가격/영양 같은 도메인 데이터가 다양한 외부 시스템과 맞물리는 환경에서는 단순 CRUD보다 동적 조건 검색, 다중 RESULT 매핑, 대량 INSERT/UPDATE, 통계 집계 쿼리가 자주 등장한다. 그리고 이 영역은 JPA가 손해를 보는 영역과 겹친다. 따라서 면접에서도 "JPA만 써 봤다"는 답보다 "JPA가 강한 부분과 MyBatis로 가는 게 합리적인 부분을 구분해서 써 왔다"는 답이 훨씬 안전하다.
+JPA 위주로 작업해 왔더라도, 레거시 비중이 큰 SI/유통 도메인에서는 MyBatis 코드를 읽고 고치는 능력이 곧 합류 첫 달의 생산성을 결정한다. 외식 프랜차이즈처럼 메뉴/매장/가격/영양 같은 도메인 데이터가 다양한 외부 시스템과 맞물리는 환경에서는 단순 CRUD보다 동적 조건 검색, 다중 RESULT 매핑, 대량 INSERT/UPDATE, 통계 집계 쿼리가 자주 등장한다. 그리고 이 영역은 JPA가 손해를 보는 영역과 겹친다. 따라서 실무에서도 'JPA만 써 봤다'보다 'JPA가 강한 부분과 MyBatis로 가는 게 합리적인 부분을 구분해서 써 왔다'는 태도가 훨씬 안전하다.
 
-이 문서는 MyBatis를 처음 배우는 입문서가 아니라, JPA에 익숙한 백엔드 엔지니어가 면접 직전에 다시 정렬해 두기 위한 정리다. 개념을 길게 늘어놓기보다, 실제로 자주 틀리는 지점과 운영 중 만나는 함정을 우선한다.
+이 문서는 MyBatis를 처음 배우는 입문서가 아니라, JPA에 익숙한 백엔드 엔지니어가 실무 투입 전에 다시 정렬해 두기 위한 정리다. 개념을 길게 늘어놓기보다, 실제로 자주 틀리는 지점과 운영 중 만나는 함정을 우선한다.
 
 ## 핵심 개념 한 번에 정렬
 
@@ -144,7 +144,7 @@ public interface MenuMapper {
 - ORDER BY 컬럼, 테이블명, 동적 컬럼명: `${}`가 필요할 수 있다. 이때는 enum/화이트리스트 검증을 거친 값만 통과시킨다.
 - LIKE 절: `'%' || ? || '%'`가 아니라 `CONCAT('%', #{kw}, '%')` 같이 DB 함수로 합친다. 자바에서 `"%"+kw+"%"`로 합쳐 넘기면 `%`, `_` 와일드카드를 사용자 입력이 그대로 갖게 되므로, 정책에 맞춰 escape를 별도로 처리한다.
 
-면접에서 "MyBatis에서 SQL 인젝션은 어떻게 막나요"라는 질문이 나오면, `#{}`/`${}` 차이와 ORDER BY 같은 자리에서 화이트리스트로 보강한다는 두 축을 1분 안에 답할 수 있어야 한다.
+MyBatis에서 SQL 인젝션을 막는 핵심은 `#{}`/`${}` 차이와, ORDER BY 같은 자리에서 화이트리스트로 보강한다는 두 축이다.
 
 ## 페이징 — LIMIT/OFFSET vs 키셋
 
@@ -165,7 +165,7 @@ public interface MenuMapper {
 </select>
 ```
 
-이 방식은 정렬 컬럼이 인덱스의 leading column일 때만 효과를 본다. EXPLAIN의 `key`, `rows`를 같이 봐 두면 면접 답변 깊이가 달라진다.
+이 방식은 정렬 컬럼이 인덱스의 leading column일 때만 효과를 본다. EXPLAIN의 `key`, `rows`를 같이 봐 두면 이 방식의 효과를 정확히 판단할 수 있다.
 
 `COUNT(*)` 쿼리는 본 쿼리와 별도 select id로 분리한다. WHERE 조건 동적 SQL을 두 군데 중복해 작성하기 싫으면 `<sql>` + `<include>` 조합으로 조건절을 공유한다.
 
@@ -204,7 +204,7 @@ public interface MenuMapper {
 
 2) `ExecutorType.BATCH` SqlSession을 열어 PreparedStatement에 addBatch/executeBatch 흐름을 태운다. Spring에서는 별도 SqlSessionTemplate을 BATCH 모드로 만들고, 트랜잭션 안에서 mapper 메서드를 반복 호출한다. 멱등성이 필요한 경우 `INSERT ... ON DUPLICATE KEY UPDATE`(MySQL 8) 같은 upsert 구문을 같이 사용한다.
 
-면접에서는 "둘 중 무엇을 언제 쓰는가"를 묻는다. 답: 데이터 크기가 작고 명백히 한 트랜잭션이면 multi-row INSERT, 양이 크고 사용자별 row 빌드 로직이 자바 단에 있으면 BATCH executor.
+둘 중 무엇을 언제 쓰는가의 기준은 명확하다. 데이터 크기가 작고 명백히 한 트랜잭션이면 multi-row INSERT, 양이 크고 사용자별 row 빌드 로직이 자바 단에 있으면 BATCH executor를 쓴다.
 
 ## JPA와 혼용 — 트랜잭션, 1차 캐시, flush 타이밍
 
@@ -286,13 +286,18 @@ Spring Boot 의존성: `mybatis-spring-boot-starter`, `mysql-connector-j`. `appl
 - LIMIT/OFFSET을 `${}`로 받은 코드. 숫자 검증 없이 들어오면 인젝션 가능.
 - 동적 ORDER BY를 `${sort}`로 직접 받은 코드. 화이트리스트 분기로 바꿔야 한다.
 
-## 면접 답변 프레이밍
+## 정리 — JPA와 MyBatis를 가르는 기준
 
-"JPA와 MyBatis 중 무엇을 선호하는가"가 가장 자주 나오는 질문이다. 정답이 정해진 질문이 아니므로, 다음 골격으로 답한다.
+JPA와 MyBatis 중 무엇을 쓰느냐는 정답이 정해진 선택이 아니라 트레이드오프 판단이다. 다음 골격으로 정리할 수 있다.
 
-> 도메인 모델을 풍부하게 가져가는 트랜잭션 흐름은 JPA가 유리합니다. 영속성 컨텍스트가 변경 추적과 1차 캐시를 처리해 주기 때문에 코드 양이 줄고, fetch join, dirty checking, optimistic lock 같은 도구가 표준화되어 있습니다. 반대로 통계, 동적 검색, 복잡한 JOIN, 리포팅성 SQL은 MyBatis가 유리합니다. SQL이 1급 시민이라 EXPLAIN으로 바로 튜닝할 수 있고, 인덱스 활용을 직접 통제할 수 있습니다. 실제 프로젝트에서는 도메인 트랜잭션은 JPA로, 검색/배치/리포팅은 MyBatis로 나눠 쓰는 게 무난한 절충이었습니다.
+> 도메인 모델을 풍부하게 가져가는 트랜잭션 흐름은 JPA가 유리하다. 영속성 컨텍스트가 변경 추적과 1차 캐시를 처리해 주기 때문에 코드 양이 줄고, fetch join, dirty checking, optimistic lock 같은 도구가 표준화되어 있다. 반대로 통계, 동적 검색, 복잡한 JOIN, 리포팅성 SQL은 MyBatis가 유리하다. SQL이 1급 시민이라 EXPLAIN으로 바로 튜닝할 수 있고, 인덱스 활용을 직접 통제할 수 있다. 실제 프로젝트에서는 도메인 트랜잭션은 JPA로, 검색/배치/리포팅은 MyBatis로 나눠 쓰는 게 무난한 절충이다.
 
-"MyBatis에서 SQL 인젝션을 막는 원칙"은 `#{}`/`${}` 구분과 화이트리스트 보강을 두 축으로 답한다. "1:N 매핑 어떻게 하느냐"는 resultMap의 `<collection>` + `<id>` 중요성으로 답한다. "대량 INSERT는 어떻게 처리했나"는 multi-row INSERT vs BATCH executor 비교와 청크 사이즈 결정 근거로 답한다. "JPA와 같이 쓰면 주의할 점"은 flush 타이밍과 1차 캐시 일관성으로 답한다. 4개의 답이 모두 1\~2분 안에 떨어져야 한다.
+핵심 판단 축을 다시 정리하면 다음과 같다.
+
+- SQL 인젝션 방어: `#{}`/`${}` 구분과 화이트리스트 보강.
+- 1:N 매핑: resultMap의 `<collection>` + `<id>`.
+- 대량 INSERT: multi-row INSERT vs BATCH executor 비교와 청크 사이즈 결정 근거.
+- JPA 혼용 주의점: flush 타이밍과 1차 캐시 일관성.
 
 ## 체크리스트
 

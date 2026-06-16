@@ -2,11 +2,11 @@
 
 ## 왜 지금 이 주제인가
 
-CJ푸드빌처럼 매장/배달/예약/결제가 한 트랜잭션 흐름에서 함께 움직이는 커머스 도메인에서는 "이 메서드 하나가 어떤 트랜잭션 안에서 도는가"가 곧 데이터 정합성의 경계가 된다. 주문 저장은 성공했는데 결제 호출은 실패했다, 또는 결제는 통과했는데 알림 발송이 트랜잭션을 같이 끌고 들어가서 전체 롤백되어 사용자 입장에서 "결제는 됐는데 주문은 없는" 상태가 만들어졌다 — 이런 사건이 거의 다 트랜잭션 전파(propagation)와 예외 처리 규칙을 잘못 잡았을 때 터진다.
+외식 프랜차이즈처럼 매장/배달/예약/결제가 한 트랜잭션 흐름에서 함께 움직이는 커머스 도메인에서는 "이 메서드 하나가 어떤 트랜잭션 안에서 도는가"가 곧 데이터 정합성의 경계가 된다. 주문 저장은 성공했는데 결제 호출은 실패했다, 또는 결제는 통과했는데 알림 발송이 트랜잭션을 같이 끌고 들어가서 전체 롤백되어 사용자 입장에서 "결제는 됐는데 주문은 없는" 상태가 만들어졌다 — 이런 사건이 거의 다 트랜잭션 전파(propagation)와 예외 처리 규칙을 잘못 잡았을 때 터진다.
 
-그리고 면접에서는 항상 같은 함정 질문이 따라붙는다. `REQUIRES_NEW`를 어디에 쓰면 안 되는지, `rollbackOnly`가 왜 갑자기 던져지는지, `@Transactional` 메서드를 같은 클래스 내부에서 호출하면 왜 동작하지 않는지, `AFTER_COMMIT` 이벤트 리스너에서 다시 DB를 건드리면 왜 위험한지. 이건 단순 암기가 아니라, Spring AOP 프록시와 JDBC 트랜잭션 매뉴얼을 한 번이라도 직접 그려본 사람만 자연스럽게 답할 수 있다.
+그리고 여기에는 항상 같은 함정이 따라붙는다. `REQUIRES_NEW`를 어디에 쓰면 안 되는지, `rollbackOnly`가 왜 갑자기 던져지는지, `@Transactional` 메서드를 같은 클래스 내부에서 호출하면 왜 동작하지 않는지, `AFTER_COMMIT` 이벤트 리스너에서 다시 DB를 건드리면 왜 위험한지. 이건 단순 암기가 아니라, Spring AOP 프록시와 JDBC 트랜잭션 동작을 한 번이라도 직접 그려본 사람만 자연스럽게 풀어낼 수 있다.
 
-이 문서는 그걸 한 번 그려두는 글이다. 실제 주문/결제/이벤트 발행 코드를 단순화한 형태로 보여주면서, 실패 사례와 그 이유, 면접에서 나올 만한 후속 질문, 그리고 본인의 Kafka Outbox 경험과 자연스럽게 연결하는 답변 골격까지 같이 정리한다.
+이 문서는 그걸 한 번 그려두는 글이다. 실제 주문/결제/이벤트 발행 코드를 단순화한 형태로 보여주면서, 실패 사례와 그 이유, 자주 따라오는 후속 질문, 그리고 Kafka Outbox 운영 경험과 자연스럽게 연결하는 설명 골격까지 같이 정리한다.
 
 ## 핵심 개념: 전파(propagation)는 "이 호출이 트랜잭션 경계를 새로 그릴 것인가"의 정책
 
@@ -33,7 +33,7 @@ public OrderResult placeOrder(OrderCommand cmd) { ... }
 
 또는 checked exception을 비즈니스 시그니처에서 걷어내고 도메인 RuntimeException으로 감싸 던지는 방식. 후자가 일반적으로 더 깔끔하고, 도메인 계층에 외부 라이브러리 예외 타입이 섞이지 않는다는 부수 효과도 있다.
 
-또 한 가지, `try-catch`로 RuntimeException을 잡아 "삼키면" 자동 롤백 트리거가 사라진다. 그런데 만약 그 예외가 **이미 내부 메서드에서 트랜잭션 매니저에 rollbackOnly 마크를 찍어 둔 뒤** 라면, 바깥에서 잡고 무시해도 커밋 시점에 `UnexpectedRollbackException`이 터진다. 이게 면접 단골 질문 "rollbackOnly 본 적 있어요?"의 본체다.
+또 한 가지, `try-catch`로 RuntimeException을 잡아 "삼키면" 자동 롤백 트리거가 사라진다. 그런데 만약 그 예외가 **이미 내부 메서드에서 트랜잭션 매니저에 rollbackOnly 마크를 찍어 둔 뒤** 라면, 바깥에서 잡고 무시해도 커밋 시점에 `UnexpectedRollbackException`이 터진다. 이게 "rollbackOnly를 본 적 있느냐"라는 질문의 본체다.
 
 ## 자기 호출(self-invocation) 함정
 
@@ -98,7 +98,7 @@ public class PaymentApplier {
 }
 ```
 
-해법은 두 가지 중 하나다. 트랜잭션이 필요한 메서드를 **다른 빈으로 분리**하거나, 정 같은 클래스에 둬야 하면 `AopContext.currentProxy()`로 프록시를 가져와 호출하는 방법이 있다. 실무에서는 클래스를 분리하는 쪽이 압도적으로 깨끗하다. 면접에서는 "왜 안 되는지"의 원인을 **CGLIB 또는 JDK 동적 프록시 기반 호출 흐름** 차원에서 설명할 수 있어야 한다.
+해법은 두 가지 중 하나다. 트랜잭션이 필요한 메서드를 **다른 빈으로 분리**하거나, 정 같은 클래스에 둬야 하면 `AopContext.currentProxy()`로 프록시를 가져와 호출하는 방법이 있다. 실무에서는 클래스를 분리하는 쪽이 압도적으로 깨끗하다. "왜 안 되는지"의 원인은 **CGLIB 또는 JDK 동적 프록시 기반 호출 흐름** 차원에서 설명할 수 있어야 한다.
 
 ## @Async와 트랜잭션이 전파되지 않는 함정
 
@@ -172,7 +172,7 @@ public class OrderNotifyService {
 }
 ```
 
-핵심은 두 가지를 분리한 것이다. **언제 실행할지**(AFTER\_COMMIT)와 **어디 스레드에서 실행할지**(@Async)는 별개 결정이라는 점을 코드 구조로 드러낸다. 이렇게 두면 바깥 커밋 후에만 비동기 스레드가 깨어나고, 그 스레드는 자기만의 새 트랜잭션을 명시적으로 연다. 면접에서는 "비동기와 트랜잭션은 같은 줄에 붙여 두지 않습니다"라는 한마디로 이 의사결정을 요약할 수 있다.
+핵심은 두 가지를 분리한 것이다. **언제 실행할지**(AFTER\_COMMIT)와 **어디 스레드에서 실행할지**(@Async)는 별개 결정이라는 점을 코드 구조로 드러낸다. 이렇게 두면 바깥 커밋 후에만 비동기 스레드가 깨어나고, 그 스레드는 자기만의 새 트랜잭션을 명시적으로 연다. "비동기와 트랜잭션은 같은 줄에 붙여 두지 않는다"라는 한마디로 이 의사결정을 요약할 수 있다.
 
 ## REQUIRES\_NEW로 실패 로그 분리하기
 
@@ -198,7 +198,7 @@ public class PaymentAuditWriter {
 
 `NESTED`는 JDBC SAVEPOINT 위에서 동작한다. 이론적으로는 "이 일부 작업만 부분 롤백"이라는 깔끔한 모델이지만, JPA를 같이 쓰면 1차 캐시와 SAVEPOINT 시점이 어긋난다. 안쪽에서 영속화한 엔티티를 SAVEPOINT로 되돌렸는데 1차 캐시에는 남아 있어 이후 조회/플러시가 비정합 상태가 되는 식이다. 그래서 JPA 환경에서는 `NESTED`보다 **REQUIRES\_NEW + 별도 컴포넌트**, 또는 **부분 실패는 도메인 로직으로 흡수**하는 방향을 많이 선택한다.
 
-면접에서 NESTED가 나오면 "동작 원리는 SAVEPOINT 기반이고, JPA와 함께 쓰면 1차 캐시 정합 이슈로 권장하지 않는다"까지 답하면 충분하다.
+NESTED를 정리할 때는 "동작 원리는 SAVEPOINT 기반이고, JPA와 함께 쓰면 1차 캐시 정합 이슈로 권장하지 않는다"까지 짚으면 충분하다.
 
 ## @TransactionalEventListener(AFTER\_COMMIT)와 Outbox
 
@@ -228,7 +228,7 @@ public class OrderPaidEventListener {
 
 ## 멱등성 키 — 트랜잭션 경계 어디에 둘 것인가
 
-커머스 결제 도메인에서 같은 `idempotencyKey`로 두 번 들어오는 요청은 일상이다. 모바일 앱 재시도, 네트워크 타임아웃 후 PG 재호출, 사용자 더블 클릭. 면접관이 "결제 중복 어떻게 막아요?"라고 물었을 때 `unique constraint`까지만 답하면 절반만 맞췄다. 진짜 질문은 **그 unique 충돌을 어느 트랜잭션 경계에서 잡아 어떤 의미로 변환할 것인가**이다.
+커머스 결제 도메인에서 같은 `idempotencyKey`로 두 번 들어오는 요청은 일상이다. 모바일 앱 재시도, 네트워크 타임아웃 후 PG 재호출, 사용자 더블 클릭. "결제 중복을 어떻게 막느냐"에 `unique constraint`까지만 답하면 절반이다. 진짜 핵심은 **그 unique 충돌을 어느 트랜잭션 경계에서 잡아 어떤 의미로 변환할 것인가**이다.
 
 ```java
 @Service
@@ -268,13 +268,13 @@ public class PaymentApplicationService {
 
 여기서 의도적으로 트랜잭션을 두 토막으로 잘랐다. **PG 호출은 트랜잭션 밖**이다. 외부 IO를 `@Transactional` 안에 묶어 두면 PG가 느려질 때마다 그 시간만큼 DB 커넥션과 락을 쥐고 있게 된다. 첫 토막은 멱등성 키 선점이라는 짧은 트랜잭션, 두 번째 토막은 결과 영속화라는 짧은 트랜잭션이다.
 
-면접에서 자주 따라붙는 함정 질문이 있다. "그러면 첫 토막은 성공하고 PG 호출은 됐는데 두 번째 토막에서 DB 오류로 실패하면요?" 정답은 "그래서 두 번째 토막은 idempotency key 상태 기반으로 재시도 가능해야 한다"이다. 첫 토막에서 PENDING으로 표기, PG 응답을 받고 두 번째 토막에서 SUCCEEDED로 전이. 두 번째 토막이 실패하면 다음 재시도가 PENDING 상태와 PG의 `approvalNumber`를 보고 같은 결과를 다시 영속화한다. 이때 두 번째 토막은 결제 row 저장에 `paymentRepository.save`의 unique key를 한 번 더 의지한다. **트랜잭션 + unique constraint + 상태 머신**, 세 축이 함께 가야 멱등성이 완성된다.
+여기서 자주 따라붙는 함정이 있다. "그러면 첫 토막은 성공하고 PG 호출은 됐는데 두 번째 토막에서 DB 오류로 실패하면" 어떻게 되는가. 답은 "그래서 두 번째 토막은 idempotency key 상태 기반으로 재시도 가능해야 한다"이다. 첫 토막에서 PENDING으로 표기, PG 응답을 받고 두 번째 토막에서 SUCCEEDED로 전이. 두 번째 토막이 실패하면 다음 재시도가 PENDING 상태와 PG의 `approvalNumber`를 보고 같은 결과를 다시 영속화한다. 이때 두 번째 토막은 결제 row 저장에 `paymentRepository.save`의 unique key를 한 번 더 의지한다. **트랜잭션 + unique constraint + 상태 머신**, 세 축이 함께 가야 멱등성이 완성된다.
 
-본인의 Kafka Outbox 경험과 자연스럽게 연결되는 지점도 여기다. Outbox 폴러가 같은 이벤트를 두 번 발행하더라도 컨슈머가 멱등하다면 안전하다. 결제 도메인은 더 엄격해서 컨슈머만이 아니라 **요청 단위 멱등성**까지 보장해야 한다. 면접관 입장에서는 "Kafka 멱등성과 결제 멱등성을 같은 사고 프레임으로 본다"는 시그널 자체가 큰 가산점이다.
+Kafka Outbox 경험과 자연스럽게 연결되는 지점도 여기다. Outbox 폴러가 같은 이벤트를 두 번 발행하더라도 컨슈머가 멱등하다면 안전하다. 결제 도메인은 더 엄격해서 컨슈머만이 아니라 **요청 단위 멱등성**까지 보장해야 한다. Kafka 멱등성과 결제 멱등성을 같은 사고 프레임으로 묶어 보는 관점이 곧 설계의 일관성이 된다.
 
 ## rollbackOnly와 UnexpectedRollbackException
 
-전파가 `REQUIRED`인 메서드 안에서 RuntimeException이 발생하면 Spring 트랜잭션 매니저는 **현재 트랜잭션에 rollbackOnly 플래그**를 세운다. 이걸 호출자가 잡아서 무시해도, 가장 바깥 트랜잭션이 커밋을 시도하는 순간 매니저는 "이미 롤백 마킹된 트랜잭션을 커밋하라고요?"라며 `UnexpectedRollbackException`을 던진다.
+전파가 `REQUIRED`인 메서드 안에서 RuntimeException이 발생하면 Spring 트랜잭션 매니저는 **현재 트랜잭션에 rollbackOnly 플래그**를 세운다. 이걸 호출자가 잡아서 무시해도, 가장 바깥 트랜잭션이 커밋을 시도하는 순간 매니저는 "이미 롤백 마킹된 트랜잭션을 커밋하라는 것이냐"며 `UnexpectedRollbackException`을 던진다.
 
 ```java
 @Transactional
@@ -326,25 +326,25 @@ logging:
 5. `@TransactionalEventListener(AFTER_COMMIT)` 안에서 `@Transactional` 없이 save → 동작이 어색해지는 케이스 재현. 그다음 `OutboxAppender.appendInNewTransaction`을 `REQUIRES_NEW`로 두고 의도대로 분리되는지 확인.
 6. REQUIRED 안쪽에서 RuntimeException을 던지고 바깥에서 catch하여 무시 → 커밋 시점 `UnexpectedRollbackException` 재현.
 
-## 면접 답변 프레이밍
+## 설명 프레이밍
 
-면접에서 트랜잭션 전파가 나오면 답변 골격은 이렇게 잡으면 안전하다.
+트랜잭션 전파를 한 문단으로 정리하면 골격은 이렇다.
 
-> "REQUIRED는 같은 작업 단위에 합류하는 기본값이라 비즈니스 로직 대부분에 쓰고, REQUIRES\_NEW는 바깥 트랜잭션과 운명을 분리해야 하는 감사 로그·실패 기록 같은 데에만 제한적으로 씁니다. NESTED는 SAVEPOINT 기반이라 JPA와 같이 쓰면 1차 캐시와 어긋날 수 있어 권장하지 않습니다.
+> "REQUIRED는 같은 작업 단위에 합류하는 기본값이라 비즈니스 로직 대부분에 쓰고, REQUIRES\_NEW는 바깥 트랜잭션과 운명을 분리해야 하는 감사 로그·실패 기록 같은 데에만 제한적으로 쓴다. NESTED는 SAVEPOINT 기반이라 JPA와 같이 쓰면 1차 캐시와 어긋날 수 있어 권장하지 않는다.
 >
-> 예외 측면에서는 Spring이 기본적으로 unchecked만 자동 롤백하므로 외부 IO 호출이 있는 메서드는 `rollbackFor`를 명시적으로 잡아 두는 편입니다. 자기 호출 함정도 자주 나오는데, 같은 클래스 내부 호출은 프록시를 우회하기 때문에 트랜잭션이 적용되지 않아서, 트랜잭션 단위가 분리될 만하면 빈을 분리합니다.
+> 예외 측면에서는 Spring이 기본적으로 unchecked만 자동 롤백하므로 외부 IO 호출이 있는 메서드는 `rollbackFor`를 명시적으로 잡아 둔다. 자기 호출 함정도 자주 나오는데, 같은 클래스 내부 호출은 프록시를 우회하기 때문에 트랜잭션이 적용되지 않아서, 트랜잭션 단위가 분리될 만하면 빈을 분리한다.
 >
-> 이벤트 발행은 `@TransactionalEventListener(AFTER_COMMIT)`로 직접 publish하는 대신, 도메인 트랜잭션 안에서 outbox row를 같이 저장하고 별도 publisher가 발행하는 Transactional [Outbox 패턴](../../architecture/distributed-transaction-outbox-pattern.md)을 선호합니다. 이전 프로젝트에서 Kafka Outbox를 도입할 때, 결제 성공 후 알림이 누락되는 사고를 막기 위해 publish를 도메인 트랜잭션과 분리하고 outbox 폴러가 재시도까지 담당하게 한 경험이 있어서 그 구조가 손에 익어 있습니다."
+> 이벤트 발행은 `@TransactionalEventListener(AFTER_COMMIT)`로 직접 publish하는 대신, 도메인 트랜잭션 안에서 outbox row를 같이 저장하고 별도 publisher가 발행하는 Transactional [Outbox 패턴](../../architecture/distributed-transaction-outbox-pattern.md)을 선호한다. 이전 프로젝트에서 Kafka Outbox를 도입할 때, 결제 성공 후 알림이 누락되는 사고를 막기 위해 publish를 도메인 트랜잭션과 분리하고 outbox 폴러가 재시도까지 담당하게 한 경험이 있어 그 구조가 손에 익어 있다."
 
-여기서 마지막 한 줄이 본인의 Outbox 경험과 자연스럽게 연결되는 지점이다. 면접관은 보통 이 시점에서 "재시도 멱등성은 어떻게 보장했냐", "outbox 폭증은 어떻게 막았냐", "DLQ는 따로 뒀냐" 같은 후속 질문으로 들어오므로 답변 끝에 이 후속 질문을 유도할 만한 키워드(idempotency key, partition key, DLQ)를 의도적으로 깔아 둔다.
+여기서 마지막 한 줄이 Outbox 경험과 자연스럽게 연결되는 지점이다. 보통 이 시점에서 "재시도 멱등성은 어떻게 보장했나", "outbox 폭증은 어떻게 막았나", "DLQ는 따로 뒀나" 같은 후속 논의로 들어가므로, 설명 끝에 그 후속 논의를 유도할 만한 키워드(idempotency key, partition key, DLQ)를 의도적으로 깔아 둔다.
 
-자주 나오는 함정 질문과 짧은 정답:
+자주 나오는 함정과 짧은 정리:
 
-- "REQUIRES\_NEW만 붙이면 안전한가요?" → 아니다. 새 커넥션을 점유하므로 풀 크기와 자기 자신과의 락 경합을 같이 봐야 한다.
-- "self-invocation은 왜 안 되죠?" → AOP 프록시를 거치지 않고 원본 객체 메서드를 직접 호출하기 때문. 빈 분리 또는 `AopContext`로 우회.
-- "checked exception이면 자동 롤백 안 되는 이유?" → Spring 기본 정책이 unchecked + Error 한정. EJB 관례에서 유래.
-- "AFTER\_COMMIT에서 DB save 하면 되나요?" → 트랜잭션이 이미 닫혔으므로 새 트랜잭션을 명시적으로 열어야 한다.
-- "rollbackOnly가 뭐예요?" → REQUIRED 트랜잭션 내부에서 롤백 결정이 나면 매니저가 마킹하고, 호출자가 예외를 삼켜도 커밋 시 `UnexpectedRollbackException`으로 노출된다.
+- "REQUIRES\_NEW만 붙이면 안전한가" → 아니다. 새 커넥션을 점유하므로 풀 크기와 자기 자신과의 락 경합을 같이 봐야 한다.
+- "self-invocation은 왜 안 되는가" → AOP 프록시를 거치지 않고 원본 객체 메서드를 직접 호출하기 때문. 빈 분리 또는 `AopContext`로 우회.
+- "checked exception이면 자동 롤백 안 되는 이유" → Spring 기본 정책이 unchecked + Error 한정. EJB 관례에서 유래.
+- "AFTER\_COMMIT에서 DB save 해도 되는가" → 트랜잭션이 이미 닫혔으므로 새 트랜잭션을 명시적으로 열어야 한다.
+- "rollbackOnly가 무엇인가" → REQUIRED 트랜잭션 내부에서 롤백 결정이 나면 매니저가 마킹하고, 호출자가 예외를 삼켜도 커밋 시 `UnexpectedRollbackException`으로 노출된다.
 
 ## 체크리스트
 
@@ -357,7 +357,7 @@ logging:
 - [ ] outbox 저장 실패 케이스 자체를 별도 dead-letter 테이블에 `REQUIRES_NEW`로 적재할 경로를 정의했다
 - [ ] `transaction.interceptor` TRACE 로그로 propagation이 의도대로 적용되는지 한 번 이상 눈으로 확인했다
 - [ ] rollbackOnly / `UnexpectedRollbackException` 시나리오를 직접 재현해 봤다
-- [ ] 면접 답변에서 본인 Outbox 경험과 트랜잭션 전파 정책을 한 문단 안에서 자연스럽게 연결할 수 있다
+- [ ] Outbox 경험과 트랜잭션 전파 정책을 한 문단 안에서 자연스럽게 연결해 설명할 수 있다
 - [ ] `@Async`와 `@Transactional`을 같은 메서드에 묶어 두지 않았다 (스레드 경계 = 트랜잭션 경계)
 - [ ] 비동기 후처리는 `AFTER_COMMIT` 리스너에서 트리거하고, 비동기 스레드 내부는 자기 트랜잭션을 새로 연다
 - [ ] 멱등성 키는 짧은 별도 트랜잭션으로 선점하고, 외부 IO는 트랜잭션 밖에서 수행한다

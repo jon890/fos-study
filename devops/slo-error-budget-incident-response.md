@@ -497,4 +497,4 @@ Fallback: cache stale response 허용
 - [Observability 입문](../architecture/observability-basics.md)
 - [Resilience 패턴 실전 가이드](../architecture/resilience-patterns.md)
 - [커머스/F&B 채널 장애 첫 5분과 관측성 기본기](./commerce-observability-first-five-minutes.md)
-- [F&B / e-Commerce 운영 장애 대응과 모니터링](./fnb-ecommerce-operations-monitoring-interview.md)
+- [F&B / e-Commerce 운영 장애 대응과 모니터링](./fnb-ecommerce-operations-monitoring.md)
