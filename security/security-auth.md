@@ -10,7 +10,7 @@
 
 ## OWASP Top 10 요점과 Java/Spring 방어
 
-### 1.1 SQL Injection (A03: Injection)
+### SQL Injection (A03: Injection)
 
 공격자가 입력값에 SQL 조각을 섞어 쿼리 의미를 바꾸는 공격이다. 여전히 실전에서 가장 흔한 침해 원인이다.
 
@@ -41,7 +41,7 @@ public User find(@RequestParam String email) {
 
 방어 체크리스트: 파라미터 바인딩, ORM 활용, DB 계정 최소 권한(`SELECT`만 필요한 서비스에 `DROP` 권한을 주지 않는다), 에러 메시지에서 SQL 구조 노출 금지.
 
-### 1.2 XSS (A03: Injection — Cross-Site Scripting)
+### XSS (A03: Injection — Cross-Site Scripting)
 
 공격자가 스크립트를 페이지에 심어 피해자의 브라우저에서 실행되게 한다. 백엔드 관점에서는 "응답에 들어가는 모든 사용자 입력은 HTML 컨텍스트에서 이스케이프 되어야 한다"가 핵심이다.
 
@@ -52,7 +52,7 @@ public User find(@RequestParam String email) {
 - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`
 - HTML을 저장해야 하면 `OWASP Java HTML Sanitizer` 로 화이트리스트 기반 정화
 
-### 1.3 CSRF
+### CSRF
 
 로그인된 피해자의 브라우저로 공격자가 원치 않는 요청을 보내게 하는 공격. 인증이 쿠키 기반(자동 전송)일 때만 의미가 있다. 완전한 Bearer 토큰 기반 REST API는 CSRF 리스크가 원천적으로 적다.
 
@@ -70,13 +70,13 @@ public SecurityFilterChain filter(HttpSecurity http) throws Exception {
 
 세션 쿠키 기반 BFF(Backend For Frontend) 구조에서는 반드시 `SameSite=Lax` 또는 `Strict`, 그리고 CSRF 토큰을 함께 쓴다.
 
-### 1.4 SSRF
+### SSRF
 
 서버가 신뢰하는 네트워크 위치에서 외부/내부 URL로 요청을 보내게 만드는 공격. AWS EC2 메타데이터(`169.254.169.254`) 탈취 사례가 대표적이다.
 
 방어: 외부 URL을 받는 엔드포인트가 있다면 `URL` 을 파싱해 호스트를 화이트리스트와 대조, 사설망 대역(`10/8`, `172.16/12`, `192.168/16`, `169.254/16`) 차단, `RestTemplate`/`WebClient` 에 리디렉션 제한과 타임아웃 설정.
 
-### 1.5 IDOR (Broken Access Control)
+### IDOR (Broken Access Control)
 
 `GET /orders/123` 을 A 사용자가 호출했는데 실제로 123번 주문이 B 소유인 경우. 인증은 통과했지만 **인가**가 깨진 것이다. OWASP Top 10에서 항상 1, 2위권이다.
 

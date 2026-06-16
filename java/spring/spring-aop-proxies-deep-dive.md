@@ -94,7 +94,7 @@ JDK Dynamic Proxy는 **JDK 1.3부터 포함된 표준 기능**이며, 핵심 구
 
 핵심 제약: **인터페이스가 있어야 한다.** JDK Proxy는 지정된 인터페이스들을 **implements**하는 새로운 클래스를 런타임에 만들어낸다. 대상 객체의 구체 타입은 상관없다. 대신 주입받는 쪽도 **반드시 인터페이스 타입으로** 받아야 한다.
 
-### 5.1 최소 예제: 직접 만들어보는 JDK Proxy
+### 최소 예제: 직접 만들어보는 JDK Proxy
 
 ```java
 public interface OrderService {
@@ -264,7 +264,7 @@ caller -> proxy.placeOrder(cmd)
 - `@Async`가 self-invocation으로 호출되어 같은 스레드에서 동기 실행됨
 - `@Cacheable`이 self-invocation으로 호출되어 캐시가 전혀 타지 않음
 
-### 9.1 self-invocation 우회 전략
+### self-invocation 우회 전략
 
 1. **분리**(권장)
    횡단 관심사가 걸린 메서드를 **다른 빈으로 뽑아낸다**. 그러면 호출이 "다른 빈의 프록시"를 거치게 된다.
