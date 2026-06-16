@@ -239,7 +239,7 @@ python3 scripts/blog_fix.py            # 현재 경로 이하 전체
 python3 scripts/blog_fix.py <dir>      # 특정 폴더만
 ```
 
-- 안전 조건 — `number_crossref` 가 없고(heading 번호를 떼도 "섹션 N" 참조가 안 깨짐), `bold_quote`/`heading_number` 외 축이 없는 글만 손댄다. 나머지(`ascii_box`·`tilde` 등)는 수동 판단.
+- 안전 조건 — `number_crossref` 가 없는 글만 손댄다(있으면 heading 번호를 떼는 순간 본문 "섹션 N" 참조가 깨짐). `ascii_box`·`bold_paren`·`tilde` 같은 다른 축이 동반돼 있어도 fix 는 `heading_number`·`bold_quote` 만 건드리므로 그 두 축만 부분 교정하고 나머지는 그대로 둔다(수동 판단).
 - 코드펜스 인식은 blog_score 와 **동일한 정규식 쌍 매칭**(```` ```...``` ````)을 쓴다. 단순 `startswith("```")` 토글은 리스트 안 들여쓴 펜스(`  - ```md`)를 놓쳐 이후 줄을 통째로 코드펜스로 오판한다(실측: agents-md 누락).
 
 ### 2계층 reward — blog_judge (LLM judge)

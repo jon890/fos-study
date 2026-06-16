@@ -10,9 +10,10 @@ blog_score 의 markdown-pitfalls 위반 중 *기계적으로 안전하게 되돌
 실제로 agents-md 가 이 버그로 (a) 일괄 교정에서 누락됐다 — 그래서 채점기와
 같은 인식으로 맞춰 둔다.
 
-안전 조건(모두 만족)인 파일만 손댄다:
-  - number_crossref 위반 없음 (heading 번호 떼도 본문 "섹션 N" 참조가 안 깨짐)
-  - bold_quote / heading_number 외 위반 축 없음 (다른 축은 수동 판단 필요)
+교정 대상은 heading_number 와 bold_quote 두 축뿐이다(ascii_box·bold_paren·tilde 등은
+손대지 않고 그대로 둔다). 그래서 안전 조건은 하나다:
+  - number_crossref 위반 없음 (있으면 heading 번호를 떼는 순간 본문 "섹션 N" 참조가 깨짐)
+다른 축(ascii_box 등)이 동반된 글도 heading/bold 부분 교정은 안전하므로 처리한다.
 
 사용:
   python3 blog_fix.py            # 현재 경로 이하 전체
@@ -68,8 +69,12 @@ def main():
         if n == 0:
             continue
         cnt = {k: len(v) for k, v in d.items() if v}
-        if cnt.get("number_crossref", 0) > 0 or not (set(cnt) <= AUTO):
-            continue  # 안전 조건 미충족 → skip
+        # fix() 는 heading_number 와 bold_quote 만 건드린다(ascii_box·bold_paren·tilde 등은
+        # 손대지 않는다). 그래서 number_crossref 만 없으면 다른 축이 동반돼 있어도
+        # heading/bold 부분 교정은 안전하다. number_crossref 가 있으면 heading 번호를
+        # 떼는 순간 본문 "섹션 N" 참조가 깨지므로 그 글만 skip 한다.
+        if cnt.get("number_crossref", 0) > 0:
+            continue
         new = fix(t)
         if new != t:
             open(f, "w", encoding="utf-8").write(new)
