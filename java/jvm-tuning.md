@@ -4,7 +4,7 @@
 
 시니어 Java 백엔드 엔지니어라면 "서비스가 느려졌다"는 장애 리포트를 한 번쯤 받아봤을 것이다. 이때 "GC가 원인인가?"를 10분 안에 판단할 수 있는가, 아니면 로그만 뒤적이다가 한 시간을 보내는가. 이 차이가 시니어와 미드 레벨의 결정적 차이다.
 
-JVM 튜닝은 "옵션 플래그를 외우는 것"이 아니다. 힙이 어떻게 구성되는지, GC가 어떤 규칙으로 객체를 죽이는지, 어떤 지표를 봐야 튜닝 방향이 잡히는지를 이해해야 한다. 특히 Java 17, 21 LTS로 넘어오면서 G1GC가 기본값이 되고, ZGC가 프로덕션 레벨로 올라왔고, Virtual Threads가 등장하면서 "Thread Pool 사이즈를 어떻게 잡는가"라는 오랜 질문 자체가 다시 쓰이고 있다. CJ OliveYoung 규모의 커머스 플랫폼이라면 결제/검색/추천 등 다양한 워크로드가 한 JVM 안에 혼재하고, 초당 수천 건의 요청에서 pause time 100ms가 사용자 경험을 직접 깎아먹는다.
+JVM 튜닝은 "옵션 플래그를 외우는 것"이 아니다. 힙이 어떻게 구성되는지, GC가 어떤 규칙으로 객체를 죽이는지, 어떤 지표를 봐야 튜닝 방향이 잡히는지를 이해해야 한다. 특히 Java 17, 21 LTS로 넘어오면서 G1GC가 기본값이 되고, ZGC가 프로덕션 레벨로 올라왔고, Virtual Threads가 등장하면서 "Thread Pool 사이즈를 어떻게 잡는가"라는 오랜 질문 자체가 다시 쓰이고 있다. 대규모 커머스 플랫폼이라면 결제/검색/추천 등 다양한 워크로드가 한 JVM 안에 혼재하고, 초당 수천 건의 요청에서 pause time 100ms가 사용자 경험을 직접 깎아먹는다.
 
 이 문서는 JVM 메모리 구조 → GC → 튜닝 플래그 → 로그 해석 → OOM 대응 → 실전 사례 매핑 → 프로파일링 → Virtual Threads → 동시성 유틸리티 → JMH 벤치마킹 → 면접 답변 framing까지, 시니어 관점의 JVM 지식을 한 번에 정리한다.
 
@@ -388,7 +388,7 @@ try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 
 ## StampedLock vs ReentrantReadWriteLock
 
-후보자의 이전 학습 노트([StampedLock](./stamped-lock.md))에서 다룬 주제의 심화 정리.
+관련 학습 노트([StampedLock](./stamped-lock.md))에서 다룬 주제의 심화 정리.
 
 **ReentrantReadWriteLock**. Read가 많고 Write가 적은 워크로드에서 여러 Read가 동시에 진행 가능. 재진입 지원. 하지만 Write가 끼어들면 Read가 블로킹되고, Read 락 자체도 비용이 있다.
 

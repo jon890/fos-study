@@ -312,7 +312,7 @@ public class OrderCancelledHandler {
 
 ## 커머스 예시로 Bounded Context 나누기
 
-OliveYoung 류 커머스 도메인을 다음과 같이 자른다.
+대규모 커머스 도메인을 다음과 같이 자른다.
 
 - **Order Context**: `Order`, `OrderLine`, `OrderStatus`. 주문 수명주기 관리.
 - **Payment Context**: `Payment`, `PaymentMethod`. PG 연동, 승인/취소.
@@ -376,11 +376,11 @@ public interface OrderQueryDao {
 5. **EAGER 기본**: `@OneToMany(fetch = EAGER)`는 Aggregate 경계를 의심하게 만든다. 기본은 LAZY, 필요한 유스케이스에서만 fetch join.
 6. **도메인에 Spring/JPA 어노테이션 범람**: 도메인 엔티티에 `@Transactional`, `@CachePut` 등이 붙으면 응집이 깨진다. 이런 관심사는 Application 레이어로.
 
-## 후보 경험의 DDD 재해석
+## 실무 경험의 DDD 재해석
 
-후보자가 가진 다음 경험은 DDD 용어로 자연스럽게 번역된다.
+다음과 같은 실무 경험은 DDD 용어로 자연스럽게 번역된다.
 
-- **slot 엔진 추상화 / 전략 패턴 도입**: 할인 정책·슬롯 선정 알고리즘을 `DiscountPolicy`, `SlotSelectionStrategy` 같은 **Domain Service**로 분리한 사례. OCP를 지키면서 정책 교체 비용을 낮춘 것은 전형적인 DDD식 리팩터링이다.
+- **엔진 추상화 / 전략 패턴 도입**: 할인 정책·선정 알고리즘을 `DiscountPolicy`, `SelectionStrategy` 같은 **Domain Service**로 분리한 사례. OCP를 지키면서 정책 교체 비용을 낮춘 것은 전형적인 DDD식 리팩터링이다.
 - **내부 모듈 경계 분리**: 서로 다른 팀/기능이 공유하던 단일 모듈을 기능 단위로 쪼갠 경험 → **Bounded Context 분리**. 공유되던 DTO를 각 컨텍스트 안에서 자체 모델로 재정의한 경험이 있다면 강력한 어필 포인트.
 - **공통 유틸에서 벗어나 도메인 중심으로 이동**: `CommonUtil.calculate(...)`를 엔티티의 `calculate()` 메서드로 옮긴 경험 → Anemic에서 Rich로의 이동.
 

@@ -21,7 +21,7 @@
 ## 대규모 트래픽
 
 - [시스템 설계 입문](./system-design-basics.md) — 시니어 백엔드를 위한 시스템 설계 스터디 팩
-- [대규모 커머스 트래픽 처리 패턴](./high-traffic-commerce-patterns.md) — 1,600만 고객 / 올영세일 대비 설계
+- [대규모 커머스 트래픽 처리 패턴](./high-traffic-commerce-patterns.md) — 대규모 회원 / 메가 프로모션 대비 설계
 - [무중단 마이그레이션](./zero-downtime-migration.md) — Feature Flag + Shadow Mode 실전
 
 ## 운영 품질
