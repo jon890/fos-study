@@ -1,2 +1,0 @@
-{"timestamp": "2026-06-11T02:58:45.126517+00:00", "files_scanned": 367, "counts": {"broken_link": 0, "orphan_doc": 24, "readme_missing": 27, "style_tilde": 15, "style_section": 0, "style_bold_paren": 12, "style_italic_paren": 0}, "penalty": 183, "score": -183}
-{"timestamp": "2026-06-11T04:33:59.154681+00:00", "files_scanned": 368, "counts": {"broken_link": 0, "orphan_doc": 20, "readme_missing": 20, "style_tilde": 0, "style_section": 0, "style_bold_paren": 0, "style_italic_paren": 0}, "penalty": 100, "score": -100}
