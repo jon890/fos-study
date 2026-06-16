@@ -25,7 +25,7 @@
 
 ## 운영 트러블슈팅
 
-- [GPU 노드 /run tmpfs 포화](./gpu-node-run-tmpfs-full.md)
+- [GPU 노드 /run tmpfs 포화](../../mlops/gpu-node-run-tmpfs-full.md) — GPU 운영 글은 mlops 카테고리로 이동
 
 ## 도서
 
