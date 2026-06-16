@@ -153,7 +153,7 @@
     - 끝없는 await 루프 금지
     - async resource leak을 추 적 (AsyncLocalStorage, autocannon 테스팅 등)
 
-### 5. EventEmitter 리스너 누수 주의
+### EventEmitter 리스너 누수 주의
 
 - 이것도 실무에서 은근히 흔함
 
