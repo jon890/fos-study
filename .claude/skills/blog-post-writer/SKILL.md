@@ -1,7 +1,7 @@
 ---
 id: workflow-blog-post-writer
 name: blog-post-writer
-description: 업무 경험이나 기술 스터디 내용을 개인 블로그 마크다운 포스팅으로 변환해 /Users/nhn/personal/fos-study에 저장. "블로그 포스팅", "블로그 글 써줘", "블로그에 정리", "TIL", "기술 블로그", "개발 블로그", "개발 정리", "blog post", "fos-study", "업무 내용 블로그", "이력 문서", "포트폴리오 정리", "작업 정리", "스터디 정리", "공부한 거 정리", "개념 정리해줘" 같은 요청 시 반드시 이 스킬 사용. 업무 경험은 git log 기반 기여 범위 파악 후 민감 정보 제거, 외부 기술 스터디는 WebSearch로 정보 수집 후 작성. 사용자가 이메일/문서/채팅에서 기술 내용을 공유하며 블로그 글을 요청하는 경우도 포함.
+description: 업무 경험이나 기술 스터디 내용을 개인 블로그 마크다운 포스팅으로 변환해 /Users/nhn/personal/fos-study에 저장. "블로그 포스팅", "블로그 글 써줘", "블로그에 정리", "TIL", "기술 블로그", "개발 블로그", "개발 정리", "blog post", "fos-study", "업무 내용 블로그", "이력 문서", "포트폴리오 정리", "작업 정리", "스터디 정리", "공부한 거 정리", "개념 정리해줘" 같은 요청 시 반드시 이 스킬 사용. 업무 경험은 git log 기반 기여 범위 파악 후 민감 정보 제거, 외부 기술 스터디는 WebSearch로 정보 수집 후 작성. 사용자가 이메일/문서/채팅에서 기술 내용을 공유하며 블로그 글을 요청하는 경우도 포함. 개인 블로그 글(업무 회고 포함, 회사/팀명 표기 가능)이 대상이며, career-os 이직·면접 준비용 비공개 학습팩(회사명 비표기)은 career-os study-pack-writer로 라우팅한다.
 source: conversation
 triggers:
   - "블로그 포스팅"
@@ -174,6 +174,23 @@ WebSearch: "<기술명> limitations tradeoffs when to use"
 
 통합·삭제는 사용자에게 방향을 확인하고 진행한다(고유 내용 손실 위험).
 
+## 작성 직전 중복 판정 (4-decision)
+
+새 파일을 만들기 전에 fos-study 전역과의 중복을 판정한다.
+같은 fos-study에 쓰는 career-os study-pack-writer의 ADR-033 중복 가드와 같은 4-decision 패턴이며, 위 "기존 짧은 글 보강 — 통합보다 보충" 원칙을 결정 게이트로 형식화한 것이다.
+
+판정 입력 — Cross-link 후보 발굴(케이스 A 7-A / 케이스 B 3-A)에서 이미 `rg -l` 로 글 키워드 전역 검색을 했다. 그 매치 중 같은 주제를 다루는 문서를 후보로 본다.
+
+| decision | 조건 | 동작 |
+|---|---|---|
+| `new` | 같은 주제 문서 없음 | 새 파일 작성으로 진행 |
+| `update-existing` | 같은 주제 문서가 이미 있음 | 새 파일 만들지 말고 기존 문서를 보충(누락·약한 항목만 patch). "통합보다 보충" 원칙 적용 |
+| `skip` | 기존 문서가 이미 충분 | 작성 중단, 기존 문서 경로를 사용자에게 안내 |
+| `needs-confirmation` | 판정 모호(부분 중복, 역할 분담 애매) | 사용자에게 방향 확인 후 진행 |
+
+안전 기본값 — 판정이 모호하면 `new`로 기울지 않고 **`needs-confirmation`** 으로 분류한다.
+silent 새 파일 생성이 같은 주제 문서를 단편화시키는 것을 막는 핵심 기본값이다.
+
 ## 실행 단계
 
 ### Step 0. 케이스 판단 (필수)
@@ -199,6 +216,7 @@ WebSearch: "<기술명> limitations tradeoffs when to use"
 6. **L2 공개 수위 점검** ([publishing-policy](./references/publishing-policy.md)) — 비즈니스 도메인 고유 클래스명 / 상품명 / 사업 의사결정 일반화
 7. 관련 상세 문서 존재 여부 확인 → 링크 결정 (존재 검증 필수)
 7-A. **Cross-link 후보 발굴** ([markdown-pitfalls](./references/markdown-pitfalls.md)) — 글 키워드 5\~10개 추출 → `rg -l` 로 전역 grep → H1 추출 → 본문 흐름상 자연스러운 자리 1\~2건만 선정. 표시 텍스트는 H1 제목, 깊은 link 면 앵커, 이탤릭+괄호 강조는 bold+괄호.
+7-B. **중복 판정** ([작성 직전 중복 판정](#작성-직전-중복-판정-4-decision)) — 7-A 매치 중 같은 주제 문서가 있으면 new / update-existing / skip / needs-confirmation으로 판정. 모호하면 needs-confirmation(사용자 확인).
 8. 마크다운 작성 — 자연스러운 문체, AI 티 제거, 1인칭 단수, **"내 기여 + 협업 방식 + 짧은 회고"** 섹션 포함
 9. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다. **정적 위반은 `scripts/blog_score.py <글>` 로 한 번에 측정한다** ([1계층 reward](#자가점검-자동화--blog_score-1계층-reward)).
 10. 파일 저장 (파일명도 L2 적용) 후 경로 알려주기
@@ -211,6 +229,7 @@ WebSearch: "<기술명> limitations tradeoffs when to use"
 2. `ls /Users/nhn/personal/fos-study/`로 저장 위치 결정 (`task/` 아닌 해당 기술 폴더)
 3. 저장소 내 관련 기존 문서 확인 → 링크 연결
 3-A. **Cross-link 후보 발굴** ([markdown-pitfalls](./references/markdown-pitfalls.md)) — 글 키워드 5\~10개 추출 → `rg -l` 로 전역 grep → H1 추출 → 본문 흐름상 자연스러운 자리 1\~2건만 선정. 표시 텍스트는 H1 제목, 깊은 link 면 앵커, 이탤릭+괄호 강조는 bold+괄호.
+3-B. **중복 판정** ([작성 직전 중복 판정](#작성-직전-중복-판정-4-decision)) — 3-A 매치 중 같은 주제 문서가 있으면 new / update-existing / skip / needs-confirmation으로 판정. 모호하면 needs-confirmation(사용자 확인). 외부 개념 글은 같은 기술 폴더에 중복이 쌓이기 쉬우니 특히 점검.
 4. 마크다운 작성 — 검색 결과 번역 말고, 본인이 이해한 방식으로 재해석
 5. 글 하단에 **참고 링크 섹션** 포함 (URL 명시)
 6. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다. **정적 위반은 `scripts/blog_score.py <글>` 로 한 번에 측정한다** ([1계층 reward](#자가점검-자동화--blog_score-1계층-reward)).
