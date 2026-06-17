@@ -38,6 +38,25 @@ fos-study/
 - **architecture/** — 특정 기술에 종속되지 않는 설계 개념 (전략 패턴 등). 실제 사례 링크는 포함하되 사례 본문은 `task/`에 작성
 - 신규 기술 문서는 기존 최상위 폴더에 맞는 게 없을 때만 새 폴더 생성
 
+## 카테고리와 Frontmatter
+
+글의 카테고리는 기본적으로 **최상위 폴더**로 정해진다 (예: `AI/RAG/intro.md` → AI 카테고리).
+한 글을 다른 카테고리에도 노출하려면 글 최상단에 YAML frontmatter 로 `categories` 를 추가한다.
+frontmatter 는 선택이며, 없으면 폴더 카테고리 하나로 동작한다.
+
+```yaml
+---
+categories: [devops, database]
+---
+```
+
+- 최종 카테고리 = 폴더 카테고리(primary) + `categories` 합집합(중복 제거)
+- 위 글이 `AI/...` 에 있으면 → AI, devops, database 세 카테고리에 모두 노출된다
+- 값은 기존 최상위 폴더명과 일치시킨다 (devops, database, java ...).
+  새 이름을 쓰면 블로그에서 카테고리 색이 기본값으로 표시된다
+
+> 이 기능은 fos-blog plan051 이 머지된 후 동작한다.
+
 ## 문서 작성 규칙
 
 ### 개념 문서 vs 업무 기록 분리
