@@ -1,3 +1,8 @@
+---
+series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
+seriesOrder: 6
+---
+
 # Kubernetes GPU 노드에서 /run tmpfs가 꽉 차서 Pod가 안 뜰 때
 
 NHN Cloud OCR 리얼 배포 중 ArgoCD sync가 Degraded로 떨어졌다.

@@ -1,3 +1,8 @@
+---
+series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
+seriesOrder: 10
+---
+
 # 멀티모달 LLM (Multimodal Large Language Model)
 
 - 여러 종류의 입력을 동시에 이해하고 처리할 수 있는 LLM

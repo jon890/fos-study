@@ -1,3 +1,8 @@
+---
+series: "자바 백엔드 개발자를 위한 Python 입문"
+seriesOrder: 4
+---
+
 # FastAPI 기초 — Spring Boot 사용자가 빠르게 익히는 법
 
 Python ML 서비스를 분석하면서 가장 빨리 익숙해진 것이 FastAPI 였다. Spring Boot 를 써 본 사람이라면 손에 익기까지 한두 시간이면 충분하다. "어노테이션으로 라우팅 매핑하고, 클래스로 DTO 정의하고, 의존성 주입 받는다" 라는 큰 틀이 거의 그대로 옮겨온다.

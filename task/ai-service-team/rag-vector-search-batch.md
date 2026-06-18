@@ -1,3 +1,8 @@
+---
+series: "AI 서비스 실전 구축·운영"
+seriesOrder: 1
+---
+
 # Confluence 문서를 OpenSearch에 벡터 색인하기 — Spring Batch 파이프라인 설계기
 
 **진행 기간**: 2026.01 ~ 2026.03

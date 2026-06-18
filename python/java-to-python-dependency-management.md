@@ -1,3 +1,8 @@
+---
+series: "자바 백엔드 개발자를 위한 Python 입문"
+seriesOrder: 2
+---
+
 # Python 의존성 관리 — Java Maven/Gradle 사용자가 만나는 첫 충격
 
 자바 백엔드만 다뤄오다가 Python 프로젝트를 처음 받았을 때 가장 황당했던 게 의존성 관리였다. Maven 이면 `pom.xml` 한 파일, Gradle 이면 `build.gradle` 한 파일에서 의존성·빌드·플러그인이 다 처리된다. Python 프로젝트는 다음 파일이 섞여 있어 어디서부터 봐야 할지도 모르겠다.

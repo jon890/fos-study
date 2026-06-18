@@ -1,3 +1,8 @@
+---
+series: "자바 백엔드 개발자를 위한 Python 입문"
+seriesOrder: 5
+---
+
 # Python async/await — CompletableFuture·Reactor 와 다른 점, 그리고 blocking I/O 함정
 
 자바에서 비동기를 다루는 방법은 시대마다 달랐다. `Future.get()` 의 블로킹 시절, `CompletableFuture` 의 콜백 체인, Reactor·RxJava 의 스트림. 모두 **별도 스레드**에서 작업을 돌리고 결과를 받아오는 모델이다.

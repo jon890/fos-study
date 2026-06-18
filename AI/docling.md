@@ -1,3 +1,8 @@
+---
+series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
+seriesOrder: 8
+---
+
 # Docling — IBM Research 의 문서 파싱 toolkit 상세 정리
 
 문서를 RAG·LLM 컨텍스트로 넣으려면 PDF·PPTX·HTML 같은 입력을 깨끗한 텍스트 (또는 markdown / JSON) 으로 변환해야 한다. 이걸 "쉽게" 해주는 라이브러리는 의외로 많지 않다. 표가 있는 PDF, 스캔본, 다단 레이아웃, 페이지 안의 그림과 캡션 같은 변형이 많기 때문.

@@ -1,3 +1,8 @@
+---
+series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
+seriesOrder: 1
+---
+
 # Python CUDA 버전 생태계 — nvidia-smi, nvcc, pip, conda가 다 다른 버전을 말하는 이유
 
 PyTorch를 `pip install`로 깔았는데 시스템에 CUDA Toolkit을 따로 안 깔아도 GPU가 돌았다.

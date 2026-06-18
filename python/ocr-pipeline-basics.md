@@ -1,3 +1,8 @@
+---
+series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
+seriesOrder: 7
+---
+
 # OCR 동작 원리 — Layout · Text · Post-process 3단계
 
 자바 백엔드만 다뤄오다가 OCR (Optical Character Recognition) 서비스를 분석할 일이 생겼다. "이미지에서 글자를 뽑는다" 라는 한 줄 요약은 알았지만, 실제 코드를 열어보면 모델이 둘이상이고, 여러 단계가 직렬·병렬로 엮여 있고, "왜 이 단계가 따로 있지" 같은 의문이 계속 생긴다.

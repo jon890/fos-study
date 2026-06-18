@@ -1,3 +1,8 @@
+---
+series: "자바 백엔드 개발자를 위한 Python 입문"
+seriesOrder: 3
+---
+
 # Java 개발자를 위한 Python 심화 — OOP·데코레이터·컨텍스트 매니저
 
 [Post 1 (Python 문법 핵심)](./java-to-python-syntax.md) 에서 클래스·데코레이터·`with`·`yield` 는 다음 글로 미뤘다. 이 글에서 마저 정리한다. 코드를 "쓰는" 단계로 넘어가려면 이 다섯을 알아야 한다.

@@ -1,3 +1,8 @@
+---
+series: "AI 서비스 실전 구축·운영"
+seriesOrder: 5
+---
+
 # Python 서버 RSS 가 안 줄어들어 malloc_trim 을 박은 이야기
 
 **진행 기간**: 2026.05

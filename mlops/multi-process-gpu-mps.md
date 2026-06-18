@@ -1,3 +1,8 @@
+---
+series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
+seriesOrder: 4
+---
+
 # 한 GPU 를 여러 프로세스가 나눠 쓰기 — Time-Slicing 과 MPS
 
 [GPU·CUDA·MPS 기초](./java-to-python-gpu-cuda-mps.md) 에서 MPS 라는 약어가 NVIDIA 와 Apple 두 가지를 가리킨다는 것까지 정리했다. 그 글 끝에 "multi-process GPU 패턴은 다음 글에서" 라고 미뤄둔 부분을 이어 쓴다.

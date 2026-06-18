@@ -1,3 +1,8 @@
+---
+series: "AI 서비스 실전 구축·운영"
+seriesOrder: 2
+---
+
 # 임베딩 메타데이터 구성 방식 개선 — Blocklist에서 Allowlist로
 
 **진행 기간**: 2026.03
