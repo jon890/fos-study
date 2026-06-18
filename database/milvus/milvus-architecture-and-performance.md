@@ -1,0 +1,172 @@
+# Milvus 벡터 데이터베이스 입문 — 아키텍처와 동작, 그리고 실무 규모에서의 성능
+
+RAG 시스템을 OpenSearch 의 k-NN 으로 운영해 오다가, 전용 벡터 데이터베이스인 Milvus 를 본격적으로 들여다볼 일이 생겼다.
+막상 공부해 보니 일반적인 DB 와 구조가 꽤 달랐다. 컴포넌트가 예닐곱 개로 쪼개져 있고, "storage 와 compute 를 분리했다"는 말이 핵심이라는데 처음엔 그게 왜 중요한지 잘 와닿지 않았다.
+이 글은 Milvus 가 무엇이고, 어떤 구조로 어떻게 동작하며, 우리가 다루는 정도의 규모(수천만 벡터)에서 어느 정도 리소스가 필요한지를 공부하며 정리한 기록이다.
+
+직접 로컬에 Milvus 2.6 과 OpenSearch 를 같이 띄우고 같은 데이터로 비교해 본 결과도 군데군데 섞었다.
+
+---
+
+## 벡터 DB 와 Milvus 는 왜 필요한가
+
+검색에는 크게 두 가지 방식이 있다.
+
+- **dense 검색** — 의미로 찾기. 문장을 임베딩 모델로 1024차원 같은 실수 벡터로 압축한 뒤, 벡터 간 거리로 "뜻이 비슷한" 문서를 찾는다. "자동차"로 검색해도 "차량"이 걸린다. 모든 차원에 값이 빽빽이 차 있어서 dense, 곧 밀집이다.
+- **sparse 검색** — 키워드로 찾기. BM25 같은 통계 기반으로 단어 출현을 본다. 어휘 사전 크기만큼 차원이 크지만 등장한 단어만 값이 있고 나머지는 0이라 sparse, 곧 희소다. 정확한 단어·고유명사·코드값에 강하다.
+
+RAG 에서는 이 둘을 합친 **하이브리드 검색**이 사실상 표준이다. 의미로도 찾고 키워드로도 찾은 뒤 점수를 합친다.
+
+벡터 DB 는 dense 벡터의 최근접 이웃(ANN) 검색을 빠르게 하기 위한 전용 저장소다.
+물론 OpenSearch·PostgreSQL(pgvector) 같은 범용 엔진에도 벡터 기능이 붙어 있다. 그럼에도 Milvus 같은 전용 DB 를 보는 이유는 성능이라기보다 **기능의 폭**이다 — 학습형 sparse(SPLADE), multi-vector, GPU 인덱스, DiskANN 같은 것들이 처음부터 1급 기능으로 들어가 있다.
+
+---
+
+## 아키텍처 — storage 와 compute 를 분리한다
+
+Milvus 의 가장 큰 특징은 **저장(storage)과 연산(compute)을 완전히 분리**한 구조다.
+데이터는 오브젝트 스토리지(S3/MinIO)에 두고, 검색·색인을 담당하는 노드들은 상태를 거의 갖지 않는다.
+그래서 "검색이 느리면 검색 노드만 늘리고, 색인이 밀리면 색인 노드만 늘리는" 식으로 컴포넌트별 독립 확장이 된다. 이게 분리 구조의 실익이다.
+
+전체는 네 계층으로 나뉜다.
+
+| 계층 | 역할 |
+| --- | --- |
+| Access Layer (Proxy) | 클라이언트 요청의 진입점. 무상태 프록시들이 요청을 검증·라우팅하고 결과를 모아 돌려준다. |
+| Coordinator | 클러스터의 두뇌. 스키마(DDL) 관리, 타임스탬프 발급(TSO), 작업 스케줄링, 일관성 보장. |
+| Worker Nodes | 코디네이터 지시를 따르는 실행기. Streaming / Query / Data 세 종류. |
+| Storage | 영속성 담당. 메타 저장소(etcd) + 오브젝트 스토리지(S3) + WAL. |
+
+worker 노드 세 종류의 분업이 핵심이다.
+
+- **Streaming Node** — 실시간으로 들어오는 데이터를 받아 WAL 에 쓰고, 아직 영속화되지 않은 최신 데이터(growing segment)에 대한 검색을 담당한다. 2.6 에서 역할이 명확히 분리됐다.
+- **Query Node** — 이미 오브젝트 스토리지에 저장된 과거 데이터(sealed segment)를 메모리에 올려 검색한다.
+- **Data Node** — 컴팩션·인덱스 빌드 같은 오프라인 처리를 한다.
+
+저장층은 셋으로 나뉜다.
+
+- **메타 저장소** — etcd. 컬렉션 스키마, 토폴로지, 소비 체크포인트 같은 핵심 메타데이터를 담는다. 강한 일관성이 필요해 etcd 를 쓴다.
+- **오브젝트 스토리지** — S3/MinIO. 실제 벡터 데이터, 인덱스 파일, 로그 스냅샷.
+- **WAL** — Write-Ahead Log, 데이터 내구성의 토대. 예전엔 Kafka/Pulsar 같은 메시지 큐가 필요했는데, 2.6 의 Woodpecker 는 별도 디스크 없이 오브젝트 스토리지에 직접 기록하는 zero-disk 모드를 지원한다.
+
+> 참고로 Woodpecker 는 상업적 사용 라이선스 이슈가 거론되기도 해서, 환경에 따라 Kafka 를 메시지 큐로 쓰기도 한다.
+
+### 배포 모드 — Lite / Standalone / Distributed
+
+이 복잡한 구조가 부담스럽다면 다행히 규모별 배포 모드가 있다.
+
+- **Milvus Lite** — 파이썬 라이브러리로 임포트해서 쓰는 임베디드 모드. 노트북·프로토타이핑·엣지용.
+- **Standalone** — 단일 Docker(또는 컴포넌트 묶음)로 띄우는 모드. 수천만 벡터 정도까지 충분하다.
+- **Distributed** — 위 컴포넌트들을 Kubernetes 에 펼쳐 수십억 벡터까지 확장하는 모드.
+
+같은 API 로 노트북 실험부터 분산 운영까지 이어진다는 게 장점이다.
+
+---
+
+## 동작 방식 — 데이터가 들어와서 검색되기까지
+
+### 데이터 인입
+
+1. Proxy 가 쓰기 요청을 샤드별로 쪼갠다. 각 가상 채널(vchannel)이 물리 채널(pchannel)에 매핑돼 Streaming Node 로 간다.
+2. Streaming Node 가 각 데이터에 타임스탬프(TSO)를 붙여 전체 순서를 정하고, **WAL 에 먼저 안전하게 커밋**한다.
+3. WAL 엔트리는 비동기로 잘려 **segment** 가 된다.
+
+여기서 segment 두 종류를 이해하면 동작이 한눈에 들어온다.
+
+| 구분 | Growing segment | Sealed segment |
+| --- | --- | --- |
+| 상태 | 아직 오브젝트 스토리지에 영속화 안 됨 | 전부 영속화됨, 불변(immutable) |
+| 위치 | Streaming Node 메모리 | 오브젝트 스토리지 |
+| 검색 담당 | Streaming Node | Query Node |
+
+Streaming Node 가 해당 segment 의 WAL 을 다 기록하면 **flush** 가 일어나 growing 이 sealed 로 바뀌고, 읽기에 최적화된 상태가 된다.
+
+### 인덱스 빌드
+
+Data Node 가 오브젝트 스토리지에서 로그 스냅샷을 읽어 메모리에 올리고, 인덱스를 만들어 다시 직렬화해 저장한다. 이때 SIMD(AVX2/AVX512) 가속을 쓴다.
+
+### 검색 흐름
+
+검색은 "최신 데이터와 과거 데이터를 동시에 뒤져서 합치는" 구조다.
+
+1. Proxy 가 요청을 관련 샤드의 Streaming Node 들에 뿌린다.
+2. Streaming Node 는 자기 growing 데이터를, Query Node 는 sealed segment 를 **동시에** 검색한다.
+3. 각 샤드 결과를 모아 한 샤드 결과로 합치고, Proxy 가 전체 샤드 결과를 다시 병합해 돌려준다.
+
+데이터가 sealed 로 바뀌면 Coordinator 가 그 부담을 Query Node 들에 고르게 재분배(handoff)해 메모리·CPU 를 최적화한다.
+
+---
+
+## 인덱스 종류와 선택 기준
+
+Milvus 가 범용 엔진과 벌어지는 지점이 인덱스의 폭이다.
+
+| 인덱스 | 성격 | 언제 |
+| --- | --- | --- |
+| FLAT | 무손실 전수 검색 | 정확도 100%, 소규모 |
+| IVF 계열 | 클러스터로 나눠 후보만 탐색 | 속도·정확도 균형 |
+| HNSW | 그래프 기반, 고QPS·고recall | 인메모리 기본 선택지 |
+| DiskANN | 그래프를 디스크에 두고 일부만 메모리 | RAM 초과하는 대용량 |
+| GPU 계열(CAGRA 등) | GPU 가속 빌드·검색 | 초대규모·고처리량 |
+
+핵심 트레이드오프는 **메모리 대 디스크**, 그리고 **recall 대 QPS** 다.
+HNSW 는 빠르고 정확하지만 벡터를 메모리에 올려야 한다. 데이터가 RAM 을 넘어서면 DiskANN 으로 디스크에 두되 PQ 코드만 메모리에 남기는 식으로 비용을 낮춘다. 다만 DiskANN 도 PQ 코드는 데이터 크기에 대략 비례해서 메모리가 "사라지는" 건 아니고 "줄어드는" 것이다.
+
+---
+
+## 한국어 하이브리드 검색
+
+한국어는 띄어쓰기만으로 단어가 갈리지 않아서 형태소 분석이 필요하다. OpenSearch 에서는 보통 nori 를 쓴다.
+Milvus 도 2.5 에서 BM25 기반 full-text search 가 들어왔고, 2.6 에서 다국어가 강화되면서 **lindera 토크나이저 + ko-dic** 으로 한국어 형태소 분석을 지원한다. ko-dic 은 MeCab 기반 한국어 사전이다.
+
+설정은 nori 와 거의 1:1 로 대응한다.
+
+| OpenSearch | Milvus |
+| --- | --- |
+| nori_tokenizer | lindera + dict_kind ko-dic |
+| nori_part_of_speech 필터 | korean_stop_tags 필터 |
+
+직접 로컬에서 같은 한국어 문장을 양쪽에 넣어 토큰을 비교해 봤다.
+
+- nori: `서울 / 맛있 / 음식 / 먹`
+- lindera(ko-dic, 품사 필터 적용): `서울 / 맛있 / 음식 / 먹`
+
+조사·어미를 걸러내면 의미 토큰이 사실상 같았다. 오히려 복합명사는 lindera 쪽이 더 자연스러웠다 — nori 가 "데이터베이스"를 "데이터/베이스"로 쪼개는 반면 lindera 는 통째로 유지했다.
+
+dense 는 같은 임베딩 모델(bge-m3, 1024차원)을 양쪽에 넣었더니, OpenSearch 와 Milvus 의 top-10 결과가 약 95% 겹쳤다. 같은 임베딩이면 의미 검색 결과는 사실상 동등하다는 뜻이다.
+
+---
+
+## 우리 정도 규모에서의 성능과 리소스
+
+공부하면서 가장 궁금했던 건 "그래서 우리 규모에 이게 과한가?"였다.
+
+기준을 잡아보면 수천만 벡터 규모(약 1,600만 청크, 1024차원)에 검색 트래픽은 초당 1건도 안 되는 저부하다.
+raw 벡터 데이터만 보면 1,600만 × 1024차원 × 4바이트(float32) ≈ **약 68GB** 다. HNSW 그래프 오버헤드를 더해도 단일~소수 노드가 감당하는 규모다.
+
+여기서 배운 게 두 가지다.
+
+- **이 정도 규모는 분산까지 갈 필요가 없다.** Standalone 또는 작은 클러스터로 충분하다. "수십억 벡터 확장"은 Milvus 의 강점이지만, 그 강점이 필요해서 전용 DB 를 쓰는 건 아니다.
+- **저부하에서 검색 지연은 검색 엔진이 아니라 주변 파이프라인이 좌우한다.** 실제로 RAG 검색 한 번에 수 초가 걸려도, 그 시간의 대부분은 쿼리 임베딩 생성과 재정렬(rerank)이지 벡터 검색 자체가 아니다. 그래서 "벡터 DB 를 바꾸면 빨라진다"는 기대는 대체로 빗나간다.
+
+정리하면 이 규모에서 Milvus 를 고려하는 이유는 속도가 아니라 **기능**이다 — 하이브리드, sparse, 멀티테넌시, 멀티링궐 같은 것들. 성능은 OpenSearch 든 Milvus 든 이 규모에선 충분하다.
+
+---
+
+## 공부하고 나서
+
+처음엔 컴포넌트가 너무 많아서 과하다고 느꼈는데, "storage-compute 분리 + segment(growing/sealed) + WAL" 세 개념을 잡으니 나머지가 그 위에 얹히는 구조로 읽혔다.
+정작 실무 판단에서 중요한 건, 우리 규모에선 분산이나 GPU 같은 화려한 기능보다 한국어 하이브리드가 제대로 되는지, 멀티테넌시를 어떻게 설계하는지가 더 실질적이라는 점이었다.
+
+다음엔 멀티테넌시를 collection/partition 으로 어떻게 나누는지, 그리고 sparse(BM25/SPLADE)와 dense 를 RRF 로 합치는 하이브리드 검색을 더 깊게 파볼 생각이다.
+
+---
+
+## 참고 링크
+
+- [Milvus Architecture Overview](https://milvus.io/docs/architecture_overview.md)
+- [Milvus Data Processing](https://milvus.io/docs/data_processing.md)
+- [Milvus Main Components](https://milvus.io/docs/main_components.md)
+- [Full-Text Search (BM25)](https://milvus.io/docs/full-text-search.md)
+- [Lindera Tokenizer](https://milvus.io/docs/lindera-tokenizer.md)
+- [Index Explained](https://milvus.io/docs/index-explained.md)
