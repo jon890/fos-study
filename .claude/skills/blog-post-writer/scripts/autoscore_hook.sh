@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# 자동 트리거 — blog 글 저장(Write/Edit) 직후 blog_score 자동 채점.
-# PostToolUse(Write|Edit) hook 으로 등록한다. 글 저장 순간 정적 문체 위반을 노출하고
+# 자동 트리거 — blog 글 저장 직후 blog_score 자동 채점.
+# 지원하는 에이전트 환경의 post-write hook 으로 등록한다. 글 저장 순간 정적 문체 위반을 노출하고
 # 누적 로그에 기록해, 같은 위반이 반복되면 SKILL.md 강화(evolve) 신호로 쓴다.
 #
 # 피드백 루프의 "자동 트리거" 부품 — 사람이 자가점검을 시작하지 않아도 루프가 돈다.

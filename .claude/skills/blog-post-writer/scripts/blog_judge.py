@@ -2,7 +2,7 @@
 """
 blog_judge.py — blog-post-writer 글 품질 reward (2계층, LLM judge)
 
-blog_score(1계층·정적)가 못 잡는 *의미 품질*을 claude CLI 로 채점한다.
+blog_score(1계층·정적)가 못 잡는 *의미 품질*을 환경별 LLM judge 명령으로 채점한다.
 인사이트 독창성·AI 티·서사 흐름·회고 자연스러움 같은 건 정규식으로 못 본다.
 
 LLM judge 의 함정(grade inflation·비결정)을 두 장치로 막는다:
@@ -12,14 +12,18 @@ LLM judge 의 함정(grade inflation·비결정)을 두 장치로 막는다:
 2계층 reward 의 천장. 1계층(blog_score 위반 0) 통과분만 여기 올려 비용을 아낀다.
 
 사용:
-  python3 blog_judge.py <글.md>            # 품질 채점 (기본 3회 다수결)
+  BLOG_JUDGE_CMD='claude -p {prompt}' python3 blog_judge.py <글.md>
+  python3 blog_judge.py <글.md>            # BLOG_JUDGE_CMD 없으면 judge 결과 없음
   python3 blog_judge.py --n 5 <글.md>       # 호출 횟수
   python3 blog_judge.py --json <글.md>
-요구: claude CLI 가 PATH 에 있어야 한다 (기존 자격증명 사용, API 비용 발생).
+요구: BLOG_JUDGE_CMD 환경변수에 judge 명령을 지정한다.
+명령에 {prompt} placeholder가 있으면 해당 인자에 prompt를 넣고, 없으면 stdin으로 전달한다.
 """
 import argparse
 import json
+import os
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -68,13 +72,31 @@ PROMPT_TAIL = (
 )
 
 
+def build_command(prompt, model=""):
+    template = os.environ.get("BLOG_JUDGE_CMD", "").strip()
+    if not template:
+        return None, None
+    parts = shlex.split(template)
+    uses_placeholder = False
+    cmd = []
+    for part in parts:
+        if "{prompt}" in part:
+            uses_placeholder = True
+            part = part.replace("{prompt}", prompt)
+        if "{model}" in part:
+            part = part.replace("{model}", model)
+        cmd.append(part)
+    stdin = None if uses_placeholder else prompt
+    return cmd, stdin
+
+
 def judge_once(text, model="", doc_type="study"):
     prompt = f"{build_rubric(doc_type)}{PROMPT_TAIL}\n\n=== 평가 대상 글 ===\n{text}"
-    cmd = ["claude", "-p", prompt]
-    if model:
-        cmd += ["--model", model]
+    cmd, stdin = build_command(prompt, model)
+    if not cmd:
+        return None
     try:
-        out = subprocess.run(cmd, capture_output=True, text=True, timeout=180).stdout
+        out = subprocess.run(cmd, input=stdin, capture_output=True, text=True, timeout=180).stdout
     except subprocess.TimeoutExpired:
         return None
     m = re.search(r"\{.*\}", out, re.DOTALL)
