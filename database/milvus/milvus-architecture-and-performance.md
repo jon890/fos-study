@@ -173,6 +173,40 @@ raw 벡터 데이터만 보면 1,600만 × 1024차원 × 4바이트(float32) ≈
 
 ---
 
+## 용어 한눈에
+
+본문에 나온 생소한 용어를 모았다.
+
+아키텍처·동작
+
+- **TSO** — Timestamp Oracle. 모든 작업에 전역 순서를 매기는 중앙 시계다. 분산 환경에서 "누가 먼저 일어난 일인지"를 정한다.
+- **vchannel / pchannel** — 가상 채널과 물리 채널. 데이터를 샤드 단위로 흘려보내는 논리·물리 통로다.
+- **샤드** — shard. 데이터를 나눠 담는 조각이다. 나눠야 여러 노드가 병렬로 처리할 수 있다.
+- **flush** — 메모리에 쌓인 growing segment 를 오브젝트 스토리지로 내려 sealed 로 굳히는 동작이다.
+- **컴팩션** — compaction. 잘게 쌓인 작은 segment 들을 합쳐 검색 효율을 높이는 정리 작업이다.
+- **handoff** — sealed 된 데이터를 Query Node 들에 고르게 재분배하는 것이다.
+- **DDL** — Data Definition Language. 컬렉션 생성·삭제 같은 스키마 정의 명령이다.
+
+인덱스·성능
+
+- **SIMD** — AVX2/AVX512 같은 CPU 병렬 연산 명령이다. 여러 숫자를 한 번에 계산해 벡터 연산을 가속한다.
+- **PQ** — Product Quantization. 벡터를 잘게 쪼개 코드로 압축하는 양자화 기법이다. 메모리를 크게 아낀다.
+- **IVF** — 벡터를 여러 클러스터로 나눈 뒤 쿼리와 가까운 클러스터만 탐색하는 인덱스다.
+- **DiskANN** — 그래프 인덱스를 디스크에 두고 일부만 메모리에 올려 대용량을 처리하는 방식이다.
+- **CAGRA** — GPU 에 최적화된 그래프 인덱스다.
+- **QPS** — Queries Per Second. 초당 처리하는 쿼리 수로, 부하를 나타내는 지표다.
+- **recall** — 전수 비교로 찾은 진짜 정답 중 근사 검색이 회수한 비율이다. 검색 정확도 척도.
+
+RAG 검색
+
+- **BM25** — 단어 빈도 기반의 전통적인 키워드 검색 점수 방식이다. sparse 검색의 대표격.
+- **SPLADE** — 신경망으로 만든 학습형 sparse 다. 단순 빈도를 넘어 의미까지 반영한 키워드 검색.
+- **multi-vector** — 한 문서에 여러 벡터(제목·본문 등)를 두고 함께 검색·재정렬하는 기능이다.
+- **RRF** — Reciprocal Rank Fusion. 여러 검색 결과의 순위를 합쳐 하나로 융합하는 방식이다.
+- **dense / sparse** — dense 는 의미를 담은 밀집 벡터, sparse 는 단어 출현 기반의 희소 벡터다.
+
+---
+
 ## 참고 링크
 
 - [Milvus Architecture Overview](https://milvus.io/docs/architecture_overview.md)
