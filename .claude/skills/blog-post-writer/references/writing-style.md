@@ -134,6 +134,32 @@ grep -n "methodName" /path/to/file.java
 - **(C) 지금 보면** 짧은 회고
 - 마지막에 핵심 요약 없이 자연스럽게 끝내기
 
+### 다이어그램 — mermaid 적극 활용
+
+구조·흐름·비교는 글로만 설명하지 말고 mermaid 다이어그램으로 그린다.
+fos-study 블로그는 mermaid 를 렌더한다(기존 글 다수가 이미 사용). 이미지 파일 첨부는 생성·저작권 문제로 지양하고 텍스트 기반 mermaid 를 쓴다.
+
+언제 그리나:
+- 아키텍처·컴포넌트 구조 → `flowchart TB` + subgraph 로 계층을 묶는다
+- 데이터·요청 흐름(단계) → `flowchart LR` 또는 `sequenceDiagram`
+- 계층·트리 구조 → `flowchart TD`
+- 상태 전이 → `stateDiagram-v2`
+
+원칙:
+- 시각화가 이해를 돕는 곳(관계·흐름·구조)에만 쓴다. 단순 나열은 표·리스트로 두고 다이어그램으로 만들지 않는다(과용 금지).
+- 아키텍처·시스템 글이면 최소 1개, 가능하면 2~3개를 목표로 한다.
+- 노드 라벨은 한국어로 짧게. 코드펜스는 ```mermaid 로 연다.
+
+예:
+```mermaid
+flowchart TB
+    subgraph 저장층
+        S[(Object Storage)]
+        M[(메타 etcd)]
+    end
+    Q[Query Node] --> S
+```
+
 ### 기여 정도에 따른 톤 조절
 
 "내가 엄청 기여한 건 아닌데..." 같은 맥락이 주어지면 성과 강조가 아닌 **탐구/기록 톤**으로 쓴다.
