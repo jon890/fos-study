@@ -103,7 +103,7 @@ RAG 를 만들면 임베딩한 벡터를 어딘가에 저장하고 검색해야 
 - 빠르게 정리하면: 가볍게 = Qdrant, 쓰던 거 유지 = OpenSearch, 기능·확장 = Milvus, 대규모 서빙·ML 랭킹 = Vespa.
 - 그리고 무엇을 고르든 **필터링 성능만큼은 자기 데이터로 직접 재본다.**
 
-벡터 DB 의 동작 원리(HNSW, segment, 하이브리드)가 궁금하면 [Milvus 아키텍처 글](./milvus/milvus-architecture-and-performance.md)에 더 정리해 두었다.
+벡터 DB 의 동작 원리(segment, 하이브리드)가 궁금하면 [Milvus 아키텍처 글](./milvus/milvus-architecture-and-performance.md)에, HNSW 같은 검색 알고리즘은 [벡터 검색 알고리즘 — kNN에서 HNSW까지](../AI/RAG/vector-search-algorithms.md)에 더 정리해 두었다.
 
 ---
 

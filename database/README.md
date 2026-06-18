@@ -16,7 +16,6 @@
 - [커넥션 풀 포화와 스레드 풀 격리](./connection-pool-saturation-thread-pool-isolation.md) — Saturation·Exhaustion·Starvation 구분과 격리 패턴
 - [정규화](./정규화.md) / [역정규화](./역정규화.md)
 - [벡터 DB 비교 — OpenSearch·Milvus·Qdrant·Vespa](./vectordb-comparison.md) — 데이터 규모·차원·하이브리드별 선택 가이드
-- [HNSW 깊이 보기](./hnsw.md) — 벡터 검색이 빠른 원리(그래프 인덱스)
 
 ## 도서
 
