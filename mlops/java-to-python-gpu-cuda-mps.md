@@ -118,7 +118,7 @@ nvidia-smi --query-compute-apps=pid,used_memory --format=csv
 
 여러 프로세스가 같은 GPU 를 효율적으로 공유하기 위한 NVIDIA 의 서비스. 기본 모드에서는 각 프로세스가 GPU 에 접근할 때 자체 CUDA context 를 만든다 (~300-600MB VRAM 소비 + 컨텍스트 전환 비용). MPS 를 켜면 여러 프로세스가 같은 컨텍스트를 공유해 효율이 올라간다.
 
-우리 프로젝트는 단일 T4 에 워커 3개 (KR=2, JA=1) 를 띄우는데, 이런 multi-process GPU 워크로드의 전형. `ENABLE_CUDA_MPS=true` 옵션으로 켤 수 있지만 현재 운영은 `MPS=OFF`. 다음 글에서 multi-process GPU 패턴을 자세히 다룬다.
+우리 프로젝트는 단일 T4 에 워커 3개 (KR=2, JA=1) 를 띄우는데, 이런 multi-process GPU 워크로드의 전형. `ENABLE_CUDA_MPS=true` 옵션으로 켤 수 있지만 현재 운영은 `MPS=OFF`. 다음 글 [한 GPU 를 여러 프로세스가 나눠 쓰기](./multi-process-gpu-mps.md) 에서 time-slicing 과 MPS 를 자세히 다룬다.
 
 ### Apple MPS (Metal Performance Shaders)
 

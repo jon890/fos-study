@@ -7,6 +7,7 @@ CUDA 버전 생태계, GPU 컨테이너 최적화, 모델 서빙 워커 풀, 추
 
 - [Python CUDA 버전 생태계](./cuda-version-ecosystem.md) — nvidia-smi·nvcc·pip·conda가 다 다른 버전을 말하는 이유
 - [GPU·CUDA·MPS 기초](./java-to-python-gpu-cuda-mps.md) — 자바 백엔드 개발자가 처음 만나는 그림
+- [한 GPU 를 여러 프로세스가 나눠 쓰기 — Time-Slicing 과 MPS](./multi-process-gpu-mps.md) — 한 GPU 를 여러 프로세스가 공유하는 두 방식과 트레이드오프
 
 ## GPU 컨테이너·이미지
 
