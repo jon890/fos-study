@@ -12,19 +12,14 @@
 
 피라미드는 Mike Cohn이 제안한 이후 수십 번 인용된 도형이지만, Spring 백엔드에서는 **4층 구조로 다시 그려야 현실적**이다.
 
-```
-                    ┌───────────┐
-                    │    E2E    │   ~5%    브라우저/외부 호출 포함
-                    └───────────┘
-                ┌───────────────────┐
-                │  Full Integration │   ~15%  SpringBootTest + TestContainers
-                └───────────────────┘
-            ┌───────────────────────────┐
-            │   Slice / Focused Int.    │   ~30%  @WebMvcTest, @DataJpaTest
-            └───────────────────────────┘
-        ┌───────────────────────────────────┐
-        │            Unit Test              │   ~50%  JUnit5 + Mockito
-        └───────────────────────────────────┘
+```mermaid
+flowchart TD
+    E2E["E2E<br/>~5% — 브라우저/외부 호출 포함"]
+    FI["Full Integration<br/>~15% — SpringBootTest + TestContainers"]
+    SI["Slice / Focused Int.<br/>~30% — @WebMvcTest, @DataJpaTest"]
+    UT["Unit Test<br/>~50% — JUnit5 + Mockito"]
+
+    E2E --> FI --> SI --> UT
 ```
 
 - **Unit**: 한 클래스의 로직. 의존성은 mock/stub. 1ms 단위. 서비스 규칙, validator, 도메인 계산, 매퍼가 여기 위치한다.

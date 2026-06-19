@@ -81,20 +81,24 @@ F&B 디지털 채널(자사앱, 키오스크, 카카오톡 채널, 배달 플랫
 
 ### 시각화
 
-```
-DRAFT ──Checkout──> PENDING_PAYMENT ──Approved──> PENDING_STORE_ACCEPT ──Accepted──> ACCEPTED
-                          │                                │
-                       Declined/Timeout                 Rejected/Timeout
-                          ▼                                ▼
-                     PAYMENT_FAILED                  REFUND_IN_PROGRESS ──Completed──> REFUNDED
-
-ACCEPTED ──KdsStarted──> IN_PREPARATION ──PickupReady──> READY_FOR_PICKUP
-                                                              │
-                                          ┌───────────────────┼────────────────┐
-                                          ▼                   ▼                ▼
-                                      PickedUp           Timeout(20m)      UserCanceled
-                                          │                   │                │
-                                       COMPLETED           NO_SHOW       REFUND_IN_PROGRESS
+```mermaid
+stateDiagram-v2
+    [*] --> DRAFT
+    DRAFT --> PENDING_PAYMENT: Checkout
+    PENDING_PAYMENT --> PENDING_STORE_ACCEPT: Approved
+    PENDING_PAYMENT --> PAYMENT_FAILED: Declined/Timeout
+    PENDING_STORE_ACCEPT --> ACCEPTED: Accepted
+    PENDING_STORE_ACCEPT --> REFUND_IN_PROGRESS: Rejected/Timeout
+    ACCEPTED --> IN_PREPARATION: KdsStarted
+    IN_PREPARATION --> READY_FOR_PICKUP: PickupReady
+    READY_FOR_PICKUP --> COMPLETED: PickedUp
+    READY_FOR_PICKUP --> NO_SHOW: Timeout 20m
+    READY_FOR_PICKUP --> REFUND_IN_PROGRESS: UserCanceled
+    REFUND_IN_PROGRESS --> REFUNDED: Completed
+    PAYMENT_FAILED --> [*]
+    REFUNDED --> [*]
+    COMPLETED --> [*]
+    NO_SHOW --> [*]
 ```
 
 ## 불변 조건(Invariants)

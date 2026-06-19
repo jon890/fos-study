@@ -22,25 +22,16 @@
 
 ## 전체 구조
 
-```
-[어드민] ─ MQ(정적 데이터 리로드) ─▶ [백엔드 캐시 리로드]
-                                 │
-[DB: 언어 / 외부 벤더 언어 테이블]
-                                 │
-                        [백엔드: 13 로케일 × N 키 맵 사전 구성]
-                                 │
-                          GET /api/lang/{locale}
-                                 │
-                                 ▼
-      [프론트: LANG_STORE (writable)] ← init(data)
-                 │
-                 ▼
-  [LanguageService: derived 체인]
-      └─▶ 템플릿 치환 derived 여러 개 (선수 이름, 핸디캡, outcome)
-           └─▶ 상위 합성 derived (marketName, outcomeName …)
-                 │
-                 ▼
-   [컴포넌트: $message('key') — 언어 변경 시 자동 리렌더]
+```mermaid
+flowchart TD
+    A[어드민] -->|"MQ (정적 데이터 리로드)"| B[백엔드 캐시 리로드]
+    C["DB: 언어 / 외부 벤더 언어 테이블"] --> B
+    B --> D["백엔드: 13 로케일 × N 키 맵 사전 구성"]
+    D -->|"GET /api/lang/{locale}"| E["프론트: LANG_STORE (writable)"]
+    E --> F["LanguageService: derived 체인"]
+    F --> G["템플릿 치환 derived 여러 개 (선수 이름, 핸디캡, outcome)"]
+    G --> H["상위 합성 derived (marketName, outcomeName …)"]
+    H --> I["컴포넌트: $message('key') — 언어 변경 시 자동 리렌더"]
 ```
 
 **응답 시점 계산을 사전 계산으로 밀어 넣는다**는 방향이 양쪽에 공통이다. 백엔드는 캐시 빌드 시점에, 프론트는 derived 그래프 빌드 시점에 계산을 끝낸다.

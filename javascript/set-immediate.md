@@ -14,20 +14,16 @@
 
 ## Node.js 이벤트 루프 구조
 
-```text
-┌─────────────┐
-│   timers    │ ← setTimeout, setInterval
-├─────────────┤
-│ pending cb  │
-├─────────────┤
-│ idle/prepare│
-├─────────────┤
-│    poll     │ ← I/O 대기 & 콜백 실행
-├─────────────┤
-│    check    │ ← setImmediate
-├─────────────┤
-│ close cb    │
-└─────────────┘
+```mermaid
+flowchart TD
+    T["timers<br/>← setTimeout, setInterval"]
+    P["pending cb"]
+    I["idle/prepare"]
+    Po["poll<br/>← I/O 대기 & 콜백 실행"]
+    C["check<br/>← setImmediate"]
+    Cl["close cb"]
+
+    T --> P --> I --> Po --> C --> Cl
 ```
 
 ## setTimeout / setInterval의 동작 원리

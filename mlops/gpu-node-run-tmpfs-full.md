@@ -164,17 +164,20 @@ containerd shim v2는 **컨테이너당 하나의 shim 프로세스**를 fork한
 
 overlay 파일시스템은 여러 디렉터리를 겹쳐서 하나의 통합된 뷰를 만든다.
 
-```
-[컨테이너가 보는 파일시스템]
-         ↑
-    overlay mount
-    ┌─────────────────────────────┐
-    │ upperdir (쓰기 가능 레이어)   │ → /var/lib/containerd/.../snapshots/N/fs
-    │ lowerdir (읽기 전용 레이어들) │ → /var/lib/containerd/.../snapshots/{1,2,3,...}/fs
-    │ workdir  (overlay 내부 작업) │ → /var/lib/containerd/.../snapshots/N/work
-    └─────────────────────────────┘
-         ↓
-    mount point: /run/containerd/io.containerd.runtime.v2.task/k8s.io/<ID>/rootfs
+```mermaid
+flowchart TB
+    Container["컨테이너가 보는 파일시스템"]
+
+    subgraph OverlayMount["overlay mount"]
+        Upper["upperdir (쓰기 가능 레이어)<br/>→ /var/lib/containerd/.../snapshots/N/fs"]
+        Lower["lowerdir (읽기 전용 레이어들)<br/>→ /var/lib/containerd/.../snapshots/{1,2,3,...}/fs"]
+        Work["workdir (overlay 내부 작업)<br/>→ /var/lib/containerd/.../snapshots/N/work"]
+    end
+
+    MountPoint["mount point<br/>/run/containerd/io.containerd.runtime.v2.task/k8s.io/&lt;ID&gt;/rootfs"]
+
+    Container --> OverlayMount
+    OverlayMount --> MountPoint
 ```
 
 실제 이미지 데이터(lowerdir, upperdir)는 `/var/lib/containerd/`(루트 디스크)에 있다.

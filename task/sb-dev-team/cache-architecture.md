@@ -103,25 +103,17 @@ class ProgramListCache extends ReloadableKeyedCache<ProgramEvent, Long> {
 
 백엔드 서버가 여러 대 뜨는 환경에서 어드민이 데이터를 변경하면 모든 서버의 캐시를 동시에 갱신해야 한다. MQ Fanout으로 풀었다.
 
-```
-어드민 백엔드
-POST /api/v2/admin/service/refresh
-        │
-        ▼
-   서비스 계층 (reloadMemory(tableName))
-        │
-        ▼
-   DataPublisher.reloadMemory(tableName)
-        │
-        ▼
-   MQ Fanout 발행 (FANOUT_STATIC_DATA 토픽)
-        │
-   ┌────┴────┐
-   ▼         ▼
-백엔드 서버1  백엔드 서버2  ... (모두 동시 수신)
-        │
-        ▼
-   리스너가 watchedTable()이 일치하는 캐시만 reload()
+```mermaid
+flowchart TD
+    A["어드민 백엔드<br/>POST /api/v2/admin/service/refresh"] --> B["서비스 계층 reloadMemory(tableName)"]
+    B --> C["DataPublisher.reloadMemory(tableName)"]
+    C --> D["MQ Fanout 발행 (FANOUT_STATIC_DATA 토픽)"]
+    D --> S1[백엔드 서버1]
+    D --> S2[백엔드 서버2]
+    D --> S3["... (모두 동시 수신)"]
+    S1 --> L["리스너가 watchedTable() 일치하는 캐시만 reload()"]
+    S2 --> L
+    S3 --> L
 ```
 
 Fanout이라 모든 인스턴스가 동시에 같은 메시지를 받는다. 특정 서버만 갱신되는 상황이 발생하지 않는다.

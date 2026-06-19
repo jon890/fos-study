@@ -186,24 +186,28 @@ CREATE TABLE url_click_events (
 
 ### 5) 하이레벨 아키텍처
 
-```
-[Client]
-   │
-   ▼
-[CDN / Edge cache]  ── 핫 단축 URL은 edge에서 리다이렉트
-   │
-   ▼
-[L7 LB / API Gateway] ── TLS, rate limit, auth
-   │
-   ├──► [Write Service] ──► [Key Gen Service] ──► [MySQL Primary]
-   │                                                     │
-   │                                              replication
-   │                                                     ▼
-   └──► [Read Service] ──► [Redis cache] ──► [MySQL Read Replicas]
-                                │
-                                └── miss ──► DB
-   
-   [Click events] ──► [Kafka] ──► [Flink/Spark] ──► [Analytics DB]
+```mermaid
+flowchart TD
+    CL["Client"]
+    CDN["CDN / Edge cache<br/>(핫 단축 URL은 edge에서 리다이렉트)"]
+    LB["L7 LB / API Gateway<br/>(TLS, rate limit, auth)"]
+    WS["Write Service"]
+    KG["Key Gen Service"]
+    MP["MySQL Primary"]
+    RS["Read Service"]
+    RC["Redis cache"]
+    MR["MySQL Read Replicas"]
+    CE["Click events"]
+    KF["Kafka"]
+    FS["Flink/Spark"]
+    AD["Analytics DB"]
+
+    CL --> CDN --> LB
+    LB --> WS --> KG --> MP
+    MP -->|"replication"| MR
+    LB --> RS --> RC --> MR
+    RC -->|"miss"| MR
+    CE --> KF --> FS --> AD
 ```
 
 ### 6) 병목 & 확장

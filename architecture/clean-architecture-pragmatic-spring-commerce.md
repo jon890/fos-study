@@ -20,19 +20,27 @@ Controller → Service → Repository(JPA) → Entity(@Entity)
 
 여기서 `Service`가 `JpaRepository`와 `@Entity`에 직접 의존하는 순간, "DB가 MySQL이라는 사실"이 비즈니스 정책 안으로 새어 들어온다. 헥사고날에서는 다음과 같이 바꾼다.
 
-```
-[adapter-in]  HTTP Controller, Kafka Listener
-       │
-       ▼
-[application] UseCase 인터페이스 ← 구현 ApplicationService
-       │  ↓ 사용         ↑ 호출
-       ▼
-[domain]      Order, OrderLine, OrderPolicy (POJO)
-       ▲
-       │ 구현
-[adapter-out] OrderJpaRepository, KafkaPublisher, TossPaymentClient
-       │ implements
-[application] OrderRepository(port), PaymentPort
+```mermaid
+flowchart TB
+    subgraph AI["adapter-in"]
+        AIN["HTTP Controller, Kafka Listener"]
+    end
+    subgraph APP["application"]
+        UC["UseCase 인터페이스"]
+        AS["ApplicationService"]
+        PORT["OrderRepository(port), PaymentPort"]
+    end
+    subgraph DOM["domain"]
+        DM["Order, OrderLine, OrderPolicy (POJO)"]
+    end
+    subgraph AO["adapter-out"]
+        AOUT["OrderJpaRepository, KafkaPublisher,<br/>TossPaymentClient"]
+    end
+
+    AIN -->|"호출"| UC
+    UC -->|"구현"| AS
+    AS -->|"사용"| DM
+    AOUT -->|"implements"| PORT
 ```
 
 즉 `application` 모듈은 자기보다 안쪽(domain)만 알고, 바깥쪽(adapter)은 인터페이스(port)로만 안다. Spring DI가 런타임에 어댑터를 꽂아준다.

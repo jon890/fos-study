@@ -206,18 +206,21 @@ CRITICAL: 다수 영향/금전/삭제 → +사람 승인(pre-action approval)
 
 평가 파이프라인과 런타임 게이트는 분리된 시스템처럼 보이지만, 같은 신호를 공유할 때 강력해진다.
 
-```text
-                ┌────────────── 런타임 ──────────────┐
-user ─► agent ─► proposed action ─► [risk gate] ─► execute
-                                        │ deny/escalate
-                                        ▼
-                                  human / fallback
-                                        │
-        ┌──────────── 관측 (audit log) ◄┘
-        ▼
-   offline eval set ◄── 실패 케이스 승격
-        │
-   LLM-as-judge + human label ─► rubric 개선 ─► 게이트 임계값 조정
+```mermaid
+flowchart TD
+    subgraph RT["런타임"]
+        U["user"] --> A["agent"]
+        A --> PA["proposed action"]
+        PA --> RG["risk gate"]
+        RG -->|"pass"| EX["execute"]
+        RG -->|"deny / escalate"| HF["human / fallback"]
+    end
+    HF --> AL["관측 (audit log)"]
+    AL --> OE["offline eval set"]
+    OE -->|"실패 케이스 승격"| OE
+    OE --> LJ["LLM-as-judge + human label"]
+    LJ -->|"rubric 개선"| RC["게이트 임계값 조정"]
+    RC -->|"피드백"| RG
 ```
 
 런타임 게이트가 남긴 audit log가 오프라인 평가의 입력이 되고, 오프라인 평가에서 발견한 약점이 게이트 임계값과 rubric으로 되먹임된다. 이 순환이 없으면 에이전트는 개선되지 않고, 있으면 매주 조금씩 단단해진다.

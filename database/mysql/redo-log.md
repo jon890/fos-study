@@ -54,30 +54,34 @@ Undo Log는 변경 **이전** 상태를 보관한다. 목적은 두 가지다.
 
 ## 4. 데이터 쓰기 흐름 — Redo와 Undo의 동시 기록
 
-```
-트랜잭션 변경 발생 (예: UPDATE products SET price=20000 WHERE id=1)
-    │
-    ▼
-(1) Undo Log 페이지에 이전 값 기록
-      └─ 이 Undo 페이지의 변경 자체도 Redo Log Buffer에 기록된다
-    │
-    ▼
-(2) Buffer Pool의 실제 데이터 페이지 수정 (price 15000 → 20000)
-      └─ 레코드의 DB_TRX_ID = 현재 트랜잭션 ID
-      └─ 레코드의 DB_ROLL_PTR = 방금 만든 Undo 레코드를 가리킴
-    │
-    ▼
-(3) 데이터 페이지 수정 내용을 Redo Log Buffer에 기록
-    │
-    ▼
-(4) 커밋 시: Redo Log Buffer → Redo Log File (fsync)
-      └─ innodb_flush_log_at_trx_commit = 1 이면 여기서 디스크까지 내려감
-      └─ 이 fsync 완료 시점이 "커밋 완료" 응답의 기준
-    │
-    ▼
-(5) (비동기) Buffer Pool의 dirty page → 데이터 파일 (.ibd) 반영
-      └─ 이 시점이 Checkpoint
-      └─ Checkpoint 이전의 Redo Log 영역은 재사용 가능
+```mermaid
+flowchart TD
+    T["트랜잭션 변경 발생<br/>(예: UPDATE products SET price=20000 WHERE id=1)"]
+    U1["(1) Undo Log 페이지에 이전 값 기록"]
+    U2["Undo 페이지 변경 자체도<br/>Redo Log Buffer에 기록"]
+    B["(2) Buffer Pool의 실제 데이터 페이지 수정<br/>(price 15000 → 20000)"]
+    B1["레코드의 DB_TRX_ID = 현재 트랜잭션 ID"]
+    B2["레코드의 DB_ROLL_PTR = 방금 만든 Undo 레코드를 가리킴"]
+    R["(3) 데이터 페이지 수정 내용을 Redo Log Buffer에 기록"]
+    F["(4) 커밋 시: Redo Log Buffer → Redo Log File (fsync)"]
+    F1["innodb_flush_log_at_trx_commit = 1 이면 여기서 디스크까지 내려감"]
+    F2["이 fsync 완료 시점이 '커밋 완료' 응답의 기준"]
+    D["(5) (비동기) Buffer Pool의 dirty page → 데이터 파일 (.ibd) 반영"]
+    D1["이 시점이 Checkpoint"]
+    D2["Checkpoint 이전의 Redo Log 영역은 재사용 가능"]
+
+    T --> U1
+    U1 --> U2
+    U1 --> B
+    B --> B1
+    B --> B2
+    B --> R
+    R --> F
+    F --> F1
+    F --> F2
+    F --> D
+    D --> D1
+    D --> D2
 ```
 
 여기서 중요한 포인트:
@@ -182,37 +186,16 @@ Undo Bloat는 "디스크가 커진다" 문제로 끝나지 않는다. 버전 체
 
 ### 9-1. 복구 순서
 
-```
- MySQL 비정상 종료 후 재시작
-        │
-        ▼
- ┌────────────────────────────────────────┐
- │ (A) Redo Log 스캔 & 적용 (Roll-Forward) │
- │                                        │
- │  - 마지막 Checkpoint LSN 이후의         │
- │    모든 Redo Log를 순차 재생           │
- │  - 데이터 페이지에 누락된 변경사항     │
- │    + Undo Log 페이지 자체도 같이 복원  │
- │                                        │
- │  이 단계가 끝나면 Buffer Pool / 데이터 │
- │  페이지가 "크래시 직전 상태"로 복원됨. │
- │  단, 미커밋 트랜잭션의 변경도 포함됨.  │
- └────────────────────────────────────────┘
-        │
-        ▼
- ┌────────────────────────────────────────┐
- │ (B) 미커밋 트랜잭션 Rollback (Roll-Back)│
- │                                        │
- │  - (A)에서 복원된 Undo Log를 사용       │
- │  - 커밋 마커가 없는 트랜잭션의         │
- │    모든 변경을 Undo로 되돌림           │
- │                                        │
- │  이 단계가 끝나면 DB는 "마지막으로     │
- │  커밋된 상태"로 정확히 돌아감.         │
- └────────────────────────────────────────┘
-        │
-        ▼
- 서비스 재개
+```mermaid
+flowchart TD
+    S["MySQL 비정상 종료 후 재시작"]
+    A["(A) Redo Log 스캔 & 적용 (Roll-Forward)<br/>· 마지막 Checkpoint LSN 이후의 모든 Redo Log를 순차 재생<br/>· 데이터 페이지에 누락된 변경사항<br/>· Undo Log 페이지 자체도 같이 복원<br/><br/>이 단계가 끝나면 Buffer Pool / 데이터 페이지가<br/>'크래시 직전 상태'로 복원됨.<br/>단, 미커밋 트랜잭션의 변경도 포함됨."]
+    B["(B) 미커밋 트랜잭션 Rollback (Roll-Back)<br/>· (A)에서 복원된 Undo Log를 사용<br/>· 커밋 마커가 없는 트랜잭션의 모든 변경을 Undo로 되돌림<br/><br/>이 단계가 끝나면 DB는 '마지막으로 커밋된 상태'로 정확히 돌아감."]
+    E["서비스 재개"]
+
+    S --> A
+    A --> B
+    B --> E
 ```
 
 ### 9-2. 왜 Redo가 먼저, Undo가 나중인가

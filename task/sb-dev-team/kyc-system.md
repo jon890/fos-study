@@ -10,16 +10,15 @@
 
 KYC는 민감한 개인 정보(신분증 이미지, 개인 식별 정보)를 다루기 때문에 별도 서버로 분리했다. 메인 백엔드와 어드민 백엔드가 KYC 서버를 통해서만 파일에 접근하는 구조다.
 
-```
-사용자 ──▶ kyc-server (NestJS) ──▶ Azure Blob Storage
-                  │                        │
-                  ▼                        │
-            KYC DB (Prisma)               │
-                                           │
-어드민 ──▶ admin-v2 (Spring Boot) ──────▶ 복호화 후 조회
-                  │
-                  ▼
-           메인 DB (승인/반려 상태)
+```mermaid
+flowchart TB
+    User[사용자] --> KYC["kyc-server (NestJS)"]
+    KYC --> Blob["Azure Blob Storage"]
+    KYC --> KYCDB["KYC DB (Prisma)"]
+
+    AdminUser[어드민] --> Admin["admin-v2 (Spring Boot)"]
+    Admin -->|복호화 후 조회| Blob
+    Admin --> MainDB["메인 DB (승인/반려 상태)"]
 ```
 
 kyc-server는 NestJS + TypeScript로 구현했고, 메인 백엔드와 다른 스택이다. 당시에 PII 격리 목적으로 별도 서비스를 두는 방향으로 결정이 났고, 내가 kyc-server와 어드민 백엔드의 KYC 관련 부분을 맡았다.

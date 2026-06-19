@@ -12,20 +12,15 @@
 
 OpenSearch의 analyzer는 세 단계 파이프라인이다.
 
-```
-입력 텍스트
-   │
-   ▼
-[character filter] ── 원문 자체를 변형 (HTML 제거, 문자 치환 등)
-   │
-   ▼
-[tokenizer] ─────── 문자열을 토큰(term) 단위로 분리
-   │
-   ▼
-[token filter] ──── 토큰을 정규화, 확장, 제거
-   │
-   ▼
- 인덱스에 저장되는 term
+```mermaid
+flowchart TD
+    I["입력 텍스트"]
+    C["character filter<br/>원문 자체를 변형 (HTML 제거, 문자 치환 등)"]
+    T["tokenizer<br/>문자열을 토큰(term) 단위로 분리"]
+    F["token filter<br/>토큰을 정규화, 확장, 제거"]
+    O["인덱스에 저장되는 term"]
+
+    I --> C --> T --> F --> O
 ```
 
 핵심은 **tokenizer는 반드시 하나**, **character filter와 token filter는 0개 이상**이라는 점이다. 많은 사람이 "analyzer = nori"라고 착각하지만, 실제로는 "nori_tokenizer + 여러 token filter의 조합"이 가장 현실적인 analyzer다.
