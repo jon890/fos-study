@@ -35,6 +35,19 @@ PENDING → AUTHORIZED → CAPTURED → (PARTIAL_)REFUNDED
                   └→ CANCELED
 ```
 
+```mermaid
+flowchart LR
+    PENDING -->|"PG 승인 성공"| AUTHORIZED
+    PENDING -->|"PG 거절"| FAILED
+    PENDING -->|"취소 요청"| CANCELED
+    AUTHORIZED -->|"매입 성공"| CAPTURED
+    AUTHORIZED -->|"취소"| CANCELED
+    AUTHORIZED -->|"PG 오류"| FAILED
+    CAPTURED -->|"전액 환불"| REFUNDED
+    CAPTURED -->|"부분 환불"| PARTIAL_REFUNDED["PARTIAL_REFUNDED"]
+    PARTIAL_REFUNDED -->|"나머지 환불"| REFUNDED
+```
+
 `AUTHORIZED`와 `CAPTURED`를 분리하는 이유는 카드사 표준이 그렇기 때문이다. 승인(authorize)은 한도 잡기, 매입(capture)은 실제 청구다. PG에 따라 자동 매입을 묶어주기도 하지만 상태 모델은 분리해두는 편이 안전하다. 추후 "주문 확정 시점에 매입" 같은 정책 변경이 들어와도 코드 구조를 갈아엎지 않는다.
 
 ### 트랜잭션 경계와 외부 호출의 충돌
@@ -52,6 +65,18 @@ PENDING → AUTHORIZED → CAPTURED → (PARTIAL_)REFUNDED
 
 - **상태 기반 단계 분리**: 주문/결제 행을 먼저 `PENDING`으로 만들고 commit, 그 다음 PG 호출, 그 결과를 별도 트랜잭션에서 `AUTHORIZED`/`FAILED`로 갱신한다.
 - **[Outbox 패턴](distributed-transaction-outbox-pattern.md)**: DB와 같은 트랜잭션 안에 "외부에 보낼 메시지"를 outbox 테이블에 저장하고, 별도 워커가 outbox를 폴링하며 외부 호출을 수행한다. 외부 호출의 실패는 worker 재시도로 흡수되고, DB 상태 변경은 원자적으로 끝난다.
+
+```mermaid
+flowchart TD
+    Start(["결제 요청 수신"]) --> CheckIdem{"멱등성 키<br/>조회"}
+    CheckIdem -->|"기존 키 존재"| ReturnCached["이전 결과 반환"]
+    CheckIdem -->|"새 키"| SavePending["TX1: PENDING 저장<br/>+ 멱등성 키 저장"]
+    SavePending --> CallPG["PG 호출 (TX 밖)"]
+    CallPG -->|"승인 성공"| SaveAuth["TX2: AUTHORIZED 저장"]
+    CallPG -->|"명확한 거절"| SaveFailed["TX2: FAILED 저장"]
+    CallPG -->|"타임아웃 / 결과 미상"| SaveUnknown["TX2: PENDING 유지<br/>+ 감사 로그"]
+    SaveUnknown --> Recon["Reconciliation<br/>Worker가 나중에 확정"]
+```
 
 결제 승인처럼 동기 응답이 필요한 경우 첫 번째 전략을, 결제 후 알림/적립/회계 연동처럼 사용자 응답과 분리 가능한 경우 Outbox를 쓴다.
 

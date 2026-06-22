@@ -88,6 +88,18 @@ Content-Type: application/json
 
 서버는 `(route, key)` 조합으로 첫 요청의 **응답 전체**(HTTP status, headers, body, 그리고 부작용 커밋 여부)를 저장하고, 같은 키로 들어온 재요청에는 **저장된 응답을 그대로 재생**한다. 첫 요청이 아직 처리 중이면 `409` 또는 동일 키에 락을 걸고 대기한다.
 
+```mermaid
+flowchart TD
+    A["클라이언트 (Idempotency-Key: uuid)"] --> B{"idempotency_record 조회"}
+    B -->|"키 없음 (첫 요청)"| C["IN_PROGRESS 레코드 삽입"]
+    C --> D["비즈니스 로직 실행<br/>(결제 승인 등)"]
+    D --> E["응답 저장 + 상태를 DONE으로 갱신"]
+    E --> F["201 응답 반환"]
+    B -->|"IN_PROGRESS (처리 중)"| G["409 반환 또는 락 대기"]
+    B -->|"DONE (이미 완료)"| H["저장된 응답 재생"]
+    H --> I["200 응답 반환 (중복 실행 없음)"]
+```
+
 테이블 예시(MySQL 8 기준):
 
 ```sql
@@ -130,6 +142,18 @@ CREATE TABLE idempotency_record (
   - 단점: 임의 페이지 점프 불가, 정렬 키가 유니크 조합이어야 안전.
 
 실무에서 cursor와 keyset은 거의 같은 말이다. 공개 API는 cursor로 감싸고, 내부 구현은 keyset으로 한다.
+
+```mermaid
+flowchart LR
+    subgraph Offset["Offset 방식 (비효율)"]
+        OA["LIMIT 20 OFFSET 100000"] --> OB["앞 10만 행을 먼저 센다"]
+        OB --> OC["느림 + 삽입 시 누락/중복"]
+    end
+    subgraph Keyset["Keyset 방식 (권장)"]
+        KA["WHERE created_at &lt; ? AND id &lt; ?"] --> KB["인덱스만 타고 바로 도달"]
+        KB --> KC["O(log N + page_size)<br/>삽입에 안전"]
+    end
+```
 
 ### 실전 예 (MySQL 8)
 

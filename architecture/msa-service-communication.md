@@ -235,6 +235,27 @@ spring.kafka.listener.retry.topic.backoff.delay: 1000
 | 쿠폰 | 쿠폰 서비스 | 사용 시 동기 REST, 발급은 비동기 |
 | 알림 | 알림 서비스 | 모든 도메인 이벤트 구독, 발행 쪽에 영향 없음 |
 
+```mermaid
+flowchart LR
+    Client(["클라이언트"])
+    OrderSvc["주문 서비스"]
+    StockSvc["재고 서비스"]
+    ProductSvc["상품 서비스"]
+    CouponSvc["쿠폰 서비스"]
+    NotifySvc["알림 서비스"]
+    Redis[("Redis 캐시")]
+    Kafka{{"Kafka"}}
+
+    Client -->|"주문 요청"| OrderSvc
+    OrderSvc -->|"동기 gRPC<br/>(재고 차감)"| StockSvc
+    OrderSvc -->|"동기 REST<br/>(쿠폰 사용)"| CouponSvc
+    OrderSvc -->|"outbox 이벤트"| Kafka
+    Kafka -->|"order.placed"| NotifySvc
+    ProductSvc -->|"product.changed"| Kafka
+    Kafka -->|"캐시 키 무효화"| OrderSvc
+    OrderSvc <-->|"Cache-Aside"| Redis
+```
+
 "재고 차감은 왜 동기인가?"라는 질문의 답은 **비동기로 하면 오버셀(oversell)이 발생하기 때문**이다. 반대로 알림은 **조금 늦어도 상관없고, 장애가 나도 주문 자체를 막으면 안 되기 때문**에 반드시 비동기다.
 
 ## 로컬 실습 환경

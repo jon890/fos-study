@@ -29,6 +29,33 @@
 
 이 네 가지를 분명히 구분하는 것만으로도 설계 의도가 코드에 드러난다. 면접에서 "왜 어떤 메서드는 abstract고, 어떤 메서드는 빈 구현이고, 어떤 메서드는 final인가요?"를 물었을 때 답할 수 있어야 한다.
 
+```mermaid
+classDiagram
+    class AbstractTemplate {
+        +execute()$ final
+        #validate() hook
+        #process()* abstract
+        #persist()* abstract
+        #shouldPublish() hook
+        #publish() hook
+        -log() private
+    }
+    class ConcreteImplA {
+        #process()
+        #persist()
+        #shouldPublish()
+    }
+    class ConcreteImplB {
+        #process()
+        #persist()
+        #validate()
+        #publish()
+    }
+
+    AbstractTemplate <|-- ConcreteImplA
+    AbstractTemplate <|-- ConcreteImplB
+```
+
 ## 가장 흔한 백엔드 적용 - validation → processing → save 골격
 
 실제 백엔드에서 가장 자주 마주치는 패턴은 도메인 명령(Command) 처리 흐름이다. "주문 생성", "쿠폰 발급", "정산 트리거" 같은 것들이 모두 다음과 같은 동일한 골격을 가진다.

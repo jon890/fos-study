@@ -28,6 +28,25 @@ Event Sourcing의 출발점은 이 질문이다 — **이력이 그렇게 중요
 ## Event Sourcing의 핵심 발상
 
 Event Sourcing은 현재 상태를 저장하지 않는다.
+
+```mermaid
+flowchart LR
+    subgraph CRUD["CRUD — 현재 상태 덮어쓰기"]
+        direction LR
+        C1["PAID"] -->|"UPDATE status"| C2["SHIPPED"]
+        C2 -->|"UPDATE status"| C3["DELIVERED"]
+        C3 --> CLOST["과거 이력 소멸"]
+    end
+
+    subgraph ES["Event Sourcing — 이벤트 append-only 적재"]
+        direction LR
+        E1["OrderPlaced"] --> E2["PaymentCompleted"]
+        E2 --> E3["OrderShipped"]
+        E3 --> E4["OrderDelivered"]
+        E4 --> FOLD["fold(events)<br/>→ 현재 상태 계산"]
+        E4 --> SNAP["스냅샷<br/>(seq 5000 기준점)"]
+    end
+```
 대신 도메인에서 일어난 **사건**(event)을 시간순으로 append-only로 쌓고, 현재 상태는 그 사건들을 처음부터 재생(replay)해 계산한다.
 
 ```text
@@ -80,6 +99,28 @@ CQRS는 **Command Query Responsibility Segregation**의 약자다.
 ### Event Sourcing과의 자연스러운 결합
 
 CQRS가 Event Sourcing과 자주 붙어 다니는 이유는, ES에서 이벤트 스트림이 **읽기에 매우 불편하기** 때문이다.
+
+```mermaid
+flowchart TB
+    REQ["클라이언트 요청"]
+
+    subgraph CMD["Command 측 (쓰기)"]
+        CS["Application Service<br/>@Transactional"]
+        DOM["도메인 모델<br/>(불변식 검증)"]
+        STORE["이벤트 저장소<br/>(append-only)"]
+        CS --> DOM --> STORE
+    end
+
+    subgraph QRY["Query 측 (읽기)"]
+        PROJ["Projection<br/>(비정규화 읽기 뷰)"]
+        DAO["QueryDao<br/>(조인 없이 바로 조회)"]
+        PROJ --> DAO
+    end
+
+    REQ -->|"Command"| CS
+    STORE -->|"이벤트 구독<br/>(비동기 반영)"| PROJ
+    REQ -->|"Query"| DAO
+```
 "배송 중인 주문 목록을 보여줘" 같은 질의를 이벤트를 매번 재생해서 답할 수는 없다.
 
 그래서 이벤트를 구독해 **읽기 전용 projection**을 미리 만들어 둔다.

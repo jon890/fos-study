@@ -17,6 +17,19 @@ F&B·헬스앤뷰티 같은 멀티브랜드 도메인은 여러 브랜드 × 멀
 
 `coupon_template` (정의) → `coupon_issue` (사용자별 보유 쿠폰 인스턴스) → `coupon_use_log` (사용 이력) 3계층이 가장 확장이 잘 된다. `coupon_issue`는 `(template_id, user_id, status, expire_at)`로 인덱스를 잡고, `status`는 `ISSUED / RESERVED / USED / EXPIRED / RESTORED` 5상태 머신으로 둔다. `RESERVED`는 결제 진입 시점에 잠그는 중간 상태로, 이걸 빼면 결제 동시 진행 시 같은 쿠폰이 두 번 적용된다.
 
+```mermaid
+stateDiagram-v2
+    [*] --> ISSUED : 쿠폰 발급
+    ISSUED --> RESERVED : 결제 진입 (장바구니 적용)
+    RESERVED --> USED : 결제 성공
+    RESERVED --> ISSUED : 결제 실패 / 취소
+    ISSUED --> EXPIRED : 유효기간 만료
+    USED --> RESTORED : 환불 / CS 복구 (만료 전)
+    RESTORED --> ISSUED : 재사용 가능
+    USED --> EXPIRED : 환불 시 만료된 경우
+    EXPIRED --> [*]
+```
+
 ## 핵심 정합성 원칙 — 멱등키와 상태 전이
 
 쿠폰 도메인은 분산 트랜잭션을 피하면서도 정합성을 보장해야 한다. 가장 안전한 패턴은 다음 두 가지다.
@@ -48,6 +61,24 @@ UPDATE coupon_issue
 5. 1인 1매 제약은 Redis `SET NX`(`SET event:{id}:user:{userId} 1 NX EX 86400`)으로 본다.
 
 이 구조에서 핵심은 **"재고 차감"과 "DB 발급"을 분리**하는 것이다. 재고 차감은 Redis 단일 명령으로 원자성을 보장하고, DB 발급은 메시지 큐 컨슈머가 자기 페이스로 처리한다. 발급 메시지가 유실되면 안 되니 큐는 publisher confirm + persistent + at-least-once로 둔다. 멱등키는 `(event_id, user_id)`이면 충분하다.
+
+```mermaid
+flowchart LR
+    Client["사용자 요청"]
+    RedisUser["Redis SET NX<br/>(1인 1매 검증)"]
+    RedisStock["Redis DECR<br/>(재고 차감)"]
+    MQ["RabbitMQ / Kafka<br/>(발급 메시지)"]
+    Consumer["컨슈머"]
+    DB["coupon_issue INSERT<br/>(멱등 처리)"]
+
+    Client --> RedisUser
+    RedisUser -->|"이미 수령"| Reject["거절 응답"]
+    RedisUser -->|"첫 수령"| RedisStock
+    RedisStock -->|"remaining &lt; 0"| SoldOut["품절 응답"]
+    RedisStock -->|"remaining &gt;= 0"| MQ
+    MQ --> Consumer
+    Consumer --> DB
+```
 
 "왜 Redis를 캐시가 아닌 진실의 원천처럼 쓰는가"에 대한 답은 다음과 같다. 선착순 카운터는 일시적 진실이고, 영구 진실은 컨슈머가 RDBMS에 쓰는 `coupon_issue` 행이다. Redis는 게이트키퍼 역할이고, 실패 시 발급 메시지를 다시 흘려서 RDBMS 기준으로 정합성을 맞춘다.
 

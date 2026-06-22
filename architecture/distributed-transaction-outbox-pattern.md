@@ -78,6 +78,25 @@ SagaOrchestrator
   → SendNotificationCommand → 알림서비스
 ```
 
+```mermaid
+flowchart TB
+    subgraph Choreography["Choreography — 중앙 조율자 없음"]
+        direction LR
+        C_Order["주문 서비스"] -->|"OrderCreated"| C_Stock["재고 서비스"]
+        C_Stock -->|"StockReserved"| C_Pay["결제 서비스"]
+        C_Pay -->|"PaymentCompleted"| C_Notify["알림 서비스"]
+    end
+
+    subgraph Orchestration["Orchestration — Saga Orchestrator 중심"]
+        direction LR
+        Orch["Saga<br/>Orchestrator"] -->|"ReserveStockCommand"| O_Stock["재고 서비스"]
+        O_Stock -->|"StockReservedEvent"| Orch
+        Orch -->|"ProcessPaymentCommand"| O_Pay["결제 서비스"]
+        O_Pay -->|"PaymentCompletedEvent"| Orch
+        Orch -->|"SendNotificationCommand"| O_Notify["알림 서비스"]
+    end
+```
+
 Choreography는 서비스 간 결합도가 낮지만 전체 흐름 파악이 어렵다. Orchestration은 흐름이 명확하지만 오케스트레이터가 병목이 될 수 있다.
 
 ### 보상 트랜잭션의 한계
@@ -124,6 +143,26 @@ public void createOrder(OrderRequest request) {
   outbox 테이블에서 미발행 이벤트 조회
   → Kafka에 발행
   → 발행 완료 표시 (published_at 업데이트)
+```
+
+```mermaid
+sequenceDiagram
+    participant App as 주문 서비스
+    participant DB as 주문 DB
+    participant Pub as Outbox Publisher
+    participant K as Kafka
+
+    App->>DB: BEGIN TRANSACTION
+    App->>DB: INSERT orders
+    App->>DB: INSERT outbox_events
+    App->>DB: COMMIT (원자적)
+
+    loop 폴링 (1초 주기)
+        Pub->>DB: SELECT published_at IS NULL
+        DB-->>Pub: 미발행 이벤트 목록
+        Pub->>K: 이벤트 발행
+        Pub->>DB: UPDATE published_at = NOW()
+    end
 ```
 
 이렇게 하면 DB 커밋과 이벤트 발행이 분리된다. DB 트랜잭션이 성공하면 이벤트는 반드시 Outbox 테이블에 존재한다. Outbox Publisher가 일시적으로 Kafka에 발행하지 못해도 재시도하면 된다.

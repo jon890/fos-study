@@ -18,6 +18,17 @@ Observability의 표준 모델은 세 가지 신호(signal)다.
 
 세 신호는 **상호 보완적**이다. Metric으로 이상을 감지 → Trace로 느린 요청의 경로 특정 → 해당 span의 Log로 근본 원인 확정. 하나만 잘 갖춰도 안 되고, 하나만 빠져도 안 된다.
 
+```mermaid
+flowchart LR
+    ALT["알림 발화<br/>(error rate 급증)"] --> M["Metrics<br/>어느 서비스·엔드포인트인가?"]
+    M --> T["Traces<br/>어느 span이 느린가?"]
+    T --> L["Logs<br/>해당 span의 예외·상세 맥락"]
+    L --> RC["근본 원인 확정"]
+
+    style ALT fill:#f9c,stroke:#c69
+    style RC fill:#9fc,stroke:#3a6
+```
+
 한계도 분명하다. **Logs는 cardinality 지옥**에 빠지기 쉽고(사용자 ID, 요청 ID를 로그 라벨로 인덱싱하면 저장 비용이 폭증), **Metrics는 평균의 함정**에 빠진다(평균 200ms인데 p99는 5초일 수 있다), **Traces는 sampling bias**가 있다(1% 샘플링이면 드물게 터지는 장애는 안 잡힌다).
 
 ## Structured Logging: JSON, Correlation ID, MDC
@@ -269,6 +280,18 @@ meter.counter("http.requests",
 ## Distributed Tracing: OpenTelemetry와 샘플링
 
 **Trace**는 하나의 논리적 요청(예: 사용자 결제 하나)이 여러 서비스를 거치며 만든 span의 집합이다. **Span**은 하나의 작업 단위로 이름(`POST /orders`), 시작/종료 시간, attribute, event를 담는다. 각 span은 **parent span ID**를 참조해 트리를 이룬다.
+
+```mermaid
+flowchart LR
+    APP["Spring Boot App"] -->|"OTLP (gRPC)"| COL["OTel Collector"]
+    COL -->|"traces"| TEMPO["Tempo"]
+    COL -->|"metrics"| PROM["Prometheus"]
+    COL -->|"logs"| LOKI["Loki"]
+    TEMPO --> GRAF["Grafana"]
+    PROM --> GRAF
+    LOKI --> GRAF
+    GRAF -->|"traceId 클릭 → 로그 drill-down"| LOKI
+```
 
 OpenTelemetry(OTel)는 이 모델의 **업계 표준**이다. API(instrumentation 인터페이스), SDK(처리/내보내기), Collector(수집/가공/라우팅)로 구성된다. Java에서는 **OpenTelemetry Java agent**를 `-javaagent`로 붙이면 Spring MVC, JDBC, Kafka, Redis 등 **80+ 라이브러리가 자동 계측**된다.
 

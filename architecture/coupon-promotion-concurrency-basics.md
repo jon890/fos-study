@@ -145,9 +145,16 @@ CREATE TABLE coupon_redemption (
 
 상태 전이는 `Coupon.status`로 표현한다.
 
-```
-ISSUED → RESERVED → USED → (REVOKED → ISSUED)
-                  ↘ EXPIRED
+```mermaid
+stateDiagram-v2
+    [*] --> ISSUED : 발급
+    ISSUED --> RESERVED : 장바구니 적용 (결제 진입)
+    RESERVED --> USED : 결제 성공 콜백
+    RESERVED --> ISSUED : 결제 실패 / 명시적 해제
+    ISSUED --> EXPIRED : 유효기간 만료
+    USED --> REVOKED : 환불 / CS 복구
+    REVOKED --> ISSUED : 재사용 가능 정책
+    EXPIRED --> [*]
 ```
 
 상태 변경은 항상 조건부 update로 한다.
@@ -191,6 +198,23 @@ update가 0건이면 이미 사용됐거나 만료됐거나 다른 사람의 쿠
 ## 발급/사용/복구의 전체 흐름
 
 한 쿠폰의 라이프사이클을 트랜잭션 경계와 함께 그려본다.
+
+```mermaid
+flowchart TD
+    A["발급 요청"] --> B{"Redis DECR<br/>잔여 수량 확인"}
+    B -->|"remaining &lt; 0"| Z1["품절 응답"]
+    B -->|"remaining &gt;= 0"| C["RDBMS<br/>coupon INSERT"]
+    C --> D["ISSUED 상태"]
+
+    D --> E["장바구니 적용<br/>ISSUED → RESERVED"]
+    E --> F{"PG 결제"}
+    F -->|"성공 콜백"| G["RESERVED → USED<br/>coupon_redemption INSERT"]
+    F -->|"실패"| H["RESERVED → ISSUED<br/>자동 복구"]
+
+    G --> I{"환불 / 취소?"}
+    I -->|"만료 전"| J["USED → REVOKED → ISSUED"]
+    I -->|"만료 후"| K["USED → EXPIRED<br/>별도 보상 정책"]
+```
 
 1. **발급** — Redis `DECR`로 입장권 확인 → RDBMS `INSERT coupon`. 두 단계가 같은 트랜잭션이 아니므로 outbox 또는 보정 배치를 둔다.
 2. **장바구니 적용**(예약) — `Coupon.status = ISSUED → RESERVED`. 다른 주문에 같은 쿠폰이 들어가지 못하게 짧게 잠근다.

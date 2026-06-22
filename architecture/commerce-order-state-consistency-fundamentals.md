@@ -33,12 +33,23 @@
 
 핵심은 상태가 **임의로** 바뀌면 안 된다는 점이다. 허용된 전이만 정의한다.
 
-```text
-CREATED → PAYMENT_PENDING → PAID → ACCEPTED → PREPARING → READY → COMPLETED
-                       ↘ FAILED
-              PAID → CANCELED → REFUNDED
-              ACCEPTED → CANCELED → REFUNDED
-              PREPARING → (정책에 따라 CANCELED 불가, 부분 환불만 허용)
+```mermaid
+stateDiagram-v2
+    [*] --> CREATED : 결제 버튼 클릭
+    CREATED --> PAYMENT_PENDING : PG 인증 시작
+    PAYMENT_PENDING --> PAID : PG 승인 완료
+    PAYMENT_PENDING --> FAILED : 재시도 정책 소진
+    PAYMENT_PENDING --> CANCELED : 사용자 취소
+    PAID --> ACCEPTED : 매장 POS 접수
+    PAID --> CANCELED : 사용자 취소
+    ACCEPTED --> PREPARING : 매장 조리 시작
+    ACCEPTED --> CANCELED : 사용자 취소
+    PREPARING --> READY : 매장 완료 보고
+    READY --> COMPLETED : 고객 수령
+    CANCELED --> REFUNDED : PG 환불 완료
+    COMPLETED --> [*]
+    REFUNDED --> [*]
+    FAILED --> [*]
 ```
 
 이 표를 코드로 옮기면 다음과 같다.

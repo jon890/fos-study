@@ -15,6 +15,25 @@
 - **Decorator Pattern** — 대상 객체를 **감싸서 기능을 추가·변형**한다. 체인은 "원본 → 장식1 → 장식1+장식2 → ..." 식으로 **누적**된다. 매 단계가 다음 단계로 결과를 전달한다
 - **Chain of Responsibility**(CoR) — 요청을 **핸들러 체인으로 흘려보내고**, 책임 있는 핸들러를 만나면 **거기서 멈추거나 통과**한다. 각 핸들러는 처리할지 말지, 다음으로 넘길지를 자기가 결정한다
 
+```mermaid
+flowchart LR
+    subgraph DEC["Decorator — 누적 변환 (끝까지 전달)"]
+        direction LR
+        D0["BaseCoffee<br/>3000원"] --> D1["MilkDecorator<br/>+500원"]
+        D1 --> D2["CaramelDecorator<br/>+800원"]
+        D2 --> DR["결과: 4300원"]
+    end
+
+    subgraph COR["Chain of Responsibility — 책임 탐색 (조기 종료 가능)"]
+        direction LR
+        R["Request"] --> H1["JwtHandler"]
+        H1 -->|"Authorization 헤더 있음<br/>→ 처리 후 종료"| DONE["✓ 처리 완료"]
+        H1 -->|"헤더 없음<br/>→ 다음으로"| H2["ApiKeyHandler"]
+        H2 -->|"X-API-Key 있음<br/>→ 처리 후 종료"| DONE2["✓ 처리 완료"]
+        H2 -->|"없음"| FAIL["✗ unauthorized"]
+    end
+```
+
 | 축 | Decorator | Chain of Responsibility |
 |----|-----------|-------------------------|
 | 의도 | 기능 추가 | 요청 처리 위임 |

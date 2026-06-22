@@ -48,6 +48,27 @@ PG에 따라 승인/매입을 한 번에 처리하는 모드가 기본이지만,
 
 핵심 원칙은 **주문 상태와 결제 상태를 독립 상태기계로 두고, 둘을 합성한 뷰를 화면/CS에 노출**하는 것이다. 그래야 "결제는 성공했는데 매장에서 거절"이 단순한 케이스가 된다. 결제 상태기계에서는 `CAPTURED → REFUNDED`만 신경 쓰면 되고, 주문 상태기계에서는 `RECEIVED → REJECTED`만 정의하면 된다. 둘을 묶는 책임은 별도 컴포넌트(주문 조정자)가 진다.
 
+```mermaid
+stateDiagram-v2
+    state "주문 상태기계" as Order {
+        [*] --> RECEIVED
+        RECEIVED --> ACCEPTED
+        RECEIVED --> REJECTED
+        ACCEPTED --> PREPARING
+        PREPARING --> READY
+        READY --> COMPLETED
+        ACCEPTED --> CANCELLED
+    }
+    state "결제 상태기계" as Pay {
+        [*] --> PENDING
+        PENDING --> AUTHORIZED
+        AUTHORIZED --> CAPTURED
+        CAPTURED --> REFUNDED
+        AUTHORIZED --> VOIDED
+        PENDING --> FAILED
+    }
+```
+
 ## 정합성 깨짐 시나리오
 
 운영에서 반드시 마주치는 4가지 사고 패턴이다.
@@ -158,6 +179,28 @@ public void confirmCapture(PaymentIntent intent, PgCaptureResponse res) {
 
 부분 결제(카드 + 쿠폰 + 포인트)를 환불할 때, 각 사이드 효과를 **보상 가능한 단위 트랜잭션**으로 쪼갠다.
 
+```mermaid
+sequenceDiagram
+    participant Saga as Saga 오케스트레이터
+    participant Card as 카드 환불 서비스
+    participant PG as PG
+    participant Coupon as 쿠폰 서비스
+    participant Point as 포인트 서비스
+
+    Saga->>Card: 카드 환불 명령
+    Card->>PG: Void / Refund 호출
+    PG-->>Card: 환불 완료
+    Card-->>Saga: CardRefundedEvent
+
+    Saga->>Coupon: 쿠폰 복원 명령
+    Coupon-->>Saga: CouponRestoredEvent
+
+    Saga->>Point: 포인트 복원 명령
+    Point-->>Saga: PointRestoredEvent
+
+    Note over Saga: 어느 단계에서든 실패 시<br/>이전 단계 보상 명령 발행
+```
+
 1. 카드 환불 명령 발행
 2. 카드 환불 성공 이벤트 수신 → 쿠폰 복원 명령 발행
 3. 쿠폰 복원 성공 이벤트 수신 → 포인트 복원 명령 발행
@@ -180,10 +223,11 @@ F&B에서 정산은 일반 셀러 정산과 다르다.
 
 운영 관점에서 매일 해야 하는 일은 **대사**(reconciliation)다.
 
-```
-PG 정산내역(파일 또는 API) ─┐
-                            ├─ 대사 엔진 ─→ 정산 확정 / 차이 리포트
-우리 결제 도메인 거래내역 ──┘
+```mermaid
+flowchart LR
+    PG["PG 정산내역 (파일 또는 API)"] --> E[대사 엔진]
+    OUR["우리 결제 도메인 거래내역"] --> E
+    E --> R["정산 확정 / 차이 리포트"]
 ```
 
 대사 엔진의 책임:

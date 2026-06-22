@@ -200,6 +200,13 @@ GET /v1/orders/ORD-2026-0001
 
 옛 클라이언트에는 안전한 의미로 매핑한 값을 주고, 새 클라이언트에는 정확한 상태를 준다. 요점은 **서버가 클라이언트 능력에 맞춰 응답을 줄인다**는 것이다.
 
+```mermaid
+flowchart TD
+    REQ["GET /v1/orders/{id}"] --> HEADER{"X-API-Version 헤더 있음?"}
+    HEADER -->|"헤더 없음 (구 클라이언트)"| LEGACY["레거시 동작으로 폴백<br/>status: CANCELED"]
+    HEADER -->|"2026-04-01 이상"| NEW["새 동작 적용<br/>status: REFUND_PENDING<br/>legacyStatus: CANCELED"]
+```
+
 ## API Gateway에서의 호환성 운용
 
 게이트웨이(예: Spring Cloud Gateway, Kong, AWS API Gateway)는 버저닝의 1차 방어선이다. 게이트웨이가 다음을 책임지면 백엔드 코드가 단순해진다.
@@ -223,6 +230,14 @@ GET /v1/orders/ORD-2026-0001
 5. **삭제 **(T+365일 전후) — 호출량이 무시할 수준일 때만 실제 코드를 제거한다.
 
 요점은 "절차를 미리 합의해 두는 것"이지, 정확한 일자 자체가 아니다. 이 5단계를 자기 언어로 정리해 두면 폐기 결정을 감으로 하지 않게 된다.
+
+```mermaid
+flowchart LR
+    S1["T+0<br/>공지<br/>Deprecation·Sunset 헤더"] --> S2["T+0~90일<br/>계측<br/>버전·플랫폼별 호출량"]
+    S2 --> S3["T+90일<br/>권고 업데이트<br/>80~90% 자연 전환 확인"]
+    S3 --> S4["T+180일<br/>강제 업그레이드<br/>426 반환"]
+    S4 --> S5["T+365일<br/>삭제<br/>호출량 0에 가까울 때"]
+```
 
 ## Consumer-Driven Contract — 회귀를 코드로 잡기
 

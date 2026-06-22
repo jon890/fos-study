@@ -31,6 +31,23 @@
 
 ### 추천 전략 : Saga 패턴 (Orchestration 방식)
 
+```mermaid
+sequenceDiagram
+    participant U as 유저 서버
+    participant S as 슬롯 서버
+
+    U->>U: 보유 금액 차감 (BettingStarted)
+    U-->>S: BettingStarted 이벤트 발행
+    S->>S: 게임 로직 처리
+    S-->>U: GameResultCalculated 이벤트 발행
+    U->>U: 당첨금 지급 또는 차감 확정
+
+    alt 슬롯 서버 오류 발생
+        S-->>U: BettingFailed 이벤트 발행
+        U->>U: 차감 금액 복구 (보상 트랜잭션)
+    end
+```
+
 - 유저의 돈이 걸린 문제이므로 **최종 일관성**(Eventual Consistency)를 유지하는 Saga 패턴이 가장 적합하다.
 
 1. 유저 서버 (시작) ; 유저의 보유 금액을 차감(또는 점유)하고 `BettingStarted` 이벤트를 발행한다.

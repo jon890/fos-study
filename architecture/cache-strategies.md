@@ -57,6 +57,19 @@ DB 업데이트
 
 쓰기에서는 DB가 신뢰할 수 있는 소스(Source of Truth)가 되고, 캐시는 보조 역할만 수행한다.
 
+```mermaid
+flowchart TD
+    READ["읽기 요청"] --> C1{"캐시 조회"}
+    C1 -->|"Hit"| RET["캐시 데이터 반환"]
+    C1 -->|"Miss"| DB1["DB 조회"]
+    DB1 --> STORE["캐시에 저장 (TTL 설정)"]
+    STORE --> RET2["데이터 반환"]
+
+    WRITE["쓰기 요청"] --> DB2["DB 업데이트"]
+    DB2 --> INVAL["캐시 무효화 (Delete)"]
+    INVAL --> NEXT["다음 읽기 시 자동 갱신"]
+```
+
 #### 장점
 
 - **캐시 장애 내결함성**: 캐시가 다운돼도 DB에서 직접 읽으면 되므로 서비스가 계속 동작한다 (성능 저하는 있지만 가용성 유지)
@@ -350,6 +363,22 @@ TTL을 두 부분으로 나눔
 
 #### c) TTL 길게 설정
 가장 단순한 방법. TTL이 너무 짧으면 자주 만료되고 스탬피드 위험이 커진다. 데이터 특성을 고려해 충분히 길게 설정.
+
+```mermaid
+flowchart TD
+    EXP["TTL 만료"] --> MANY["동시 다중 요청 (10,000건)"]
+    MANY --> MISS["모두 캐시 Miss 감지"]
+    MISS --> FLOOD["10,000개 DB 쿼리 동시 실행"]
+    FLOOD --> EXHAUST["DB 커넥션 풀 고갈 / 타임아웃"]
+
+    EXP2["TTL 만료"] --> LOCK["첫 번째 요청만 Lock 획득"]
+    LOCK --> DBQUERY["DB 조회 후 캐시 저장"]
+    DBQUERY --> UNLOCK["Lock 해제"]
+    UNLOCK --> REST["나머지 요청은 캐시에서 읽기"]
+
+    style EXHAUST fill:#f99,stroke:#c33
+    style REST fill:#9f9,stroke:#3a3
+```
 
 ---
 

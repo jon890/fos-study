@@ -25,6 +25,27 @@
 
 각 컨텍스트는 자체 Aggregate Root를 갖고, 컨텍스트 간 참조는 객체가 아니라 **ID와 도메인 이벤트**로만 한다. 이 원칙은 [DDD와 도메인 모델링](./ddd-domain-modeling.md)의 Bounded Context를 커머스 도메인에 그대로 적용한 결과다.
 
+```mermaid
+flowchart TB
+    subgraph Catalog["Catalog (마스터)"]
+        C1["SKU / 기본 가격<br/>영양정보 / 알러지<br/>변경 빈도: 낮음"]
+    end
+    subgraph Display["Display (노출)"]
+        D1["매장별 노출 여부<br/>시간대 메뉴 / 정렬 순위<br/>변경 빈도: 중간"]
+    end
+    subgraph Inventory["Inventory (재고)"]
+        I1["매장별 잔여 수량<br/>예약 / 확정 / 취소<br/>변경 빈도: 매우 높음"]
+    end
+    subgraph Order["Order (주문)"]
+        O1["주문 시점 가격 스냅샷<br/>옵션 동결<br/>변경 빈도: 불변"]
+    end
+
+    Catalog -->|"ItemId 참조<br/>(도메인 이벤트)"| Display
+    Catalog -->|"ItemId 참조<br/>(도메인 이벤트)"| Inventory
+    Display -->|"가격 스냅샷 동결"| Order
+    Inventory -->|"예약 확인"| Order
+```
+
 ## Catalog: 변하지 않아야 할 진실의 원천
 
 Catalog는 상품의 **불변에 가까운 본질**만 담는다.
@@ -145,6 +166,34 @@ CREATE TABLE inventory (
 ### Reserve-then-Confirm 패턴
 
 결제 직전에 재고를 잠시 예약하고, 결제 승인 후 확정한다. 결제 실패/취소 시 예약을 푼다.
+
+```mermaid
+sequenceDiagram
+    participant Client as 클라이언트
+    participant Order as 주문 서비스
+    participant Inventory as 재고 서비스
+    participant PG as PG (결제대행사)
+
+    Client->>Order: 주문 생성 요청
+    Order->>Inventory: tryReserve(storeId, itemId, qty)
+    alt qty_on_hand - qty_reserved >= qty
+        Inventory-->>Order: 예약 성공 (affected=1)
+    else 재고 부족
+        Inventory-->>Order: 예약 실패 (affected=0)
+        Order-->>Client: OutOfStockException
+    end
+    Order->>Order: Order 생성 + outbox 적재
+    Order-->>Client: 주문 완료
+
+    Client->>PG: 결제 요청
+    PG-->>Order: 결제 승인 콜백 (OrderPaymentApprovedEvent)
+    Order->>Inventory: confirm() — qty_on_hand -= qty, qty_reserved -= qty
+    Note over Inventory: qty_reserved >= qty 조건으로 멱등 보장
+
+    alt 결제 실패 / 취소
+        Order->>Inventory: cancelReserve() — qty_reserved -= qty
+    end
+```
 
 1. 주문 생성 시: `qty_reserved += qty`, 단 `qty_on_hand - qty_reserved >= qty` 조건이 동시에 성립해야 함
 2. 결제 승인 시: `qty_on_hand -= qty`, `qty_reserved -= qty`

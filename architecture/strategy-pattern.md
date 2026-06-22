@@ -22,10 +22,36 @@ Strategy Pattern의 구조는 세 요소로 구성된다.
 
 핵심은 Context가 ConcreteStrategy를 직접 알지 않는다는 것이다. Context는 오직 Strategy 인터페이스만 의존한다. 어떤 구체 구현이 주입되는지는 Context 외부에서 결정된다.
 
-```
-Client → Context ──uses──▶ «interface» Strategy
-                              ▲         ▲         ▲
-                    ConcreteA   ConcreteB   ConcreteC
+```mermaid
+classDiagram
+    class Client
+    class Context {
+        -List~Strategy~ strategies
+        +execute(request)
+    }
+    class Strategy {
+        <<interface>>
+        +execute(request)
+        +supports(type) bool
+    }
+    class ConcreteStrategyA {
+        +execute(request)
+        +supports(type) bool
+    }
+    class ConcreteStrategyB {
+        +execute(request)
+        +supports(type) bool
+    }
+    class ConcreteStrategyC {
+        +execute(request)
+        +supports(type) bool
+    }
+
+    Client --> Context
+    Context o--> Strategy : "위임(delegation)"
+    Strategy <|.. ConcreteStrategyA
+    Strategy <|.. ConcreteStrategyB
+    Strategy <|.. ConcreteStrategyC
 ```
 
 이 구조가 단순 `if-else`와 근본적으로 다른 이유는 **새로운 전략을 추가할 때 기존 코드를 수정하지 않아도 된다**는 점이다. 인터페이스만 구현하면 된다. 이것이 OCP가 말하는 "확장에는 열려 있고, 수정에는 닫혀 있다"의 실체다.

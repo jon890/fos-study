@@ -22,6 +22,37 @@ F&B e-Commerce의 가치사슬은 다섯 단계로 정리할 수 있다.
 
 DDD 관점에서 F&B 디지털 채널은 보통 다음 컨텍스트로 쪼개진다. 모놀리스로 시작해도 모듈 경계는 이 라인을 따르는 것이 안전하다.
 
+```mermaid
+flowchart TB
+    subgraph Core["핵심 주문 흐름"]
+        Cart["Cart &amp; Order"]
+        Payment["Payment"]
+        Fulfill["Fulfillment"]
+    end
+    subgraph Support["지원 컨텍스트"]
+        Member["Identity / Member"]
+        Catalog["Catalog"]
+        Pricing["Pricing &amp; Promotion"]
+        Claim["Claim / Refund"]
+        Settlement["Settlement"]
+    end
+    subgraph Infra["인프라 컨텍스트"]
+        Notify["Notification"]
+        Back["Backoffice"]
+        ACL["Integration / ACL"]
+    end
+
+    Member -->|"등급 변경 이벤트"| Pricing
+    Catalog -->|"메뉴 가용성"| Cart
+    Pricing -->|"가격 스냅샷"| Cart
+    Cart -->|"OrderCreated 이벤트"| Payment
+    Payment -->|"OrderPaid 이벤트"| Fulfill
+    Payment -->|"결제 이벤트"| Settlement
+    Fulfill -->|"완료 이벤트"| Claim
+    Cart -->|"이벤트 발행"| Notify
+    ACL -->|"외부 주문 정규화"| Cart
+```
+
 - **Identity / Member** — 회원, 인증, 등급, 동의/약관, 마케팅 수신.
 - **Catalog** — 브랜드, 매장, 메뉴, 옵션, 카테고리, 매장-메뉴 가용성.
 - **Pricing & Promotion** — 정상가, 매장별 가격, 시간대 가격, 쿠폰, 멤버십 할인, 적립.
@@ -156,6 +187,35 @@ PG 연동은 반드시 ACL(Anti-Corruption Layer)로 감싼다. 카드사 응답
 ## 핵심 데이터 흐름 6가지
 
 ### 1. 주문 체결 흐름 (앱 픽업 주문 기준)
+
+```mermaid
+sequenceDiagram
+    participant Client as 클라이언트
+    participant BFF as BFF / API Gateway
+    participant Order as Cart &amp; Order
+    participant PG as PG
+    participant Fulfill as Fulfillment
+    participant Notify as Notification
+
+    Client->>BFF: 가격/쿠폰 견적 요청
+    BFF-->>Client: 서버 권위 가격 반환
+
+    Client->>Order: 주문 생성 요청
+    Order->>Order: PENDING_PAYMENT 저장 + 가격 스냅샷 동결
+    Order-->>Client: 주문 생성 완료
+
+    Client->>PG: 결제 요청
+    PG-->>Order: 결제 승인 콜백 (OrderPaid 이벤트)
+    Order->>Order: PAID 전이 + outbox 적재
+
+    par Fulfillment 구독
+        Order->>Fulfill: OrderPaid 이벤트 (Kafka)
+        Fulfill->>Fulfill: KitchenTicket 생성 + KDS 푸시
+    and Notification 구독
+        Order->>Notify: OrderPaid 이벤트 (Kafka)
+        Notify->>Notify: 알림톡 발송
+    end
+```
 
 1. 클라이언트가 매장+메뉴+옵션으로 견적 요청 → 가격/쿠폰 적용 결과 반환(서버 권위 가격).
 2. 클라이언트가 주문 생성 요청 → `Order`가 `PENDING_PAYMENT`로 저장 + `OrderItem`에 가격 스냅샷.

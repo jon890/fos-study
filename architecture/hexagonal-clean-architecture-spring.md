@@ -23,6 +23,46 @@ Hexagonal은 이 규칙을 "포트(Port)와 어댑터(Adapter)"라는 입출력 
 Clean Architecture는 같은 구조를 동심원으로 그린다. 가장 안쪽에 Entities(엔터프라이즈 비즈니스 룰), 그 바깥에 Use Cases(애플리케이션 비즈니스 룰), 더 바깥에 Interface Adapters(Controller, Presenter, Gateway), 가장 바깥에 Frameworks & Drivers(Spring, JPA, Kafka, DB). 안쪽 원이 바깥 원을 import하지 않는다는 점만 지키면, 사실상 Hexagonal과 같은 그림이다.
 
 실무에서 어느 용어를 쓰든 합의해야 하는 본질은 셋이다.
+
+```mermaid
+flowchart TB
+    subgraph INBOUND["Inbound Adapter (진입점)"]
+        CTRL["Controller<br/>(HTTP)"]
+        KAFKA_IN["Kafka Listener"]
+        SCHED["Scheduler"]
+    end
+
+    subgraph APP["Application (UseCase)"]
+        UC["PlaceOrderUseCase<br/>(interface)"]
+        SVC["PlaceOrderService<br/>@Transactional"]
+        UC --> SVC
+    end
+
+    subgraph DOMAIN["Domain (핵심)"]
+        ENT["Order / Coupon<br/>(Entity, VO)"]
+        PORT_OUT["OrderRepositoryPort<br/>PaymentPort<br/>(interface)"]
+    end
+
+    subgraph OUTBOUND["Outbound Adapter (구현체)"]
+        JPA["OrderRepositoryAdapter<br/>(JPA)"]
+        FEIGN["PaymentAdapter<br/>(FeignClient)"]
+        KAFKA_OUT["EventPublisherAdapter<br/>(Kafka)"]
+    end
+
+    CTRL -->|"Command"| UC
+    KAFKA_IN -->|"Command"| UC
+    SCHED -->|"Command"| UC
+    SVC --> ENT
+    SVC --> PORT_OUT
+    PORT_OUT <|.. JPA
+    PORT_OUT <|.. FEIGN
+    PORT_OUT <|.. KAFKA_OUT
+
+    style DOMAIN fill:#e8f5e9,stroke:#388e3c
+    style APP fill:#e3f2fd,stroke:#1976d2
+    style INBOUND fill:#fce4ec,stroke:#c62828
+    style OUTBOUND fill:#fff3e0,stroke:#e65100
+```
 1. **도메인은 Spring/JPA를 import하지 않는다.** `@Entity`, `@Service`, `@Transactional`, `@Autowired`가 도메인 클래스에 등장하면 이미 경계가 무너져 있는 것이다. (현실에선 점진 도입 단계에서 타협하는 경우가 많고, 이 문서 후반에서 그 타협의 기준을 다룬다.)
 2. **포트는 도메인이 정의한다.** Repository 인터페이스가 `org.springframework.data` 아래의 타입을 노출하면 그건 포트가 아니라 그냥 Spring Data 인터페이스다.
 3. **유스케이스는 한 번의 비즈니스 의도 단위로 잘린다.** "사용자 가입", "쿠폰 발급", "주문 정산" — Controller 메서드 1:1로 잘리는 게 아니라 비즈니스 의도 1:1로 잘린다.

@@ -178,6 +178,27 @@ Kafka의 강점은 메시지를 일정 기간 보존한다는 점이다. consume
 
 기억해야 할 단일 룰: **"지금 일어난 사건에 대한 즉각 반응"이 가치라면 event-driven, "어떤 시점까지의 누적 결과"가 가치라면 batch.**
 
+```mermaid
+flowchart TB
+    subgraph Batch["Spring Batch — 시간 트리거"]
+        direction LR
+        Cron(["Cron / 수동 실행"]) --> R["ItemReader<br/>(cursor 기반)"]
+        R --> Proc["ItemProcessor<br/>(chunk 100건)"]
+        Proc --> W["ItemWriter"]
+        W -->|"실패 시 Step 재시작"| R
+    end
+
+    subgraph EventDriven["Event-Driven — 이벤트 트리거"]
+        direction LR
+        Domain(["도메인 사실 발생"]) --> Pub["Outbox Publisher"]
+        Pub --> Broker{{"Kafka"}}
+        Broker -->|"at-least-once"| Cons1["알림 서비스"]
+        Broker --> Cons2["통계 서비스"]
+        Broker --> Cons3["재고 서비스"]
+        Cons1 -->|"실패 시"| DLQ["DLQ"]
+    end
+```
+
 ---
 
 ## 실패 처리 — 가장 큰 차이가 여기서 나온다

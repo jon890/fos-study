@@ -194,6 +194,16 @@ public OrderResponseV2 getV2(@PathVariable Long id) { ... }
 
 이 흐름을 한 번 답하면 운영 경험이 있다는 신호가 강하게 전달된다.
 
+```mermaid
+flowchart LR
+    A["v2 배포<br/>Deprecation + Sunset 헤더"] --> B["v1 호출량 측정<br/>client_id·app_version별"]
+    B --> C{"호출량 충분히 줄었는가?"}
+    C -->|"아니오"| D["잔존 호출자에게<br/>직접 컨택·권고"]
+    D --> B
+    C -->|"예"| E["Brownout<br/>(특정 시각 503 반환)"]
+    E --> F["실제 Sunset 일자에<br/>410 Gone"]
+```
+
 ## 모바일 앱 특수성
 
 웹 클라이언트와 달리 모바일은 다음이 어렵다.

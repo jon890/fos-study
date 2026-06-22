@@ -33,6 +33,32 @@ public void placeOrder(OrderCommand cmd) {
 
 Outbox 패턴의 통찰은 단순하다. **메시지 발행을 "DB에 행을 하나 더 쓰는 일"로 바꾼다.** Order를 저장하는 트랜잭션 안에서 같은 DB의 `outbox_event` 테이블에 발행할 메시지를 함께 저장한다. 두 INSERT는 같은 로컬 트랜잭션이므로 원자적이다. 그 다음 별도의 publisher 프로세스(또는 CDC)가 `outbox_event`를 읽어 broker로 내보낸다. broker로의 publish는 실패할 수 있지만, outbox 행이 남아 있는 한 재시도하면 된다.
 
+```mermaid
+sequenceDiagram
+    participant Prod as 주문 서비스 (Producer)
+    participant ODB as 주문 DB
+    participant Pub as Outbox Publisher
+    participant B as Kafka
+    participant Cons as 배송 서비스 (Consumer)
+    participant CDB as 배송 DB
+
+    Prod->>ODB: BEGIN TX
+    Prod->>ODB: INSERT orders
+    Prod->>ODB: INSERT outbox_event
+    Prod->>ODB: COMMIT
+
+    Pub->>ODB: SELECT unpublished events
+    Pub->>B: publish(OrderPlaced)
+    Pub->>ODB: UPDATE published_at
+
+    B-->>Cons: deliver(OrderPlaced)
+    Cons->>CDB: BEGIN TX
+    Cons->>CDB: INSERT inbox_event (중복 방어)
+    Cons->>CDB: INSERT shipment
+    Cons->>CDB: COMMIT
+    Cons->>B: ack
+```
+
 받는 쪽도 대칭이다. 메시지를 받자마자 비즈니스 로직을 실행하면 중복 처리 위험이 있으므로, 같은 트랜잭션 안에서 `inbox_event(message_id)`에 INSERT를 시도하고, unique constraint 위반이면 이미 처리된 메시지로 보고 skip한다. 이 INSERT가 idempotency key 역할을 한다.
 
 ## Transaction Boundary — 어디까지가 한 트랜잭션인가
