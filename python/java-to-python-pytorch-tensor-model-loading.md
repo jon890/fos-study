@@ -1,6 +1,6 @@
 ---
 series: "자바 백엔드 개발자를 위한 Python 입문"
-seriesOrder: 6
+seriesOrder: 7
 ---
 
 # PyTorch 기초 — 텐서, 디바이스, 그리고 모델 로딩이 무거운 이유
