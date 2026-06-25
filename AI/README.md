@@ -11,6 +11,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 
 ## Agent 설계 (agent/)
 
+- [엔터프라이즈 AI Agent 설계](./agent/enterprise-ai-agent-design.md) — reasoning, tool, memory, cost, governance를 운영 시스템으로 묶는 허브 문서
 - [LLM Tool Calling 에이전트 워크플로](./agent/llm-tool-calling-agent-workflow.md) — Tool Use 루프, 결정성/관측성 설계
 - [멀티턴 메모리 헬스케어 에이전트](./agent/multi-turn-memory-healthcare-agent.md) — 4계층 메모리, 헬스케어 도메인 특화 정책
 - [Agentic Workflow 상태 관리](./agent/agentic-workflow-state-management-langgraph.md) — LangGraph State Graph, Checkpoint, HITL, Tool 권한 경계
