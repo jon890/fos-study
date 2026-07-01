@@ -120,6 +120,13 @@ flowchart TD
 
 ## 참고 링크
 
+**함께 읽기**
+
+- [OpenSearch vs Milvus 심화 비교](./milvus/opensearch-vs-milvus.md)
+- [벡터 DB 아키텍처 심층 비교](./vectordb-architecture-deep-dive.md)
+
+**외부 자료**
+
 - [Milvus Index Explained](https://milvus.io/docs/index-explained.md)
 - [Milvus vs OpenSearch (Zilliz)](https://zilliz.com/comparison/milvus-vs-opensearch)
 - [Qdrant Benchmarks](https://qdrant.tech/benchmarks/)

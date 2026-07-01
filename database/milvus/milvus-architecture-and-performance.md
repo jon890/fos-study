@@ -325,6 +325,13 @@ RAG 검색
 
 ## 참고 링크
 
+**함께 읽기**
+
+- [벡터 DB 아키텍처 심층 비교 (5종)](../vectordb-architecture-deep-dive.md)
+- [OpenSearch vs Milvus 비교](./opensearch-vs-milvus.md)
+
+**외부 자료**
+
 - [Milvus Architecture Overview](https://milvus.io/docs/architecture_overview.md)
 - [Milvus Data Processing](https://milvus.io/docs/data_processing.md)
 - [Milvus Main Components](https://milvus.io/docs/main_components.md)

@@ -328,6 +328,11 @@ multi-vector(제목·본문·요약 등 여러 임베딩을 한 번에)도 Milvu
 
 ## 참고 링크
 
+**함께 읽기**
+
+- [Milvus 아키텍처·성능 심화](./milvus/milvus-architecture-and-performance.md)
+- [벡터 DB 어떻게 고를까 — 제품 비교](./vectordb-comparison.md)
+
 각 제품 공식 문서 — 위 내부 구조 서술의 근거다.
 
 - **OpenSearch**
