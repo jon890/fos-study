@@ -1,3 +1,7 @@
+---
+categories: [AI]
+---
+
 # OpenSearch를 벡터 DB로 굴리며 알게 된 것 — 벡터는 heap이 아니라 native에 산다
 
 벡터 검색용 OpenSearch 클러스터의 모니터링 대시보드를 만들다가 이상한 걸 봤다.

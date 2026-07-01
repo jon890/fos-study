@@ -1,3 +1,7 @@
+---
+categories: [AI]
+---
+
 # 벡터 DB 어떻게 고를까 — OpenSearch · Milvus · Qdrant · Vespa 비교
 
 RAG 를 만들면 임베딩한 벡터를 어딘가에 저장하고 검색해야 한다.

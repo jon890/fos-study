@@ -1,3 +1,7 @@
+---
+categories: [AI]
+---
+
 # OpenSearch vs Milvus — 벡터 검색, 무엇이 어떻게 다른가
 
 RAG 를 OpenSearch 의 k-NN 으로 운영하다가 전용 벡터 DB 인 Milvus 로 옮길지 검토하면서, 두 제품을 아키텍처부터 검색·메모리·운영까지 1:1 로 뜯어봤다.

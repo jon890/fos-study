@@ -1,3 +1,7 @@
+---
+categories: [AI]
+---
+
 # OpenSearch로 RAG 검색 품질 높이기 — Hybrid Search, Reranking, Sentence Window
 
 RAG 파이프라인에서 OpenSearch를 검색 엔진으로 쓸 때, 순수 벡터 검색만으로는 한계가 있다. 실제로 구현된 코드를 분석하면서 검색 품질을 높이는 세 가지 기법을 정리해봤다.
