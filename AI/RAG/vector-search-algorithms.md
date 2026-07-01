@@ -143,7 +143,7 @@ OpenSearch에서 vector 인덱스를 만들 때 이렇게 설정한다.
 
 > 즉 OpenSearch는 내부적으로 kNN을 ANN(HNSW) 방식으로 최적화한 그래프 탐색으로 처리한다.
 
-벡터 스토어 운영의 실전 설정은 [OpenSearch를 VectorStore로 활용하기](./opensearch-vector.md)에서 더 다룬다.
+OpenSearch 를 벡터 DB 로 운영하는 실전(native 메모리·샤드)은 [OpenSearch를 벡터 DB로 굴리며 알게 된 것](../../database/opensearch/running-opensearch-as-vector-db.md), 검색 품질(hybrid·rerank)은 [OpenSearch로 RAG 검색 품질 높이기](../../database/opensearch/rag-search-quality.md)에서 다룬다.
 
 ## 정리
 
