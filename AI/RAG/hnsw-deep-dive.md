@@ -1,5 +1,6 @@
 ---
 categories: [database]
+tags: [심화]
 ---
 
 # HNSW 심화 — 파라미터 튜닝과 구현체별 성능 차이
