@@ -14,7 +14,7 @@ JVM heap 사용량이 12%밖에 안 됐다.
 - 메모리는 `circuit_breaker`로 관리되는데, 이게 한도를 넘으면 검색이 느려진다. heap의 GC가 아니라 별도 장치다.
 - 벡터 DB 운영에서 진짜 봐야 할 메모리 지표는 heap이 아니라 **k-NN graph memory와 circuit breaker 사용률**이다.
 
-벡터 검색 자체의 사용법은 [OpenSearch를 VectorStore로 활용하기](../../AI/RAG/opensearch-vector.md)에 정리해뒀고, 이 글은 **운영하면서 메모리·샤드가 어떻게 움직이는지**에 집중한다.
+벡터 검색 자체의 사용법은 [벡터 검색 알고리즘 — kNN에서 HNSW까지](../../AI/RAG/vector-search-algorithms.md)에 정리해뒀고, 이 글은 **운영하면서 메모리·샤드가 어떻게 움직이는지**에 집중한다.
 
 ## 발단 — heap이 톱니처럼 오르내리는데 12%밖에 안 쓴다
 
@@ -64,7 +64,7 @@ MSA가 "고장난 기계로 가는 전원을 한동안 내려두는 차단기"�
 
 아래는 k-NN circuit breaker 기준 설명이다.
 
-`circuit_breaker_limit`은 기본 50%다. OpenSearch는 보통 시스템 RAM의 절반을 heap에 쓰고, k-NN은 나머지 절반의 50%까지 그래프에 쓴다. 그래서 RAM 32GiB짜리 인스턴스는 대략 그래프 8GiB까지 담을 수 있다는 계산이 나온다.
+`circuit_breaker_limit`은 기본 50%다. 공식은 `k-NN 사용 가능 메모리 = (전체 RAM − JVM heap) × circuit_breaker_limit`이다. OpenSearch는 보통 시스템 RAM의 절반을 heap에 쓰므로, k-NN이 실제 쓸 수 있는 메모리는 **RAM의 절반(heap 제외 나머지)의 50%**다 — 두 번의 절반이 곱해져 결과적으로 전체 RAM의 1/4 수준이 된다. RAM 32GiB(heap 16GiB) 인스턴스라면 나머지 16GiB의 50%인 대략 그래프 8GiB까지 담을 수 있다는 계산이 나온다.
 
 이 한도를 넘으면 어떻게 되나. 새 그래프를 로드할 때 기존 그래프를 메모리에서 밀어낸다(evict). 밀려난 그래프는 다음 검색 때 디스크에서 다시 로드되니 **검색 지연**이 생긴다. 즉 circuit breaker 사용률은 "벡터 검색이 느려지기 직전인가"를 보는 지표다.
 
