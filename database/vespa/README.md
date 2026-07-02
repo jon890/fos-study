@@ -8,7 +8,7 @@
 
 ## 관련
 
-- [벡터 DB 선택 가이드](../vectordb-comparison.md) — 4제품 비교와 조건별 선택
+- [벡터 DB 선택 가이드](../vectordb-comparison.md) — 5제품 비교와 조건별 선택
 - [Milvus — 벡터 DB 아키텍처](../milvus/README.md)
 - [Qdrant — 벡터 DB 아키텍처](../qdrant/README.md)
 - [RAG / 임베딩](../../AI/RAG/README.md)

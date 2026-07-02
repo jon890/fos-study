@@ -10,6 +10,6 @@
 
 ## 관련
 
-- [벡터 DB 선택 가이드](../vectordb-comparison.md) — 4제품 비교와 조건별 선택
+- [벡터 DB 선택 가이드](../vectordb-comparison.md) — 5제품 비교와 조건별 선택
 - [OpenSearch — RAG 검색](../opensearch/README.md) — 범용 검색엔진의 벡터 검색
 - [RAG / 임베딩](../../AI/RAG/README.md)
