@@ -8,6 +8,8 @@
 - [Redis](./redis/README.md) — 캐시, 분산 락, Pub/Sub, 세션, 랭킹
 - [OpenSearch](./opensearch/README.md) — 매핑, 샤딩, RAG 검색
 - [Milvus](./milvus/README.md) — 벡터 DB 아키텍처·동작·실무 규모 성능
+- [Qdrant](./qdrant/README.md) — 단일 바이너리 벡터 DB, 컴포넌트가 단순한 이유
+- [Vespa](./vespa/README.md) — 텐서 1급 지원, 왜 강력한데 학습 곡선이 가파른가
 
 ## 공통 주제
 
