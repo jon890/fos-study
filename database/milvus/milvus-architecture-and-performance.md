@@ -253,6 +253,8 @@ RRF(Reciprocal Rank Fusion)는 이 스케일 문제를 피한다.
 
 어느 쪽이 더 중요한지 사전 지식이 없으면 RRF 가 안전한 기본값이고, 필드별 중요도가 명확하면 WeightedRanker 로 가중치를 주는 게 낫다.
 
+같은 "재정렬" 문제를 OpenSearch 는 다른 방식으로 푼다 — 모델 추론이 필요한 [cross-encoder Reranking](../opensearch/rag-search-quality.md#2-reranking--recall에서-precision으로)이다. 순위·점수만으로 융합하는 WeightedRanker/RRF 보다 느리지만, 쿼리·문서 쌍을 직접 봐서 더 정교하게 관련도를 계산한다.
+
 ```mermaid
 flowchart TB
     Q[질의] --> D["dense 검색<br/>(의미)"]

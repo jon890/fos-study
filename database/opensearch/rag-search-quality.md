@@ -118,6 +118,8 @@ BoolQuery hybridQuery = BoolQuery.of(b -> b
 
 구조적으로 보면 OpenSearch는 **bi-encoder** 방식이다. 쿼리와 문서를 각각 임베딩해서 벡터 거리를 비교하기 때문에 빠르다. Reranker는 보통 **cross-encoder** 방식으로, 쿼리와 문서를 쌍으로 입력해 더 정교하게 관련도를 계산한다. 느리지만 정확하다.
 
+이건 "여러 검색 결과를 정확하게 하나로 추리는" 문제의 한 가지 풀이다. Milvus는 cross-encoder 대신 [WeightedRanker·RRF로 점수/순위를 융합](../milvus/milvus-architecture-and-performance.md#multi-vector-와-하이브리드-재정렬)하는 다른 방식을 쓴다 — 모델 추론 없이 순위·점수만으로 재정렬해 더 가볍다.
+
 ```
 OpenSearch 쿼리 실행
     ↓
