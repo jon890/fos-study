@@ -25,6 +25,7 @@
 
 ## 운영 트러블슈팅
 
+- [선언한 LoadBalancer가 안 만들어질 때](./loadbalancer-pending-diagnosis.md) — cloud-controller-manager, subnet-id, trust 인증 장애 격리
 - [GPU 노드 /run tmpfs 포화](../../mlops/gpu-node-run-tmpfs-full.md) — GPU 운영 글은 mlops 카테고리로 이동
 
 ## 도서
