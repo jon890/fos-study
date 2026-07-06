@@ -20,6 +20,7 @@
 - [벡터 DB 비교 — OpenSearch·Milvus·Qdrant·Vespa·pgvector](./vectordb-comparison.md) — 데이터 규모·차원·하이브리드별 선택 가이드
 - [벡터 DB 5종 아키텍처 심층 비교](./vectordb-architecture-deep-dive.md) — 저장-연산 분리·segment·인덱스·필터링 구조 차이 (pgvector 포함)
 - [벡터 DB 도입 사례 — LINE·Reddit·TripAdvisor](./vectordb-production-cases.md) — 전용 벡터 DB 운영 사례
+- [한국어 형태소 분석기 Nori vs Lindera](./nori-vs-lindera-korean-tokenizer.md) — OpenSearch·Milvus 전환 시 어휘 검색 정확도와 튜닝 재현
 
 ## 도서
 
