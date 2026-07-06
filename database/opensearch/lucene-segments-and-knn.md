@@ -21,6 +21,29 @@ OpenSearch를 벡터 DB로 쓸 때 성능이 왜 그렇게 나오는지는 엔�
 - **force merge**는 세그먼트를 소수(보통 1개)로 강제 병합하는 작업이다. 그래프가 1개로 줄어 검색이 빨라져, 읽기 전용 벡터 인덱스에 공식 권장된다.
 - 이 구조가 우리 벤치에서 본 **OpenSearch QPS 특성**의 근본 원리다 — 단일 샤드 + force merge로 그래프 1개를 만든 뒤 측정했고, 그 위에서 쿼리 병렬성이 병목을 만든다.
 
+## 한눈에 — 색인과 검색의 흐름
+
+```mermaid
+flowchart LR
+  subgraph W["색인 (새 문서)"]
+    direction TB
+    d1["새 문서"] --> buf["RAM buffer"]
+    buf -->|"refresh 기본 1s"| s1["segment<br/>(HNSW graph 1개)"]
+    s1 -->|"merge / force merge"| s2["segment 수 축소<br/>= graph 수 축소"]
+  end
+  subgraph R["검색 (kNN query)"]
+    direction TB
+    q1["query 벡터"] --> sh["shard = Lucene index"]
+    sh --> g1["segment graph 1"]
+    sh --> g2["segment graph N"]
+    g1 --> mg["top-k fan-out 병합"]
+    g2 --> mg
+  end
+```
+
+새 문서는 segment 로 굳으며 그 segment 전용 HNSW graph 를 하나 얻고, 검색은 shard 안 모든 segment graph 로 fan-out 해 병합한다.
+아래에서 이 두 흐름을 뜯어본다.
+
 ## 1부. Lucene 세그먼트 구조
 
 ### inverted index — 세그먼트의 알맹이

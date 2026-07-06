@@ -34,6 +34,20 @@ OpenSearch는 `nori`, Milvus는 `lindera`를 쓴다 — 이 둘이 한국어를 
 sparse가 무너지면 정확한 키워드 매칭이 약해지고, RAG가 엉뚱한 문서를 근거로 답하기 시작한다.
 그러므로 DB를 옮길 때 "형태소 분석기가 같은 토큰을 만드나"는 검색 품질 회귀를 좌우하는 문제다.
 
+## 한눈에 — sparse 토큰이 만들어지는 경로
+
+두 분석기 모두 같은 파이프라인을 거친다 — 형태소 tokenizer 로 자르고, 품사 필터로 조사·어미를 걸러 sparse 토큰을 남긴다.
+
+```mermaid
+flowchart LR
+  d["한국어 문장"] --> t["형태소 tokenizer<br/>nori / lindera(ko-dic)"]
+  t --> pos["품사 필터<br/>nori_part_of_speech / korean_stop_tags"]
+  pos --> out["sparse 토큰<br/>(조사·어미 제거)"]
+  out --> bm["BM25 sparse 색인"]
+```
+
+뿌리가 같아 이 경로는 거의 겹친다. 갈리는 건 이 위에 얹는 튜닝 손잡이(복합명사 모드·사용자 사전·독음)의 개수다 — 아래에서 짚는다.
+
 ## 뿌리는 같다 — 둘 다 mecab-ko-dic
 
 두 분석기의 계보를 보면 왜 토큰화 결과가 비슷한지 납득된다.
