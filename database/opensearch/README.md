@@ -20,6 +20,7 @@ OpenSearch(ElasticSearch 포크) 학습 기록. 매핑·샤딩·쿼리·RAG 검�
 
 - [DFS Query Then Fetch](./dfs_query_then_fetch.md) — 검색 단계와 스코어링
 - [OpenSearch를 벡터 DB로 굴리며 알게 된 것](./running-opensearch-as-vector-db.md) — k-NN graph memory와 circuit breaker 운영 포인트
+- [Lucene 세그먼트 구조와 kNN 동작](./lucene-segments-and-knn.md) — 세그먼트마다 HNSW 그래프, 쿼리 fan-out, force merge 최적화
 - [RAG 검색 품질 높이기](./rag-search-quality.md) — Hybrid Search, Reranking, Sentence Window
 
 ## 관련 문서
