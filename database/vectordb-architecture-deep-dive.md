@@ -11,6 +11,7 @@ tags: [심화]
 다섯 제품 모두 HNSW 로 ANN 검색을 제공하고, 다 메타데이터 필터링을 한다.
 그런데 막상 운영에 올리면 메모리가 터지는 지점, 노드를 늘리는 방식, 인덱스를 굳히는 시점이 제품마다 전혀 다르다.
 그 차이가 어디서 오는지 궁금해서 OpenSearch · Milvus · Qdrant · Vespa · pgvector 다섯 제품의 내부 구조를 같은 축으로 뜯어봤다.
+그리고 이 구조 차이가 실제 벤치 숫자로 어떻게 나타나는지는 [벡터 DB 5종 벤치마크](./vectordb-benchmark.md)에서 같은 다섯 제품으로 실측했다.
 
 한 줄 결론은 이렇다.
 같은 ANN 검색을 제공해도 내부 구조 — 저장과 연산을 분리하는가, 노드를 역할별로 쪼개는가, 인덱스 선택지가 얼마나 넓은가 — 가 운영·확장·기능의 한계를 미리 정해 버린다.
@@ -337,6 +338,7 @@ multi-vector(제목·본문·요약 등 여러 임베딩을 한 번에)도 Milvu
 
 **함께 읽기**
 
+- [벡터 DB 5종 벤치마크 — 같은 recall에서 QPS 비교](./vectordb-benchmark.md)
 - [Milvus 아키텍처·성능 심화](./milvus/milvus-architecture-and-performance.md)
 - [벡터 DB 어떻게 고를까 — 제품 비교](./vectordb-comparison.md)
 
