@@ -44,6 +44,50 @@ flowchart LR
 새 문서는 segment 로 굳으며 그 segment 전용 HNSW graph 를 하나 얻고, 검색은 shard 안 모든 segment graph 로 fan-out 해 병합한다.
 아래에서 이 두 흐름을 뜯어본다.
 
+## 왜 이런 구조인가 — RDB page 모델과 다른 이유
+
+MySQL 같은 RDB에 익숙하면 세그먼트가 처음엔 낯설다. RDB는 **B-tree + page** 구조다. 데이터가 고정 크기 page(보통 4~16KB)에 담기고, row 하나를 고치면 그 page를 찾아가 **그 자리에서 덮어쓴다**(in-place update). B-tree 인덱스도 정렬된 값 하나가 바뀌면 트리 노드 몇 개만 국소적으로 갱신하면 끝난다.
+
+Lucene이 다루는 자료구조는 이 방식이 훨씬 비싸다.
+
+- inverted index(단어 → 그 단어가 있는 문서 id 목록)는 문서 하나를 고치면, 그 문서에 있던 단어 수십~수백 개 각각의 posting list를 다 손봐야 한다.
+- HNSW 그래프(벡터 → 이웃 벡터로 이어지는 링크)는 벡터 하나를 빼려면 그 벡터와 연결된 이웃들의 링크를 다시 이어야 한다. B-tree처럼 국소 수정이 안 된다.
+
+그래서 Lucene은 "제자리에서 고쳐 쓰기"를 아예 포기하고 다른 전략을 택했다. **LSM-tree**(Log-Structured Merge-tree)다.
+
+핵심 아이디어는 단순하다 — **쓰기는 항상 새 파일에 append만 한다. 기존 파일은 절대 손대지 않는다. 대신 나중에 여러 파일을 병합해 정리한다.** RocksDB나 Cassandra가 쓰는 **SSTable**(Sorted String Table)이 이 전략의 구체적인 구현이다.
+
+- 변경분은 먼저 메모리 버퍼(memtable)에 모인다.
+- 버퍼가 일정량 차면 정렬된 상태로 디스크에 **불변 파일** 하나로 쓴다 — 이게 SSTable이다.
+- 삭제는 그 자리에서 지우지 않고 tombstone 표시만 새 파일에 남긴다.
+- 시간이 지나면 이 불변 파일이 수십~수백 개로 늘어나고, 조회가 느려지기 전에 백그라운드 **compaction**이 여러 파일을 하나로 다시 써서 정리한다.
+
+Lucene 세그먼트는 이 패턴을 그대로 따른다.
+
+| LSM-tree / SSTable 용어 | Lucene(OpenSearch) 용어 |
+| --- | --- |
+| memtable(메모리 버퍼) | RAM buffer |
+| memtable → SSTable flush | refresh(기본 1초) → 세그먼트 생성 |
+| SSTable(불변 파일) | 세그먼트(불변) |
+| tombstone(삭제 표시) | 삭제 문서 tombstone |
+| compaction | merge / force merge |
+
+```mermaid
+flowchart LR
+  d["새 문서"] --> buf["RAM buffer<br/>(memtable 격)"]
+  buf -->|"refresh 약 1초"| s1["세그먼트 1<br/>(SSTable 격, 불변)"]
+  buf -->|"refresh"| s2["세그먼트 2"]
+  buf -->|"refresh"| s3["세그먼트 3"]
+  s1 --> mg["merge<br/>(compaction 격)"]
+  s2 --> mg
+  s3 --> mg
+  mg --> big["큰 세그먼트 1개<br/>(작은 것들 대체)"]
+```
+
+그래서 RDB page 비유는 오히려 헷갈린다. page는 고정 크기이고 in-place update가 정상 동작이지만, 세그먼트는 크기가 가변이고(TieredMergePolicy 상한이 기본 5GB) 절대 수정되지 않는다. 세그먼트당 문서 개수가 고정값이 아닌 이유도 여기서 나온다 — memtable flush 시점과 compaction 정책이 SSTable 크기를 정하듯, refresh 시점과 merge 정책(문서 개수가 아니라 세그먼트 크기 기준)이 세그먼트 크기를 정한다.
+
+이 비유가 왜 중요하냐면, force merge를 이해하는 열쇠이기 때문이다. **force merge는 수동으로 트리거하는 compaction이다.** 흩어진 세그먼트(=SSTable)를 강제로 합쳐 개수를 줄이는 것이고, 벡터 검색에서는 세그먼트마다 따로 있던 HNSW 그래프까지 하나로 합쳐지는 효과로 이어진다(아래 2부).
+
 ## 1부. Lucene 세그먼트 구조
 
 ### inverted index — 세그먼트의 알맹이
