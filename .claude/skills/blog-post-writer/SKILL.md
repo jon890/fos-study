@@ -190,7 +190,7 @@ depth 키워드 없이 제목만으로 입문/심화를 구분하기 어려운 �
 새 파일을 만들기 전에 fos-study 전역과의 중복을 판정한다.
 같은 fos-study에 쓰는 career-os study-pack-writer의 ADR-033 중복 가드와 같은 4-decision 패턴이며, 위 "기존 짧은 글 보강 — 통합보다 보충" 원칙을 결정 게이트로 형식화한 것이다.
 
-판정 입력 — Cross-link 후보 발굴(케이스 A 7-A / 케이스 B 3-A)에서 이미 `rg -l` 로 글 키워드 전역 검색을 했다. 그 매치 중 같은 주제를 다루는 문서를 후보로 본다.
+판정 입력 — Cross-link 후보 발굴(케이스 A 7-A / 케이스 B 6-A)에서 이미 `rg -l` 로 글 키워드 전역 검색을 했다. 그 매치 중 같은 주제를 다루는 문서를 후보로 본다.
 
 | decision | 조건 | 동작 |
 |---|---|---|
@@ -237,18 +237,19 @@ silent 새 파일 생성이 같은 주제 문서를 단편화시키는 것을 �
 
 ### B. 스터디/개념 정리 (외부 기술, git 커밋 없음)
 
-1. **웹 검색으로 정보 수집** — 공식 docs/GitHub → 실용 사례 → 한계/비판 순으로 검색
-2. **독자 질문 정의** — 글이 답할 질문 3개를 먼저 쓴다. 예: "이 개념은 언제 쓰나?", "면접 답변에서는 어떻게 말하나?", "잘못 쓰면 무엇이 깨지나?"
-3. **가져갈 판단 기준 정의** — 독자가 글을 읽고 나서 남겨야 할 체크리스트, 의사결정 기준, 답변 프레임을 3개 이하로 정한다.
-4. `ls /Users/nhn/personal/fos-study/`로 저장 위치 결정 (`task/` 아닌 해당 기술 폴더)
-5. 저장소 내 관련 기존 문서 확인 → 링크 연결
-5-A. **Cross-link 후보 발굴** ([markdown-pitfalls](./references/markdown-pitfalls.md)) — 글 키워드 5\~10개 추출 → `rg -l` 로 전역 grep → H1 추출 → 본문 흐름상 자연스러운 자리 1\~2건만 선정. 표시 텍스트는 H1 제목, 깊은 link 면 앵커, 이탤릭+괄호 강조는 bold+괄호.
-5-B. **중복 판정** ([작성 직전 중복 판정](#작성-직전-중복-판정-4-decision)) — 5-A 매치 중 같은 주제 문서가 있으면 new / update-existing / skip / needs-confirmation으로 판정. 모호하면 needs-confirmation(사용자 확인). 외부 개념 글은 같은 기술 폴더에 중복이 쌓이기 쉬우니 특히 점검.
-6. 마크다운 작성 — 검색 결과 번역 말고, 본인이 이해한 방식으로 재해석
-7. 글 하단에 **참고 링크 섹션** 포함 (URL 명시)
-8. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다. **정적 위반은 `scripts/blog_score.py <글>` 로 한 번에 측정한다** ([1계층 reward](#자가점검-자동화--blog_score-1계층-reward)).
-9. **HTML 미리보기 생성** — 블로그 렌더러가 있으면 실제 렌더러로 확인한다. 없으면 `scripts/render_preview.mjs <글.md> <preview.html>`로 blog.fosworld.co.kr 톤의 임시 HTML preview를 `/private/tmp/` 아래에 생성해 사용자에게 보여준다. Mermaid는 코드블록이 아니라 시각적 placeholder라도 흐름이 깨지지 않는지 확인한다.
-10. 파일 저장 후 경로 알려주기
+1. **정보 수집** — 웹 검색으로 공식 docs/GitHub → 실용 사례 → 한계/비판 순으로 수집한다. **실측 가능한 주제면 최소 실험 1개를 권장한다** (예: 서빙 벤치로 p99 지연과 throughput 측정). 직접 못 하면 재현 가능한 설정과 예상치라도 명시해 순수 요약을 넘는다.
+2. **사고 스캐폴딩 (기술적으로 깊은 글이면 필수)** — 초안을 쓰기 전에 사용자에게 핵심 질문 2\~3개를 먼저 던지고 답을 받는다. 예: "continuous batching이 static batching보다 GPU 활용률이 높은 이유를 먼저 추측해보라." 사용자의 답을 글에 반영하고, 틀린 부분은 근거와 함께 교정한다. 목적은 글을 사용자가 직접 생각해 쓴 것으로 만들어 개념이 머리에 남게 하는 것이다. 가벼운 개념 정리 글은 생략할 수 있다.
+3. **독자 질문 정의** — 글이 답할 질문 3개를 먼저 쓴다. 예: "이 개념은 언제 쓰나?", "면접 답변에서는 어떻게 말하나?", "잘못 쓰면 무엇이 깨지나?"
+4. **가져갈 판단 기준 정의** — 독자가 글을 읽고 나서 남겨야 할 체크리스트, 의사결정 기준, 답변 프레임을 3개 이하로 정한다.
+5. `ls /Users/nhn/personal/fos-study/`로 저장 위치 결정 (`task/` 아닌 해당 기술 폴더)
+6. 저장소 내 관련 기존 문서 확인 → 링크 연결
+6-A. **Cross-link 후보 발굴** ([markdown-pitfalls](./references/markdown-pitfalls.md)) — 글 키워드 5\~10개 추출 → `rg -l` 로 전역 grep → H1 추출 → 본문 흐름상 자연스러운 자리 1\~2건만 선정. 표시 텍스트는 H1 제목, 깊은 link 면 앵커, 이탤릭+괄호 강조는 bold+괄호.
+6-B. **중복 판정** ([작성 직전 중복 판정](#작성-직전-중복-판정-4-decision)) — 6-A 매치 중 같은 주제 문서가 있으면 new / update-existing / skip / needs-confirmation으로 판정. 모호하면 needs-confirmation(사용자 확인). 외부 개념 글은 같은 기술 폴더에 중복이 쌓이기 쉬우니 특히 점검.
+7. 마크다운 작성 — 검색 결과 번역 말고, 본인이 이해한 방식으로 재해석한다. **기술적으로 깊은 글은 [writing-style](./references/writing-style.md)의 "케이스 B 깊이 사다리"와 "기술 주장 검증"을 게이트로 적용한다.**
+8. 글 하단에 **참고 링크 섹션** 포함 (URL 명시)
+9. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다. **정적 위반은 `scripts/blog_score.py <글>` 로 한 번에 측정한다** ([1계층 reward](#자가점검-자동화--blog_score-1계층-reward)).
+10. **HTML 미리보기 생성** — 블로그 렌더러가 있으면 실제 렌더러로 확인한다. 없으면 `scripts/render_preview.mjs <글.md> <preview.html>`로 blog.fosworld.co.kr 톤의 임시 HTML preview를 `/private/tmp/` 아래에 생성해 사용자에게 보여준다. Mermaid는 코드블록이 아니라 시각적 placeholder라도 흐름이 깨지지 않는지 확인한다.
+11. 파일 저장 후 경로 알려주기
 
 ---
 
