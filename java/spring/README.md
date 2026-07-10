@@ -33,3 +33,4 @@ Spring Framework / Spring Boot 학습 기록. IoC, 생명주기, 트랜잭션, A
 ## HTTP 클라이언트
 
 - [RestClient](./rest-client.md)
+- [WebClient가 큰 응답을 받으면 왜 죽는가](./webclient-max-in-memory-size.md) — maxInMemorySize, DataBufferLimitException, 컨테이너 메모리 limit과의 관계
