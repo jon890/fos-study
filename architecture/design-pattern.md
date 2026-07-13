@@ -55,6 +55,5 @@
 
 ### 실제 사례
 
-- [임베딩 메타데이터 구성 방식 개선 — Blocklist에서 Allowlist로](../task/ai-service-team/embedding-metadata-provider.md): DocumentType별 메타데이터 구성 로직을 `EmbeddingMetadataProvider` 인터페이스로 분리. Spring DI의 자동 수집과 결합해 새 타입 추가 시 기존 코드 수정 없이 확장
 - [Confluence 벡터 색인 배치](../task/ai-service-team/rag-vector-search-batch.md): 스페이스별 메타데이터 포맷 차이를 `ConfluenceDocumentMetadataProvider` 인터페이스로 추상화
 
