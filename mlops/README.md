@@ -18,3 +18,12 @@ CUDA 버전 생태계, GPU 컨테이너 최적화, 모델 서빙 워커 풀, 추
 
 - [Multi-process GPU 워커 풀](./java-to-python-multiprocess-gpu-worker-pool.md) — ThreadPool 사용자가 만나는 프로세스 모델 차이
 - [ML 서비스 성능 분석 워크플로](./ml-service-perf-analysis-workflow.md) — 자바 백엔드 트러블슈팅과 다른 점
+
+## 추론 서빙 프레임워크 비교 (시리즈)
+
+Triton, BentoML, Ray Serve를 층위별로 비교한 스터디 시리즈. OCR 추론 서빙에 어느 프레임워크가 적절한지 판단하기 위한 기록이다.
+
+- [Triton Inference Server](./serving-frameworks/triton-inference-server.md) — GPU 추론을 짜내는 모델 실행 런타임
+- [BentoML](./serving-frameworks/bentoml.md) — Python 코드를 프로덕션 API로 포장하는 프레임워크
+- [Ray Serve](./serving-frameworks/ray-serve.md) — 여러 모델을 분산·오토스케일하는 오케스트레이션 층
+- [Triton vs BentoML vs Ray Serve](./serving-frameworks/triton-vs-bentoml-vs-ray.md) — 층이 다른 셋을 어떻게 고르나
