@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 개인 기술 블로그 겸 학습 기록 저장소. 마크다운 파일로 구성되며 GitHub 자동 sync를 통해 블로그에 게시된다. 빌드/테스트 명령어 없음 — 파일 작성과 구조 관리가 주 작업이다.
 
+학습 문서는 마크다운으로만 관리한다. `html/` 아래의 HTML은 사용자가 내용을 검토하기 위한 로컬 미리보기이므로 Git에 커밋하지 않는다.
+
 ## 폴더 구조와 배치 기준
 
 ```
