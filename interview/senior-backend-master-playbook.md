@@ -7,13 +7,13 @@
 
 ## 1. 1분 자기소개 (60초, 약 280자)
 
-> NHN에서 4년간 Java 백엔드 개발을 해온 김병태입니다. 소셜 카지노 슬롯팀에서는 Spring Boot 멀티모듈 MSA 환경에서 신규 슬롯 게임 5종 이상과 RTP 편차 보정 시스템(RCC)을 만들었고, 다중 서버 인메모리 캐시 정합성 문제를 RabbitMQ Fanout과 StampedLock으로 직접 풀었습니다. 이후 AI 서비스팀으로 이동해 Confluence 문서를 OpenSearch에 벡터 색인하는 Spring Batch 파이프라인을 11개 Step과 [AsyncItemProcessor](../java/spring-batch/async-item-processor.md)로 처음부터 설계·구현했고, 최근에는 12일 동안 혼자 AI 웹툰 제작 도구 MVP를 Next.js와 Gemini, Claude Code 하네스 기반 에이전트 팀으로 199 plan·760 커밋까지 밀어냈습니다. 설계부터 운영, AI 도구 도입·확산까지 전 과정을 주도한 경험을 살려 기여하고 싶습니다.
+> NHN에서 4년간 Java 백엔드 개발을 해온 김병태입니다. 소셜 카지노 슬롯팀에서는 Spring Boot 멀티모듈 MSA 환경에서 신규 슬롯 게임 5종과 RTP 편차 보정 시스템(RCC)을 만들었고, 다중 서버 인메모리 캐시 정합성 문제를 RabbitMQ Fanout과 StampedLock으로 직접 풀었습니다. 이후 AI 서비스팀으로 이동해 Confluence 문서를 OpenSearch에 벡터 색인하는 Spring Batch 파이프라인을 11개 Step과 [AsyncItemProcessor](../java/spring-batch/async-item-processor.md)로 처음부터 설계·구현했고, 최근에는 12일 동안 혼자 AI 웹툰 제작 도구 MVP를 Next.js와 Gemini, Claude Code 하네스 기반 에이전트 팀으로 199 plan·760 커밋까지 밀어냈습니다. 설계부터 운영, AI 도구 도입·확산까지 전 과정을 주도한 경험을 살려 기여하고 싶습니다.
 
 ---
 
 ## 2. 90초 자기소개 (강약 포인트 한두 개 추가)
 
-> NHN에서 4년간 Java 백엔드 개발을 해온 김병태입니다. 슬롯팀에서는 Spring Boot 멀티모듈 MSA 환경에서 신규 슬롯 게임 5종 이상을 개발했고, 성능·동시성 이슈를 직접 풀었습니다. 다중 서버 인메모리 캐시 정합성 문제에서는 Hibernate `PostCommitUpdateEventListener`로 커밋 후에만 RabbitMQ Fanout Exchange로 변경 ID를 발행하고, 갱신 중 조회 충돌은 StampedLock + 2.5초 tryReadLock 타임아웃으로 해결했습니다. Kafka 쪽에서는 즉시 응답이 필요한 흐름과 후처리 흐름을 분리하고, `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 이후에만 발행 + `Propagation.REQUIRES_NEW` 기반 Dead Letter Store + 스케줄러 재시도 구조로 비동기 흐름의 신뢰성을 확보했습니다.
+> NHN에서 4년간 Java 백엔드 개발을 해온 김병태입니다. 슬롯팀에서는 Spring Boot 멀티모듈 MSA 환경에서 신규 슬롯 게임 5종을 개발했고, 성능·동시성 이슈를 직접 풀었습니다. 다중 서버 인메모리 캐시 정합성 문제에서는 Hibernate `PostCommitUpdateEventListener`로 커밋 후에만 RabbitMQ Fanout Exchange로 변경 ID를 발행하고, 갱신 중 조회 충돌은 StampedLock + 2.5초 tryReadLock 타임아웃으로 해결했습니다.
 >
 > AI 서비스팀으로 옮긴 뒤에는 Confluence → OpenSearch RAG 파이프라인을 11개 Step으로 분리해 처음부터 설계·구현했습니다. I/O 바운드인 임베딩 호출은 `AsyncItemProcessor`로 병렬화하고, 메타데이터 차이는 전략 패턴(`EmbeddingMetadataProvider`)으로 흡수해 OCP를 지켰습니다. 최근에는 12일 동안 혼자 Next.js 16 · React 19 · Prisma 7 · Gemini 기반 AI 웹툰 제작 도구 MVP를 만들었는데, Claude Code 하네스 위에서 planner·critic·executor·docs-verifier 4인 에이전트 팀을 조율해 199 plan / 760 커밋을 소화했습니다. Gemini Pro 우선 + 429 fallback 전략, 전역 Rate Limit Tracking, Project 단위 Context Cache, Promise.allSettled 기반 60컷 부분 성공 생성, 글콘티 Grounding 재주입으로 환각을 구조적으로 차단한 게 핵심이었습니다.
 >
@@ -28,9 +28,9 @@
 | 2026.04 (12일) | NHN AI 서비스팀 | 단독 풀스택 MVP 리드 | Next.js 16 + Gemini + Claude Code 하네스 기반 4인 에이전트 팀(planner/critic/executor/docs-verifier)으로 199 plan/760 커밋. Gemini Pro 기본 + 429 fallback, 전역 Rate Limit Tracking, Project Context Cache, Grounding 재주입, Container/Presenter + 파일 소유권 매트릭스 |
 | 2026.01 \~ 2026.03 | NHN AI 서비스팀 | RAG 배치 파이프라인 설계·구현 | Spring Batch 11 Step + `AsyncItemProcessor` 병렬 임베딩, `@JobScope` 인메모리 홀더, ADF → Markdown 변환, 전략 패턴 기반 `EmbeddingMetadataProvider`, 삭제 동기화 (`status=DELETED,TRASHED` 재사용) |
 | 2025.12 \~ | NHN AI 서비스팀 | 백엔드 | OCR 서버 [Graceful Shutdown](../devops/graceful-shutdown.md) 503 수정, 임베딩 메타데이터 blocklist → allowlist 전환 |
-| 2025.07 \~ 2025.10 | NHN NSC 슬롯팀 | RCC·엔진 추상화 리드 | RTP Cache Control 6종 대응, `SlotTemplate`/`BaseSlotService`/`ExtraConfig` 분리, `StampedLock` 도입으로 refresh 중 NPE 제거, Alias 테이블 `IN`절 일괄 조회 |
+| 2025.07 \~ 2025.10 | NHN NSC 슬롯팀 | RCC·엔진 추상화 리드 | RTP Cache Control 슬롯 20여 종에 슬롯별 `RccSpinResultAnalyzer` 대응, `BaseSlotService`/`ExtraConfig` 분리, `StampedLock` 도입으로 refresh 중 NPE 제거, Alias 테이블 `IN`절 일괄 조회 |
 | 2025.02 \~ 2025.08 | NHN NSC 슬롯팀 | 신규 슬롯 5종 | Slot 36/38/41/44/47, Cursor Rules 20+로 AI 에이전트 단독 구현 3종, 스핀 최적화(AliasMethod O(1), `SecureRandom` → `ThreadLocalRandom`), 시뮬레이터 OOM 해결(Welford's Online Algorithm) |
-| 2024.06 \~ 2024.12 | NHN NSC 슬롯팀 | 합류 첫 해 | Slot 21/33 신규 게임, Admin Alpha↔Real 비교/복사, BuyFeature 티켓·시나리오 스핀 플랫폼 기능, 다중 서버 캐시 정합성 (RabbitMQ Fanout + StampedLock), Kafka 비동기 발행 (AFTER_COMMIT + Dead Letter Store 재시도) |
+| 2024.06 \~ 2024.12 | NHN NSC 슬롯팀 | 합류 첫 해 | Slot 21/33 신규 게임, Admin Alpha↔Real 비교/복사, BuyFeature 티켓·시나리오 스핀 플랫폼 기능, 다중 서버 캐시 정합성 (RabbitMQ Fanout + StampedLock) |
 
 ---
 
@@ -43,12 +43,12 @@
 - **커머스 전이 관점**: 상품 캐시로 확장할 때는 Caffeine(L1) + Redis(L2) **2-tier 구조**로 피크 TPS를 흡수하고, 인스턴스 수가 수십\~백 대 규모로 늘어나면 RabbitMQ Fanout 대신 Kafka 토픽(인스턴스마다 독립 consumer group)이나 Redis Pub/Sub이 더 적합하다는 점을 인지하고 있습니다. Cache Stampede는 핫키에 대한 probabilistic early expiration + single-flight로 대응.
 - **증거**: `resume/cj-foodville-resume-backend.html` 문항 1, [슬롯 엔진 추상화 및 구조 개선](../task/nsc-slot/slot-engine-abstraction.md) "StaticDataLoader 개선", [캐시 설계 전략 총정리](../architecture/cache-strategies.md) 개인 학습 기록.
 
-### 4-2. Kafka 비동기 흐름의 신뢰성을 구조로 확보했다
+### 4-2. 팀의 Kafka 이벤트 발행 구조를 운영하며 트랜잭션·메시지 경계를 이해했다
 
-- 금액/레벨처럼 즉시 응답이 필요한 로직은 DB 트랜잭션 내, 미션·통계·알림 후처리는 Kafka로 분리.
-- `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 이후에만 발행해 롤백된 트랜잭션 이벤트의 외부 유출을 차단. 전송 실패 시 `Propagation.REQUIRES_NEW` 별도 트랜잭션으로 실패 메시지를 DB에 저장하고 스케줄러가 재전송하는 **Dead Letter Store + 재시도 구조**. traceId 동반 저장으로 실패 원인 추적.
-- **정식 Transactional Outbox와의 차이 인지**: AFTER_COMMIT과 Kafka 발행 사이의 짧은 구간(JVM 크래시·SIGKILL)에 대한 유실 가능성이 남음. 해당 도메인(통계·알림)의 특성상 수용 가능한 수준으로 판단한 설계 선택이며, 커머스처럼 정합성이 더 엄격한 도메인에서는 이벤트를 비즈니스 데이터와 같은 트랜잭션에 저장 후 relay하는 **정식 Outbox 구조**로 강화할 계획입니다.
-- 증거: `resume/cj-foodville-resume-backend.html` 문항 1, [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md) 개인 학습 기록.
+- 슬롯 서비스는 금액/레벨처럼 즉시 응답이 필요한 로직은 DB 트랜잭션 내에서, 미션·통계·알림 후처리는 Kafka로 분리해 처리한다. 이 이벤트 발행 구조는 플랫폼(메타) 팀이 마련한 공통 자산이고, 나는 슬롯 도메인에서 이를 운영·활용하며 커밋 경계와 메시지 신뢰성의 트레이드오프를 이해했다.
+- 커밋 이후에만 발행해 롤백된 트랜잭션 이벤트가 외부로 새지 않도록 하는 원칙, 전송 실패 메시지를 남겨 재전송하는 흐름을 운영 관점에서 익혔다. 설계·구현 주체는 플랫폼 팀이므로 세부 설계 의도까지 내 것으로 주장하지 않는다.
+- 이 경험을 계기로 **정식 Transactional Outbox 패턴**(이벤트를 비즈니스 데이터와 같은 트랜잭션에 저장 후 relay)을 개인 학습으로 정리해, 커밋과 발행 사이의 유실 구간을 어떻게 구조적으로 막는지 이해해 두었다.
+- 증거: [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md) 개인 학습 기록.
 
 ### 4-3. 대용량 배치 파이프라인을 처음부터 설계했다
 
@@ -99,7 +99,7 @@
 
 ### 5-3. 성급한 추상화를 경계하는 성향 자체의 그림자
 
-- 반복이 충분히 쌓일 때까지 추상화를 미루는 성향이 있어, **조기에 공통 계층을 세팅했어야 했다**는 반성이 남은 경우가 있었습니다 (예: `SlotTemplate`/`BaseSlotService`는 신규 슬롯 5종을 만든 후에야 정돈).
+- 반복이 충분히 쌓일 때까지 추상화를 미루는 성향이 있어, **조기에 공통 계층을 세팅했어야 했다**는 반성이 남은 경우가 있었습니다 (예: `SlotPayConditionChecker`/`BaseSlotService`는 신규 슬롯 5종을 만든 후에야 정돈).
 - 보완: 팀 합류 시에는 "현재 반복의 단계(1\~2회 / 3회 이상)"를 명시적으로 체크리스트화해, 3회 이상 반복이 보일 때 즉시 ADR 후보로 올리는 리듬을 갖추려 합니다.
 
 ### 5-4. 무중단 배포·점진 전환 경험 부재
@@ -169,7 +169,7 @@
 ### 7-4. 코드 리뷰 관점: 트레이드오프 근거를 ADR/문서로 남긴다
 
 - AI 웹툰 MVP에서 12일간 134개 ADR(001\~134)을 생성. 한 ADR이 1,581줄로 비대해지자 docs-verifier 지적을 받아 700줄대로 축약 — **"ADR도 AI 에이전트 컨텍스트"**라는 관점.
-- 슬롯 엔진 추상화(`SlotTemplate`/`BaseSlotService`) 도입 시에도 "**반복을 충분히 경험한 뒤 공통점을 뽑았다**"는 근거를 문서화. 후임이 맥락 없이도 의도 파악 가능.
+- 슬롯 엔진 추상화(`SlotPayConditionChecker`/`BaseSlotService`) 도입 시에도 "**반복을 충분히 경험한 뒤 공통점을 뽑았다**"는 근거를 문서화. 후임이 맥락 없이도 의도 파악 가능.
 
 ---
 
@@ -203,13 +203,11 @@
 - **측정 가능한 결과**: 갱신 중 NPE/정합성 오류 제거, 읽기 성능 유지, 신규 캐시 타입 추가 시 기존 코드 무변경.
 - **기술적 핵심**: JPA 이벤트 리스너, RabbitMQ Fanout, StampedLock, Alias 테이블 `IN`절 일괄 조회로 init/refresh 쿼리 수 감소.
 
-### 8-4. Kafka 비동기 발행 + Dead Letter Store (슬롯팀)
+### 8-4. 팀의 Kafka 이벤트 발행 구조 운영 + Outbox 패턴 학습 (슬롯팀)
 
-- **문제 정의**: 금액·레벨 등 즉시 응답 로직과 미션·통계·알림 후처리가 한 트랜잭션 안에 얽혀 지연·실패 전파.
-- **해결 접근**: 동기/비동기 분리. `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 이후에만 발행해 롤백된 이벤트의 외부 유출 차단. 전송 실패 시 `Propagation.REQUIRES_NEW` 별도 트랜잭션으로 실패 메시지 + traceId를 DB에 저장하는 **Dead Letter Store** → 스케줄러 재전송.
-- **측정 가능한 결과**: 전송 실패 복구 가능, 실패 원인 추적 가능, 핵심 API 응답 시간 단축.
-- **기술적 핵심**: Spring AOP 기반 이벤트 리스너, Dead Letter 테이블, 스케줄러 재시도, traceId 전파.
-- **한계 인지**: AFTER_COMMIT과 Kafka 발행 사이의 JVM 크래시·SIGKILL 구간은 유실 가능성이 남음. 해당 도메인(통계·알림)에선 수용 가능한 수준으로 판단했고, 정합성이 더 엄격한 도메인에서는 이벤트를 비즈니스 데이터와 같은 트랜잭션에 저장하는 **정식 Transactional Outbox** 구조로 강화가 필요합니다.
+- **맥락**: 금액·레벨 등 즉시 응답 로직과 미션·통계·알림 후처리를 동기/비동기로 분리하는 이벤트 발행 구조가 플랫폼(메타) 팀 공통 자산으로 자리 잡혀 있었고, 슬롯 도메인에서 이를 운영·활용했다.
+- **운영하며 이해한 것**: 커밋 이후에만 발행해 롤백된 이벤트가 외부로 새지 않게 하는 원칙, 전송 실패 메시지를 남겨 재전송하는 흐름, traceId로 실패 원인을 추적하는 방식. 설계·구현 주체는 플랫폼 팀이라 세부 설계 의도까지 내 것으로 주장하지 않는다.
+- **개인 학습**: 커밋과 발행 사이 유실 구간을 구조적으로 막는 **정식 Transactional Outbox**(이벤트를 비즈니스 데이터와 같은 트랜잭션에 저장 후 relay)를 따로 정리해, 정합성이 엄격한 도메인에서 어떤 강화가 필요한지 이해해 두었다.
 
 ### 8-5. 스핀 성능 최적화 & 시뮬레이터 OOM (2025 상반기)
 
@@ -221,7 +219,7 @@
 ### 8-6. RCC (RTP Cache Control, 2025.07 \~ 2025.10)
 
 - **문제 정의**: 순수 확률 기반 슬롯은 짧은 세션에서 RTP(Return to Player) 편차가 큼. 운이 나쁜 유저가 오랫동안 보상을 받지 못해 이탈하는 것을 구조적으로 방지해야 함.
-- **해결 접근**: 백그라운드에서 "좋은 결과"를 미리 생성해 DB에 저장해두고, 조건을 충족하는 스핀에서 이 결과를 꺼내 제공. 이름은 Cache Control이지만 **응답성 최적화가 아니라 RTP 편차 보정이 목적**. 슬롯 6종 대응 + `RccSpinResultAnalyzer` 인터페이스로 슬롯별 캐시 조건 분리(OCP). 여러 인스턴스 동시 생성은 DB 유니크 키 + 예외 처리로 제어. 슬롯 엔진 추상화(`SlotTemplate`, `BaseSlotService`, `ExtraConfig` 분리)와 병행.
+- **해결 접근**: 백그라운드에서 "좋은 결과"를 미리 생성해 DB에 저장해두고, 조건을 충족하는 스핀에서 이 결과를 꺼내 제공. 이름은 Cache Control이지만 **응답성 최적화가 아니라 RTP 편차 보정이 목적**. 슬롯 20여 종에 슬롯별 `RccSpinResultAnalyzer` 구현체로 캐시 조건 분리(OCP). 여러 인스턴스 동시 생성은 DB 유니크 키 + 예외 처리로 제어. 슬롯 엔진 추상화(`SlotPayConditionChecker`, `BaseSlotService`, `ExtraConfig` 분리)와 병행.
 - **기술적 핵심**: Spring `@Async` 백그라운드 생성, Strategy Pattern(`RccSpinResultAnalyzer`), DB 유니크 키 기반 동시성 제어, 복합 인덱스 기반 쿼리 최적화(COUNT 풀스캔 해소).
 - **면접 방어 포인트**: 이름 때문에 [Cache-Aside](../database/redis/cache-aside.md)로 오해받기 쉬우나 **RTP 보장을 위한 결과 보정 시스템**이라는 본질을 먼저 짚고 들어가야 함. 커머스 비유는 추천 품질 폴백·대체 상품 제안·개인화 콜드 스타트 보정 쪽이 정합적.
 
@@ -231,7 +229,7 @@
 
 ### 9-1. 한 문단 통합 서사 (면접 "왜 우리 회사?" 답변용, 약 90초)
 
-> 지난 4년간 NHN에서 **동시성·이벤트 드리븐·대용량 배치** 문제를 깊게 풀어오면서, 같은 패턴이 커머스 도메인에서 더 큰 스케일로 어떻게 다시 나타나는지에 대한 호기심이 계속 쌓였습니다. 슬롯 도메인에서 다중 서버 캐시 정합성을 RabbitMQ + StampedLock으로 풀고, 메시지 신뢰성을 `AFTER_COMMIT` + Dead Letter Store로 구조화한 경험이, **1,600만 고객 트래픽의 상품·전시·주문 도메인**에서 어떤 형태로 다시 등장하는지 직접 보고 싶습니다. 특히 CJ 올리브영 기술 블로그의 MSA 데이터 연동 전략과 무중단 OAuth2 전환기를 읽으면서 **판단의 결이 저와 같다**는 확신이 들었습니다. 여기에 AI 도구를 단순히 쓰는 게 아니라 파이프라인으로 설계·운영한 경험을 더해, 팀의 개발 사이클을 한 단계 당기는 데 기여하고 싶습니다.
+> 지난 4년간 NHN에서 **동시성·이벤트 드리븐·대용량 배치** 문제를 깊게 풀어오면서, 같은 패턴이 커머스 도메인에서 더 큰 스케일로 어떻게 다시 나타나는지에 대한 호기심이 계속 쌓였습니다. 슬롯 도메인에서 다중 서버 캐시 정합성을 RabbitMQ + StampedLock으로 풀고, 대용량 RAG 배치 파이프라인을 처음부터 설계한 경험이, **1,600만 고객 트래픽의 상품·전시·주문 도메인**에서 어떤 형태로 다시 등장하는지 직접 보고 싶습니다. 특히 CJ 올리브영 기술 블로그의 MSA 데이터 연동 전략과 무중단 OAuth2 전환기를 읽으면서 **판단의 결이 저와 같다**는 확신이 들었습니다. 여기에 AI 도구를 단순히 쓰는 게 아니라 파이프라인으로 설계·운영한 경험을 더해, 팀의 개발 사이클을 한 단계 당기는 데 기여하고 싶습니다.
 
 ### 9-2. 왜 지금 이직하는가 (타이밍 설명)
 
@@ -243,12 +241,12 @@
 
 - **MSA 데이터 연동 전략** (2026-03-18) — 데이터의 사용처·변경 빈도·라이프사이클로 Cache-Aside vs Kafka 이벤트 + Redis Key 캐싱을 선택하는 접근은, 제가 슬롯에서 "정적 데이터는 인메모리 + Fanout, 후처리는 Kafka 비동기"로 나눈 판단과 같은 결입니다.
 - **무중단 OAuth2 전환기** (2025-10-28) — Feature Flag(Strategy) + Shadow Mode + Resilience4j 3단(Timeout → Retry → CB) + ±30s Jitter로 Peak TPS 40% 감소, P95 50ms / 성공률 100%. **"안전하게 뒤집는 방법"을 코드 배포 없이도 확보하는 감각**이 제 "Pro 기본 + 429 fallback + 전역 Rate Limit Tracking" 설계와 같은 방향입니다.
-- **SQS 알림톡 데드락 분석** (2025-12-30), **Spring 트랜잭션 동기화 레거시 개선** (2026-02-23) — 레거시를 **트랜잭션 경계·이벤트 경계로 재설계**하는 접근은 슬롯의 동기/비동기 흐름을 `AFTER_COMMIT` + Dead Letter Store로 정리한 것과 같습니다.
+- **SQS 알림톡 데드락 분석** (2025-12-30), **Spring 트랜잭션 동기화 레거시 개선** (2026-02-23) — 레거시를 **트랜잭션 경계·이벤트 경계로 재설계**하는 접근은, 슬롯 도메인에서 팀의 이벤트 발행 구조를 운영하며 본 트랜잭션·이벤트 경계 분리와 결이 같습니다.
 
 ### 9-4. 왜 이 역할 — JD × 경험 매핑
 
 - **상품·전시·검색·ORM**: JPA 도메인 모델링 + 이벤트 리스너 + 다중 서버 캐시 정합성 4년 경험이 상품·전시의 실시간 변경·다중 서버 동기화 문제에 직접 매핑됩니다.
-- **MSA·Kafka·캐싱**: `AFTER_COMMIT` 발행 + Dead Letter Store 재시도, RabbitMQ Fanout, Spring Batch 11 Step + AsyncItemProcessor까지 운영 경험이 검색·알림·주문 도메인 간 이벤트 연동에 바로 적용 가능합니다.
+- **MSA·Kafka·캐싱**: RabbitMQ Fanout 기반 캐시 정합성, Spring Batch 11 Step + AsyncItemProcessor까지 운영 경험이 검색·알림·주문 도메인 간 이벤트 연동에 바로 적용 가능합니다.
 - **AI 도구 도입**: Cursor Rules 20+로 슬롯 도메인 컨텍스트 문서화 → 신규 게임 3종 에이전트 단독 구현, AI 웹툰 MVP 4인 에이전트 팀 운영 경험을 팀에 들여와 반복 개발 사이클을 단축하는 데 쓰고 싶습니다.
 - **Kotlin**: 초기 학습 필요. 공고의 Java/Kotlin 병용 요건에 맞춰 1\~2주 안에 실무 생산성 수준까지 끌어올리겠습니다.
 
@@ -277,7 +275,7 @@
   3. 쓰기는 청크 단위 트랜잭션 + 멱등 키로 중복 실행 방어.
   4. **Shadow 이행** (구 → 신 병기 기록) 단계로 운영 데이터와 이행 데이터를 비교한 뒤, Feature Flag로 읽기 경로만 점진 전환(올리브영 OAuth2 전환 사례와 같은 결).
   5. 실패 메시지는 `REQUIRES_NEW` 별도 트랜잭션 + traceId로 저장, 재처리 큐로 흘려보냄.
-- 실제 근거: `AsyncItemProcessor` + 커서 재시작([Confluence 문서를 OpenSearch에 벡터 색인하기](../task/ai-service-team/rag-vector-search-batch.md)), `REQUIRES_NEW` 기반 Dead Letter Store 재시도(`resume 문항 1`).
+- 실제 근거: `AsyncItemProcessor` + 커서 재시작([Confluence 문서를 OpenSearch에 벡터 색인하기](../task/ai-service-team/rag-vector-search-batch.md)).
 
 ### Q3. "주니어가 합류하면 리뷰 정책은 어떻게 세팅하시겠어요?"
 
@@ -297,7 +295,7 @@
 ### Q5. "Kafka에서 메시지 유실을 막는 구조를 어떻게 설계하시나요?"
 
 - **정식 Transactional Outbox**: 비즈니스 트랜잭션 안에서 outbox 테이블에 이벤트를 함께 기록하고, relay(스케줄러 또는 CDC)가 outbox를 읽어 Kafka로 발행. 커밋 자체에 메시지 저장이 포함되므로 JVM 크래시 상황에서도 유실이 구조적으로 차단됩니다.
-- **슬롯팀에서 한 구현과의 차이**: 저는 `@TransactionalEventListener(AFTER_COMMIT)`으로 커밋 이후 발행 + 전송 실패 시 `Propagation.REQUIRES_NEW`로 Dead Letter Store + 스케줄러 재시도 구조로 구현했습니다. AFTER_COMMIT과 Kafka 발행 사이의 크래시 구간은 유실 가능성이 남는 한계가 있고, 통계·알림 도메인에선 수용 가능한 수준으로 판단한 선택이었습니다. 정합성이 엄격한 도메인이면 정식 Outbox로 강화해야 합니다.
+- **현장에서 본 접근**: 슬롯 도메인에서 운영한 팀의 이벤트 발행 구조는 커밋 이후 발행 + 전송 실패 메시지를 남겨 재전송하는 방식이었습니다. 커밋 이후 발행은 커밋과 Kafka 발행 사이 크래시 구간에 유실 가능성이 남고, 이를 없애려면 위의 정식 Outbox(같은 트랜잭션에 이벤트 저장 후 relay)가 필요합니다. 통계·알림처럼 유실 허용치가 있는 도메인과 정합성이 엄격한 도메인에서 어느 구조가 맞는지의 트레이드오프로 이해하고 있습니다. 구현 주체는 플랫폼 팀이라 세부 설계는 관찰·운영 수준으로 말씀드립니다.
 - 컨슈머 쪽: 멱등 키 + 수동 커밋 + DLQ. "한 번 이상 도착" 모델을 전제로 설계.
 - 회고: producer는 유실 방지, consumer는 중복 방어가 분업. 이 경계를 흐리면 retry 폭주/순환이 생깁니다.
 
@@ -308,7 +306,7 @@
 
 ### Q7. "실패 원인 추적(Observability)을 어떻게 설계하세요?"
 
-- MDC/traceId 전파를 트랜잭션 경계·메시징 경계 모두에서 유지. Dead Letter 레코드에도 traceId를 함께 박아 사후 재현성 확보.
+- MDC/traceId 전파를 트랜잭션 경계·메시징 경계 모두에서 유지. 실패 이벤트 레코드에도 traceId를 함께 남겨 사후 재현성 확보.
 - 비즈니스 실패(예: safety filter 차단, AI 환각)는 **기술 예외와 다른 채널**로 기록. AI 웹툰에서는 컷별로 `lastGenerationStatus`, `lastGenerationError`, `lastGeneratedAt`을 DB에 박아 UI에 구체적 사유를 노출했습니다.
 - Circuit Breaker·Timeout·Retry는 이벤트를 남기지 않으면 "왜 성공했는지/왜 실패했는지"가 사라짐. Resilience4j 사용 시 이벤트 리스너로 상태 전이 로깅 필수.
 
@@ -402,7 +400,7 @@
 ### 시간 배분 (60분 기준)
 
 - 자기소개 60초 (1번 항목 그대로).
-- 이력·경험 설명 10\~15분: 슬롯 캐시 정합성 / Kafka 비동기 발행 / RAG 배치 / AI 웹툰 MVP 중 **면접관이 관심 보이는 축을 빠르게 감지**해 거기에 무게.
+- 이력·경험 설명 10\~15분: 슬롯 캐시 정합성 / RCC (RTP 편차 보정) / RAG 배치 / AI 웹툰 MVP 중 **면접관이 관심 보이는 축을 빠르게 감지**해 거기에 무게.
 - 기술 심화 QnA 20\~25분: 10번 항목의 프레이밍 그대로 사용.
 - 라이브 코딩/화이트보드 10\~15분.
 - 역질문 5분: 11번 항목에서 **기술 1 + 팀 1 + 회사 방향 1** 세 개 우선.
@@ -410,7 +408,7 @@
 
 ### 말하기 지침
 
-- 속도: 평소보다 **20% 느리게**. 숫자·고유명사(StampedLock, `AsyncItemProcessor`, `@TransactionalEventListener(AFTER_COMMIT)`)는 또박또박.
+- 속도: 평소보다 **20% 느리게**. 숫자·고유명사(StampedLock, `AsyncItemProcessor`, `RccSpinResultAnalyzer`)는 또박또박.
 - 한 답변 60\~90초 원칙. 길어지면 "핵심 먼저 → 이후 더 깊게 가실지 여쭤봐도 될까요?"로 끊기.
 - "잘 모르겠다"는 세 단계로: (1) 현재 아는 범위, (2) 비슷한 경험에서의 가설, (3) 입사 후 어떻게 검증할지. **모른다는 걸 숨기지 않는다**.
 - 재사용 가능한 클로징 문장 한 줄 준비:
