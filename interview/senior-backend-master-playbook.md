@@ -15,7 +15,7 @@
 
 > NHN에서 4년간 Java 백엔드 개발을 해온 김병태입니다. 슬롯팀에서는 Spring Boot 멀티모듈 MSA 환경에서 신규 슬롯 게임 5종을 개발했고, 성능·동시성 이슈를 직접 풀었습니다. 다중 서버 인메모리 캐시 정합성 문제에서는 Hibernate `PostCommitUpdateEventListener`로 커밋 후에만 RabbitMQ Fanout Exchange로 변경 ID를 발행하고, 갱신 중 조회 충돌은 StampedLock + 2.5초 tryReadLock 타임아웃으로 해결했습니다.
 >
-> AI 서비스팀으로 옮긴 뒤에는 Confluence → OpenSearch RAG 파이프라인을 11개 Step으로 분리해 처음부터 설계·구현했습니다. I/O 바운드인 임베딩 호출은 `AsyncItemProcessor`로 병렬화하고, 메타데이터 차이는 전략 패턴(`EmbeddingMetadataProvider`)으로 흡수해 OCP를 지켰습니다. 최근에는 12일 동안 혼자 Next.js 16 · React 19 · Prisma 7 · Gemini 기반 AI 웹툰 제작 도구 MVP를 만들었는데, Claude Code 하네스 위에서 planner·critic·executor·docs-verifier 4인 에이전트 팀을 조율해 199 plan / 760 커밋을 소화했습니다. Gemini Pro 우선 + 429 fallback 전략, 전역 Rate Limit Tracking, Project 단위 Context Cache, Promise.allSettled 기반 60컷 부분 성공 생성, 글콘티 Grounding 재주입으로 환각을 구조적으로 차단한 게 핵심이었습니다.
+> AI 서비스팀으로 옮긴 뒤에는 Confluence → OpenSearch RAG 파이프라인을 11개 Step으로 분리해 처음부터 설계·구현했습니다. I/O 바운드인 임베딩 호출은 `AsyncItemProcessor`로 병렬화했습니다. 최근에는 12일 동안 혼자 Next.js 16 · React 19 · Prisma 7 · Gemini 기반 AI 웹툰 제작 도구 MVP를 만들었는데, Claude Code 하네스 위에서 planner·critic·executor·docs-verifier 4인 에이전트 팀을 조율해 199 plan / 760 커밋을 소화했습니다. Gemini Pro 우선 + 429 fallback 전략, 전역 Rate Limit Tracking, Project 단위 Context Cache, Promise.allSettled 기반 60컷 부분 성공 생성, 글콘티 Grounding 재주입으로 환각을 구조적으로 차단한 게 핵심이었습니다.
 >
 > 강점은 두 가지입니다. 하나는 기능 구현에 그치지 않고 추상 템플릿·전략 패턴·테스트 인프라까지 구조를 다져 팀 속도를 높이는 것이고, 다른 하나는 AI 도구를 단순히 쓰는 게 아니라 파이프라인으로 설계·운영하는 관점입니다. 대규모 커머스 트래픽 환경에서 그동안의 캐시·이벤트·대용량 배치 경험을 빠르게 적용하고 싶습니다.
 
@@ -26,8 +26,8 @@
 | 기간 | 소속 | 역할 | 대표 기술 결정 |
 |------|------|------|----------------|
 | 2026.04 (12일) | NHN AI 서비스팀 | 단독 풀스택 MVP 리드 | Next.js 16 + Gemini + Claude Code 하네스 기반 4인 에이전트 팀(planner/critic/executor/docs-verifier)으로 199 plan/760 커밋. Gemini Pro 기본 + 429 fallback, 전역 Rate Limit Tracking, Project Context Cache, Grounding 재주입, Container/Presenter + 파일 소유권 매트릭스 |
-| 2026.01 \~ 2026.03 | NHN AI 서비스팀 | RAG 배치 파이프라인 설계·구현 | Spring Batch 11 Step + `AsyncItemProcessor` 병렬 임베딩, `@JobScope` 인메모리 홀더, ADF → Markdown 변환, 전략 패턴 기반 `EmbeddingMetadataProvider`, 삭제 동기화 (`status=DELETED,TRASHED` 재사용) |
-| 2025.12 \~ | NHN AI 서비스팀 | 백엔드 | OCR 서버 [Graceful Shutdown](../devops/graceful-shutdown.md) 503 수정, 임베딩 메타데이터 blocklist → allowlist 전환 |
+| 2026.01 \~ 2026.03 | NHN AI 서비스팀 | RAG 배치 파이프라인 설계·구현 | Spring Batch 11 Step + `AsyncItemProcessor` 병렬 임베딩, `@JobScope` 인메모리 홀더, ADF → Markdown 변환, 삭제 동기화 (`status=DELETED,TRASHED` 재사용) |
+| 2025.12 \~ | NHN AI 서비스팀 | 백엔드 | OCR 서버 [Graceful Shutdown](../devops/graceful-shutdown.md) 503 수정 |
 | 2025.07 \~ 2025.10 | NHN NSC 슬롯팀 | RCC·엔진 추상화 리드 | RTP Cache Control 슬롯 20여 종에 슬롯별 `RccSpinResultAnalyzer` 대응, `BaseSlotService`/`ExtraConfig` 분리, `StampedLock` 도입으로 refresh 중 NPE 제거, Alias 테이블 `IN`절 일괄 조회 |
 | 2025.02 \~ 2025.08 | NHN NSC 슬롯팀 | 신규 슬롯 5종 | Slot 36/38/41/44/47, Cursor Rules 20+로 AI 에이전트 단독 구현 3종, 스핀 최적화(AliasMethod O(1), `SecureRandom` → `ThreadLocalRandom`), 시뮬레이터 OOM 해결(Welford's Online Algorithm) |
 | 2024.06 \~ 2024.12 | NHN NSC 슬롯팀 | 합류 첫 해 | Slot 21/33 신규 게임, Admin Alpha↔Real 비교/복사, BuyFeature 티켓·시나리오 스핀 플랫폼 기능, 다중 서버 캐시 정합성 (RabbitMQ Fanout + StampedLock) |
@@ -140,11 +140,6 @@
 - 초기: 수천 개 페이지 ID를 `JobExecutionContext`에 저장. 청크 커밋마다 `BATCH_JOB_EXECUTION_CONTEXT` 테이블에 직렬화되는 부하.
 - 재결정: `JobExecutionContext`는 **재시작용 경량 커서 상태** 전용으로 제한하고, 도메인 데이터는 `@JobScope` 빈 `ConfluenceJobDataHolder`로 분리. `allowStartIfComplete(true)` 세팅으로 재시작 시에도 상태 로더가 반드시 재실행되게 해서 NPE 방지.
 
-### 사례 5 — 메타데이터 구성: Blocklist → Allowlist 전환
-
-- 초기: 임베딩 메타데이터를 "필드 제거" 방식(blocklist)으로 관리. 신규 필드가 추가되면 자동으로 흘러 들어가 의도치 않은 노출.
-- 재결정: `EmbeddingMetadataProvider` 인터페이스 기반 allowlist 방식으로 뒤집어 **명시적으로 허용한 필드만** 포함. OCP 준수(새 스페이스 포맷은 새 Provider 추가).
-
 ---
 
 ## 7. 협업 / 리더십 / 코드 리뷰 강점
@@ -178,9 +173,9 @@
 ### 8-1. Confluence → OpenSearch RAG 배치 파이프라인 (2026.01 \~ 2026.03)
 
 - **문제 정의**: 사내 AI Playground가 RAG 검색 품질을 올리려면 Confluence 문서를 벡터로 사전 색인해야 하는데, 포맷(ADF), 첨부파일, 다중 스페이스, 삭제 동기화, 재시작 요구가 얽힘.
-- **해결 접근**: Spring Batch 기반 11 Step 분리 파이프라인. `CompositeItemProcessor`로 `ChangeFilter → Enrichment → BodyConvert → Embedding` 단계를 체이닝, I/O 바운드 임베딩은 `AsyncItemProcessor` + `AsyncItemWriter`로 병렬화. `@JobScope` 홀더로 Step 간 경량 공유, `JobExecutionContext`는 재시작 커서로만 사용. 전략 패턴(`ConfluenceDocumentMetadataProvider`)으로 스페이스별 메타데이터 포맷 차이 흡수. 삭제 동기화는 `status=DELETED,TRASHED` 재사용으로 별도 ID 집합 비교 없이 처리.
+- **해결 접근**: Spring Batch 기반 11 Step 분리 파이프라인. `CompositeItemProcessor`로 `ChangeFilter → Enrichment → BodyConvert → Embedding` 단계를 체이닝, I/O 바운드 임베딩은 `AsyncItemProcessor` + `AsyncItemWriter`로 병렬화. `@JobScope` 홀더로 Step 간 경량 공유, `JobExecutionContext`는 재시작 커서로만 사용. 삭제 동기화는 `status=DELETED,TRASHED` 재사용으로 별도 ID 집합 비교 없이 처리.
 - **측정 가능한 결과**: Step 단위 실패 격리 + 커서 기반 재시작으로 장애 복구 시 처음부터 재실행 불필요. 변경 감지(`version` 비교)로 불필요한 임베딩 API 호출 제거.
-- **기술적 핵심**: Spring Batch, `AsyncItemProcessor`, `@JobScope` 프록시, OpenSearch bulk, 전략 패턴, `@StepScope` 빈 충돌 해결(`@Qualifier` 정리).
+- **기술적 핵심**: Spring Batch, `AsyncItemProcessor`, `@JobScope` 프록시, OpenSearch bulk, `@StepScope` 빈 충돌 해결(`@Qualifier` 정리).
 
 ### 8-2. AI 웹툰 제작 도구 MVP (2026.04, 12일 / 단독)
 
@@ -417,6 +412,6 @@
 ### 당일 아침
 
 - [ ] 이 문서 1번 항목, 3번 항목, 8번 항목, 11번 항목만 재독 (전체 아님).
-- [ ] 최근 3개월 사내 수정 사항(임베딩 메타데이터 allowlist 전환, OCR Graceful Shutdown, AI 웹툰 MVP 12일 회고) 키워드 복기.
+- [ ] 최근 3개월 사내 수정 사항(OCR Graceful Shutdown, AI 웹툰 MVP 12일 회고) 키워드 복기.
 - [ ] 물 500ml, 사탕 1\~2개. 긴장 완화용.
 - [ ] 이동 시간 + 30분 여유. 근무지: 서울.
