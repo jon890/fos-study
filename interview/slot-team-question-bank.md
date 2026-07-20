@@ -6,9 +6,9 @@
 
 - NHN NSC슬롯팀 2024.06 ~ 2025.11 슬롯 게임 백엔드 경험 기반 질문 은행으로, 슬롯 엔진 추상화·RCC 시스템 설계·동시성 처리·성능 최적화·AI 도구 도입 5개 주제를 커버한다.
 - CJ 올리브영 커머스플랫폼 웰니스개발팀 면접의 도메인 모델링, 캐싱 전략, 비동기 처리, 대용량 처리 역량 검증 영역과 직접 매핑되도록 설계되었다.
-- 각 질문은 후보자의 실제 경험 증거(SlotTemplate/BaseSlotService, RCC, StampedLock, AliasMethod, Cursor Rules)를 기반으로 구성되었으며, 면접관 의도와 압박 방어 포인트를 포함한다.
+- 각 질문은 후보자의 실제 경험 증거(SlotPayConditionChecker/BaseSlotService, RCC, StampedLock, AliasMethod, Cursor Rules)를 기반으로 구성되었으며, 면접관 의도와 압박 방어 포인트를 포함한다.
 
-## 메인 질문 1. 슬롯이 5종 이상 쌓인 시점에 SlotTemplate과 BaseSlotService를 도입해 엔진을 추상화했다고 하셨는데, 그 설계 결정의 배경과 구체적인 구조를 설명해 주세요.
+## 메인 질문 1. 슬롯이 5종 이상 쌓인 시점에 SlotPayConditionChecker(+Factory)와 BaseSlotService를 도입해 엔진을 추상화했다고 하셨는데, 그 설계 결정의 배경과 구체적인 구조를 설명해 주세요.
 
 > 추가: 2026-04-16 | 업데이트: 2026-04-16
 
@@ -20,14 +20,14 @@
 ### 실제 경험 기반 답변 포인트
 
 - 슬롯 5종 이상 구현 후 라인·웨이·클러스터 세 가지 페이 방식이 공통 추상화 축임을 발견했다. 처음부터 추상화하면 잘못된 경계를 그을 가능성이 높아 반복을 충분히 경험한 뒤에 설계했다.
-- SlotTemplate으로 페이 방식 자체를 추상화해 슬롯마다 직접 구현하던 페이 계산을 PayCalculator 주입으로 전환했다. 슬롯은 getPayCalculator()만 반환하면 되고, 페이에 참여하지 않는 심볼 처리도 이 레이어에서 어드민 설정으로 관리하도록 추가했다.
+- 페이 방식 판정을 SlotPayConditionChecker 인터페이스와 SlotPayConditionCheckerFactory로 추상화했다. 슬롯마다 직접 구현하던 페이 계산을 타입별 체커(WayConditionChecker, PaylineConditionChecker 등) 구현체로 분리하고, Factory가 SlotType에 맞는 체커를 런타임에 골라 실행하도록 전환했다. 페이에 참여하지 않는 심볼 처리도 이 판정 레이어에서 어드민 설정으로 관리하도록 추가했다.
 - SlotService 인터페이스에 default 구현이 점점 늘어나는 문제를 BaseSlotService 추상 클래스로 해소했다. Java interface default는 상태를 가질 수 없어 스프링 빈 주입이 필요한 공통 로직을 수용할 수 없었다.
-- ExtraConfig 생성 책임을 SlotConfigFactory에서 각 슬롯 서비스로 이동해 새 슬롯 추가 시 팩토리 코드를 수정하지 않아도 되는 구조를 만들었다.
+- 새 페이 타입 추가 시 SlotType enum 값과 체커 구현체만 추가하면 되고, Factory·서비스·기존 체커 코드는 건드리지 않는다. 초기에는 if-else 분기였는데 Way 타입이 들어올 즈음 이 구조로 리팩터링했다.
 
 ### 1분 답변 구조
 
 - 상황: 슬롯 5종 이상 구현 후 라인·웨이·클러스터 페이 계산 로직이 슬롯마다 중복 구현되고 있었고, SlotService 인터페이스에 default 구현이 늘어나 테스트 가능성이 떨어지고 있었다.
-- 결정: 반복을 충분히 경험한 뒤에야 올바른 공통점이 보인다는 판단으로, SlotTemplate으로 페이 방식을 추상화하고 BaseSlotService로 공통 구현을 추출했다. ExtraConfig 생성 책임도 팩토리에서 각 슬롯 서비스로 이동했다.
+- 결정: 반복을 충분히 경험한 뒤에야 올바른 공통점이 보인다는 판단으로, SlotPayConditionChecker + Factory로 페이 판정을 타입별 체커로 분리하고 BaseSlotService로 공통 구현을 추출했다. 새 페이 타입은 체커 구현체만 추가하면 되도록 OCP를 확보했다.
 - 결과: 새 슬롯 추가 시 슬롯 특화 로직만 구현하면 되고, 기존 슬롯 코드를 건드리지 않는 확장 구조가 완성됐다. 이후 AI 에이전트가 신규 슬롯을 구현할 때도 이 구조가 참조 코드로 활용됐다.
 
 ### 압박 질문 방어 포인트
@@ -42,15 +42,15 @@
 
 ### 꼬리 질문 5개
 
-**F1-1.** WayPayCalculator를 INSTANCE 싱글턴으로 만든 이유는 무엇인가요? 멀티스레드 환경에서 상태가 없다는 걸 어떻게 보장했나요?
+**F1-1.** WayConditionChecker를 상태 없는 @Component로 등록하고 Factory가 생성자에서 List로 자동수집해 Map을 구성하는데, 이 체커가 멀티스레드 환경에서 상태를 갖지 않는다는 걸 어떻게 보장했나요?
 
-**F1-2.** SlotTemplate에 '페이에 참여하지 않는 심볼' 기능을 추가했는데, 이 요구사항이 슬롯별 처리가 아닌 추상 레이어에 있어야 했던 이유는 무엇인가요?
+**F1-2.** 페이 판정 레이어에 '페이에 참여하지 않는 심볼' 기능을 추가했는데, 이 요구사항이 슬롯별 처리가 아닌 추상 레이어(페이 체커)에 있어야 했던 이유는 무엇인가요?
 
 **F1-3.** BaseSlotService에서 추상 메서드로 선언한 것과 기본 구현을 제공한 것을 어떤 기준으로 구분했나요?
 
-**F1-4.** ExtraConfig 책임을 팩토리에서 서비스로 이동했을 때, 기존 슬롯들을 마이그레이션하는 과정에서 어떤 어려움이 있었나요?
+**F1-4.** if-else 분기로 처리하던 페이 판정을 SlotPayConditionChecker + Factory 구조로 전환할 때, 기존 슬롯들을 마이그레이션하는 과정에서 어떤 어려움이 있었나요?
 
-**F1-5.** slot-config-model 모듈로 Config 응답 객체를 분리한 이유가 메타 서비스 이관 준비라고 하셨는데, 실제 이관은 어느 단계까지 진행됐나요?
+**F1-5.** AbstractWinService에서 Factory로 고른 체커를 사용할 때 @SuppressWarnings("unchecked") 캐스팅이 한 곳 들어가는데, 이 캐스팅이 런타임에 안전하다고 판단한 근거는 무엇인가요?
 
 ---
 
@@ -69,13 +69,13 @@
 - 비동기 설계 선택: 캐시 생성을 스핀 응답 흐름에서 완전히 분리했다. 캐시 히트 시 다음 캐시 생성을 비동기 트리거해 유저 응답 시간에 영향 없이 캐시를 미리 준비한다.
 - RccSpinResultAnalyzer를 인터페이스로 추상화해 슬롯별 캐시 조건 판단 로직을 조건 분기 없이 구현체 주입으로 처리했다. 슬롯 33처럼 개인화 데이터 구조가 특수한 경우도 별도 구현체로 수용했다.
 - 동시성: 낙관적 락 검토 후 캐시 생성 충돌 빈도 특성상 DB 유니크 키 + 예외 처리 조합을 선택했다. 중복 생성 시 유니크 키 위반 예외는 다른 인스턴스가 이미 생성했다는 의미이므로 재시도 없이 넘어가면 된다.
-- 초기 설계에서 놓친 케이스: 잭팟 처리(GameMode별 JackpotService 분기, NoOpJackpotService 필요), 시뮬레이터 캐시 생성 문제, RTP-FREE 상태 중 치환 요청 처리를 운영하며 순차 보완했다.
+- 초기 설계에서 놓친 케이스: 잭팟 처리(GameMode별 JackpotService 분기, NoOpProgressiveJackpotService 필요), 시뮬레이터 캐시 생성 문제, RTP-FREE 상태 중 치환 요청 처리를 운영하며 순차 보완했다.
 
 ### 1분 답변 구조
 
 - 상황: 순수 확률 기반 슬롯의 짧은 세션 RTP 편차 문제로 유저가 오랫동안 보상을 받지 못하는 케이스가 발생했고, 유저 경험을 해치지 않으면서 RTP를 보장하는 시스템이 필요했다.
 - 결정: 백그라운드 비동기 캐시 생성으로 스핀 응답 흐름과 분리하고, RccSpinResultAnalyzer 인터페이스로 슬롯별 조건 차이를 수용했다. 동시성은 DB 유니크 키 + 예외 처리로 단순하게 처리했다.
-- 결과: 슬롯 6종 대응, 유저 스핀 응답 시간 영향 없이 RTP 보장 달성. RccCacheStatisticsService로 캐시 부족 모니터링 체계도 함께 구축했다.
+- 결과: 여러 슬롯 대응, 유저 스핀 응답 시간 영향 없이 RTP 보장 달성. RccCacheStatisticsService로 캐시 부족 모니터링 체계도 함께 구축했다.
 
 ### 압박 질문 방어 포인트
 
@@ -147,7 +147,7 @@
 
 ---
 
-## 메인 질문 4. 슬롯 스핀 성능 최적화 과정에서 AliasMethod 도입과 SecureRandom에서 ThreadLocalRandom으로 전환을 결정했는데, 각 결정의 근거와 측정 결과를 설명해 주세요.
+## 메인 질문 4. 슬롯 스핀 성능 최적화 과정에서 AliasMethod 도입과 SecureRandom에서 ThreadLocalRandom으로 바꾸는 개선의 병목을 분석하고 개선안을 정리하셨는데, 각 개선의 근거와 확인 방법을 설명해 주세요.
 
 > 추가: 2026-04-16 | 업데이트: 2026-04-16
 
@@ -158,16 +158,16 @@
 
 ### 실제 경험 기반 답변 포인트
 
-- AliasMethod 도입: 가중치 랜덤 선택을 누적합 O(n) 방식에서 사전 테이블 기반 O(1) 방식으로 전환했다. 테이블 생성은 슬롯 초기화 시 1회만 수행하고, 매 스핀마다 호출되는 pick()은 랜덤 2회로 항상 O(1)이다.
+- AliasMethod 도입: 가중치 랜덤 선택을 누적합 O(n) 방식에서 사전 테이블 기반 O(1) 방식으로 전환한 개선이다. 테이블 생성은 슬롯 초기화 시 1회만 수행하고, 매 스핀마다 호출되는 pick()은 랜덤 2회로 항상 O(1)이다.
 - SecureRandom → ThreadLocalRandom: SecureRandom은 OS 엔트로피 풀 사용과 내부 synchronized 처리로 멀티스레드 환경에서 락 경합이 누적된다. ThreadLocalRandom은 스레드별 독립 인스턴스라 경합이 없다.
 - SecureRandom 선택 근거 부재 확인: 슬롯은 서버가 결과를 결정하고 클라이언트에 전달하는 구조다. 공격자가 내부 랜덤 상태에 접근할 경로가 없으므로 암호학적 예측 불가능성이 필요한 시나리오가 아니다.
-- ThreadLocalRandom 오용 패턴 수정: ThreadLocalRandom.current()를 필드로 저장하면 초기화 스레드에 귀속된 인스턴스가 고정된다. 다른 스레드에서 해당 필드를 사용하면 스레드 안전하지 않다. 매번 current()를 호출하도록 수정했다.
+- ThreadLocalRandom 오용 패턴: ThreadLocalRandom.current()를 필드로 저장하면 초기화 스레드에 귀속된 인스턴스가 고정된다. 다른 스레드에서 해당 필드를 사용하면 스레드 안전하지 않다. 매번 current()를 호출하도록 바로잡아야 한다.
 
 ### 1분 답변 구조
 
 - 상황: 시뮬레이터 100만 스핀에서 슬롯 1종당 10분 이상 걸리는 병목이 있었다. 가중치 선택 O(n)과 SecureRandom 내부 락 경합이 주요 원인이었다.
-- 결정: AliasMethod로 가중치 선택을 O(1)로 전환하고, 멀티스레드에서 SecureRandom의 내부 synchronized로 인한 락 경합이 시뮬레이터 병목의 한 축이라는 점을 근거로 SecureRandom을 ThreadLocalRandom으로 교체했다. 슬롯 구조상 암호학적 보장이 불필요하다는 근거도 명확히 정리했다.
-- 결과: 시뮬레이터 처리 시간이 대폭 단축됐고, ThreadLocalRandom 필드 저장 버그도 함께 발견해 수정했다. 이 개선은 실제 스핀 응답 경로에도 동일하게 적용됐다.
+- 기여: AliasMethod로 가중치 선택을 O(1)로 개선하고, 멀티스레드에서 SecureRandom의 내부 synchronized 락 경합이 시뮬레이터 병목의 한 축이라는 점을 분석했다. 슬롯 구조상 암호학적 보장이 불필요하다는 근거를 정리해 ThreadLocalRandom 개선안을 냈다.
+- 결과: 시뮬레이터 처리 시간이 단축됐고, ThreadLocalRandom을 필드로 저장하면 안 되는 오용 패턴도 함께 정리했다. 성능 최적화 전반은 팀 작업이었고, 나는 병목 분석과 개선안 정리에 기여했다.
 
 ### 압박 질문 방어 포인트
 
@@ -205,20 +205,20 @@
 ### 실제 경험 기반 답변 포인트
 
 - 문제 정의: 슬롯 도메인은 RTP 계산, 페이 방식, 게임 기계학, 스핀 타입별 흐름 등 컨텍스트가 방대해 에이전트가 코드만 보고는 설계 의도를 파악하기 어렵다. 컨텍스트 없이 에이전트에 맡기면 기존 추상화와 맞지 않는 코드가 생성됐다.
-- Cursor Rules를 도메인 지식 공급 수단으로 활용: 슬롯 엔진 구조(SlotTemplate/BaseSlotService), 게임 타입별 스핀 흐름, 확장 포인트, 테스트 패턴 등 20개 이상 규칙을 구축했다. Rules는 에이전트의 컨텍스트 창에 자동 주입된다.
-- 에이전트 단독 구현 가능 조건: 도메인 컨텍스트가 Rules에 충분히 문서화되어 있어야 하고, 기존 추상화 레이어(SlotTemplate/BaseSlotService)가 참조 코드 역할을 할 수 있는 구조여야 한다. 추상화가 먼저 안정화된 뒤에 에이전트 협업이 실효성 있게 동작했다.
+- Cursor Rules를 도메인 지식 공급 수단으로 활용: 슬롯 엔진 구조(SlotPayConditionChecker/BaseSlotService), 게임 타입별 스핀 흐름, 확장 포인트, 테스트 패턴 등 20개 이상 규칙을 구축했다. Rules는 에이전트의 컨텍스트 창에 자동 주입된다.
+- 에이전트 단독 구현 가능 조건: 도메인 컨텍스트가 Rules에 충분히 문서화되어 있어야 하고, 기존 추상화 레이어(SlotPayConditionChecker/BaseSlotService)가 참조 코드 역할을 할 수 있는 구조여야 한다. 추상화가 먼저 안정화된 뒤에 에이전트 협업이 실효성 있게 동작했다.
 - 팀 전파: Slot 44(Fortune Blessing), 41(Bingoing), 47(Boogie Turkey)를 에이전트 협업으로 구현한 경험을 팀 내에 활용 방법으로 전파해 반복 개발 사이클을 단축했다.
 
 ### 1분 답변 구조
 
 - 상황: 슬롯마다 유사한 구조가 반복되지만, 도메인 컨텍스트 없이 에이전트에 맡기면 기존 추상화와 맞지 않는 코드가 생성됐다. 매번 컨텍스트를 직접 설명하는 비용도 컸다.
-- 결정: 슬롯 엔진 구조, 확장 포인트, 타입별 스핀 흐름을 Cursor Rules로 문서화해 에이전트 컨텍스트를 자동 공급하도록 설계했다. SlotTemplate/BaseSlotService 추상화가 안정화된 뒤 Rules와 결합해 에이전트 단독 구현이 가능해졌다.
+- 결정: 슬롯 엔진 구조, 확장 포인트, 타입별 스핀 흐름을 Cursor Rules로 문서화해 에이전트 컨텍스트를 자동 공급하도록 설계했다. SlotPayConditionChecker/BaseSlotService 추상화가 안정화된 뒤 Rules와 결합해 에이전트 단독 구현이 가능해졌다.
 - 결과: Slot 44, 41, 47 에이전트 협업 구현 완료. AbstractSlotTest 기반 테스트 템플릿으로 에이전트 생성 코드도 동일한 검증 체계에서 확인했다. 팀 전파로 반복 개발 사이클 단축에 기여했다.
 
 ### 압박 질문 방어 포인트
 
 - "에이전트가 생성한 코드의 품질을 어떻게 검증했나요?" → 에이전트 생성 코드를 직접 리뷰하고, SlotSimulator로 RTP와 게임 흐름을 검증했다. AbstractSlotTest 기반 테스트 템플릿이 있어 에이전트 생성 코드도 동일한 테스트 프레임워크로 확인 가능했다. 에이전트를 맹신하지 않고 설계 의도를 아는 개발자가 반드시 검토하는 워크플로를 유지했다.
-- "Cursor Rules 20개의 유지보수 부담은 어떻게 처리했나요?" → SlotTemplate·BaseSlotService 추상화가 안정화되면서 Rules의 변경 빈도도 줄었다. 신규 슬롯 추가나 엔진 구조 변경 시 해당 Rules를 함께 업데이트하는 관행을 팀 내에 만들었다. Rules는 코드 변경 시 자연스럽게 함께 갱신하는 부속 문서로 취급했다.
+- "Cursor Rules 20개의 유지보수 부담은 어떻게 처리했나요?" → SlotPayConditionChecker·BaseSlotService 추상화가 안정화되면서 Rules의 변경 빈도도 줄었다. 신규 슬롯 추가나 엔진 구조 변경 시 해당 Rules를 함께 업데이트하는 관행을 팀 내에 만들었다. Rules는 코드 변경 시 자연스럽게 함께 갱신하는 부속 문서로 취급했다.
 
 ### 피해야 할 약한 답변
 
@@ -231,7 +231,7 @@
 
 **F5-2.** 에이전트 단독 구현이 가능했던 슬롯과 직접 개발해야 했던 슬롯의 차이는 무엇이었나요? 어떤 케이스에서 에이전트 협업을 포기했나요?
 
-**F5-3.** SlotTemplate/BaseSlotService 추상화와 Cursor Rules는 상호보완적이라고 하셨는데, 추상화가 먼저였나요 Rules가 먼저였나요? 순서가 중요했나요?
+**F5-3.** SlotPayConditionChecker/BaseSlotService 추상화와 Cursor Rules는 상호보완적이라고 하셨는데, 추상화가 먼저였나요 Rules가 먼저였나요? 순서가 중요했나요?
 
 **F5-4.** 팀원들이 Cursor Rules를 활용하도록 전파하는 과정에서 저항이나 어려움이 있었나요? 어떻게 설득했나요?
 
@@ -241,7 +241,7 @@
 
 ## 최종 준비 체크리스트
 
-- SlotTemplate의 PayCalculator 주입 구조, WayPayCalculator 싱글턴의 멀티스레드 안전성 근거, BaseSlotService와 interface default 메서드의 차이를 설명할 수 있는가
+- SlotPayConditionChecker + Factory의 타입별 체커 분리 구조, WayConditionChecker(@Component)의 무상태·멀티스레드 안전성 근거, BaseSlotService와 interface default 메서드의 차이를 설명할 수 있는가
 - RCC 캐시 생성 동시성을 낙관적 락 대신 DB 유니크 키 + 예외 처리로 처리한 트레이드오프와 캐시 없음 시 폴백 동작 방식을 설명할 수 있는가
 - StampedLock writeLock/tryReadLock 2.5초 타임아웃의 근거, 타임아웃 만료 시 처리 방식, ReentrantReadWriteLock 대비 선택 이유를 설명할 수 있는가
 - AliasMethod O(1) 선택의 테이블 구성 원리, SecureRandom 대신 ThreadLocalRandom을 선택한 보안 근거(서버에서 결과 결정 + 내부 락 경합 부재), ThreadLocalRandom 필드 저장 버그를 설명할 수 있는가
