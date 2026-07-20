@@ -164,7 +164,7 @@ Next.js 16, React 19, TypeScript, PostgreSQL, Prisma, Zod, Gemini API
 ### 슬롯 도메인과 아키텍처 개선
 
 - Spring Boot 3·Java 17 기반 신규 슬롯 5종을 개발했습니다.
-- 여러 슬롯 구현에서 반복되는 패턴을 확인한 뒤 `SlotTemplate`과 `BaseSlotService`를 도입했습니다.
+- 여러 슬롯 구현에서 반복되는 패턴을 확인한 뒤 `BaseSlotService`와 페이 조건 추상화(`SlotPayConditionChecker`)를 도입했습니다.
 - 플레이 모드별 중복 흐름을 템플릿과 핸들러 구조로 통합했습니다.
 - 슬롯별 당첨 계산 규칙은 Decorator와 Strategy 조합으로 확장했습니다.
 - 정적 데이터 갱신 구간을 `StampedLock`으로 보호해 조회 중 NPE를 막았습니다.
