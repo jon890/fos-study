@@ -1,3 +1,8 @@
+---
+series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
+seriesOrder: 1
+---
+
 # 외부 트래픽은 어떻게 Pod까지 닿는가 — LoadBalancer, Ingress Controller, 내부와 외부 분리
 
 회사에서 "API Gateway를 걷어내고, 쿠버네티스 앞에 LoadBalancer를 직접 붙여서 외부로 노출하자"는 작업을 맡게 됐다. 그런데 막상 들여다보니 나는 Ingress가 뭔지도 제대로 몰랐다. "외부 요청이 들어와서 서버가 응답한다" 정도로만 알고 있었지, 그 사이에 LoadBalancer니 Ingress Controller니 하는 것들이 몇 겹으로 끼어 있는지는 감이 없었다.

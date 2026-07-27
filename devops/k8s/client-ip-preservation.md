@@ -1,5 +1,7 @@
 ---
 tags: [심화]
+series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
+seriesOrder: 6
 ---
 
 # IP whitelist가 조용히 뚫려 있었다 — 클라이언트 IP는 어디서 사라지는가

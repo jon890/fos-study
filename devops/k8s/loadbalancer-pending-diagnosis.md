@@ -1,3 +1,8 @@
+---
+series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
+seriesOrder: 2
+---
+
 # 선언한 LoadBalancer가 안 만들어질 때 — cloud-controller-manager 장애 격리 진단기
 
 > [외부 트래픽은 어떻게 Pod까지 닿는가](./external-traffic-path.md)를 먼저 읽으면 좋다. 그 글이 "LoadBalancer 타입 Service를 선언하면 클라우드가 LB를 만들어준다"까지 다뤘다면, 이 글은 **선언했는데 안 만들어질 때** 어디서부터 파고드는지를 다룬다.

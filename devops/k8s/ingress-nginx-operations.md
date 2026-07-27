@@ -1,3 +1,8 @@
+---
+series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
+seriesOrder: 5
+---
+
 # ingress-nginx 운영에서 부딪힌 디테일들 — webhook, whitelist, affinity, 리소스 사양
 
 ingress controller를 하나 추가하는 작업은 "차트 만들고 배포하면 끝"일 줄 알았다. 그런데 실제로는 그 과정에서 처음 보는 개념들에 계속 걸렸다. annotation으로 설정을 관리하는 방식, admission webhook이 만드는 self-lock 위험, whitelist, Pod 분산 배치, 그리고 리소스 사양까지. 하나하나는 작지만, 모르고 지나가면 운영에서 사고가 나는 것들이라 정리해둔다.

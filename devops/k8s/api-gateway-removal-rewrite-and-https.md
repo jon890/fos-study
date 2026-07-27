@@ -1,3 +1,8 @@
+---
+series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
+seriesOrder: 4
+---
+
 # API Gateway를 걷어낸 자리 채우기 — path rewrite, 요청 크기 병목 4개, 그리고 HTTPS
 
 > [관리형 클러스터는 누구의 권한으로 클라우드를 만지는가](./managed-cluster-identity-trust.md)의 후속 편이다. 그 글에서 클러스터 신원 문제를 해결하고 나서야, 원래 하려던 일 — API Gateway를 걷어내고 공인 LoadBalancer를 그 자리에 앉히는 작업 — 을 이어갈 수 있었다. 이 글은 LB가 뜬 다음부터의 이야기다.

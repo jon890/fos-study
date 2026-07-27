@@ -1,3 +1,8 @@
+---
+series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
+seriesOrder: 3
+---
+
 # 관리형 클러스터는 누구의 권한으로 클라우드를 만지는가 — trust 단절과 service user 전환
 
 > [선언한 LoadBalancer가 안 만들어질 때](./loadbalancer-pending-diagnosis.md)의 후속 편이다. 그 글에서 "클러스터 내부 인증 경로가 죽었다"까지 격리해 놓고 플랫폼 문의로 넘겼는데, 답이 왔고 원인은 예상보다 훨씬 사람 냄새 나는 것이었다. **클러스터를 만든 사람의 권한이 사라져 있었다.**

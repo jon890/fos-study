@@ -1,3 +1,8 @@
+---
+series: "백엔드 개발자를 위한 쿠버네티스 기본기"
+seriesOrder: 8
+---
+
 # Helm과 ArgoCD로 GitOps 하기 — chart, Application, 그리고 새 컴포넌트 추가 흐름
 
 쿠버네티스에 새 컴포넌트(ingress controller 하나)를 추가하는 작업을 맡고 나서야, 그동안 "어딘가에서 알아서 배포되던" 그 과정의 구조를 처음 들여다봤다. Helm 차트가 뭐고, ArgoCD가 뭘 하고, Application이라는 게 왜 또 따로 있는지. 막상 정리해보니 큰 그림은 단순했다. 그 구조와, 실제로 새 컴포넌트를 추가하려면 어디서부터 손대야 하는지를 정리한다.

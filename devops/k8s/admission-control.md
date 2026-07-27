@@ -1,3 +1,8 @@
+---
+series: "백엔드 개발자를 위한 쿠버네티스 기본기"
+seriesOrder: 5
+---
+
 # 쿠버네티스 Admission 단계 — 리소스가 etcd에 저장되기 직전에 무슨 일이 일어나는가
 
 `kubectl apply`를 하면 리소스가 클러스터에 "생긴다". 그런데 그 사이에 뭐가 있는지는 오래 몰랐다. 공인 LoadBalancer를 붙이면서 ingress controller를 내부용·외부용으로 나눴는데, "새 Ingress를 만들면 admission webhook이 검증한다"는 문장이 계속 나왔다. admission이 정확히 어느 단계고, 왜 하필 "저장 직전"인지 짚고 넘어가지 않으면 self-lock 같은 사고를 이해할 수 없었다.
