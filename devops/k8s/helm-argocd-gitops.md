@@ -19,7 +19,7 @@ seriesOrder: 8
 
 ## Helm — 쿠버네티스 YAML의 템플릿 엔진
 
-Helm은 **템플릿 + 값 → 최종 YAML**을 만들어주는 도구다. 매번 YAML을 손으로 쓰는 대신, 빈칸(`{{ }}`)이 뚫린 템플릿을 만들어두고 값만 갈아끼운다.
+Helm은 **템플릿에 값을 채워 최종 YAML**을 만들어주는 도구다. 매번 YAML을 손으로 쓰는 대신, 빈칸(`{{ }}`)이 뚫린 템플릿을 만들어두고 값만 갈아끼운다.
 
 이 패키지 단위를 **Chart**라고 부른다. 차트 디렉터리 구조는 대략 이렇게 생겼다.
 
@@ -94,6 +94,39 @@ argocd/templates/
 ```
 
 이걸 **app of apps**라고 부른다. Application들을 만들어내는 상위 Application이다. 그래서 새 컴포넌트를 추가할 때는 여기에 Application 하나를 더 얹으면 된다.
+
+처음엔 누가 영리하게 짜둔 우리 레포만의 구조인 줄 알았는데, 알고 보니 ArgoCD 공식 문서에 [Cluster Bootstrapping](https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping/)이라는 이름으로 실려 있는 표준 패턴이었다.
+
+존재 이유는 닭과 달걀 문제다. ArgoCD로 뭘 배포하려면 Application이 있어야 하는데, **그 Application 자체는 누가 만드나.** 손으로 `kubectl apply`하면 클러스터를 직접 건드리는 것이라 GitOps 원칙이 깨지고 기록도 안 남는다. 컴포넌트가 열 개면 열 번 반복해야 하고, 새 클러스터를 만들 때마다 또 반복이다.
+
+그래서 **Application 만드는 일까지 ArgoCD에게 시킨다.** 손으로 만드는 건 최상위 하나뿐이고, 나머지는 git에 파일을 추가하면 생긴다.
+
+#### 대가 — 2단계 sync
+
+공짜는 아니다. 이 패턴을 쓰면 **sync가 두 단계**가 된다.
+
+Application의 *정의*를 바꿨다면 상위 app-of-apps를 먼저 sync해야 그 정의가 갱신되고, 그다음 해당 앱을 sync해야 실제 리소스에 반영된다. 순서를 건너뛰면 **옛 정의로 렌더되는데 화면에는 `Synced`라고 뜬다.**
+
+실제로 겪었다. Application의 helm 파라미터 하나를 제거하는 변경을 머지하고 해당 앱만 sync했는데 아무것도 안 바뀌었다. Application 리소스를 직접 열어보니 파라미터가 그대로 살아 있었다. 상위를 먼저 돌리지 않았으니 당연한 결과였는데, ArgoCD 화면이 초록색이라 한참을 엉뚱한 데서 원인을 찾았다.
+
+구분 기준은 단순하다.
+
+- `argocd/templates/`를 고쳤다 → **정의 변경** → app-of-apps 먼저
+- `applications/`를 고쳤다 → **내용 변경** → 해당 앱만
+
+한 가지 더. ArgoCD는 git을 주기적으로 폴링하므로 **머지 직후에는 아직 옛 커밋 기준**일 수 있다. 이때도 화면은 `Synced`다. 리비전이 새 커밋인지 확인하고, 아니면 Refresh를 먼저 눌러야 한다.
+
+#### ApplicationSet — 요즘의 대안
+
+Application을 Helm 템플릿으로 하나씩 쓰는 대신, **생성기**(generator)로 만들어내는 `ApplicationSet`이 있다. "git의 이 디렉터리 하위 폴더마다 Application 하나씩" 같은 규칙을 주면 알아서 생성한다.
+
+| | app of apps | ApplicationSet |
+|---|---|---|
+| 방식 | Application 파일을 직접 템플릿으로 작성 | 규칙을 주면 자동 생성 |
+| 적합 | 컴포넌트 십여 개, 구성이 제각각 | 클러스터·환경이 많고 패턴이 반복 |
+| 장단 | 파일이 눈에 보여 직관적, 개수만큼 파일이 늘어남 | 반복이 사라지지만 생성 규칙을 이해해야 함 |
+
+환경당 컴포넌트가 열 개 남짓이고 각각 설정이 다르면 지금 방식이 낫다고 본다. 파일이 그대로 보이는 게 디버깅에 유리하다. ApplicationSet은 클러스터가 수십 개로 늘어날 때 값을 한다.
 
 ## 전체 관계도
 
