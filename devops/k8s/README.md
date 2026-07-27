@@ -15,13 +15,14 @@
 
 - [외부 트래픽이 Pod까지 닿는 경로](./external-traffic-path.md) — LoadBalancer, Ingress Controller, 내부/외부 분리
 - [ingress-nginx 운영 디테일](./ingress-nginx-operations.md) — admission webhook, whitelist, podAntiAffinity, 리소스 사양
+- [IP whitelist가 조용히 뚫려 있었다](./client-ip-preservation.md) — 클라이언트 IP가 사라지는 구간, L4 패스스루와 externalTrafficPolicy SNAT (위 글의 후속)
 - (참고) [HTTPS는 어떻게 안전한가](../../http/https-tls-basics.md) — TLS termination 위치
 
 ## 배포 자동화
 
 - [Helm](./helm.md) — 차트 구조, 값 우선순위, 명령어, dependencies
 - [Argo CD](./argo-cd.md) — GitOps, Custom Controller, Sync Waves
-- [Helm과 ArgoCD로 GitOps 하기](./helm-argocd-gitops.md) — chart + Application, 새 컴포넌트 추가 흐름
+- [Helm과 ArgoCD로 GitOps 하기](./helm-argocd-gitops.md) — chart 와 Application, 새 컴포넌트 추가 흐름
 
 ## 운영 트러블슈팅
 
