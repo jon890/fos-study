@@ -32,7 +32,7 @@
 ## API / 도메인 설계
 
 - [API 설계 실전 스터디 팩](./api-design.md) — REST, 멱등성, 페이지네이션, 버전 전략
-- [API 버저닝과 하위 호환성](./api-versioning-backward-compatibility.md) — URI/Header 전략, deprecation 정책
+- [API 버저닝과 하위 호환성](./api-versioning-backward-compatibility.md) — 모바일 호환성, 폐기 수명주기, 계약 검증과 롤백
 - [DDD와 도메인 모델링](./ddd-domain-modeling.md) — 전술/전략 패턴 실전 가이드
 
 ## 캐시
@@ -57,5 +57,4 @@
 
 - [Hexagonal / Clean Architecture를 Spring 백엔드에 적용하기](./hexagonal-clean-architecture-spring.md)
 - [Clean Architecture 실전 — Spring 커머스 적용](./clean-architecture-pragmatic-spring-commerce.md)
-- [REST API 버저닝과 모바일 앱 하위 호환성](./rest-api-versioning-mobile-compatibility.md)
 - [레거시 JSP/jQuery 화면과 신규 API가 공존하는 백엔드 운영 전략](./legacy-jsp-jquery-api-coexistence.md)

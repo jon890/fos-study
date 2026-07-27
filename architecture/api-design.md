@@ -196,7 +196,7 @@ LIMIT 20;
 ### URI vs Header vs Content Negotiation
 
 - **URI 버전**: `/v1/orders`, `/v2/orders`. 캐싱/라우팅이 단순하고, CDN 로그만 봐도 트래픽 분포가 보인다. 실무 기본값.
-- **Custom Header**: `X-API-Version: 2026-01-15`. Stripe 방식. 날짜 기반 버전을 계정 단위로 고정해 점진 이관.
+- **전용 헤더**: `X-API-Version: 2026-01-15`. 클라이언트별 기본 버전을 고정하고 요청 헤더로 재정의해 점진 이관.
 - **Accept Header**(content negotiation): `Accept: application/vnd.company.order.v2+json`. 순수주의엔 맞지만 클라이언트 구현 비용이 높고 CDN에 불친절하다.
 
 선택 기준:
@@ -208,11 +208,13 @@ LIMIT 20;
 
 버전을 올리는 것보다 **내리는 것**이 진짜 설계다.
 
-1. `Deprecation: true` 및 `Sunset: Wed, 01 Oct 2026 00:00:00 GMT` 응답 헤더 부착.
+1. `Deprecation: @1785542400` 및 `Sunset: Thu, 01 Oct 2026 00:00:00 GMT` 응답 헤더 부착.
 2. 문서에 제거 일정, 마이그레이션 가이드, 대체 엔드포인트 명시.
 3. 대시보드로 구버전 호출자 TOP N 추적 → 직접 연락.
 4. Sunset 전에 **Brownout**(특정 시각에 일시적으로 503 반환)으로 파트너에게 실감.
 5. Sunset 이후 410 Gone.
+
+버전별 응답 매핑과 모바일 호환성, RFC 헤더 문법은 [API 버저닝과 하위 호환성](./api-versioning-backward-compatibility.md)에서 자세히 다룬다.
 
 ## Error Contract: 에러는 문서다
 
