@@ -73,7 +73,7 @@ flowchart TD
 ## 버저닝 전략 비교
 
 버전 표기 위치에는 정답이 없다.
-컨슈머 통제 가능성, 캐시·게이트웨이 구성, 과거 계약 유지 비용을 함께 비교한다.
+컨슈머 통제 가능성, 캐시·`API Gateway` 구성, 과거 계약 유지 비용을 함께 비교한다.
 
 | 전략 | 장점 | 비용 | 잘 맞는 환경 |
 |---|---|---|---|
@@ -93,6 +93,21 @@ Spring Framework 7부터는 `@RequestMapping(version = "...")`로 API 버전을 
 버전은 MVC 설정의 `ApiVersionResolver`가 헤더, 쿼리 매개변수, 미디어 타입 매개변수, URL 경로 중 하나에서 해석한다.
 
 같은 경로에 대해 버전별 처리기를 겹쳐 둘 수 있어, URI 접두어보다 라우팅 중복이 적다.
+
+먼저 버전을 어디서 읽을지 설정한다.
+
+```java
+@Configuration
+public class WebConfiguration implements WebMvcConfigurer {
+
+    @Override
+    public void configureApiVersioning(ApiVersionConfigurer configurer) {
+        configurer.useRequestHeader("X-API-Version");
+    }
+}
+```
+
+그다음 처리기마다 지원 버전을 선언한다.
 
 ```java
 @RestController
@@ -116,6 +131,9 @@ public class OrderController {
     }
 }
 ```
+
+`1.3+`는 1.3 이상의 지원 버전에 대한 기준선 매핑이다.
+지원하지 않는 버전은 기본 설정에서 400 응답으로 거절된다.
 
 이 방식은 Spring Framework 7 이상에서 사용할 수 있다.
 뒤의 실습은 Spring Boot 3.x 기준으로도 따라갈 수 있도록 URI 버전 분리 방식으로 작성한다.
@@ -196,7 +214,7 @@ public OrderResponseV2 getV2(@PathVariable Long id) { ... }
 이 방식은 `Accept` 헤더를 콘텐츠 협상 조건으로 사용한 미디어 타입 버저닝이다.
 Spring Framework 7의 `ApiVersionResolver` 기반 버전 매핑과는 별개의 선택지다.
 
-게이트웨이와 캐시가 `Accept` 헤더를 캐시 키에 포함하지 않으면 다른 버전의 응답이 섞일 수 있다.
+`API Gateway`와 캐시가 `Accept` 헤더를 캐시 키에 포함하지 않으면 다른 버전의 응답이 섞일 수 있다.
 응답의 `Vary: Accept`와 중간 캐시 설정을 함께 확인해야 한다.
 
 ### 응답 진화 — 잘못된 예 vs 개선된 예
@@ -376,6 +394,17 @@ flowchart LR
 
 이 계약이 없으면 응답 필드와 enum 추가도 안전하지 않다.
 
+모바일 팀과는 라이브러리 이름만 합의하지 말고 실제 설정과 테스트 결과를 확인한다.
+
+| 클라이언트 환경 | 확인할 내용 |
+|---|---|
+| iOS `Codable` | 추가 JSON 키와 알 수 없는 enum 값을 각각 넣어 `JSONDecoder`와 사용자 정의 `Decodable` 구현의 동작을 검증한다 |
+| Android Moshi·Gson | Moshi의 `failOnUnknown()` 사용 여부와 enum 어댑터, Gson의 사용자 정의 타입 어댑터를 확인한다 |
+| Kotlin Serialization | 새 JSON 키를 허용하려면 `Json { ignoreUnknownKeys = true }`를 설정하고, 알 수 없는 enum은 별도 대체 전략으로 처리한다 |
+
+추가 필드 허용과 알 수 없는 enum 허용은 서로 다른 문제다.
+파서가 새 키를 무시해도 enum 역직렬화는 실패할 수 있으므로 두 시나리오를 별도 계약 테스트로 고정한다.
+
 ### 응답 필드를 추가한다
 
 새 필드는 기존 의미를 바꾸지 않고 추가한다.
@@ -418,6 +447,9 @@ flowchart LR
 - 이전 클라이언트에는 계약상 가장 가까운 `CANCELED` 또는 `PROCESSING`으로 매핑한다.
 - 정확한 신규 상태가 필요한 기능은 지원 버전 이상의 클라이언트에만 노출한다.
 - 클라이언트는 알 수 없는 미래 값을 `UNKNOWN`으로 처리한다.
+
+OpenAPI의 `enum` 목록으로 생성한 클라이언트는 값을 닫힌 집합으로 구현하기 쉽다.
+설명에 미래 값 추가 가능성과 대체 동작을 명시하고, 실제 생성 코드가 알 수 없는 값을 어떻게 처리하는지 확인한다.
 
 ### 메이저 URI와 세부 동작 헤더를 결합한다
 
@@ -484,15 +516,15 @@ public OrderResponse get(
 필수 업데이트가 필요하면 `CLIENT_VERSION_UNSUPPORTED` 같은 서비스 오류 코드를 응답 본문에 제공한다.
 HTTP 상태 코드는 인증 정책, 엔드포인트 존속 여부, 재시도 가능성에 맞춰 선택한다.
 
-### API 게이트웨이의 책임
+### `API Gateway`의 책임
 
-게이트웨이가 다음 공통 기능을 맡으면 애플리케이션의 버전 분기 코드가 단순해진다.
+`API Gateway`가 다음 공통 기능을 맡으면 애플리케이션의 버전 분기 코드가 단순해진다.
 
 - URI와 헤더에 따른 라우팅
 - 클라이언트 버전과 플랫폼 헤더 검증
 - 폐기 헤더 부착
 - 버전별 호출량과 오류율 라벨링
-- 카나리·링 배포를 위한 트래픽 분배
+- 일부 트래픽에 먼저 배포한 뒤 검증하기 위한 트래픽 분배
 
 다만 응답 DTO의 의미 변환은 도메인 맥락을 아는 애플리케이션의 호환 매퍼가 담당하는 편이 안전하다.
 
@@ -549,7 +581,7 @@ ObjectMapper mapper = JsonMapper.builder()
 | OpenAPI 스키마 비교 | 필드 삭제, 타입 변경, 필수 여부 변경 | enum fallback과 조건별 응답 의미 |
 | 직렬화 단위 테스트 | 이전 응답 필드와 JSON 형태 | 실제 컨슈머의 전체 상호작용 |
 | Consumer-Driven Contract | 컨슈머별 요청·응답·상태 계약 | 등록되지 않은 컨슈머 |
-| 카나리 관측 | 실제 오류율·지연·앱 크래시 | 노출되지 않은 장기 휴면 클라이언트 |
+| 일부 트래픽 선배포 관측 | 실제 오류율·지연·앱 크래시 | 노출되지 않은 장기 휴면 클라이언트 |
 
 ### Consumer-Driven Contract
 
@@ -561,27 +593,38 @@ flowchart LR
     B --> P["백엔드 제공자 검증"]
     P --> CI{"모든 계약을<br/>만족하는가?"}
     CI -->|"아니오"| FAIL["빌드 실패<br/>Breaking change 차단"]
-    CI -->|"예"| CANARY["카나리 배포<br/>운영 지표 확인"]
+    CI -->|"예"| CANARY["일부 트래픽 선배포<br/>운영 지표 확인"]
 ```
 
 Pact 같은 도구를 사용하면 특정 상태에서 어떤 요청과 응답을 기대하는지 코드로 고정할 수 있다.
 OpenAPI 비교와 경쟁하는 방식이 아니라, 스키마만으로 표현하기 어려운 동작 계약을 보완한다.
 
-Spring Boot 제공자 검증의 최소 뼈대는 다음과 같다.
-실제 프로젝트에서는 Pact Broker 주소와 인증 정보를 환경 변수나 CI 비밀 값으로 주입한다.
+### Pact provider 검증의 최소 구조
+
+컨슈머 계약을 붙였다면 제공자 쪽 검증도 최소 구조로 고정해 둔다.
+JUnit 5 기준 핵심 요소는 다음과 같다.
+
+- `@Provider`
+- `@PactBroker` 또는 `@PactFolder`
+- `@TestTemplate`과 `@ExtendWith(PactVerificationInvocationContextProvider.class)`
+- `PactVerificationContext#verifyInteraction()`
+- `@State`를 사용한 제공자 상태 준비
 
 ```java
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Provider("orders-service")
-@PactBroker
+@PactFolder("pacts")
 class OrderProviderContractTest {
 
     @LocalServerPort
     int port;
 
+    @Autowired
+    OrderRepository orderRepository;
+
     @BeforeEach
     void setTarget(PactVerificationContext context) {
-        context.setTarget(new HttpTestTarget("localhost", port));
+        context.setTarget(new HttpTestTarget("localhost", port, "/"));
     }
 
     @TestTemplate
@@ -597,49 +640,20 @@ class OrderProviderContractTest {
 }
 ```
 
-이 테스트가 유효하려면 컨슈머가 실제로 사용하는 요청 헤더, 응답 필드, 상태 코드를 계약에 포함해야 한다.
+Pact Broker를 쓰는 경우에는 `@PactFolder` 대신 `@PactBroker`를 붙이면 된다.
+Broker 주소와 인증 정보는 환경 변수나 CI 비밀 값으로 주입한다.
+핵심은 상태를 준비하고, 검증 대상을 지정하고, 각 상호작용을 검증하는 구조를 고정하는 것이다.
 모든 컨슈머가 계약을 발행한다고 가정하지 말고, 등록되지 않은 파트너는 운영 호출량과 오류율로 보완한다.
-
-### Pact provider 검증의 최소 구조
-
-컨슈머 계약을 붙였다면 제공자 쪽 검증도 최소 구조로 고정해 둔다.
-JUnit 5 기준 가장 작은 형태는 다음 네 가지다.
-
-- `@Provider`
-- `@PactBroker` 또는 `@PactFolder`
-- `@TestTemplate` + `@ExtendWith(PactVerificationInvocationContextProvider.class)`
-- `PactVerificationContext#verifyInteraction()`
-
-```java
-@Provider("order-service")
-@PactBroker(host = "pact-broker.internal", port = "9292")
-class OrderServicePactVerificationTest {
-
-    @TestTemplate
-    @ExtendWith(PactVerificationInvocationContextProvider.class)
-    void verify(PactVerificationContext context) {
-        context.verifyInteraction();
-    }
-
-    @BeforeEach
-    void before(PactVerificationContext context) {
-        context.setTarget(new HttpTestTarget("localhost", 8080, "/"));
-    }
-}
-```
-
-Spring 컨텍스트가 필요하면 `PactVerificationSpringProvider`를 쓰면 된다.
-핵심은 "상태를 준비하고, 타깃을 지정하고, interaction을 검증한다"는 구조를 고정하는 것이다.
 
 ## 롤백 가능한 전환을 만든다
 
 버저닝은 이전 버전으로 돌아갈 수 있어야 안전하다.
 
-- 게이트웨이 라우팅을 v1과 v2 사이에서 되돌릴 수 있게 한다.
+- `API Gateway` 라우팅을 v1과 v2 사이에서 되돌릴 수 있게 한다.
 - 응답 스키마 변경과 데이터베이스 파괴적 변경을 같은 배포에 묶지 않는다.
 - 데이터베이스는 expand → migrate → contract 순서로 변경한다.
 - 새 필드를 추가한 뒤 양쪽 쓰기·읽기를 검증하고, 이전 필드는 마지막에 제거한다.
-- 카나리 배포에서 오류율, p95 지연, 앱 크래시율을 함께 본다.
+- 일부 트래픽에 먼저 배포한 뒤 오류율, p95 지연, 앱 크래시율을 함께 본다.
 
 ```mermaid
 flowchart LR
@@ -741,7 +755,7 @@ public class DeprecationFilter extends OncePerRequestFilter {
         FilterChain chain
     ) throws ServletException, IOException {
         if (request.getRequestURI().startsWith("/api/v1/orders")) {
-            response.setHeader("Deprecation", "@1782777600");
+            response.setHeader("Deprecation", "@1790812800");
             response.setHeader("Sunset", "Thu, 31 Dec 2026 23:59:59 GMT");
             response.addHeader(
                 "Link",
@@ -769,7 +783,7 @@ void v1ResponseKeepsLegacyContract() throws Exception {
 
     mvc.perform(get("/api/v1/orders/1"))
         .andExpect(status().isOk())
-        .andExpect(header().string("Deprecation", "@1782777600"))
+        .andExpect(header().string("Deprecation", "@1790812800"))
         .andExpect(header().string(
             "Sunset",
             "Thu, 31 Dec 2026 23:59:59 GMT"
@@ -856,6 +870,8 @@ v1 응답에서 `Deprecation`, `Sunset`, `Link` 헤더를 확인한다.
 - [RFC 8594: The Sunset HTTP Header Field](https://www.rfc-editor.org/rfc/rfc8594.html)
 - [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html)
 - [Spring Framework: API Versioning](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-config/api-version.html)
-- [Jackson: `JsonEnumDefaultValue`](https://fasterxml.github.io/jackson-annotations/javadoc/2.20/com/fasterxml/jackson/annotation/JsonEnumDefaultValue.html)
+- [Jackson: `JsonEnumDefaultValue`](https://javadoc.io/static/com.fasterxml.jackson.core/jackson-annotations/2.18.5/com/fasterxml/jackson/annotation/JsonEnumDefaultValue.html)
 - [Pact JVM: JUnit 5 Provider](https://docs.pact.io/implementation_guides/jvm/provider/junit5)
+- [Kotlin Serialization: JSON configuration](https://kotlinlang.org/docs/serialization-json-configuration.html)
+- [Moshi: adapter convenience methods](https://github.com/square/moshi#adapter-convenience-methods)
 - [Stripe API versioning](https://docs.stripe.com/api/versioning)
