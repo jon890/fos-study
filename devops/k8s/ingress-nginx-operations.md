@@ -62,6 +62,8 @@ nginx.ingress.kubernetes.io/whitelist-source-range: 10.0.0.0/8,203.0.113.5
 
 그래서 공인 진입은 켜되, 실제로 닿을 수 있는 범위를 사내 IP로 제한했다. nginx가 요청의 출발지 IP를 보고, 목록에 없으면 403으로 거부한다. 지금 검증할 건 "공인 IP로 들어온 요청이 경로를 타고 앱까지 닿는가"뿐이라, 사내에서 호출해 확인하면 충분하다. 정식으로 외부에 공개할 때(TLS와 도메인이 준비되면) 이 제한을 조정하면 된다.
 
+> **나중에 안 것** — 이 설명에는 큰 전제가 빠져 있다. **nginx가 보는 출발지 IP가 진짜 클라이언트 IP일 때만** 이 방어가 성립한다. 나중에 TLS를 붙이면서 443을 TCP 패스스루로 바꿨더니 `X-Forwarded-For`가 사라졌고, 거기에 `externalTrafficPolicy: Cluster`의 SNAT가 겹쳐 출발지가 노드 IP로 둔갑했다. 그 노드 대역이 마침 위 허용 목록에 들어 있어서 **whitelist가 통째로 무력화됐다.** 어떻게 발견했고 왜 그런지는 [IP whitelist가 조용히 뚫려 있었다](./client-ip-preservation.md)에 정리했다.
+
 ## podAntiAffinity — replica를 다른 노드에 흩뿌리기
 
 controller values에 이런 블록이 있었다.
@@ -97,7 +99,7 @@ controller에 잡아둔 리소스가 충분한지 궁금했는데, 답은 추측
 직접 보고 알게 된 것:
 
 - **ingress-nginx controller는 의외로 메모리를 적게 쓴다.** 여러 Ingress를 처리하는데도 30~50Mi 수준이었다. nginx가 가벼운 reverse proxy라 그렇다.
-- **`memory request == limit`이면 Guaranteed QoS다.** "딱 그만큼 보장, 넘으면 즉시 OOMKill"이라는 뜻이다. 안정적이지만 **여유 폭이 좁다.** 갑작스런 스파이크에 죽지 않으려면 limit을 request보다 넉넉히 두는 게 안전하다.
+- **`memory request == limit`이면 Guaranteed QoS다.** "딱 그만큼 보장, 넘으면 즉시 OOMKill"이라는 뜻이다. 안정적이지만 **여유 폭이 좁다.** 순간적으로 사용량이 치솟을 때 죽지 않으려면 limit을 request보다 넉넉히 두는 게 안전하다.
 - **환경마다 사양이 다르다.** 테스트 환경은 작게 잡고 replica를 고정해도 되지만, 운영 환경은 더 크게 잡고 autoscaling을 걸어 부하에 따라 Pod 수가 늘게 한다. 그래서 새 controller를 운영으로 확장할 땐 운영 쪽 사양·autoscaling 정책에 맞춰줘야 한다.
 
 특히 주의할 케이스가 있다. **큰 파일을 업로드받는 서비스**는 nginx가 요청 본문을 버퍼링하므로, 동시 업로드가 몰리면 메모리 압박이 생길 수 있다. (큰 본문은 디스크 임시파일로도 버퍼링돼서 폭증하진 않지만, 모니터링 대상이다.) 그래서 운영 적용 전에는 `kubectl top`으로 실제 부하를 한 번 측정하고 사양을 정하는 게 맞다. "충분하겠지"라는 추측보다 30초짜리 측정이 훨씬 믿을 만하다.
