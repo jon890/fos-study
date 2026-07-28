@@ -201,10 +201,31 @@ flowchart LR
 반대로 어떤 클래스도 질문, 제약, 행동에 연결되지 않는다면
 정식 온톨로지에 넣기보다 후보 상태로 두는 편이 낫다.
 
+### 중간 수준의 클래스에서 시작한다
+
+클래스를 만드는 방향은 크게 두 가지다.
+
+- 하향식은 `Asset` 같은 상위 개념에서 `SoftwareAsset`, `Service`, `API`로 내려간다.
+- 상향식은 `order-service`, `gateway.yaml`, `PaymentController` 같은 실제 데이터에서 공통점을 올려 찾는다.
+
+[Ontology Development 101](https://protege.stanford.edu/publications/ontology_development/ontology101-noy-mcguinness.html)은
+두 방향을 섞어 먼저 눈에 띄는 중간 수준의 개념을 정하고,
+필요에 따라 일반화하거나 구체화하는 결합 방식을 설명한다.
+[영상의 방법론 발표](https://www.youtube.com/watch?v=9kldcOTOx7g&t=10055s)에서도
+중간 수준의 개념에서 시작해 상위와 하위로 확장하는 접근을 설명한다.
+이를 코딩 에이전트에 적용하면
+실제로 반복해서 묻는 `Service`, `API`, `Decision`, `Test` 같은 개념에서 시작할 수 있다.
+
+이 방식은 코딩 에이전트용 온톨로지와 잘 맞는다.
+역량 질문에 필요할 때만 위로는 `Asset`을 만들고,
+아래로는 `REST API`나 `GraphQL API`처럼 세분화할 수 있기 때문이다.
+반대로 `Controller`와 `Repository`를 별도 질의하거나 제약하지 않는다면
+처음에는 `CodeSymbol`의 속성으로 남겨도 된다.
+
 ## 코딩 에이전트를 위한 최소 클래스 모델
 
 처음부터 모든 개발 지식을 모델링할 필요는 없다.
-나는 다음 네 묶음부터 시작하는 편이 현실적이라고 봤다.
+나는 다음 다섯 묶음부터 시작하는 편이 현실적이라고 봤다.
 
 ### 시스템 자산
 
@@ -235,6 +256,36 @@ flowchart LR
 - `Person`
 - `Team`
 - `Agent`
+
+### 행동과 통제
+
+- `Action`
+- `Capability`
+- `Workflow`
+- `Policy`
+- `Invariant`
+- `Tool`
+
+시스템 자산만 모델링하면 에이전트가 무엇을 알고 있는지는 표현할 수 있지만,
+무엇을 해도 되는지와 어떤 조건을 지켜야 하는지는 표현하기 어렵다.
+[Palantir의 공식 온톨로지 문서](https://www.palantir.com/docs/foundry/ontology/overview/)는
+객체, 속성, 링크 같은 의미 요소와 함께
+행동, 함수, 동적 보안 같은 실행 요소를 온톨로지의 구성으로 설명한다.
+
+코딩 에이전트에도 같은 구분이 필요하다.
+
+```mermaid
+flowchart LR
+    G[Agent] -->|CAN_PERFORM| A[Action]
+    A -->|REQUIRES| P[Policy와 사전 조건]
+    A -->|MUTATES| S[Service 또는 CodeSymbol]
+    A -->|VALIDATED_BY| T[Test]
+    A -->|PART_OF| W[Workflow]
+```
+
+예를 들어 `renameSymbol`은 단순한 동사가 아니다.
+대상 심볼, 허용 범위, 변경되는 파일, 보존해야 할 불변 조건,
+통과해야 할 테스트를 함께 가진 행동 계약이다.
 
 이 구성에서 일반 기술어는 곧바로 시스템 자산으로 취급하지 않는다.
 `API Gateway`라는 기술 개념과 조직이 운영하는 구체적인 게이트웨이 인스턴스는 다르다.
@@ -341,6 +392,97 @@ replacedBy: null
 한 팀에서 `게이트웨이`가 인증 게이트웨이를 뜻한다고 해서
 다른 저장소에서도 같은 의미라는 보장은 없기 때문이다.
 
+## 온톨로지에 데이터를 입히는 과정
+
+클래스와 관계를 정의한 뒤 원문에서 실제 인스턴스와 관계를 만드는 일을
+온톨로지 적재(ontology population)라고 부른다.
+[영상의 LLM·온톨로지 결합 발표](https://www.youtube.com/watch?v=9kldcOTOx7g&t=7231s)는
+이 과정을 개체 후보 추출, 개체 연결, 관계 추출, 관계 연결, 검증으로 나눈다.
+
+이 단계들은 한 번의 LLM 호출로 뭉치기보다 분리하는 편이 좋다.
+앞 단계의 오류가 뒤 단계에서 그럴듯한 관계로 증폭될 수 있기 때문이다.
+
+```mermaid
+flowchart LR
+    S[원천 문서와 코드] --> M[Mention 추출]
+    M --> E[정식 개체 연결]
+    E --> R[관계 후보 추출]
+    R --> V[스키마와 근거 검증]
+    V --> Q[검토 대기열]
+    Q -->|승인| G[정식 그래프]
+    Q -->|보류| C[후보 Claim]
+```
+
+### 스키마를 LLM과 함께 제공한다
+
+자유 형식으로 개체와 관계를 추출하게 하면
+같은 의미에 다른 클래스 이름을 붙이거나 허용하지 않은 관계를 만들기 쉽다.
+따라서 추출 요청에는 다음 정보를 함께 제공한다.
+
+- 허용하는 클래스와 관계
+- 관계의 시작 클래스와 도착 클래스
+- 필수 속성과 출처 위치
+- 포함 예와 제외 예
+- 모호하거나 새로운 표현을 처리하는 규칙
+
+[Ontology Population using LLMs](https://arxiv.org/abs/2411.01612)는
+특정 역사 데이터셋 실험에서 모듈화한 온톨로지를 프롬프트에 제공했을 때
+정답 지식 트리플의 약 90퍼센트를 생성했다고 보고한다.
+이는 온톨로지 스키마가 추출을 제약하는 데 유용할 수 있다는 사례이지,
+다른 도메인에서도 같은 정확도를 보장한다는 뜻은 아니다.
+
+실제 추출 계약은 다음처럼 허용 범위와 실패 처리를 명시할 수 있다.
+
+```json
+{
+  "allowedClasses": ["Service", "API", "CodeSymbol", "Decision"],
+  "allowedRelations": ["EXPOSES", "DEPENDS_ON", "AFFECTS"],
+  "requiredFields": ["sourceUri", "locator", "extractorVersion"],
+  "unknownEntityPolicy": "emit-candidate",
+  "unsupportedRelationPolicy": "reject"
+}
+```
+
+새로운 표현을 발견해도 즉시 클래스를 늘리지 않는다.
+후보로 보관한 뒤 반복 빈도, 역량 질문, 기존 클래스와의 충돌을 검토한다.
+[LLM을 이용한 지식그래프·온톨로지 공학 연구](https://arxiv.org/abs/2411.09601)도
+모델링, 확장, 수정, 적재, 정렬, 개체 모호성 해소를 서로 다른 작업으로 나누고,
+모듈화한 온톨로지가 중요하다고 설명한다.
+
+### 적재 품질은 답변 품질과 따로 측정한다
+
+좋은 답변이 한 번 나왔다고 그래프가 정확하게 적재됐다고 볼 수 없다.
+적재 단계마다 다음 지표를 분리해 본다.
+
+| 단계 | 핵심 지표 | 확인하려는 실패 |
+| --- | --- | --- |
+| 개체 추출 | 정밀도와 재현율 | 실제 개체를 놓치거나 일반 명사를 개체로 만든다 |
+| 개체 연결 | 연결 정확도와 미연결 비율 | 별개 개체를 합치거나 기존 개체를 찾지 못한다 |
+| 관계 추출 | 관계 정밀도와 방향 오류율 | 관계 의미나 주체와 객체를 뒤집는다 |
+| 스키마 검증 | 제약 위반율 | 허용하지 않은 클래스와 관계를 만든다 |
+| 근거 연결 | 출처 포함률과 원문 위치 정확도 | 관계를 원문까지 추적할 수 없다 |
+| 사람 검토 | 승인율과 반려 사유 | 자동화가 반복해서 만드는 오류를 찾는다 |
+
+자동 승인율을 높이는 것 자체가 목표는 아니다.
+모호한 데이터를 정직하게 미연결 후보로 남기는 시스템이
+틀린 관계를 자신 있게 확정하는 시스템보다 안전하다.
+
+### 데이터 준비가 안 됐다면 온톨로지보다 먼저 고친다
+
+[영상의 데이터 기반 발표](https://www.youtube.com/watch?v=9kldcOTOx7g&t=5470s)는
+온톨로지 이전에 신뢰할 수 있는 데이터 기반이 필요하다는 점을 강조한다.
+코딩 지식그래프에서는 최소한 다음 조건을 확인할 수 있다.
+
+- 서비스, 저장소, API에 안정적인 식별자가 있는가?
+- 문서와 업무에 작성 시각, 수정 시각, 소유자가 있는가?
+- 코드 심볼과 테스트를 원문 위치까지 다시 찾을 수 있는가?
+- 삭제, 개명, 이동을 구분할 변경 이력이 있는가?
+- 관계 후보를 거부할 검증 규칙이 있는가?
+
+이 정보가 없다면 먼저 메타데이터, 식별자, 변경 이력, 계약을 정비하는 편이 낫다.
+작은 코드 인덱스나 관계형 테이블로 충분한 문제에
+온톨로지를 추가해도 누락된 원천 데이터는 복구되지 않는다.
+
 ## 관계는 간선보다 주장에 가깝다
 
 `DEPENDS_ON`, `AFFECTS`, `CAUSED_BY` 같은 관계는 문서에서 그대로 주어지지 않는 경우가 많다.
@@ -370,6 +512,43 @@ flowchart LR
 
 모든 간선을 `Claim` 노드로 바꿀 필요는 없다.
 충돌 가능성, 시간 변화, 검토 필요성이 큰 관계부터 적용하면 된다.
+
+### 위험도에 따라 승인 기준을 다르게 둔다
+
+모든 주장에 같은 검토 비용을 쓰면 운영하기 어렵다.
+그 주장이 틀렸을 때 생기는 피해를 기준으로 승인 문턱을 나눈다.
+
+| 위험도 | 사용 예 | 승인 기준 |
+| --- | --- | --- |
+| 낮음 | 검색 후보와 읽을 문서 추천 | 단일 근거와 낮은 신뢰도도 후보로 허용한다 |
+| 중간 | 변경 영향과 팀 소유권 안내 | 복수 근거 또는 명시적 규칙으로 교차 검증한다 |
+| 높음 | 코드 변경, 운영 조작, 정책 판단 | 테스트와 사람 승인을 거쳐야 실행한다 |
+
+모델이 출력한 신뢰도 점수만으로 위험을 통제할 수는 없다.
+출처, 생성 활동, 생성 주체, 생성 시각, 파생 관계를 함께 기록해야 한다.
+[W3C PROV-O](https://www.w3.org/TR/prov-o/)의
+`Entity`, `Activity`, `Agent`, `wasGeneratedBy`, `wasDerivedFrom`은
+이 이력을 서로 다른 시스템에서도 표현하기 위한 기본 어휘를 제공한다.
+
+### 온톨로지는 고정된 분류표가 아니다
+
+[영상의 온톨로지 진화 사례](https://www.youtube.com/watch?v=9kldcOTOx7g&t=4842s)는
+연료 기반 자동차 중심의 분류가 전기차의 등장으로 달라지는 예를 든다.
+소프트웨어 조직에서도 서버리스, 생성형 AI, 새로운 배포 단위가 들어오면
+기존 클래스의 경계와 관계가 달라질 수 있다.
+
+Stanford의 Ontology Development 101도
+온톨로지 개발을 반복적인 과정으로 설명한다.
+운영 단계에서는 다음 변경을 코드처럼 관리해야 한다.
+
+- 클래스와 관계의 추가, 사용 중단, 대체
+- 이름이 바뀌어도 유지되는 안정적인 식별자
+- 관계의 의미, 방향, 시작 클래스, 도착 클래스 변경
+- 기존 인스턴스를 새 스키마로 옮기는 마이그레이션
+- 역량 질문과 검증 질의를 이용한 회귀 검사
+
+버전, 마이그레이션, 검증 없이 클래스를 계속 고치면
+과거 근거와 현재 질문이 어느 스키마를 기준으로 하는지 알 수 없어진다.
 
 ## 그래프가 벡터 RAG보다 좋은지 어떻게 증명할까
 
@@ -404,7 +583,15 @@ flowchart LR
 ### 검색과 답변을 따로 평가한다
 
 최종 답변 점수만 보면 검색 실패와 생성 실패를 구분하기 어렵다.
-평가를 네 층으로 나누는 편이 좋다.
+평가를 다섯 층으로 나누는 편이 좋다.
+
+#### 온톨로지 적재
+
+- 개체와 관계 추출의 정밀도와 재현율
+- 기존 개체 연결 정확도
+- 클래스와 관계 제약 위반율
+- 출처와 원문 위치를 가진 주장 비율
+- 사람 검토 승인율과 주요 반려 사유
 
 #### 개체 해소
 
@@ -548,9 +735,49 @@ getChangeImpact(ontologyElementId)
 MCP는 이런 자원과 도구를 에이전트에 노출하는 표준 경계로 사용할 수 있다.
 다만 MCP 서버를 만들었다고 검색 품질이 자동으로 좋아지는 것은 아니다.
 검색 순위, 별칭 판정, 권한, 최신성, 중복 제거, 토큰 예산은 제공자 내부의 책임이다.
+[MCP 공식 아키텍처 문서](https://modelcontextprotocol.io/docs/learn/architecture)도
+MCP가 컨텍스트 교환을 표준화하지만,
+애플리케이션이 컨텍스트를 어떻게 선택하고 관리할지는 규정하지 않는다고 설명한다.
 
 프로젝트 지침을 어떤 형태로 전달할지는
 [AGENTS.md 포맷](./agents-md-format.md)도 함께 참고할 수 있다.
+
+### 읽기 이후에는 후보 주장만 되돌려 쓴다
+
+읽기 전용 제공자가 안정화된 뒤에도
+에이전트가 정식 그래프를 직접 수정하게 해서는 안 된다.
+작업 중 발견한 지식은 우선 근거가 딸린 후보 주장으로 되돌려 쓴다.
+
+```mermaid
+flowchart LR
+    A[에이전트 작업] --> O[수정 결과와 테스트]
+    O --> C[후보 Claim]
+    C --> E[로그, 코드, 문서 근거]
+    E --> V[규칙, 테스트, 사람 검토]
+    V -->|승인| G[정식 그래프]
+    V -->|반려| H[반려 이력]
+```
+
+예를 들어 테스트 실패를 보고 새로운 의존 관계를 추론했다면
+실패 로그, 패키지 선언, 실제 임포트 위치를 연결한 뒤 후보로 남긴다.
+검증을 통과한 경우에만 정식 관계로 승격하고,
+나중에 재평가할 수 있도록 승인과 대체 이력도 보존한다.
+
+### MCP와 A2A는 다른 경계를 다룬다
+
+두 프로토콜은 경쟁 관계라기보다 연결 대상이 다르다.
+
+| 경계 | 주된 역할 | 이 글에서의 사용 |
+| --- | --- | --- |
+| MCP | 에이전트와 도구, 자원, API 연결 | 개체 검색, 관계 확장, 근거 조회를 제공한다 |
+| A2A | 독립 에이전트 사이의 발견, 위임, 결과 공유 | 원격 전문 에이전트에 작업을 맡기고 결과를 받는다 |
+
+[A2A 공식 문서](https://a2a-protocol.org/latest/)도
+MCP를 에이전트와 도구·자원의 연결로,
+A2A를 독립 에이전트 사이의 협업으로 구분한다.
+단일 코딩 에이전트가 지식그래프를 조회하는 단계에는 MCP로 충분하다.
+서로 다른 권한과 수명 주기를 가진 원격 에이전트가 협업할 때만
+A2A 같은 에이전트 간 경계를 추가하는 편이 단순하다.
 
 ## 작은 실험으로 시작한다
 
@@ -627,8 +854,14 @@ MCP 서버, 로컬 CLI, REST API 중 하나만 선택한다.
 `API Gateway` 주변의 작은 클래스와 별칭 골든셋을 만들고,
 몇 개의 다단계 질문에서 그래프가 실제로 더 나은 근거를 찾아오는지 측정하는 일이다.
 
+영상의 여러 발표도 문제와 의사결정, 데이터에서 출발해야 한다는 방향을 공유한다.
+다만 환각 제거, 정확도 향상, 비용 절감처럼 수치로 제시된 효과 가운데
+공개된 평가 설계와 원자료로 재현하기 어려운 내용은 이 글의 근거로 사용하지 않았다.
+실제 도입 판단은 이 글에서 제시한 적재 지표와 검색·작업 평가로 다시 검증해야 한다.
+
 ## 참고 링크
 
+- [에이전틱 AI의 마지막 퍼즐, 온톨로지](https://www.youtube.com/watch?v=9kldcOTOx7g)
 - [Ontology Development 101](https://protege.stanford.edu/publications/ontology_development/ontology101-noy-mcguinness.html)
 - [W3C OWL 2 Primer](https://www.w3.org/TR/owl2-primer/)
 - [W3C OWL 2 Profiles](https://www.w3.org/TR/owl2-profiles/)
@@ -643,6 +876,10 @@ MCP 서버, 로컬 CLI, REST API 중 하나만 선택한다.
 - [RepoCoder](https://arxiv.org/abs/2303.12570)
 - [Aider Repository Map](https://aider.chat/docs/repomap.html)
 - [Model Context Protocol Architecture](https://modelcontextprotocol.io/docs/learn/architecture)
+- [A2A Protocol](https://a2a-protocol.org/latest/)
+- [Palantir Ontology Overview](https://www.palantir.com/docs/foundry/ontology/overview/)
+- [Ontology Population using LLMs](https://arxiv.org/abs/2411.01612)
+- [Accelerating Knowledge Graph and Ontology Engineering with Large Language Models](https://arxiv.org/abs/2411.09601)
 - [Sourcegraph Cody Context](https://sourcegraph.com/docs/cody/core-concepts/context)
 - [Continue Custom Context Providers](https://docs.continue.dev/customize/custom-providers)
 - [LinkedIn Knowledge Graph](https://www.linkedin.com/blog/engineering/knowledge/building-the-linkedin-knowledge-graph)
