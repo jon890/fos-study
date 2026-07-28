@@ -1,6 +1,6 @@
 ---
 name: series-organizer
-description: fos-study 저장소의 기존 글들을 블로그 시리즈로 묶는다. 폴더를 스캔해 시리즈 후보를 탐지하고 시리즈명·seriesOrder 를 제안한 뒤, 사용자 승인을 받아 글 frontmatter 에 series + seriesOrder 메타를 추가한다. "시리즈로 묶어", "시리즈 정리", "연재로 묶어", "series-organizer", "seriesOrder 부여", "이 폴더 시리즈로", "시리즈 메타 추가", "스프링 배치 시리즈로" 같은 요청 시 반드시 이 스킬을 사용한다. 개별 글을 새로 *작성*하는 것은 blog-post-writer 가 담당하고, 이 스킬은 이미 있는 글들을 시리즈 메타로 *묶는* 역할만 한다(본문은 건드리지 않는다). 일괄 자동 적용하지 않고 반드시 사용자 승인 단계를 거친다.
+description: fos-study 저장소의 기존 글들을 블로그 시리즈로 묶는다. 폴더를 스캔해 시리즈 후보를 탐지하고 시리즈명·seriesOrder 를 제안한 뒤, 사용자 승인을 받아 글 frontmatter 에 series 와 seriesOrder 메타를 추가한다. "시리즈로 묶어", "시리즈 정리", "연재로 묶어", "series-organizer", "seriesOrder 부여", "이 폴더 시리즈로", "시리즈 메타 추가", "스프링 배치 시리즈로" 같은 요청 시 반드시 이 스킬을 사용한다. 개별 글을 새로 *작성*하는 것은 blog-post-writer 가 담당하고, 이 스킬은 이미 있는 글들을 시리즈 메타로 *묶는* 역할만 한다(본문은 건드리지 않는다). 일괄 자동 적용하지 않고 반드시 사용자 승인 단계를 거친다.
 ---
 
 # 기존 글을 블로그 시리즈로 묶기
@@ -19,7 +19,7 @@ fos-blog 는 시리즈 기능이 이미 구현돼 있는데(`/series` 페이지)
 
 ## 발행 메커니즘 (블로그 측 — 알아둘 것)
 
-- frontmatter 에 `series`(시리즈명) + `seriesOrder`(0 이상 정수)가 **둘 다** 있어야 묶인다.
+- frontmatter 에 `series`(시리즈명)와 `seriesOrder`(0 이상 정수)가 **둘 다** 있어야 묶인다.
 - `seriesOrder` 가 없거나 유효하지 않으면 시리즈 메타가 무시된다(블로그 sync 가 경고 로그만 남김).
 - 같은 `series` 값을 가진 글들이 `seriesOrder` 오름차순으로 `/series/<이름>` 페이지에 노출된다.
 - 적용 흐름: 글에 frontmatter 추가 → 커밋 → 블로그 `POST /api/sync` → DB 반영 → `/series` 노출.
