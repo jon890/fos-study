@@ -12,7 +12,7 @@ description: 업무 경험이나 기술 스터디 내용을 개인 블로그 마
 2. **공개 가능 수위(L2) 준수** — 회사명/팀명은 OK, 비즈니스 도메인 고유 클래스명과 사업 의사결정은 X (세부 기준은 publishing-policy 참조)
 3. **자연스러운 문체** — AI 티 나지 않게, 직접 삽질하며 배운 사람의 말투로
 4. **코드 흐름은 의사코드·구조 중심으로** — 실제 프로젝트 코드 전체 인용이 아니라 패턴과 구조를 보여주는 수준
-5. **회고와 협업을 드러내기** — 기술 결정 + 내가 무엇을 했나 + 팀원들과 어떻게 합을 맞췄나
+5. **회고와 협업을 드러내기** — 기술 결정, 내가 무엇을 했나, 팀원들과 어떻게 합을 맞췄나
 
 블로그는 GitHub MD 파일 → 자동 sync 방식이라 파일만 올바른 위치에 만들면 된다.
 
@@ -113,7 +113,7 @@ git log에서 추출한 첫 커밋/마지막 커밋 날짜를 `YYYY.MM` 형식�
 
 제목(H1)에는 엔지니어가 한 번에 뜻을 파악하는 정확한 기술 용어를 쓴다. "안이 어떻게 다른가"처럼 구어적이거나 지시대상이 모호한 표현은 피하고, "아키텍처가 어떻게 다른가"처럼 무엇을 비교하는지 명시한다.
 
-같은 주제를 입문·심화 두 단계로 나눠 쓸 때는 depth를 **제목이 아니라 frontmatter `tags`로** 표시한다. `tags: [입문]` / `tags: [심화]`를 추가하면 글 하단에 클릭 가능한 칩으로 뜨고 `/tag/입문` · `/tag/심화` 로 모아서 볼 수 있다(`src/components/ArticleFooter.tsx` + `/tag/[name]` 라우트, fos-blog 확인됨).
+같은 주제를 입문·심화 두 단계로 나눠 쓸 때는 depth를 **제목이 아니라 frontmatter `tags`로** 표시한다. `tags: [입문]` / `tags: [심화]`를 추가하면 글 하단에 클릭 가능한 칩으로 뜨고 `/tag/입문` · `/tag/심화` 로 모아서 볼 수 있다(`src/components/ArticleFooter.tsx` 와 `/tag/[name]` 라우트, fos-blog 확인됨).
 
 제목에 "심화"·"심층"·"입문" 같은 단어나 `[심화]` 접두사를 박아 넣는 방식은 지양한다. 저장소 규모가 커지면 제목마다 라벨이 반복돼 오히려 가독성이 떨어진다는 사용자 피드백(2026-07)이 있었다 — 제목은 내용을 설명하는 문장으로만 쓰고, depth 분류는 태그(구조화된 메타데이터)로 분리한다.
 
@@ -188,7 +188,7 @@ depth 키워드 없이 제목만으로 입문/심화를 구분하기 어려운 �
 ## 작성 직전 중복 판정 (4-decision)
 
 새 파일을 만들기 전에 fos-study 전역과의 중복을 판정한다.
-같은 fos-study에 쓰는 career-os study-pack-writer의 ADR-033 중복 가드와 같은 4-decision 패턴이며, 위 "기존 짧은 글 보강 — 통합보다 보충" 원칙을 결정 게이트로 형식화한 것이다.
+같은 fos-study에 쓰는 career-os study-pack-writer의 ADR-033 중복 가드와 같은 4-decision 패턴이며, 위 "기존 짧은 글 보강 — 통합보다 보충" 원칙을 결정 통과 조건으로 형식화한 것이다.
 
 판정 입력 — Cross-link 후보 발굴(케이스 A 7-A / 케이스 B 6-A)에서 이미 `rg -l` 로 글 키워드 전역 검색을 했다. 그 매치 중 같은 주제를 다루는 문서를 후보로 본다.
 
@@ -221,14 +221,14 @@ silent 새 파일 생성이 같은 주제 문서를 단편화시키는 것을 �
 
 1. **기여 정도 파악** — "엄청 기여한 건 아닌데" 맥락이면 탐구/기록 톤 ([writing-style](./references/writing-style.md))
 2. **git log로 본인 커밋만 필터링** (author 이름 여러 표기 고려) → 기여 범위 및 진행 기간
-3. **얕은 주제 배제 판단** ([writing-style](./references/writing-style.md)) — 커밋 수 5\~6개 이하 + 클래식한 결론 + 재사용 인사이트 부족 시 배제/후순위 후 사용자 동의
+3. **얕은 주제 배제 판단** ([writing-style](./references/writing-style.md)) — 커밋 수 5\~6개 이하, 클래식한 결론, 재사용 인사이트 부족이 겹치면 배제/후순위 후 사용자 동의
 4. **코드 검증** — 클래스명, 메서드명, 필드명을 파일 읽기와 검색으로 직접 확인 ([writing-style](./references/writing-style.md) 코드 예시 검증)
 5. `ls /Users/nhn/personal/fos-study/`로 폴더 구조 확인 → 적절한 위치 결정
 6. **L2 공개 수위 점검** ([publishing-policy](./references/publishing-policy.md)) — 비즈니스 도메인 고유 클래스명 / 상품명 / 사업 의사결정 일반화
 7. 관련 상세 문서 존재 여부 확인 → 링크 결정 (존재 검증 필수)
 7-A. **Cross-link 후보 발굴** ([markdown-pitfalls](./references/markdown-pitfalls.md)) — 글 키워드 5\~10개 추출 → `rg -l` 로 전역 grep → H1 추출 → 본문 흐름상 자연스러운 자리 1\~2건만 선정. 표시 텍스트는 H1 제목, 깊은 link 면 앵커, 이탤릭+괄호 강조는 bold+괄호.
 7-B. **중복 판정** ([작성 직전 중복 판정](#작성-직전-중복-판정-4-decision)) — 7-A 매치 중 같은 주제 문서가 있으면 new / update-existing / skip / needs-confirmation으로 판정. 모호하면 needs-confirmation(사용자 확인).
-8. 마크다운 작성 — 자연스러운 문체, AI 티 제거, 1인칭 단수, **"내 기여 + 협업 방식 + 짧은 회고"** 섹션 포함
+8. 마크다운 작성 — 자연스러운 문체, AI 티 제거, 1인칭 단수, **"내 기여, 협업 방식, 짧은 회고"** 섹션 포함
 9. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다. **정적 위반은 `scripts/blog_score.py <글>` 로 한 번에 측정한다** ([1계층 reward](#자가점검-자동화--blog_score-1계층-reward)).
 10. **HTML 미리보기 생성** — 블로그 렌더러가 있으면 실제 렌더러로 확인한다. 없으면 `scripts/render_preview.mjs <글.md> <preview.html>`로 blog.fosworld.co.kr 톤의 임시 HTML preview를 `/private/tmp/` 아래에 생성해 사용자에게 보여준다. Mermaid는 코드블록이 아니라 시각적 placeholder라도 흐름이 깨지지 않는지 확인한다.
 11. 파일 저장 (파일명도 L2 적용) 후 경로 알려주기
@@ -245,7 +245,7 @@ silent 새 파일 생성이 같은 주제 문서를 단편화시키는 것을 �
 6. 저장소 내 관련 기존 문서 확인 → 링크 연결
 6-A. **Cross-link 후보 발굴** ([markdown-pitfalls](./references/markdown-pitfalls.md)) — 글 키워드 5\~10개 추출 → `rg -l` 로 전역 grep → H1 추출 → 본문 흐름상 자연스러운 자리 1\~2건만 선정. 표시 텍스트는 H1 제목, 깊은 link 면 앵커, 이탤릭+괄호 강조는 bold+괄호.
 6-B. **중복 판정** ([작성 직전 중복 판정](#작성-직전-중복-판정-4-decision)) — 6-A 매치 중 같은 주제 문서가 있으면 new / update-existing / skip / needs-confirmation으로 판정. 모호하면 needs-confirmation(사용자 확인). 외부 개념 글은 같은 기술 폴더에 중복이 쌓이기 쉬우니 특히 점검.
-7. 마크다운 작성 — 검색 결과 번역 말고, 본인이 이해한 방식으로 재해석한다. **기술적으로 깊은 글은 [writing-style](./references/writing-style.md)의 "케이스 B 깊이 사다리"와 "기술 주장 검증"을 게이트로 적용한다.**
+7. 마크다운 작성 — 검색 결과 번역 말고, 본인이 이해한 방식으로 재해석한다. **기술적으로 깊은 글은 [writing-style](./references/writing-style.md)의 "케이스 B 깊이 사다리"와 "기술 주장 검증"을 통과 조건으로 적용한다.**
 8. 글 하단에 **참고 링크 섹션** 포함 (URL 명시)
 9. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다. **정적 위반은 `scripts/blog_score.py <글>` 로 한 번에 측정한다** ([1계층 reward](#자가점검-자동화--blog_score-1계층-reward)).
 10. **HTML 미리보기 생성** — 블로그 렌더러가 있으면 실제 렌더러로 확인한다. 없으면 `scripts/render_preview.mjs <글.md> <preview.html>`로 blog.fosworld.co.kr 톤의 임시 HTML preview를 `/private/tmp/` 아래에 생성해 사용자에게 보여준다. Mermaid는 코드블록이 아니라 시각적 placeholder라도 흐름이 깨지지 않는지 확인한다.
@@ -319,7 +319,7 @@ SkillOpt-Sleep 에 두 reward 를 judge 로 주입하면 글 작성 스킬이 �
   `.skill-loop/violations.jsonl` 에 축별로 누적한다.
 - **개선 신호** — `scripts/evolve_check.py` 가 누적 로그를 집계해 반복 위반 축을 SKILL.md 강화 후보로 보고한다.
   ```bash
-  python3 scripts/evolve_check.py        # 누적 집계 + 강화 권장 축
+  python3 scripts/evolve_check.py        # 누적 집계와 강화 권장 축
   ```
 
 루프 — 글 저장 → 자동 채점·누적 → (반복 시) evolve_check 신호 → 사람이 규칙 강화 → 다음 글 개선.

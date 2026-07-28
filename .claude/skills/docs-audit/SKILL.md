@@ -105,7 +105,7 @@ ripgrep / Python 한 번이면 끝나고 결과도 작아 메인 컨텍스트 �
    - 길이 40자 초과 시 `?` 또는 `.` 위치에서 잘라 한 문장으로
 4. `[정리된 H1](path.md)` 형태로 치환
 
-**이유** — `[\`path\`](path)` 형태는 markdown 으로 유효하지만 fos-blog 렌더링 시 백틱 + 경로가 그대로 노출돼 어색하다. 본문 한 줄에 link 3개가 모두 경로로 보이면 가독성이 급락한다. 표시 텍스트를 H1 제목으로 잡으면 자연스러운 문장이 된다.
+**이유** — `[\`path\`](path)` 형태는 markdown 으로 유효하지만 fos-blog 렌더링 시 백틱과 경로가 그대로 노출돼 어색하다. 본문 한 줄에 link 3개가 모두 경로로 보이면 가독성이 급락한다. 표시 텍스트를 H1 제목으로 잡으면 자연스러운 문장이 된다.
 
 **스크립트 참고**: `/tmp/relink_h1_v2.py` (이전 라운드 산출물). 62건/9파일 적용 사례.
 
@@ -122,7 +122,7 @@ ripgrep / Python 한 번이면 끝나고 결과도 작아 메인 컨텍스트 �
 - 콤마-줄글 사례 단락
 - 긴 인라인 부연
 - 누적성 섹션 평탄화 부재
-- 인라인 링크 폭주
+- 인라인 링크 과다
 
 코드/표 마스킹 후 시그널 강도 순 보고.
 `interview/**`, `resume/**` 등 의도적 줄글 패턴은 제외.
@@ -257,7 +257,7 @@ CLAUDE.md / blog-post-writer 룰 중 4가지를 본다.
 5. 변경 후 **관심사별 커밋으로 분리** (한 커밋에 합치지 않음). 메시지 예:
 
    ```
-   docs: 종합 감사 — broken N건 + 문체 N건 + README 정합성 N건 수정
+   docs: 종합 감사 — broken N건, 문체 N건, README 정합성 N건 수정
    ```
 
 ## Quality Loop — 의미 품질 검토 (수동 판단 후보 확장)
@@ -296,7 +296,7 @@ Q6는 *writer/maintainer 사이클 직후* (예: study-pack-writer 호출 후 �
 |---|---|---|
 | `keep` | 그대로 유지 | 변경 없음 |
 | `refresh-needed` | 내용은 유효하지만 현재 품질 기준 미달 | 다음 사이클에 갱신 후보 (즉시 X) |
-| `merge` | 다른 문서와 통합 권장 | 통합 대상 명시 + 사용자 검토 |
+| `merge` | 다른 문서와 통합 권장 | 통합 대상 명시와 사용자 검토 |
 | `archive` | 가치는 있지만 최신성 떨어짐 | archive 영역 이동 (즉시 삭제 X) |
 | `delete-candidate` | 즉시 삭제 후보 | 사용자 최종 확인 후 삭제 |
 
@@ -314,7 +314,7 @@ Q6는 *writer/maintainer 사이클 직후* (예: study-pack-writer 호출 후 �
 
 ### 확인된 패턴 (참고)
 
-- MySQL 인덱스 문서군은 허브 + 심화 분리가 실제로 품질 개선 효과가 있었다
+- MySQL 인덱스 문서군은 허브와 심화 분리가 실제로 품질 개선 효과가 있었다
 - 오래된 학습 노트는 내용이 유효해도 현재 품질 기준에서는 `refresh-needed`로 판정될 수 있다
 - README / 허브 문서가 있으면 새 문서가 늘어도 역할 충돌을 줄이기 쉽다
 
@@ -387,11 +387,11 @@ Q6는 *writer/maintainer 사이클 직후* (예: study-pack-writer 호출 후 �
   - 자동 변환을 적용한 뒤 spot-check 단계에서 한 파일에서 손상을 발견하면 그 파일만 `git checkout -- <path>` 로 revert 한다.
   - 전체 stage 를 reset 하지 말 것.
   - 변환 함수는 그대로 두고 다음 round 에서 입력 필터만 강화한다.
-  - 본 스킬 적용 사례에서 7개 파일 revert + 13개 파일 유지가 가장 깔끔했다.
+  - 본 스킬 적용 사례에서 7개 파일 revert 와 13개 파일 유지가 가장 깔끔했다.
 
-## 점수 게이트 (reward) — 편집이 개선인지 검증
+## 점수 통과 조건 (reward) — 편집이 개선인지 검증
 
-SkillOpt 의 validation gate 를 차용한 절차다.
+SkillOpt 의 검증 통과 조건을 차용한 절차다.
 7축 중 *객관적으로 채점 가능한* 위반만 점수로 환산해, 수정 전후를 비교한다.
 점수가 오를 때만(개선) 커밋한다.
 
@@ -416,11 +416,11 @@ python3 .claude/skills/docs-audit/scripts/docs_score.py --save   # 게이트 통
 python3 .claude/skills/docs-audit/scripts/docs_score.py --json    # 기계 판독용
 ```
 
-### 게이트 흐름
+### 통과 조건 확인 흐름
 
-1. 수정 착수 전 측정해 직전 baseline 을 본다.
+1. 수정 착수 전 측정해 직전 기준값을 본다.
 2. 축 단위로 위반을 수정한다 (broken link → 문체 → README 순).
-3. 다시 측정해 **점수가 baseline 보다 올랐는지** 확인한다.
+3. 다시 측정해 **점수가 기준값보다 올랐는지** 확인한다.
 4. 올랐으면 `--save` 로 기록하고 커밋한다. 안 올랐으면 수정이 회귀를 부른 것이니 되돌린다.
 
 ### reward 정확성 주의
@@ -435,11 +435,11 @@ python3 .claude/skills/docs-audit/scripts/docs_score.py --json    # 기계 판�
 ## 주기
 
 월 1회 또는 큰 문서 batch 작업 후 1회 수동 실행 권장. 자동화(cron/hook) 는 현 시점에서 불필요.
-수정 라운드마다 위 점수 게이트로 회귀 여부를 확인한다.
+수정 라운드마다 위 점수 통과 조건으로 회귀 여부를 확인한다.
 
 ## 참고
 
 - 블로그 링크 렌더러: `/Users/nhn/personal/fos-blog/src/lib/resolve-markdown-link.ts`
-- 저장소 컨벤션: `/Users/nhn/personal/fos-study/CLAUDE.md` "하위 문서 링크" / "가시성 원칙" / "마크다운 Bold + 괄호 패턴"
+- 저장소 컨벤션: `/Users/nhn/personal/fos-study/CLAUDE.md` "하위 문서 링크" / "가시성 원칙" / "마크다운 Bold 와 괄호 패턴"
 - 문체 룰 출처: `.claude/skills/blog-post-writer/SKILL.md` 14-G/H/I/J 항목
 - 축별 구현 상세 (ripgrep·Python 코드·YAML schema): `references/axis-detail.md`
