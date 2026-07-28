@@ -37,8 +37,122 @@ tags: [심화]
 - 변경되거나 폐기된 개념은 어떻게 추적하는가?
 
 W3C의 OWL 2 입문서는 온톨로지를 클래스, 속성, 개체와 이들 사이의 공리로 설명한다.
-여기서 중요한 건 OWL을 반드시 도입해야 한다는 뜻이 아니다.
-TypeScript, Zod, JSON Schema, Neo4j 제약으로도 같은 설계 규율을 적용할 수 있다.
+
+### OWL 2는 무엇인가
+
+OWL은 **웹 온톨로지 언어**(Web Ontology Language)의 약자다.
+OWL 2는 어떤 도메인의 개념과 관계를 컴퓨터가 논리적으로 해석하고
+새로운 사실을 추론할 수 있도록 의미를 명시하는 W3C 표준 언어다.
+
+이름에 Web이 들어가지만 웹 화면을 만드는 기술은 아니다.
+서로 다른 시스템이 같은 개념을 같은 의미로 교환하고,
+명시된 규칙에서 추가 사실을 계산하는 지식 표현 언어에 가깝다.
+
+OWL 2를 이해할 때는 다섯 가지를 먼저 보면 된다.
+
+| 구성 요소 | 의미 | 코딩 지식그래프 예시 |
+| --- | --- | --- |
+| 클래스 | 같은 성격을 가진 개체의 집합 | `Component`, `APIGateway` |
+| 개체 | 현실의 구체적인 대상 | `auth-gateway` |
+| 객체 속성 | 개체와 개체 사이의 관계 | `dependsOn`, `ownedBy` |
+| 데이터 속성 | 개체와 문자열·숫자 같은 값의 관계 | `version`, `createdAt` |
+| 공리 | 온톨로지 안에서 참이라고 선언한 의미 규칙 | 모든 `APIGateway`는 `Component`다 |
+
+여기서 **공리**(axiom)가 OWL 2의 핵심이다.
+공리는 단순한 설명 문장이 아니라 추론기가 새로운 사실을 도출할 때 사용하는 논리 규칙이다.
+
+다음은 OWL의 Manchester 문법을 단순화한 예다.
+
+```text
+Class: Component
+
+Class: APIGateway
+  SubClassOf: Component
+
+Class: AuthenticationGateway
+  SubClassOf: APIGateway
+
+Individual: auth-gateway
+  Types: AuthenticationGateway
+```
+
+직접 적은 사실은 `auth-gateway`가 `AuthenticationGateway`라는 것뿐이다.
+하지만 추론기는 클래스 계층을 따라 다음 사실도 도출할 수 있다.
+
+- `auth-gateway`는 `APIGateway`다.
+- `auth-gateway`는 `Component`다.
+- 모든 `AuthenticationGateway`는 `Component`다.
+
+RDF가 `auth-gateway dependsOn auth-service` 같은 사실을 주어·관계·목적어 형태로 표현한다면,
+OWL 2는 클래스 계층, 동등성, 배타성, 속성의 특성처럼
+그 사실들을 해석할 규칙을 더한다.
+
+### OWL 2는 데이터 검증 언어가 아니다
+
+OWL 2를 처음 접할 때 가장 헷갈리기 쉬운 부분이다.
+
+일반적인 데이터베이스나 Zod 검증에서는 필드가 없으면 오류라고 판단할 수 있다.
+반면 OWL 2는 **열린 세계 가정**(open-world assumption)을 따른다.
+그래프에 어떤 사실이 없다고 해서 그 사실이 거짓이라고 결론 내리지 않고,
+아직 알려지지 않았을 가능성을 남긴다.
+
+예를 들어 `auth-gateway`에 소유 팀이 기록되지 않았다고 해보자.
+
+- Zod나 SHACL은 `owner`가 필수라는 조건을 두고 누락을 오류로 판정할 수 있다.
+- OWL 2는 소유 팀 정보가 없다는 이유만으로 소유 팀이 존재하지 않는다고 판단하지 않는다.
+
+속성의 도메인과 범위도 입력 검증 규칙과 다르게 작동한다.
+OWL 2에서 `dependsOn`의 시작과 끝을 `Component`로 선언한 뒤
+`A dependsOn B`라는 사실이 들어오면,
+추론기는 A와 B를 `Component`라고 추론할 수 있다.
+잘못된 입력을 곧바로 거부하는 타입 검사와는 방향이 다르다.
+
+역할을 구분하면 다음과 같다.
+
+| 도구 | 답하려는 질문 |
+| --- | --- |
+| OWL 2 | 현재 사실과 의미 규칙에서 무엇을 논리적으로 추론할 수 있는가? |
+| SHACL | RDF 데이터가 필요한 형태와 제약을 만족하는가? |
+| Zod·JSON Schema | 애플리케이션 입력이 요구한 필드와 타입을 만족하는가? |
+| Neo4j 제약 | 그래프 키와 속성의 유일성·존재 조건을 만족하는가? |
+
+따라서 OWL 2와 SHACL은 경쟁 기술이라기보다 역할이 다르다.
+OWL 2로 의미와 추론 규칙을 표현하고,
+SHACL이나 애플리케이션 스키마로 실제 적재 데이터를 검증할 수 있다.
+
+### 왜 OWL 2에도 여러 프로파일이 있는가
+
+논리 표현력이 강해질수록 추론 비용도 커질 수 있다.
+OWL 2는 필요한 문제에 맞춰 표현력 일부를 제한한 세 가지 프로파일을 정의한다.
+
+| 프로파일 | 적합한 문제 |
+| --- | --- |
+| OWL 2 EL | 클래스와 속성이 매우 많은 대규모 온톨로지에서 계층 추론이 중요할 때 |
+| OWL 2 QL | 인스턴스가 많고 관계형 데이터베이스 위에서 질의 응답이 중요할 때 |
+| OWL 2 RL | 규칙 엔진 방식으로 확장 가능한 추론을 구현할 때 |
+
+프로파일은 더 좋은 버전을 고르는 문제가 아니다.
+필요한 추론과 데이터 규모에 맞춰 표현력과 계산 비용을 교환하는 선택지다.
+
+### 이 프로젝트에 OWL 2가 바로 필요한가
+
+현재와 같은 Neo4j 속성 그래프가 있다고 해서
+OWL 2로 전면 이주해야 하는 것은 아니다.
+
+다음 요구가 생기면 OWL 2 도입을 검토할 가치가 있다.
+
+- 여러 시스템이 클래스와 관계의 의미를 표준 형식으로 공유해야 한다.
+- 클래스 계층과 속성 규칙에서 새로운 사실을 자동 추론해야 한다.
+- 서로 모순되는 클래스 정의를 논리적으로 검사해야 한다.
+- 외부 온톨로지와 식별자·정의를 연결해야 한다.
+
+반대로 클래스 수가 작고,
+필요한 관계 탐색이 Cypher로 충분하며,
+애플리케이션 코드에서 제약을 명확히 관리할 수 있다면
+TypeScript, Zod, Neo4j 제약으로 시작하는 편이 단순하다.
+
+내가 이 글에서 OWL 2를 언급한 이유도 라이브러리 도입을 권하기 위해서가 아니다.
+클래스, 관계, 인스턴스, 공리, 추론을 분리해서 생각하는 설계 규율을 가져오기 위해서다.
 
 내가 중요하게 본 구분은 다음과 같다.
 
@@ -517,6 +631,7 @@ MCP 서버, 로컬 CLI, REST API 중 하나만 선택한다.
 
 - [Ontology Development 101](https://protege.stanford.edu/publications/ontology_development/ontology101-noy-mcguinness.html)
 - [W3C OWL 2 Primer](https://www.w3.org/TR/owl2-primer/)
+- [W3C OWL 2 Profiles](https://www.w3.org/TR/owl2-profiles/)
 - [W3C SHACL](https://www.w3.org/TR/shacl/)
 - [W3C PROV-O](https://www.w3.org/TR/prov-o/)
 - [OBO Foundry Term Stability](https://obofoundry.org/principles/fp-019-term-stability.html)
