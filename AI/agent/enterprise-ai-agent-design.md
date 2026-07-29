@@ -161,7 +161,6 @@ memory에 저장할 때는 다음 질문을 통과해야 한다.
 - prompt injection 문자열이 장기 memory로 승격되지 않는가
 - 어떤 권한 스코프에서만 retrieval 되는가
 
-헬스케어처럼 민감한 도메인의 memory 설계는 [헬스케어 AI Agent의 멀티턴 메모리 설계](./multi-turn-memory-healthcare-agent.md)에 따로 정리해 뒀다.
 일반 Agent도 원리는 같다.
 자유 텍스트 memory보다 구조화된 fact가 안전하고, 장기 memory는 retrieval 전에 권한과 동의 범위를 먼저 통과해야 한다.
 
