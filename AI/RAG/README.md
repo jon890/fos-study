@@ -8,6 +8,10 @@ RAG 파이프라인 구성 요소 학습 기록. 임베딩·벡터 검색·알�
 - [벡터 검색 알고리즘 — kNN에서 HNSW까지](./vector-search-algorithms.md) — 거리 계산, brute force 한계, ANN, HNSW 구조·파라미터·약점
 - [HNSW 심화 — 파라미터 튜닝과 구현체별 성능 차이](./hnsw-deep-dive.md) — M·ef_construction·ef_search 상호작용, 코사인=정규화 내적, 구현체별 차이, 필터 충돌·한계
 
+## 평가·설계
+
+- [RAG를 평가에서 역설계하기](./evaluation-driven-context-provider.md) — 컨텍스트 제공자의 목표, 컴포넌트별 평가, 평가 기준에서 검색 구성을 선택하는 방법
+
 ## 실무 사례
 
 - [엔터프라이즈 RAG 구축 사례 (Kubeflow + Milvus + LLaMA3)](./enterprise-rag-with-kubeflow.md)
