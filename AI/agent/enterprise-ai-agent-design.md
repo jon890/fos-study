@@ -206,6 +206,9 @@ Google ADK 문서도 context를 단순 문자열 누적이 아니라 sessions, m
 이 설계의 목표는 "많이 기억하는 Agent"가 아니다.
 목표는 **필요한 것만 정확히 현재 window에 올리는 Agent**다.
 
+Knowledge memory에서 관계를 탐색하고 최종 원문을 근거로 돌려주는 구체적인 구현은
+[Neo4j GraphRAG로 에이전트 컨텍스트 제공자 만들기](../RAG/neo4j-graphrag/README.md)에서 다룬다.
+
 ## 비용 효율성은 모델 라우팅보다 workflow 라우팅이 먼저다
 
 비용 최적화를 모델 가격표 비교로 시작하면 늦다.

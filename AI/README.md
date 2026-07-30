@@ -5,6 +5,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 ## 하위 주제
 
 - [RAG (Retrieval-Augmented Generation)](./RAG/README.md) — 임베딩, 벡터 검색, 실무 사례
+- [Neo4j GraphRAG 학습 시리즈](./RAG/neo4j-graphrag/README.md) — 관계 탐색과 원문 근거를 제공하는 에이전트 검색 도구 구축
 - [LangGraph](./langgraph/langgraph-overview.md) — 에이전트 워크플로를 그래프로 통제하기
 - [AGENTS.md 포맷](./agents-md-format.md) — AI coding agent 동작 지침서
 - [DESIGN.md, Google Stitch, Claude Design](./design-md-and-ai-design-tools.md) — AI 에이전트와 디자인의 새 컨벤션 + fos-blog 6주 도입 회고
