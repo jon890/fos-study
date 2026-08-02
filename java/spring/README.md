@@ -28,6 +28,7 @@ Spring Framework / Spring Boot 학습 기록. IoC, 생명주기, 트랜잭션, A
 ## 횡단 관심사 / AOP
 
 - [Filter, Interceptor, AOP](./filter-interceptor-aop.md) — 요청 처리 파이프라인에서 무엇을 어디에 둘지 결정하는 비교/선택 가이드
+- [DispatcherType과 서블릿 async 재디스패치](./servlet-async-dispatch.md) — Mono를 반환하면 preHandle이 두 번 도는 이유와 그때 깨지는 코드
 - [Spring AOP와 프록시 심층 분석](./spring-aop-proxies-deep-dive.md) — JDK Dynamic Proxy, CGLIB, ByteBuddy
 
 ## HTTP 클라이언트
