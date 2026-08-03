@@ -28,6 +28,7 @@
 | 4 | [API Gateway를 걷어낸 자리 채우기](./api-gateway-removal-rewrite-and-https.md) | path rewrite, 요청 크기 병목, HTTPS 종료 위치 |
 | 5 | [ingress-nginx 운영 디테일](./ingress-nginx-operations.md) | admission webhook, whitelist, 배치, 리소스 사양 |
 | 6 | [IP whitelist가 조용히 뚫려 있었다](./client-ip-preservation.md) | L4 패스스루와 SNAT 로 클라이언트 IP 가 사라지는 구간 |
+| 7 | [파드가 서비스 이름을 못 푸는 이유](./pod-dns-policy-and-ndots.md) | dnsPolicy 4종, ndots 와 search 도메인 전개 |
 
 ## 함께 보면 좋은 글
 
