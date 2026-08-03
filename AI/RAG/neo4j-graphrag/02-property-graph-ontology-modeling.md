@@ -1,6 +1,7 @@
 ---
 categories: [database]
 tags: [심화]
+thumbnail: ./images/02-property-graph-ontology-modeling-thumbnail.jpg
 ---
 
 # 속성 그래프와 온톨로지 모델링

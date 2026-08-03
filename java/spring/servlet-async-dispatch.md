@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/servlet-async-dispatch-thumbnail.jpg
+---
+
 # DispatcherType과 서블릿 async 재디스패치 — Interceptor의 preHandle이 두 번 도는 이유
 
 컨트롤러가 `Mono`를 반환하면 `DispatcherServlet.doDispatch()`가 **한 요청에 두 번** 실행된다.
