@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/enterprise-ai-agent-design-thumbnail.jpg
+---
+
 # 엔터프라이즈 AI Agent 설계 — reasoning, tool, memory, cost를 운영 시스템으로 묶기
 
 AI Agent를 엔터프라이즈 환경에 올린다는 건 "LLM이 알아서 일하게 한다"가 아니다.

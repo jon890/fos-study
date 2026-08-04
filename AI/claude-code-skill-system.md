@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/claude-code-skill-system-thumbnail.jpg
+---
+
 # Claude Code의 Skill 시스템 - 개발자를 위한 AI 자동화의 새로운 차원
 
 최근 Claude Code를 쓰면서 느낀 생각이 있다. "이게 진짜 내 개발 경험을 바꿀 수 있겠다"는 확신이었다. 특히 **Skill 시스템**이라는 개념을 알게 된 이후로는 더욱 그렇다.

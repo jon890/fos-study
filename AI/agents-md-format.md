@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/agents-md-format-thumbnail.jpg
+---
+
 # agents.md
 
 - `agents.md`는 AI coding agent(예: GitHub Copilot)의 **동작 지침서** 역할을 하는 문서
