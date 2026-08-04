@@ -1,6 +1,7 @@
 ---
 categories: [database]
 tags: [심화]
+thumbnail: ./images/08-production-security-operations-thumbnail.jpg
 ---
 
 # 권한·최신성·성능을 포함한 Neo4j 운영 설계

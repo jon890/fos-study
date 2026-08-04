@@ -1,6 +1,7 @@
 ---
 categories: [database]
 tags: [심화]
+thumbnail: ./images/05-hybrid-retrieval-thumbnail.jpg
 ---
 
 # 벡터·전문·그래프 탐색을 결합한 하이브리드 검색

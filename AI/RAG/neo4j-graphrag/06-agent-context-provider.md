@@ -1,6 +1,7 @@
 ---
 categories: [database]
 tags: [심화]
+thumbnail: ./images/06-agent-context-provider-thumbnail.jpg
 ---
 
 # 에이전트를 위한 Neo4j 컨텍스트 제공자 설계
