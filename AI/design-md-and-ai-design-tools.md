@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/design-md-and-ai-design-tools-thumbnail.jpg
+---
+
 # AI 에이전트와 디자인의 새 컨벤션 — DESIGN.md, Google Stitch, Claude Design
 
 1년 안에 디자인-개발 경계에서 셋이 동시에 등장했다. 2025년 5월 구글 I/O에서 **Stitch**가 발표됐고, 2026년 3월 그 안에서 **DESIGN.md** 포맷이 따로 오픈소스로 떨어졌고, 같은 해 4월에 Anthropic Labs가 **Claude Design**을 띄웠다. 같은 달에 VoltAgent의 [awesome-design-md](https://github.com/VoltAgent/awesome-design-md) 같은 71개 브랜드 DESIGN.md 컬렉션이 등장했다.

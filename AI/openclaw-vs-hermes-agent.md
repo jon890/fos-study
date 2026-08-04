@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/openclaw-vs-hermes-agent-thumbnail.jpg
+---
+
 # OpenClaw vs Hermes Agent — 갈아탈까 고민하며 정리한 비교
 
 지금 나는 OpenClaw로 개인 에이전트를 돌리고 있다.

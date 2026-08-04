@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/harness-engineering-practice-thumbnail.jpg
+---
+
 # 하네스 엔지니어링 실전 — 4인 에이전트 팀으로 코딩 파이프라인 구축하기
 
 이론은 알겠다. 생성과 평가를 분리하라. 상태를 파일에 외부화하라. Initializer-Executor 패턴으로 세션 간 기억을 만들어라. (→ [하네스 엔지니어링 이론편](./harness-engineering.md))
