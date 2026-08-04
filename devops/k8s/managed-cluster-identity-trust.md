@@ -1,6 +1,7 @@
 ---
 series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
 seriesOrder: 3
+thumbnail: ./images/managed-cluster-identity-trust-thumbnail.jpg
 ---
 
 # 관리형 클러스터는 누구의 권한으로 클라우드를 만지는가 — trust 단절과 service user 전환
