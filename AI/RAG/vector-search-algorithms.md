@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/vector-search-algorithms-thumbnail.jpg
+---
+
 # 벡터 검색 알고리즘 — kNN에서 HNSW까지
 
 [임베딩](./embedding.md)으로 텍스트를 벡터로 바꾸고 나면, "질문 벡터와 가장 가까운 문서 벡터"를 찾아야 한다.

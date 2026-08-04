@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/toss-parkssi-thumbnail.jpg
+---
+
 # 토스 : 100번 실패하고 살려낸 문서 시스템
 
 - [100번 실패하고 살려낸 문서 시스템](https://www.youtube.com/watch?v=zlXsomDPQ_U)

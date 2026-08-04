@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/hallucination-control-thumbnail.jpg
+---
+
 # [초안] RAG 환각 제어 — grounding 재주입, sourceQuote 검증, 배치 정합성, bulk 색인
 
 RAG(Retrieval-Augmented Generation)를 데모에서 제품으로 올릴 때 가장 자주 무너지는 지점이 **환각**(hallucination)이다. 검색은 잘 되는데 LLM이 검색되지 않은 사실을 지어내거나, 검색된 문서에 없는 인용을 만들어 붙이거나, 색인이 원본과 어긋나서 "맞는 답변인데 근거가 옛 문서"인 상황이 생긴다.
