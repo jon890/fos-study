@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/backtracking-thumbnail.jpg
+---
+
 # [초안] 라이브 코딩에서 백트래킹: 선택-재귀-복구 패턴으로 풀어내는 Java 면접 가이드
 
 ## 왜 백트래킹이 라이브 코딩의 단골 주제인가

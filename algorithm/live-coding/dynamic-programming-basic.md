@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/dynamic-programming-basic-thumbnail.jpg
+---
+
 # [초안] Java 라이브 코딩: 동적 계획법(Dynamic Programming) 기본기
 
 ## 왜 지금 이 주제인가
