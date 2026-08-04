@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import path from "node:path";
 
 const input = process.argv[2];
 const output = process.argv[3];
@@ -8,6 +9,23 @@ if (!input || !output) {
 }
 
 const markdown = await fs.readFile(input, "utf8");
+const frontMatterMatch = markdown.match(/^---\s*\n([\s\S]*?)\n---\s*\n/);
+const frontMatterBody = frontMatterMatch?.[1] ?? "";
+const thumbnailPath = frontMatterBody.match(/^thumbnail:\s*["']?([^"'\n]+)["']?\s*$/m)?.[1]?.trim();
+const markdownBody = frontMatterMatch ? markdown.slice(frontMatterMatch[0].length) : markdown;
+
+async function thumbnailDataUrl() {
+  if (!thumbnailPath || !thumbnailPath.startsWith("./")) return null;
+  const absolutePath = path.resolve(path.dirname(input), thumbnailPath);
+  try {
+    const image = await fs.readFile(absolutePath);
+    const extension = path.extname(absolutePath).toLowerCase();
+    const mime = extension === ".png" ? "image/png" : extension === ".webp" ? "image/webp" : extension === ".avif" ? "image/avif" : "image/jpeg";
+    return `data:${mime};base64,${image.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
 
 function escapeHtml(value) {
   return value
@@ -143,8 +161,9 @@ function render(markdownText) {
   return html.join("\n");
 }
 
-const title = markdown.match(/^#\s+(.+)$/m)?.[1] ?? "FOS Study Preview";
-const content = render(markdown);
+const title = markdownBody.match(/^#\s+(.+)$/m)?.[1] ?? "FOS Study Preview";
+const content = render(markdownBody);
+const thumbnail = await thumbnailDataUrl();
 const html = `<!doctype html>
 <html lang="ko">
 <head>
@@ -207,6 +226,15 @@ const html = `<!doctype html>
       border-radius: 12px;
       padding: 44px 52px;
       box-shadow: 0 10px 28px rgba(15, 23, 42, .04);
+    }
+    .thumbnail-preview {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: 10px;
+      margin: 0 0 28px;
+      border: 1px solid var(--border);
     }
     aside {
       color: var(--muted);
@@ -309,7 +337,7 @@ const html = `<!doctype html>
 <body>
   <header><div class="nav"><div class="brand">FOS Study</div><div>홈 · 카테고리 · 검색</div></div></header>
   <div class="wrap">
-    <article>${content}</article>
+    <article>${thumbnail ? `<img class="thumbnail-preview" src="${thumbnail}" alt="">` : ""}${content}</article>
     <aside><div class="toc"><strong>Preview</strong><div>blog.fosworld.co.kr 스타일에 맞춘 로컬 HTML 미리보기입니다.</div></div></aside>
   </div>
   <script type="module">

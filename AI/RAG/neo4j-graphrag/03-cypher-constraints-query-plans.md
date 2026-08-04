@@ -1,6 +1,7 @@
 ---
 categories: [database]
 tags: [심화]
+thumbnail: ./images/03-cypher-constraints-query-plans-thumbnail.jpg
 ---
 
 # Cypher, 제약, 쿼리 계획으로 검색 안정화하기

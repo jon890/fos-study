@@ -1,6 +1,7 @@
 ---
 categories: [database]
 tags: [심화]
+thumbnail: ./images/01-goal-and-baseline-thumbnail.jpg
 ---
 
 # Neo4j GraphRAG의 목표와 기준선

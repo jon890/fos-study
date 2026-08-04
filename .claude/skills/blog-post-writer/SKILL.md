@@ -41,6 +41,7 @@ description: 업무 경험이나 기술 스터디 내용을 개인 블로그 마
 - **[publishing-policy](./references/publishing-policy.md)** — 공개 수위(L2)·코드 인용(L1/L2/L3)·파일명·기술 스택 L2 정책. **케이스 A(업무 글)에 필수.**
 - **[writing-style](./references/writing-style.md)** — 문체·서사·회고/협업·얕은 주제 배제·코드 검증·글 구성 규칙. 본문 작성 단계에서 참조.
 - **[markdown-pitfalls](./references/markdown-pitfalls.md)** — 마크다운 렌더 함정과 cross-link 규칙, **작성 직후 통합 자가점검 체크리스트**.
+- **[thumbnail-generation](./references/thumbnail-generation.md)** — 대표 썸네일 생성, 경로, 앞표지, 검증 규칙. 새 글 작성과 대표 이미지 추가 요청에 필수.
 
 ## The Approach
 
@@ -230,8 +231,9 @@ silent 새 파일 생성이 같은 주제 문서를 단편화시키는 것을 �
 7-B. **중복 판정** ([작성 직전 중복 판정](#작성-직전-중복-판정-4-decision)) — 7-A 매치 중 같은 주제 문서가 있으면 new / update-existing / skip / needs-confirmation으로 판정. 모호하면 needs-confirmation(사용자 확인).
 8. 마크다운 작성 — 자연스러운 문체, AI 티 제거, 1인칭 단수, **"내 기여, 협업 방식, 짧은 회고"** 섹션 포함
 9. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다. **정적 위반은 `scripts/blog_score.py <글>` 로 한 번에 측정한다** ([1계층 reward](#자가점검-자동화--blog_score-1계층-reward)).
-10. **HTML 미리보기 생성** — 블로그 렌더러가 있으면 실제 렌더러로 확인한다. 없으면 `scripts/render_preview.mjs <글.md> <preview.html>`로 blog.fosworld.co.kr 톤의 임시 HTML preview를 `/private/tmp/` 아래에 생성해 사용자에게 보여준다. Mermaid는 코드블록이 아니라 시각적 placeholder라도 흐름이 깨지지 않는지 확인한다.
-11. 파일 저장 (파일명도 L2 적용) 후 경로 알려주기
+10. **대표 썸네일 생성** — [thumbnail-generation](./references/thumbnail-generation.md)에 따라 제목과 핵심 메시지를 시각화하고 `thumbnail` 앞표지를 연결한다. 생성 실패는 글 저장을 막지 않으며 블로그의 카테고리별 대체 이미지를 사용한다.
+11. **HTML 미리보기 생성** — 블로그 렌더러가 있으면 실제 렌더러로 확인한다. 없으면 `scripts/render_preview.mjs <글.md> <preview.html>`로 blog.fosworld.co.kr 톤의 임시 HTML preview를 `/private/tmp/` 아래에 생성해 사용자에게 보여준다. Mermaid는 코드블록이 아니라 시각적 placeholder라도 흐름이 깨지지 않는지 확인한다. 썸네일이 있으면 미리보기 상단에서 함께 확인한다.
+12. 파일 저장 (파일명도 L2 적용) 후 경로 알려주기
 
 ---
 
@@ -248,8 +250,9 @@ silent 새 파일 생성이 같은 주제 문서를 단편화시키는 것을 �
 7. 마크다운 작성 — 검색 결과 번역 말고, 본인이 이해한 방식으로 재해석한다. **기술적으로 깊은 글은 [writing-style](./references/writing-style.md)의 "케이스 B 깊이 사다리"와 "기술 주장 검증"을 통과 조건으로 적용한다.**
 8. 글 하단에 **참고 링크 섹션** 포함 (URL 명시)
 9. **글 자가 점검** — 작성 직후 [markdown-pitfalls](./references/markdown-pitfalls.md) 의 "작성 직후 통합 자가점검 체크리스트"를 순서대로 전부 실행한다. 하나도 건너뛰지 않는다. **정적 위반은 `scripts/blog_score.py <글>` 로 한 번에 측정한다** ([1계층 reward](#자가점검-자동화--blog_score-1계층-reward)).
-10. **HTML 미리보기 생성** — 블로그 렌더러가 있으면 실제 렌더러로 확인한다. 없으면 `scripts/render_preview.mjs <글.md> <preview.html>`로 blog.fosworld.co.kr 톤의 임시 HTML preview를 `/private/tmp/` 아래에 생성해 사용자에게 보여준다. Mermaid는 코드블록이 아니라 시각적 placeholder라도 흐름이 깨지지 않는지 확인한다.
-11. 파일 저장 후 경로 알려주기
+10. **대표 썸네일 생성** — [thumbnail-generation](./references/thumbnail-generation.md)에 따라 제목과 핵심 메시지를 시각화하고 `thumbnail` 앞표지를 연결한다. 생성 실패는 글 저장을 막지 않으며 블로그의 카테고리별 대체 이미지를 사용한다.
+11. **HTML 미리보기 생성** — 블로그 렌더러가 있으면 실제 렌더러로 확인한다. 없으면 `scripts/render_preview.mjs <글.md> <preview.html>`로 blog.fosworld.co.kr 톤의 임시 HTML preview를 `/private/tmp/` 아래에 생성해 사용자에게 보여준다. Mermaid는 코드블록이 아니라 시각적 placeholder라도 흐름이 깨지지 않는지 확인한다. 썸네일이 있으면 미리보기 상단에서 함께 확인한다.
+12. 파일 저장 후 경로 알려주기
 
 ---
 

@@ -143,7 +143,9 @@ grep -n "methodName" /path/to/file.java
 ### 다이어그램 — mermaid 적극 활용
 
 구조·흐름·비교는 글로만 설명하지 말고 mermaid 다이어그램으로 그린다.
-fos-study 블로그는 mermaid 를 렌더한다(기존 글 다수가 이미 사용). 이미지 파일 첨부는 생성·저작권 문제로 지양하고 텍스트 기반 mermaid 를 쓴다.
+fos-study 블로그는 mermaid 를 렌더한다(기존 글 다수가 이미 사용).
+본문 설명용 이미지 파일은 생성·저작권 문제로 지양하고 텍스트 기반 mermaid 를 쓴다.
+글 카드용 대표 썸네일은 본문 다이어그램과 목적이 다르므로 [thumbnail-generation](./thumbnail-generation.md)의 생성·검증 규칙에 따라 예외로 허용한다.
 
 언제 그리나:
 - 아키텍처·컴포넌트 구조 → `flowchart TB` + subgraph 로 계층을 묶는다
