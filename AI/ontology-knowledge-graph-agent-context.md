@@ -1,6 +1,7 @@
 ---
 categories: [AI]
 tags: [심화]
+thumbnail: ./images/ontology-knowledge-graph-agent-context-thumbnail.jpg
 ---
 
 # 온톨로지에서 코딩 에이전트 컨텍스트까지 — 클래스·관계 설계와 그래프 평가

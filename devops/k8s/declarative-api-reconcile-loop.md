@@ -2,6 +2,7 @@
 tags: [입문]
 series: "백엔드 개발자를 위한 쿠버네티스 기본기"
 seriesOrder: 2
+thumbnail: ./images/declarative-api-reconcile-loop-thumbnail.jpg
 ---
 
 # 선언형 API 와 reconcile loop — 쿠버네티스를 관통하는 단 하나의 원리

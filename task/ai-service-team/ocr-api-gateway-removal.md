@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/ocr-api-gateway-removal-thumbnail.jpg
+---
+
 # API Gateway를 걷어내고 공인 LoadBalancer로 직접 노출하기
 
 **진행 기간**: 2026.06 ~ 2026.07

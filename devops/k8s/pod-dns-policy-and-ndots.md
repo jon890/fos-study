@@ -2,6 +2,7 @@
 tags: [심화]
 series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
 seriesOrder: 7
+thumbnail: ./images/pod-dns-policy-and-ndots-thumbnail.jpg
 ---
 
 # 파드가 서비스 이름을 못 푸는 이유 — dnsPolicy 4종과 ndots
