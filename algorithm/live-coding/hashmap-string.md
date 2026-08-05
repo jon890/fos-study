@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/hashmap-string-thumbnail.jpg
+---
+
 # [초안] Java 라이브 코딩: HashMap과 문자열 패턴 집중 훈련
 
 ## 왜 이 조합이 라이브 코딩의 핵심인가

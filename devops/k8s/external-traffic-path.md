@@ -1,6 +1,7 @@
 ---
 series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
 seriesOrder: 1
+thumbnail: ./images/external-traffic-path-thumbnail.jpg
 ---
 
 # 외부 트래픽은 어떻게 Pod까지 닿는가 — LoadBalancer, Ingress Controller, 내부와 외부 분리

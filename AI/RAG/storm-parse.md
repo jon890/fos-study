@@ -1,6 +1,7 @@
 ---
 series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
 seriesOrder: 9
+thumbnail: ./images/storm-parse-thumbnail.jpg
 ---
 
 # STORM Parse

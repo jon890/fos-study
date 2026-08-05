@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/claude-teams-thumbnail.jpg
+---
+
 # Claude Code 멀티 에이전트 — Teams
 
 Claude Code는 단일 에이전트로 동작하는 것 외에, 여러 전문화된 에이전트를 조율해서 복잡한 작업을 병렬로 처리하는 **팀 구조**를 지원한다.

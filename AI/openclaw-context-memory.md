@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/openclaw-context-memory-thumbnail.jpg
+---
+
 # OpenClaw는 context와 memory를 어떻게 관리하나 — 나만의 에이전트를 구성하는 법
 
 OpenClaw를 쓰면서 "이 에이전트가 어제 일을 어떻게 기억하지?", "긴 대화가 쌓이면 context는 어떻게 관리되지?" 가 궁금해졌다.

@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/multi-turn-memory-healthcare-agent-thumbnail.jpg
+---
+
 # [초안] 헬스케어 AI Agent의 멀티턴 메모리 설계 — 시니어 백엔드 관점
 
 ## 왜 이 주제가 중요한가

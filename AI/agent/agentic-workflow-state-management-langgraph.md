@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/agentic-workflow-state-management-langgraph-thumbnail.jpg
+---
+
 # [초안] Agentic Workflow 상태 관리 — LangGraph로 보는 State Graph, Checkpoint, Human-in-the-loop, Tool 권한 경계
 
 ## 왜 이 주제가 중요한가

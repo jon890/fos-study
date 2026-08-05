@@ -1,6 +1,7 @@
 ---
 categories: [database]
 tags: [심화]
+thumbnail: ./images/04-knowledge-graph-builder-thumbnail.jpg
 ---
 
 # 문서에서 근거를 보존한 지식 그래프 구축하기

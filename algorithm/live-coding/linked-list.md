@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/linked-list-thumbnail.jpg
+---
+
 # [초안] Java 라이브 코딩을 위한 Linked List 핵심 패턴 정리
 
 ## 왜 지금 Linked List인가

@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/claude-code-usage-reflection-thumbnail.jpg
+---
+
 # Claude Code를 11일 동안 쓴 결과 — 데이터로 본 나의 사용 패턴
 
 > 시리즈 1탄. 후속편: [Claude Code를 5주 더 쓴 결과 — 스킬·CLAUDE.md를 키워가는 방식](./claude-code-usage-reflection-2.md)

@@ -2,6 +2,7 @@
 tags: [입문]
 series: "백엔드 개발자를 위한 쿠버네티스 기본기"
 seriesOrder: 1
+thumbnail: ./images/why-kubernetes-thumbnail.jpg
 ---
 
 # 컨테이너와 쿠버네티스가 필요한 이유 — jar 를 서버에 올리던 사람의 관점에서

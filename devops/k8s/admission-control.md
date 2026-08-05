@@ -1,6 +1,7 @@
 ---
 series: "백엔드 개발자를 위한 쿠버네티스 기본기"
 seriesOrder: 5
+thumbnail: ./images/admission-control-thumbnail.jpg
 ---
 
 # 쿠버네티스 Admission 단계 — 리소스가 etcd에 저장되기 직전에 무슨 일이 일어나는가

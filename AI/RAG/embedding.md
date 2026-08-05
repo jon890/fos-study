@@ -1,5 +1,6 @@
 ---
 categories: [database]
+thumbnail: ./images/embedding-thumbnail.jpg
 ---
 
 # Embedding(임베딩)

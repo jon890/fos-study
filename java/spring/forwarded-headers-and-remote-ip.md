@@ -1,5 +1,6 @@
 ---
 tags: [심화]
+thumbnail: ./images/forwarded-headers-and-remote-ip-thumbnail.jpg
 ---
 
 # 쿠버네티스에 올렸더니 X-Forwarded-For 가 사라졌다 — forward-headers-strategy 와 RemoteIpValve

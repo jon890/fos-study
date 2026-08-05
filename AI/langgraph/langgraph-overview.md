@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/langgraph-overview-thumbnail.jpg
+---
+
 # LangGraph — 에이전트 워크플로를 그래프로 통제하기
 
 AI 에이전트를 만들다 보면 "LLM을 한 번 호출하고 끝"이 아니라, 조건에 따라 분기하고, 루프를 돌고, 중간에 사람이 개입하고, 실패하면 다시 시도하는 식의 복잡한 흐름이 필요한 순간이 온다. LangGraph는 그 흐름을 **그래프**로 표현하고 통제하는 프레임워크다.

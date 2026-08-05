@@ -1,6 +1,7 @@
 ---
 categories: [database]
 tags: [심화]
+thumbnail: ./images/07-evaluation-and-ablation-thumbnail.jpg
 ---
 
 # GraphRAG 평가와 벡터 RAG 제거 실험

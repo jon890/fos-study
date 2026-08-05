@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/claude-code-usage-reflection-2-thumbnail.jpg
+---
+
 # Claude Code를 5주 더 쓴 결과 — 스킬·CLAUDE.md를 키워가는 방식
 
 [1탄](./claude-code-usage-reflection.md)을 쓴 게 4월 1일이니 5주 정도 지났다. 그때 글의 마지막 인사이트가 "반복 작업은 스킬로 만들 것" 한 줄이었다. 그 한 줄이 이후 5주 동안 어떻게 굴러갔는지 정리해두려고 한다.

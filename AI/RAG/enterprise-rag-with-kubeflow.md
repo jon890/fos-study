@@ -1,3 +1,7 @@
+---
+thumbnail: ./images/enterprise-rag-with-kubeflow-thumbnail.jpg
+---
+
 # RAG 기반 '사내 지식 챗봇' 이렇게 구축했습니다
 
 - https://yozm.wishket.com/magazine/detail/3302/

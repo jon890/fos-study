@@ -1,6 +1,7 @@
 ---
 series: "백엔드 개발자를 위한 쿠버네티스 기본기"
 seriesOrder: 3
+thumbnail: ./images/k8s-core-objects-thumbnail.jpg
 ---
 
 # 쿠버네티스 핵심 객체 4종 — Pod, Service, Ingress, Namespace의 관계
