@@ -115,5 +115,5 @@ POS / 결제처럼 네트워크 지연이나 timeout 이 흔한 환경에서는 
 - [Async Iterator](./async-iterator.md) — async generator 와 백프레셔의 자연스러운 결합
 - [HTTP Client](./http-client.md) — fetch / undici / Ky / axios 비교
 - [Node.js 운영 주의 포인트](./nodejs.md) — V8, 이벤트 루프, 메모리, GC
-- [결제 도메인 멱등성과 트랜잭션 재시도 기본기](../architecture/payment-idempotency-transaction-basics.md) — 결제 도메인 관점의 멱등성
+- [커머스 주문 상태와 데이터 정합성](../architecture/commerce-order-state-consistency-fundamentals.md) — 결제 도메인 관점의 멱등성과 상태 전이
 - [Redis 분산 락](../database/redis/distributed-lock.md) — SET NX, Redisson, Redlock

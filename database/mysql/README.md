@@ -20,7 +20,6 @@ MySQL과 InnoDB 스토리지 엔진 학습 기록. 아키텍처, 인덱스, 트�
 - [복합 인덱스 완전 정복](./composite-index.md) — 좌측 접두사 규칙, 커버링 인덱스, 컬럼 순서 심화
 - [EXPLAIN / EXPLAIN ANALYZE](./explain-plan.md) — 실행 계획 읽기와 실제 진단
 - [쿼리 옵티마이저와 실행 계획 심화](./query-optimizer-execution-plan.md) — 옵티마이저 동작과 plan 선택
-- [인덱스 설계 회고](./review-index-design.md) — 실제 서비스 인덱스 설계 의사결정 회고
 
 ## 트랜잭션과 락
 
@@ -36,7 +35,3 @@ MySQL과 InnoDB 스토리지 엔진 학습 기록. 아키텍처, 인덱스, 트�
 - [복제와 페일오버 심화](./replication-and-failover-deepen.md) — detect/fence/promote/reroute, GTID errant tx, Aurora 클러스터 페일오버 타임 분해
 - [Aurora Serverless 커넥션 풀과 트랜잭션 예산](./aurora-serverless-connection-pool-transaction-budget.md) — 풀 사이즈, RDS Proxy, 재시도 정책의 결합
 - [PublicKeyRetrieval is not allowed](./publickey-retrieval-is-not-allowed.md) — MySQL 8 드라이버 연결 이슈
-
-## 면접 대비 — 커머스 응용 (초안)
-
-- [커머스 API를 위한 MySQL 인덱스와 EXPLAIN 실전 가이드](./mysql-index-explain-commerce-api.md)

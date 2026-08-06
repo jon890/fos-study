@@ -11,7 +11,6 @@
 
 ## 분산 시스템
 
-- [분산 아키텍처 스터디 팩](./distributed-architecture-study-pack.md) — 서비스 경계, 장애 전파, 일관성, 메시징, 멱등성
 - [분산 트랜잭션](./distributed-transaction.md) — 2PC와 대안
 - [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md) — 왜 2PC를 피하고 어떻게 대신할 것인가
 - [Outbox / Inbox 패턴](./outbox-inbox-pattern.md) — exactly-once 전송과 멱등 수신
@@ -20,7 +19,6 @@
 
 ## 대규모 트래픽
 
-- [시스템 설계 입문](./system-design-basics.md) — 시니어 백엔드를 위한 시스템 설계 스터디 팩
 - [대규모 커머스 트래픽 처리 패턴](./high-traffic-commerce-patterns.md) — 대규모 회원 / 메가 프로모션 대비 설계
 - [무중단 마이그레이션](./zero-downtime-migration.md) — Feature Flag + Shadow Mode 실전
 
@@ -44,17 +42,14 @@
 멀티브랜드 F&B 디지털 채널 백엔드 설계 묶음. 인프라 패턴을 커머스·F&B 설계 언어로 적용하는 학습 노트.
 
 - [F&B · e-Commerce 디지털 채널 도메인 한 장 정리](./fnb-ecommerce-domain-overview.md)
-- [e-Commerce 주문·결제 도메인 모델링](./ecommerce-order-payment-domain-modeling.md) — 상태머신, 멱등성, Outbox/Saga
 - [커머스 도메인 모델링 — 주문·재고·노출](./commerce-domain-modeling-order-inventory-display.md)
 - [커머스 주문 상태와 데이터 정합성 기본기](./commerce-order-state-consistency-fundamentals.md)
 - [F&B 주문/매장/픽업 상태머신 설계](./fnb-order-store-pickup-state-machine.md)
 - [F&B 쿠폰·프로모션·멤버십·포인트 설계](./fnb-coupon-promotion-membership-design.md)
 - [F&B 이커머스 결제·환불·정산 운영 가이드](./fnb-payment-refund-settlement-operations.md)
 - [쿠폰/프로모션 동시성과 정합성 기본기](./coupon-promotion-concurrency-basics.md)
-- [결제 도메인 멱등성과 트랜잭션 재시도 기본기](./payment-idempotency-transaction-basics.md)
 
 ## 아키텍처/운영 (초안)
 
 - [Hexagonal / Clean Architecture를 Spring 백엔드에 적용하기](./hexagonal-clean-architecture-spring.md)
-- [Clean Architecture 실전 — Spring 커머스 적용](./clean-architecture-pragmatic-spring-commerce.md)
 - [레거시 JSP/jQuery 화면과 신규 API가 공존하는 백엔드 운영 전략](./legacy-jsp-jquery-api-coexistence.md)

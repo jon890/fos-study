@@ -24,9 +24,6 @@
 
 ## 문서 목록
 
-### 회사 무관 재사용 자료
+### 공통 면접 자료
 
-- [시니어 Java 백엔드 면접 마스터 플레이북](./senior-backend-master-playbook.md) — 자기소개·강점·프로젝트·공통 질문 프레이밍
-- [NSC 슬롯팀 경험 기반 질문 은행](./slot-team-question-bank.md) — 도메인 모델링·동시성·성능·AI 협업
-- [AI 서비스팀 경험 기반 질문 뱅크](./ai-service-team-question-bank.md) — Spring Batch RAG·gRPC graceful shutdown·전략 패턴·12일 AI 웹툰 MVP
 - [Observability 면접 답변 프레임](./observability-interview-frame.md) — 장애 탐지·추적·deploy diff 4축 답변 구조

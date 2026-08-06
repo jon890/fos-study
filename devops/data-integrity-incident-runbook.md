@@ -9,7 +9,7 @@
 그래서 대응 도구도 거의 겹친다.
 
 이 문서는 개념 자체보다 "실제로 터졌을 때 무엇을 어떤 순서로 하는가"에 집중한다.
-멱등성·상태기계 개념은 [결제 도메인 멱등성과 트랜잭션 재시도 기본기](../architecture/payment-idempotency-transaction-basics.md), 정산·대사 운영은 [F&B 이커머스 결제·환불·정산 운영 가이드](../architecture/fnb-payment-refund-settlement-operations.md), 장애 대응 의사결정 언어는 [SLO와 Error Budget 기반 장애 대응](./slo-error-budget-incident-response.md)을 함께 본다.
+멱등성·상태기계 개념은 [커머스 주문 상태와 데이터 정합성](../architecture/commerce-order-state-consistency-fundamentals.md), 정산·대사 운영은 [F&B 이커머스 결제·환불·정산 운영 가이드](../architecture/fnb-payment-refund-settlement-operations.md), 장애 대응 의사결정 언어는 [SLO와 Error Budget 기반 장애 대응](./slo-error-budget-incident-response.md)을 함께 본다.
 
 ## 1. 두 장애의 공통 구조
 

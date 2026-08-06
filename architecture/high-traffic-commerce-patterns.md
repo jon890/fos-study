@@ -464,4 +464,3 @@ DB 조건부 UPDATE 방식, Redis DECR 방식, 큐잉 방식 세 가지를 동�
 - [Resilience 패턴](./resilience-patterns.md) — Circuit Breaker, Bulkhead로 외부 의존 격리
 - [MSA 서비스 간 통신](./msa-service-communication.md) — Cache-Aside × Kafka 이벤트 하이브리드
 - [Redis 고급 패턴](../database/redis/redis-advanced-patterns.md) — Stampede·Hot Key·분산 락의 실전 패턴
-- [커머스 Redis 캐시 무효화](../database/redis/redis-cache-invalidation-commerce.md) — Fanout invalidation과 운영 사례

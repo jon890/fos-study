@@ -27,10 +27,6 @@ Redis 자료구조·패턴·운영 학습 기록. 캐시, 분산 락, Pub/Sub, �
 - [실시간 랭킹 (Leaderboard)](./leaderboard.md) — Sorted Set 기반 랭킹
 - [세션 저장소](./session.md) — Spring Session, JWT vs 세션
 
-## 면접 대비 — 커머스 응용 (초안)
-
-- [Redis 캐시 무효화 — 커머스 메뉴/프로모션/회원 정합성 실전](./redis-cache-invalidation-commerce.md)
-
 ## 관련 문서
 
 - [캐시 설계 전략 총정리](../../architecture/cache-strategies.md)

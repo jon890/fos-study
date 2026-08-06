@@ -237,7 +237,7 @@ sequenceDiagram
 이 경우 조회나 대사로 복구한다.
 
 자세한 결제 상태 전이와 재시도 전략은
-[결제 멱등성과 트랜잭션 재시도](./payment-idempotency-transaction-basics.md)에서 다룬다.
+[커머스 주문 상태와 데이터 정합성](./commerce-order-state-consistency-fundamentals.md)에서 다룬다.
 
 ### Outbox가 보장하는 경계를 정확히 이해한다
 
@@ -782,10 +782,9 @@ paths:
 ### 저장소 심화 문서
 
 - [API 버저닝과 하위 호환성](./api-versioning-backward-compatibility.md)
-- [결제 멱등성과 트랜잭션 재시도](./payment-idempotency-transaction-basics.md)
+- [커머스 주문 상태와 데이터 정합성](./commerce-order-state-consistency-fundamentals.md)
 - [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md)
 - [Outbox와 Inbox 패턴](./outbox-inbox-pattern.md)
-- [주문·결제 도메인 모델링](./ecommerce-order-payment-domain-modeling.md)
 - [인증과 권한 부여](../security/security-auth.md)
 - [Spring Security OAuth 2.0과 JWT](../security/spring-security-oauth2-jwt.md)
 

@@ -12,7 +12,8 @@
 
 "주문 처리 어떻게 만들어요?"라는 물음에서 시니어와 주니어를 가르는 선은 결국 이 세 줄이다. 이 문서는 그 기본기를 한 번에 정리한다.
 
-본 문서는 **기본기 허브 역할**이다. 상태머신 운영 디테일은 [F&B 주문/매장/픽업 상태머신](./fnb-order-store-pickup-state-machine.md), 결제 멱등성은 [결제 도메인 멱등성과 트랜잭션 재시도](./payment-idempotency-transaction-basics.md), 도메인 분리·Outbox는 [e-Commerce 주문·결제 도메인 모델링](./ecommerce-order-payment-domain-modeling.md), 쿠폰/프로모션 동시성은 [쿠폰 프로모션 동시성 기본기](./coupon-promotion-concurrency-basics.md), Outbox 패턴 자체는 [Outbox Pattern 심화](./distributed-transaction-outbox-pattern.md)를 참고한다.
+본 문서는 **기본기 허브 역할**이다.
+상태머신 운영 디테일은 [F&B 주문/매장/픽업 상태머신](./fnb-order-store-pickup-state-machine.md), 쿠폰/프로모션 동시성은 [쿠폰 프로모션 동시성 기본기](./coupon-promotion-concurrency-basics.md), Outbox 패턴은 [Outbox Pattern 심화](./distributed-transaction-outbox-pattern.md)를 참고한다.
 
 ## 핵심 개념 1 — 주문 상태를 유한 상태 머신으로 본다
 
@@ -268,7 +269,7 @@ idempotency 테이블은 무한정 보관하면 인덱스 비대로 성능이 �
 
 각 키마다 유니크 제약을 둔다. "어디서 어떻게 막느냐"를 따질 때 위 5개 진입점을 한 번에 짚을 수 있어야 한다.
 
-결제 단계 멱등성(특히 PG 타임아웃 = "결과 미상" 처리)은 별 문서가 더 깊게 다룬다. [결제 도메인 멱등성과 트랜잭션 재시도 기본기](./payment-idempotency-transaction-basics.md) 참조.
+결제 단계 멱등성은 특히 PG 타임아웃을 실패가 아닌 "결과 미상"으로 다루고, 조회·웹훅·대사로 최종 상태를 확정하는 원칙을 따른다.
 
 ## 핵심 개념 4 — 동시성, 트랜잭션, 락
 
@@ -890,8 +891,6 @@ postmortem 문서에는 "재발 방지" 항목 옆에 **PR 번호 또는 알람 
 ## 관련
 
 - [F&B 주문/매장/픽업 상태머신 설계](./fnb-order-store-pickup-state-machine.md) — Store Pickup 시나리오 중심 상태머신 운영 디테일
-- [결제 도메인 멱등성과 트랜잭션 재시도 기본기](./payment-idempotency-transaction-basics.md) — 결제 멱등성, PG 타임아웃, reconciliation
-- [e-Commerce 주문·결제 도메인 모델링](./ecommerce-order-payment-domain-modeling.md) — Order / Payment / Coupon / Promotion 도메인 경계 분리
 - [쿠폰 프로모션 동시성 기본기](./coupon-promotion-concurrency-basics.md) — 쿠폰 중복 사용 / 선착순 / 분산락
 - [Outbox Pattern 심화](./distributed-transaction-outbox-pattern.md) — CDC, 발행 순서, Saga 결합
 - [Outbox/Inbox Pattern](./outbox-inbox-pattern.md) — 컨슈머 측 멱등성과 inbox 테이블

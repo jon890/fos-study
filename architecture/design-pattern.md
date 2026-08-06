@@ -8,8 +8,6 @@
 
 - [전략 패턴 상세 문서](./strategy-pattern.md)
   - 런타임에 알고리즘을 교체하는 구조, 분기문 제거, OCP/테스트 용이성 중심 정리
-- [분산 아키텍처 상세 문서](./distributed-architecture-study-pack.md)
-  - 서비스 경계, 장애 전파, 일관성, 메시징, 멱등성, 시니어 인터뷰 관점 정리
 
 ## 언제 어떤 문서를 보면 좋을까
 
@@ -17,8 +15,6 @@
   - 이 문서
 - 전략 패턴을 실무 예시와 인터뷰 관점까지 깊게 보고 싶다
   - [strategy-pattern.md](./strategy-pattern.md)
-- 시스템 규모 확장, 서비스 분리, 분산 트레이드오프까지 같이 보고 싶다
-  - [distributed-architecture-study-pack.md](./distributed-architecture-study-pack.md)
 
 ## 전략 패턴 (Strategy Pattern)
 
@@ -56,4 +52,3 @@
 ### 실제 사례
 
 - [Confluence 벡터 색인 배치](../task/ai-service-team/rag-vector-search-batch.md): 스페이스별 메타데이터 포맷 차이를 `ConfluenceDocumentMetadataProvider` 인터페이스로 추상화
-

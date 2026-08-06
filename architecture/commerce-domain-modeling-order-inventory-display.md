@@ -10,7 +10,7 @@
 - "어드민에서 메뉴를 내렸는데 일부 매장에서 5분간 더 보였다." → Display 캐시 정합성.
 - "재고는 0인데 상품이 검색에 떠 있다." → 재고와 노출의 데이터 출처 분리 실패.
 
-[커머스 주문 상태와 데이터 정합성 기본기](./commerce-order-state-consistency-fundamentals.md), [e-Commerce 주문·결제 도메인 모델링](./ecommerce-order-payment-domain-modeling.md), [F&B 주문/매장/픽업 상태머신 설계](./fnb-order-store-pickup-state-machine.md)이 주문·결제·상태머신을 다룬다면, 이 문서는 그 옆에 빠져 있던 **재고와 노출**을 채운다. 면접에서 "주문 시스템 어떻게 설계하시겠어요"에 결제·상태머신만 답하면 50점이고, 재고와 노출까지 자르면 70점, 셋 사이의 동기화·캐시 전략까지 말하면 90점이다.
+[커머스 주문 상태와 데이터 정합성 기본기](./commerce-order-state-consistency-fundamentals.md)와 [F&B 주문/매장/픽업 상태머신 설계](./fnb-order-store-pickup-state-machine.md)가 주문·결제·상태 전이를 다룬다면, 이 문서는 그 옆에 빠져 있던 **재고와 노출**을 채운다.
 
 ## 핵심 통찰: 같은 "상품"이 컨텍스트마다 다른 모델이다
 
@@ -444,7 +444,6 @@ CREATE TABLE order_reservation (
 ## 관련 문서
 
 - [커머스 주문 상태와 데이터 정합성 기본기](./commerce-order-state-consistency-fundamentals.md) — 주문 상태머신과 정합성 기본기 허브
-- [e-Commerce 주문·결제 도메인 모델링](./ecommerce-order-payment-domain-modeling.md) — Order/Payment/Coupon/Promotion 도메인 경계
 - [F&B 주문/매장/픽업 상태머신 설계](./fnb-order-store-pickup-state-machine.md) — F&B 픽업·배달 상태머신 운영
 - [쿠폰/프로모션 동시성과 정합성 기본기](./coupon-promotion-concurrency-basics.md) — 쿠폰/프로모션 동시성
 - [DDD와 도메인 모델링](./ddd-domain-modeling.md) — Bounded Context와 Aggregate 일반 원칙
