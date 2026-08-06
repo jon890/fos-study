@@ -66,7 +66,7 @@ Hermes의 자기개선은 **실시간 강화학습이 아니다.** 두 축으로
 
 정리하면 Hermes의 "self-improving"은 절차 메모리(스킬)를 스스로 쌓고 다듬는 능력이지, 모델 가중치가 실시간으로 학습되는 게 아니다.
 OpenClaw와 갈리는 지점은 여기다 — OpenClaw에서 스킬은 기본적으로 사람이 쓰고 고치는 반면, Hermes는 에이전트가 자기 경험에서 스킬을 만들어 낸다.
-스킬을 학습 가능한 산출물로 보는 관점은 [SkillOpt 분석](./skillopt-skill-as-trainable-artifact.md)과 같은 결이다.
+스킬을 학습 가능한 산출물로 보는 관점은 [Claude Code의 Skill 시스템](./claude-code-skill-system.md)과 비교해 볼 수 있다.
 
 안전장치도 있다 — `skills.write_approval: true`로 두면 모든 스킬 쓰기가 `~/.hermes/pending/`에 staging되고, `/skills diff`·`/skills approve`로 검토한 뒤에야 반영된다.
 

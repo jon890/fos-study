@@ -430,7 +430,6 @@ VectorDB와 임베딩이 좋다는 말을 **무엇이 얼마나 좋아졌을 때
 - [벡터 DB 어떻게 고를까](../../database/vectordb-comparison.md)
 - [벡터 DB 5종을 실제로 벤치마크했다](../../database/vectordb-benchmark.md)
 - [OpenSearch로 RAG 검색 품질 높이기](../../database/opensearch/rag-search-quality.md)
-- [RAG 환각 제어](./hallucination-control.md)
 - [LLM 평가 프레임워크](../llm-evaluation-framework.md)
 
 ### 외부 자료

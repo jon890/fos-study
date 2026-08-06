@@ -231,7 +231,7 @@ OpenClaw의 memory·context 설계는 벡터 DB 같은 무거운 인프라 없�
 memory와 context를 갈라 둔 덕에 "기억은 하지만 지금은 모르는" 상황이 설명되고, progressive disclosure로 스킬·메모리를 평소엔 가볍게 두며, compaction 직전 memory flush로 압축 시점의 맥락 손실을 막는다.
 
 나만의 에이전트를 만든다는 건 결국 이 네 가지를 직접 정하는 일이다 — 무엇을 기억할지(MEMORY.md), 어떤 목소리로 말할지(SOUL.md), 무슨 능력을 가질지(skills), 언제 스스로 움직일지(HEARTBEAT.md).
-같은 발상을 학습 가능한 산출물로 끌고 가는 흐름은 [SkillOpt 분석](./skillopt-skill-as-trainable-artifact.md)에서 이어진다.
+같은 발상은 [Claude Code의 Skill 시스템](./claude-code-skill-system.md)과 비교해 보면 더 선명해진다.
 
 다른 선택지인 Hermes Agent와의 비교는 [OpenClaw vs Hermes Agent](./openclaw-vs-hermes-agent.md)에서 다룬다.
 
