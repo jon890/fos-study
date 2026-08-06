@@ -32,6 +32,7 @@
 - [API 설계 실전 스터디 팩](./api-design.md) — REST, 멱등성, 페이지네이션, 버전 전략
 - [API 버저닝과 하위 호환성](./api-versioning-backward-compatibility.md) — 모바일 호환성, 폐기 수명주기, 계약 검증과 롤백
 - [DDD와 도메인 모델링](./ddd-domain-modeling.md) — 전술/전략 패턴 실전 가이드
+- [Event Sourcing과 CQRS](./event-sourcing-cqrs.md) — 상태 변화 이력과 읽기·쓰기 모델 분리
 
 ## 캐시
 
@@ -49,7 +50,13 @@
 - [F&B 이커머스 결제·환불·정산 운영 가이드](./fnb-payment-refund-settlement-operations.md)
 - [쿠폰/프로모션 동시성과 정합성 기본기](./coupon-promotion-concurrency-basics.md)
 
-## 아키텍처/운영 (초안)
+## 금융 거래 설계 (학습중)
+
+- [금융 거래 상태와 원장 설계](./financial-transaction-state-and-ledger.md) — 거래 상태, 복식 원장, 잔액, 멱등성
+- [금융 거래 취소·정정·대사·일마감 운영](./financial-reversal-correction-reconciliation-close.md) — 확정 거래 복구와 장부 불일치 해소
+
+## 아키텍처 전환과 현대화
 
 - [Hexagonal / Clean Architecture를 Spring 백엔드에 적용하기](./hexagonal-clean-architecture-spring.md)
 - [레거시 JSP/jQuery 화면과 신규 API가 공존하는 백엔드 운영 전략](./legacy-jsp-jquery-api-coexistence.md)
+- [모듈러 모놀리스에서 MSA로 점진 전환](./modular-monolith-to-msa-migration-lab.md) — 경계 검증, Strangler Fig, 데이터 소유권, 롤백 실습

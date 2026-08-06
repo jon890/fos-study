@@ -43,6 +43,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 
 ## 방법론
 
+- [사람용 CLI와 AI 에이전트용 CLI 설계](./agent-friendly-cli-design.md) — 구조화 출력, 미리보기, 비대화형 모드, 안전한 기본값
 - [AI 에이전트와 함께 MVP 만들기 (dooray-cli 사례)](./mvp-with-ai-agent.md)
 
 ## 멀티모달
@@ -52,4 +53,3 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 ## 문서 도구
 
 - [Docling](./docling.md) — IBM Research 문서 변환 툴킷
-

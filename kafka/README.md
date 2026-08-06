@@ -4,6 +4,7 @@ Apache Kafka 기본부터 실전 설계까지 학습 기록.
 
 - [Kafka 기본 개념](./basic.md) — 토픽, 파티션, 오프셋, 복제(Leader/Follower/ISR) 입문
 - [Kafka 실전 설계](./kafka-design.md) — 분산 커밋 로그 기본부터 파티션 전략, 컨슈머 그룹, 재시도, 순서 보장 트레이드오프까지
+- [Kafka 파티션·리밸런스·컨슈머 지연 운영](./kafka-operations-deepen.md) — 파티션 쏠림, lag, 리밸런스 장애 진단
 - [메시지 전달 신뢰성](./message-delivery-semantics.md) — At-most-once / At-least-once / Exactly-once
 - [Kafka 데이터 정합성 설계](./data-consistency.md) — Outbox 패턴 연동
 - [Spring Kafka 컨슈머 오프셋 커밋과 트랜잭션 정렬](./spring-kafka-listener-offset-commit-transaction.md) — AckMode, DB 트랜잭션, manual ack, 멱등 컨슈머 패턴

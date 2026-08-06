@@ -20,6 +20,7 @@ Redis 자료구조·패턴·운영 학습 기록. 캐시, 분산 락, Pub/Sub, �
 - [Rate Limiting](./rate-limiting.md) — 고정/슬라이딩 윈도우, 토큰 버킷
 - [Pub/Sub & Stream](./pub-sub.md) — 브로드캐스트 vs 신뢰성 이벤트 큐
 - [Redis Pub/Sub 패턴 심화](./pub-sub-patterns.md) — 실전 활용과 메시지 큐와의 경계
+- [Redis Streams 소비자 그룹 신뢰성](./redis-streams-consumer-group-reliability.md) — PEL, 재할당, 멱등 소비, 독약 메시지 처리
 - [Redis Cluster 운영](./redis-cluster-operations.md) — 16384 슬롯, MOVED/ASK, 노드 추가, split-brain 대응
 
 ## 응용

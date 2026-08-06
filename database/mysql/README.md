@@ -20,6 +20,7 @@ MySQL과 InnoDB 스토리지 엔진 학습 기록. 아키텍처, 인덱스, 트�
 - [복합 인덱스 완전 정복](./composite-index.md) — 좌측 접두사 규칙, 커버링 인덱스, 컬럼 순서 심화
 - [EXPLAIN / EXPLAIN ANALYZE](./explain-plan.md) — 실행 계획 읽기와 실제 진단
 - [쿼리 옵티마이저와 실행 계획 심화](./query-optimizer-execution-plan.md) — 옵티마이저 동작과 plan 선택
+- [MySQL 옵티마이저 힌트](./optimizer-hints.md) — 인덱스 힌트, optimizer hint, 충돌 규칙과 운영 기준
 
 ## 트랜잭션과 락
 
