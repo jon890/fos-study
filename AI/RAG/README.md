@@ -19,12 +19,9 @@ RAG 파이프라인 구성 요소 학습 기록. 임베딩·벡터 검색·알�
 - [STORM Parse](./storm-parse.md) — 구조화 추출/파싱 방법
 - [토스: 100번 실패하고 살려낸 문서 시스템](./toss-parkssi.md) — 외부 사례 정리
 
-## 신뢰·운영
-
-- [RAG 환각 제어](./hallucination-control.md) — grounding 재주입, sourceQuote 검증, 배치 정합성, bulk 색인
-
 ## 관련
 
 - [OpenSearch RAG 검색 품질 높이기](../../database/opensearch/rag-search-quality.md) — Hybrid Search, Reranking, Sentence Window
 - [OpenSearch를 벡터 DB로 굴리며 알게 된 것](../../database/opensearch/running-opensearch-as-vector-db.md) — native 메모리, circuit breaker, 샤드 운영
 - [Confluence 벡터 색인 배치](../../task/ai-service-team/rag-vector-search-batch.md) — RAG 파이프라인 실제 구현
+
