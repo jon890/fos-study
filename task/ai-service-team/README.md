@@ -2,7 +2,7 @@
 
 **회사**: NHN | **팀**: AI 서비스 개발팀
 
-AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음. (2025.12 ~)
+AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음. (2025.12–현재)
 
 ---
 
@@ -12,17 +12,17 @@ AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
 
 | 기간              | 업무                                                                 | 문서                                                     |
 | ----------------- | -------------------------------------------------------------------- | -------------------------------------------------------- |
-| 2026.01 ~ 2026.03 | Confluence 벡터 색인 배치 — RAG 파이프라인, Spring Batch, OpenSearch | [rag-vector-search-batch.md](rag-vector-search-batch.md) |
+| 2026.01–2026.03 | Confluence 벡터 색인 배치 — RAG 파이프라인, Spring Batch, OpenSearch | [rag-vector-search-batch.md](rag-vector-search-batch.md) |
 | 2026.04           | AI 웹툰 제작 도구 MVP — Next.js + Gemini + 하네스 기반 12일 풀스택    | [webtoon-maker-ai-pipeline.md](webtoon-maker-ai-pipeline.md) |
-| 2026.05 ~ 2026.07 | Document Parser 기여 개요 — 문서→markdown 파싱 서비스(docling + OCR) 운영·개선 총괄 | [playground-document-parser.md](playground-document-parser.md) |
-| 2026.05 ~ 2026.07 | Document Parser 관측성 체계 — Prometheus·Grafana, 초기화 순서 함정, 지표 단일화 | [docparser-observability.md](docparser-observability.md) |
-| 2026.06 ~ 2026.07 | OCR 공인 진입점 전환 — API Gateway 제거, 공인 LB·Ingress 직접 노출, 경로 변환·HTTPS·IP 접근 제어 | [ocr-api-gateway-removal.md](ocr-api-gateway-removal.md) |
+| 2026.05–2026.07 | Document Parser 기여 개요 — 문서→markdown 파싱 서비스(docling + OCR) 운영·개선 총괄 | [playground-document-parser.md](playground-document-parser.md) |
+| 2026.05–2026.07 | Document Parser 관측성 체계 — Prometheus·Grafana, 초기화 순서 함정, 지표 단일화 | [docparser-observability.md](docparser-observability.md) |
+| 2026.06–2026.07 | OCR 공인 진입점 전환 — API Gateway 제거, 공인 LB·Ingress 직접 노출, 경로 변환·HTTPS·IP 접근 제어 | [ocr-api-gateway-removal.md](ocr-api-gateway-removal.md) |
 
 ### 성능 개선
 
 | 기간              | 업무                                                                 | 문서                                                     |
 | ----------------- | -------------------------------------------------------------------- | -------------------------------------------------------- |
-| 2026.05 ~ 2026.07 | Document Parser 처리 성능 최적화 — OCR 병렬화, PPTX 구조 개선, GPU 직렬 추론 실측 | [docparser-performance.md](docparser-performance.md) |
+| 2026.05–2026.07 | Document Parser 처리 성능 최적화 — OCR 병렬화, PPTX 구조 개선, GPU 직렬 추론 실측 | [docparser-performance.md](docparser-performance.md) |
 
 ### 트러블슈팅
 
@@ -30,24 +30,24 @@ AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
 | ------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | 2026.04 | OCR 서버 배포·스케일인 시 503 에러 수정 — [Graceful Shutdown](../../devops/graceful-shutdown.md) 미적용 | [graceful-shutdown-503-fix.md](graceful-shutdown-503-fix.md) |
 | 2026.05 | Python 서버 RSS 누수 — gc.collect 한계, malloc_trim 적용 | [glibc-malloc-trim-python-leak.md](glibc-malloc-trim-python-leak.md) |
-| 2026.05 ~ 2026.07 | Document Parser 메모리·리소스 안정화 — 워커 강제 종료·좀비 프로세스·CUDA 중복 누수 방어 | [docparser-memory-stability.md](docparser-memory-stability.md) |
+| 2026.05–2026.07 | Document Parser 메모리·리소스 안정화 — 워커 강제 종료·좀비 프로세스·CUDA 중복 누수 방어 | [docparser-memory-stability.md](docparser-memory-stability.md) |
 
 ### 리팩터링
 
 | 기간    | 업무                                                                          | 문서                                                                   |
 | ------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 2026.05 ~ 2026.07 | Document Parser 코드 구조 분해 + 파싱 품질 회귀 검증 — 회귀 vs 품질 축 분리 | [docparser-quality-regression.md](docparser-quality-regression.md) |
+| 2026.05–2026.07 | Document Parser 코드 구조 분해 + 파싱 품질 회귀 검증 — 회귀 vs 품질 축 분리 | [docparser-quality-regression.md](docparser-quality-regression.md) |
 
 ---
 
 ## 기간별 주요 업무
 
-### 2025 하반기 \~ 2026 상반기 (2025.12 \~)
+### 2025 하반기–2026 상반기 (2025.12–현재)
 
 - **Confluence 벡터 색인 배치**: Confluence 문서를 OpenSearch에 벡터 색인하는 Spring Batch 파이프라인 설계 및 구현
   - ADF → Markdown 변환, 임베딩 비동기 처리(`AsyncItemProcessor`), 삭제 동기화, 다중 스페이스 지원
   - 변경 감지(version 비교), 데이터 보강(첨부파일·작성자·멘션), 전략 패턴 기반 메타데이터 확장
-- **OCR 서버 배포·스케일인 503 에러 수정**: Envoy `drain_listeners` 후 SIGTERM 즉시 종료로 발생한 30~60초 503 묶음 — gRPC 서버에 graceful shutdown 적용해 preStop sleep 동안 in-flight 요청을 마저 처리하도록 종료 시퀀스 재정렬
+- **OCR 서버 배포·스케일인 503 에러 수정**: Envoy `drain_listeners` 후 SIGTERM 즉시 종료로 발생한 30–60초 503 묶음 — gRPC 서버에 graceful shutdown 적용해 preStop sleep 동안 in-flight 요청을 마저 처리하도록 종료 시퀀스 재정렬
 - **AI 웹툰 제작 도구 MVP**: 12일 단독 풀스택 — 웹소설 → 세계관/캐릭터/각색/글콘티 → 60컷 이미지 6단계 파이프라인
   - Claude Code 하네스 기반 4인 에이전트 팀(planner/critic/executor/docs-verifier)으로 12일/199 plan/760 커밋
   - vibe 코딩 → spec 기반 코딩 진화: `/planning` → `/plan-and-build` → `/build-with-teams`, 디자이너 통합용 `/integrate-ux` 스킬화
