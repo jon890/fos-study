@@ -1,4 +1,5 @@
 ---
+thumbnail: ./images/langgraph-checkpoint-durable-execution-thumbnail.jpg
 series: "LangGraph로 에이전트 워크플로 만들기"
 seriesOrder: 3
 tags: [심화]

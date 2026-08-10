@@ -1,4 +1,5 @@
 ---
+thumbnail: ./images/langgraph-human-in-the-loop-thumbnail.jpg
 series: "LangGraph로 에이전트 워크플로 만들기"
 seriesOrder: 4
 tags: [심화]

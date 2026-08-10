@@ -1,4 +1,5 @@
 ---
+thumbnail: ./images/langchain-vs-langgraph-boundary-thumbnail.jpg
 series: "LangGraph로 에이전트 워크플로 만들기"
 seriesOrder: 1
 tags: [입문]

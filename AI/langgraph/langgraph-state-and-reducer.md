@@ -1,4 +1,5 @@
 ---
+thumbnail: ./images/langgraph-state-and-reducer-thumbnail.jpg
 series: "LangGraph로 에이전트 워크플로 만들기"
 seriesOrder: 2
 tags: [입문]
