@@ -243,7 +243,7 @@ Python과의 주요 차이점:
 
 | 항목 | Python | LangGraph.js |
 |---|---|---|
-| State 정의 | `TypedDict` + `Annotated` | `Annotation.Root` |
+| State 정의 | `TypedDict`와 `Annotated` | `Annotation.Root` |
 | 시작/종료 노드 | `set_entry_point()` / `END` | `START` / `END` 상수 |
 | 노드 추가 | `builder.add_node()` | `.addNode()` 메서드 체이닝 |
 | 조건부 엣지 | `add_conditional_edges()` | `.addConditionalEdges()` |
@@ -262,82 +262,29 @@ for await (const chunk of stream) {
 
 ## LangGraph4j — Java 버전
 
-Python LangGraph에서 영감을 받은 Java 구현체다. Langchain4j, Spring AI 양쪽과 모두 연동된다. Java 17 이상 필요(JDK 8 호환 버전도 별도 제공).
+Python LangGraph에서 영감을 받은 Java 구현체다. Langchain4j, Spring AI 양쪽과 모두 연동되고 컴파일 타깃은 Java 17이다.
 
-```xml
-<!-- Maven -->
-<dependency>
-    <groupId>org.bsc.langgraph4j</groupId>
-    <artifactId>langgraph4j-core</artifactId>
-    <version>1.5.12</version>
-</dependency>
-
-<!-- Spring AI 연동 시 추가 -->
-<dependency>
-    <groupId>org.bsc.langgraph4j</groupId>
-    <artifactId>langgraph4j-spring-ai-agent</artifactId>
-    <version>1.5.12</version>
-</dependency>
-```
-
-Java에서는 State를 `AgentState`를 상속해서 정의한다. 노드는 `AsyncNodeAction` 함수형 인터페이스로 구현한다.
-
-```java
-import org.bsc.langgraph4j.StateGraph;
-import org.bsc.langgraph4j.state.AgentState;
-
-// State 정의
-public class MyState extends AgentState {
-    public MyState(Map<String, Object> initData) {
-        super(initData);
-    }
-
-    public Optional<String> result() {
-        return value("result");
-    }
-}
-
-// 그래프 조립
-var graph = new StateGraph<>(MyState::new)
-    .addNode("llm", state -> {
-        // LLM 호출 로직
-        return Map.of("result", response);
-    })
-    .addNode("tools", state -> {
-        // 툴 실행 로직
-        return Map.of("toolResult", result);
-    })
-    .addEdge(START, "llm")
-    .addConditionalEdges("llm", state -> {
-        // 조건 판단
-        return state.result().isPresent() ? END : "tools";
-    })
-    .addEdge("tools", "llm")
-    .compile();
-
-// 실행
-var result = graph.invoke(Map.of("input", "질문"));
-```
-
-Python/JS와 구조는 동일하지만 Java 특유의 차이가 있다.
+핵심 개념은 그대로 옮겨온다. 상태 스키마를 선언하고, 노드가 부분 업데이트를 반환하고, 엣지가 흐름을 정한다. 이름만 Java 쪽 관용에 맞게 바뀐다.
 
 | 항목 | Python/JS | LangGraph4j |
 |---|---|---|
 | State | `TypedDict` / `Annotation` | `AgentState` 상속 |
-| 노드 함수 | 일반 함수 | `AsyncNodeAction` (람다 가능) |
+| 리듀서 | `Annotated[list, add]` | `Channels.appender(...)` |
+| 노드 함수 | 일반 함수 | `NodeAction` · `AsyncNodeAction` |
 | 비동기 처리 | async/await | `CompletableFuture` |
-| 병렬 실행 | 자동 | Fork-Join 모델 |
-| 시각화 | LangSmith | 내장 Studio UI (PlantUML/Mermaid) |
+| 시각화 | LangSmith | 내장 Studio (PlantUML · Mermaid 출력) |
 
-특히 내장 Studio UI가 유용하다. 그래프 구조를 PlantUML이나 Mermaid 다이어그램으로 바로 시각화할 수 있어서, 복잡한 워크플로를 디버깅할 때 Python 버전보다 편한 면이 있다.
+Spring Boot 애플리케이션이라면 노드를 `@Component`로 두고 기존 DI·트랜잭션·모니터링을 그대로 쓸 수 있다. Python으로 별도 서비스를 세울 때 다시 만들어야 하는 것들이다.
 
-Spring AI와 조합하면 Spring Boot 애플리케이션에 에이전트를 자연스럽게 통합할 수 있다. 기존 Spring 생태계(DI, 트랜잭션, 모니터링)를 그대로 활용하면서 에이전트 워크플로를 얹는 방식이다.
+> 버전, 의존성 해석, Spring Boot 통합, Spring AI와의 역할 분담은
+> [langgraph4j 실전 — Java에서 LangGraph 돌려보기](./langgraph4j-in-spring-boot.md)에서 실측 결과로 다룬다.
+> 이 절은 개념 대응만 짚는다.
 
 ---
 
 ## 정리
 
-LangGraph의 핵심 아이디어는 단순하다. 에이전트 워크플로를 "함수(노드) + 흐름(엣지) + 공유 상태(State)"로 분리해서 표현하는 것. 이렇게 하면 복잡한 분기, 루프, 병렬 실행, 재시작을 명시적으로 제어할 수 있다.
+LangGraph의 핵심 아이디어는 단순하다. 에이전트 워크플로를 함수(노드), 흐름(엣지), 공유 상태(State) 셋으로 분리해서 표현하는 것. 이렇게 하면 복잡한 분기, 루프, 병렬 실행, 재시작을 명시적으로 제어할 수 있다.
 
 LLM 호출 한 번으로 끝나는 단순한 작업이라면 LangGraph가 오버엔지니어링이다. 하지만 여러 단계를 거치고, 실패를 처리하고, 상태를 유지해야 하는 에이전트라면 LangGraph가 그 복잡성을 관리할 명확한 구조를 준다.
 
