@@ -7,8 +7,21 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 - [RAG (Retrieval-Augmented Generation)](./RAG/README.md) — 임베딩, 벡터 검색, 실무 사례
 - [Neo4j GraphRAG 학습 시리즈](./RAG/neo4j-graphrag/README.md) — 관계 탐색과 원문 근거를 제공하는 에이전트 검색 도구 구축
 - [LangGraph](./langgraph/langgraph-overview.md) — 에이전트 워크플로를 그래프로 통제하기
+- [LangGraph로 에이전트 워크플로 만들기 (시리즈)](./langgraph/langchain-vs-langgraph-boundary.md) — Java 백엔드 관점의 7편 (아래 목록 참고)
 - [AGENTS.md 포맷](./agents-md-format.md) — AI coding agent 동작 지침서
 - [DESIGN.md, Google Stitch, Claude Design](./design-md-and-ai-design-tools.md) — AI 에이전트와 디자인의 새 컨벤션 + fos-blog 6주 도입 회고
+
+## LangGraph 시리즈 (langgraph/)
+
+Java 백엔드 관점에서 LangGraph를 처음부터 익히고 langgraph4j로 옮기기까지 7편으로 정리했다.
+
+1. [LangChain과 LangGraph는 왜 나뉘어 있나](./langgraph/langchain-vs-langgraph-boundary.md) — 체인과 런타임의 경계, Java 진영 3자 비교
+2. [State와 Reducer](./langgraph/langgraph-state-and-reducer.md) — 그래프를 흐르는 상태 설계, 병렬에서 예외가 나는 이유
+3. [Checkpoint](./langgraph/langgraph-checkpoint-durable-execution.md) — 장애와 중단에서 살아남는 실행, Spring Batch 대응 구조
+4. [Human-in-the-Loop](./langgraph/langgraph-human-in-the-loop.md) — 사람 승인을 그래프에 새기기, 함정 다섯 가지
+5. [Agentic GraphRAG](./langgraph/langgraph-agentic-graphrag.md) — 지식그래프 검색 통제, Corrective RAG와 Self-RAG와 Adaptive RAG
+6. [langgraph4j 실전](./langgraph/langgraph4j-in-spring-boot.md) — Spring Boot에 얹기, 버전과 의존성 실측
+7. [학습 로드맵](./langgraph/langgraph-learning-roadmap.md) — 읽는 순서와 단계별 실습 과제
 
 ## Agent 설계 (agent/)
 
