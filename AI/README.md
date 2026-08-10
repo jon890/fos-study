@@ -9,7 +9,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 - [LangGraph](./langgraph/langgraph-overview.md) — 에이전트 워크플로를 그래프로 통제하기
 - [LangGraph로 에이전트 워크플로 만들기 (시리즈)](./langgraph/langchain-vs-langgraph-boundary.md) — Java 백엔드 관점의 7편 (아래 목록 참고)
 - [AGENTS.md 포맷](./agents-md-format.md) — AI coding agent 동작 지침서
-- [DESIGN.md, Google Stitch, Claude Design](./design-md-and-ai-design-tools.md) — AI 에이전트와 디자인의 새 컨벤션 + fos-blog 6주 도입 회고
+- [DESIGN.md, Google Stitch, Claude Design](./design-md-and-ai-design-tools.md) — AI 에이전트와 디자인의 새 컨벤션, fos-blog 6주 도입 회고
 
 ## LangGraph 시리즈 (langgraph/)
 
@@ -29,7 +29,7 @@ Java 백엔드 관점에서 LangGraph를 처음부터 익히고 langgraph4j로 �
 - [온톨로지에서 코딩 에이전트 컨텍스트까지](./ontology-knowledge-graph-agent-context.md) — 클래스·별칭·관계 설계와 벡터 RAG 비교 평가
 - [LLM Tool Calling 에이전트 워크플로](./agent/llm-tool-calling-agent-workflow.md) — Tool Use 루프, 결정성/관측성 설계
 - [Agentic Workflow 상태 관리](./agent/agentic-workflow-state-management-langgraph.md) — LangGraph State Graph, Checkpoint, HITL, Tool 권한 경계
-- [Agentic Workflow 평가와 Risk Gate](./agent/agentic-workflow-evaluation-risk-gate.md) — 궤적 평가, LLM-as-a-judge, HITL, 안전 게이트
+- [Agentic Workflow 평가와 Risk Gate](./agent/agentic-workflow-evaluation-risk-gate.md) — 궤적 평가, LLM-as-a-judge, HITL, 안전 점검 단계
 
 ## 평가와 운영 (Applied AI)
 
