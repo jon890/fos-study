@@ -271,6 +271,25 @@ for await (const snap of graph.getStateHistory(config)) {
 
 ---
 
+## 읽고 바로 따라 해보기
+
+checkpoint는 저장 코드를 보기 전에 식별자와 재실행 의미를 설계해야 한다.
+
+1. 한 사용자가 동시에 두 계획을 검토하는 상황을 만든다.
+2. 사용자 ID와 각 작업의 thread ID를 따로 적는다.
+3. 입력, 정규화, 검토, 계획 작성 뒤에 어떤 상태가 저장될지 그린다.
+4. 검토가 끝난 과거 checkpoint에서 계획 작성만 다시 실행하는 상황을 만든다.
+5. 이미 외부에 저장한 결과가 있다면 재실행 때 무엇이 중복되는지 표시한다.
+
+[Checkpoint와 thread](https://jon890.github.io/langgraph4j-in-action/13-checkpoint-thread-history.html)에서 State, Checkpoint, Thread를 먼저 구분한다.
+그다음 [재개와 상태 수정](https://jon890.github.io/langgraph4j-in-action/14-resume-time-travel.html)에서 재개, 재생, 분기를 비교한다.
+운영 저장소를 붙이기 전에는 [영속 Checkpoint](https://jon890.github.io/langgraph4j-in-action/16-persistent-checkpoint.html)의 보존·동시성 질문에 답해본다.
+
+코드 실습에서는 메모리 저장소로 실행 의미부터 확인하고, 데이터베이스 연결은 마지막에 한다.
+저장소와 재개 동작을 동시에 디버깅하지 않기 위해서다.
+
+---
+
 ## 다음 편
 
 checkpoint가 있으면 실행을 **멈췄다가 이어갈 수** 있다.

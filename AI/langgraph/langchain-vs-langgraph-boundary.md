@@ -366,6 +366,26 @@ const result = await graph.invoke({ messages: ["시작"] });
 
 ---
 
+## 읽고 바로 따라 해보기
+
+설명을 읽고 끝내지 않으려면 먼저 그래프가 필요한 문제인지 직접 판별해보는 편이 좋다.
+
+1. 최근 만든 기능 하나를 고른다.
+2. 처리 경로가 앞으로만 흐르는지, 이전 단계로 돌아가는지 그린다.
+3. 요청이 끝난 뒤에도 상태를 보존해야 하는지 적는다.
+4. 사람 승인, 재시도, 장기 실행 중 하나라도 필요한지 확인한다.
+5. 그래프가 필요하다면 상태, 작업, 이동 규칙을 한 줄씩 정의한다.
+
+여기서는 아직 Java 코드를 쓰지 않는다.
+먼저 [LangGraph4j 개념 지도](https://jon890.github.io/langgraph4j-in-action/00-langgraph4j-concepts.html)를 보고,
+[START와 END](https://jon890.github.io/langgraph4j-in-action/03-basic-edges.html)와
+[조건부 Edge](https://jon890.github.io/langgraph4j-in-action/05-conditional-edge.html)에서 방금 그린 흐름을 그래프 용어로 바꿔본다.
+
+일반 메서드 호출만으로 충분하다고 결론 내렸다면 그것도 정답이다.
+이 실습의 목표는 그래프를 쓰는 것이 아니라 쓸 이유를 설명하는 것이다.
+
+---
+
 ## 다음 편
 
 이 글에서는 경계만 그었다.
