@@ -242,6 +242,7 @@ Spring AI 2.0은 2026년 6월 12일 정식 출시됐다.
 
 Spring AI 2.0의 실제 초점은 다른 데 있다 — 통합 tool calling, MCP 애노테이션 API, 자가 교정 structured output, JSpecify 기반 null 안전성.
 좋은 릴리스지만 상태 그래프 런타임은 아니다.
+[LangGraph4j와 Spring AI의 실제 코드 경계](./langgraph4j-spring-ai-llm-tools.md)는 별도 글에서 직접 따라간다.
 
 **여기서 헷갈리기 쉬운 구분이 하나 있다.**
 Spring AI의 `ChatMemory`는 **대화 메시지**를 저장한다.
@@ -377,9 +378,11 @@ const result = await graph.invoke({ messages: ["시작"] });
 5. 그래프가 필요하다면 상태, 작업, 이동 규칙을 한 줄씩 정의한다.
 
 여기서는 아직 Java 코드를 쓰지 않는다.
-먼저 [LangGraph4j 개념 지도](https://jon890.github.io/langgraph4j-in-action/00-langgraph4j-concepts.html)를 보고,
-[START와 END](https://jon890.github.io/langgraph4j-in-action/03-basic-edges.html)와
-[조건부 Edge](https://jon890.github.io/langgraph4j-in-action/05-conditional-edge.html)에서 방금 그린 흐름을 그래프 용어로 바꿔본다.
+먼저 [LangGraph 개요](./langgraph-overview.md)에서 State, Node, Edge의 관계를 확인한다.
+그다음 [State와 Reducer](./langgraph-state-and-reducer.md)의 조건부 엣지 절을 보며 방금 그린 흐름을 그래프 용어로 바꿔본다.
+
+직접 코드를 작성할 때는 [LangGraph4j in Action 저장소](https://github.com/jon890/langgraph4j-in-action)를 작업 공간으로 사용한다.
+개념 설명은 블로그에 두고 저장소에는 작성한 코드와 검증 상태만 남긴다.
 
 일반 메서드 호출만으로 충분하다고 결론 내렸다면 그것도 정답이다.
 이 실습의 목표는 그래프를 쓰는 것이 아니라 쓸 이유를 설명하는 것이다.

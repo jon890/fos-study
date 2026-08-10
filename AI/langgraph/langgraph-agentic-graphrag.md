@@ -242,7 +242,7 @@ flowchart TB
 되돌아가는 화살표가 세 개다.
 이 세 개 때문에 체인으로는 만들 수 없고, State에 `attempts` 같은 값을 두어 상한을 걸어야 한다.
 
-State는 2편에서 다룬 형태를 그대로 쓴다.
+State는 [State와 Reducer](./langgraph-state-and-reducer.md)에서 다룬 형태를 그대로 쓴다.
 
 ```python
 class GraphRagState(TypedDict):
@@ -347,8 +347,8 @@ Neo4j와 LLM을 한꺼번에 붙이기 전에 검색 실패를 되돌리는 제�
 4. 벡터 검색과 그래프 탐색을 병렬로 실행한다면 결과 병합 규칙을 정한다.
 5. 생성한 답변이 근거를 인용하지 못하면 어느 노드로 돌아갈지 그린다.
 
-이 흐름은 [워크플로 패턴](https://jon890.github.io/langgraph4j-in-action/18-workflow-patterns.html)의 라우팅, 병렬화, 평가-개선을 한 번에 사용한다.
-타임아웃과 부분 검색 실패는 [실패와 회복성](https://jon890.github.io/langgraph4j-in-action/20-resilience.html)의 분류표로 먼저 결정한다.
+이 흐름은 [LangGraph4j 실무 운영](./langgraph4j-production-operations.md)의 라우팅, 병렬 처리와 평가-개선 패턴을 한 번에 사용한다.
+타임아웃과 부분 검색 실패도 같은 글의 실패 분류표로 먼저 결정한다.
 
 처음 실습에서는 검색기를 고정된 가짜 결과로 둔다.
 그래프의 분기와 종료가 맞는지 확인한 뒤 실제 벡터 저장소와 Neo4j를 하나씩 연결해야 실패 원인을 구분할 수 있다.

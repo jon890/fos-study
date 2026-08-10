@@ -188,6 +188,7 @@ def review_guide(state: State) -> dict:
 
 `interrupt()`를 도구 함수 안에 두면 도구가 실행되기 전에 인자를 확인하고 고칠 수 있다.
 외부 시스템을 바꾸는 도구에 유용하다.
+[Spring AI 도구 호출을 요청과 실제 실행으로 나누는 흐름](./langgraph4j-spring-ai-llm-tools.md)은 별도 글에서 이어진다.
 
 ### 입력 검증
 
@@ -308,7 +309,8 @@ await graph.invoke(new Command({ resume: { approved: true } }), config);
 5. 승인 대기 중 서버가 재시작되었을 때 필요한 저장소를 적는다.
 
 Java에서는 Python의 `interrupt()` 코드를 그대로 옮기지 않는다.
-[중단과 사람 승인](https://jon890.github.io/langgraph4j-in-action/15-interrupt-approval.html)에서 LangGraph4j의 컴파일 시점 중단과 checkpoint 기반 재개 흐름을 확인한다.
+[LangGraph4j 실무 운영](./langgraph4j-production-operations.md)에서 컴파일 시점 중단, checkpoint 기반 재개와 승인 API의 수명주기를 함께 확인한다.
+직접 코드를 작성할 때는 [LangGraph4j in Action 저장소](https://github.com/jon890/langgraph4j-in-action)를 작업 공간으로 사용한다.
 
 따라 하다가 승인 없이 민감 노드에 도달한다면 UI가 아니라 그래프 경계가 잘못된 것이다.
 승인 링크만 알면 다른 사람의 thread도 처리할 수 있다면 그래프가 아니라 인가 경계가 빠진 것이다.

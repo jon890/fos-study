@@ -141,6 +141,7 @@ def notify_and_record(state: State) -> dict:
 **멱등 키를 쓴다.** 외부 시스템 호출을 옮길 수 없을 때다.
 `thread_id`와 단계 번호를 조합한 키로 중복 요청을 서버 쪽에서 걸러낸다.
 결제 API에 idempotency key를 붙이는 것과 같은 방식이다.
+[운영 환경의 실패 분류와 재시도 설계](./langgraph4j-production-operations.md)는 영속 saver와 함께 따로 다룬다.
 
 **부작용을 별도 노드로 분리한다.** 중단이 있는 노드와 부작용이 있는 노드를 아예 나눈다.
 재실행 범위가 좁아져서 사고 가능성이 줄어든다.
@@ -281,9 +282,9 @@ checkpoint는 저장 코드를 보기 전에 식별자와 재실행 의미를 �
 4. 검토가 끝난 과거 checkpoint에서 계획 작성만 다시 실행하는 상황을 만든다.
 5. 이미 외부에 저장한 결과가 있다면 재실행 때 무엇이 중복되는지 표시한다.
 
-[Checkpoint와 thread](https://jon890.github.io/langgraph4j-in-action/13-checkpoint-thread-history.html)에서 State, Checkpoint, Thread를 먼저 구분한다.
-그다음 [재개와 상태 수정](https://jon890.github.io/langgraph4j-in-action/14-resume-time-travel.html)에서 재개, 재생, 분기를 비교한다.
-운영 저장소를 붙이기 전에는 [영속 Checkpoint](https://jon890.github.io/langgraph4j-in-action/16-persistent-checkpoint.html)의 보존·동시성 질문에 답해본다.
+이 글에서 State, checkpoint와 thread를 먼저 구분한다.
+재개, 과거 상태에서의 분기와 영속 저장소 운영은 [LangGraph4j 실무 운영](./langgraph4j-production-operations.md)으로 이어진다.
+직접 코드를 작성할 때는 [LangGraph4j in Action 저장소](https://github.com/jon890/langgraph4j-in-action)를 사용한다.
 
 코드 실습에서는 메모리 저장소로 실행 의미부터 확인하고, 데이터베이스 연결은 마지막에 한다.
 저장소와 재개 동작을 동시에 디버깅하지 않기 위해서다.

@@ -376,9 +376,9 @@ const shouldRetry = (state: typeof StateAnnotation.State) =>
 4. `PlanningState`가 초기 데이터를 만드는 책임과 Channel이 기본값을 만드는 책임을 구분한다.
 5. 노드 하나가 상태 전체가 아니라 `findings` 변경분만 반환하는 흐름을 종이에 쓴다.
 
-[State와 Channel](https://jon890.github.io/langgraph4j-in-action/01-state-and-channel.html)에서 개념과 API 연결을 읽고,
-[단일 Node](https://jon890.github.io/langgraph4j-in-action/02-single-node.html)에서 부분 갱신의 실행 순서를 확인한다.
-병렬 병합이 왜 reducer 문제인지 보고 싶다면 [병렬 실행과 Reducer](https://jon890.github.io/langgraph4j-in-action/07-parallel-and-reducer.html)까지 이어서 본다.
+Java에서는 [langgraph4j 실전](./langgraph4j-in-spring-boot.md)의 Python 대응 표와 최소 그래프를 함께 본다.
+직접 작성할 코드는 [LangGraph4j in Action 저장소](https://github.com/jon890/langgraph4j-in-action)의 `PlanningState`와 `NormalizeRequestNode`부터 시작한다.
+이 글의 설명을 원문으로 삼고 저장소의 테스트로 상태 접근자와 부분 갱신 동작을 확인한다.
 
 실패를 먼저 생각해보는 게 중요하다.
 두 병렬 노드가 `findings`에 하나씩 결과를 반환했을 때 최종 목록이 하나뿐이라면, 노드보다 Channel 설정을 먼저 의심해야 한다.

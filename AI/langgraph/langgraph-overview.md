@@ -286,13 +286,14 @@ Spring Boot 애플리케이션이라면 노드를 `@Component`로 두고 기존 
 
 이 글의 네 개념을 한 번에 구현하지 않는다.
 
-1. [LangGraph4j 개념 지도](https://jon890.github.io/langgraph4j-in-action/00-langgraph4j-concepts.html)에서 전체 실행 순서를 본다.
+1. 이 글에서 State, Node, Edge와 Graph의 전체 실행 순서를 본다.
 2. State와 Channel을 먼저 정하고 Node가 반환할 부분 갱신을 적는다.
 3. START에서 첫 Node, 마지막 Node에서 END로 이어지는 가장 작은 그래프를 만든다.
 4. 고정 Edge가 동작한 뒤 조건부 Edge와 반복을 하나씩 추가한다.
 5. 병렬 실행, 모델 호출과 checkpoint는 앞 단계의 상태 전이가 설명될 때만 연결한다.
 
-브라우저에서 [전체 학습 가이드](https://jon890.github.io/langgraph4j-in-action/)를 열어 두면 각 단계의 작성 범위와 실패 관찰 지점을 바로 확인할 수 있다.
+브라우저에는 [LangGraph 학습 로드맵](./langgraph-learning-roadmap.md)을 띄우고, 편집기에는 [LangGraph4j in Action 저장소](https://github.com/jon890/langgraph4j-in-action)를 연다.
+개념과 따라 하기 흐름은 블로그에서 읽고, 저장소에서는 코드만 작성한다.
 
 ---
 

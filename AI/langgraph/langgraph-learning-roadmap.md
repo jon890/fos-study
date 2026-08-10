@@ -1,13 +1,14 @@
 ---
 thumbnail: ./images/langgraph-learning-roadmap-thumbnail.jpg
 series: "LangGraph로 에이전트 워크플로 만들기"
-seriesOrder: 7
+seriesOrder: 9
 tags: [입문]
 ---
 
 # LangGraph 학습 로드맵 — 무엇을 어떤 순서로 볼까
 
-> [langgraph4j 실전](./langgraph4j-in-spring-boot.md)에서 이어진다. 시리즈의 마지막 글이다.
+> [LangGraph4j 실무 운영](./langgraph4j-production-operations.md)에서 이어진다.
+> 이 글은 시리즈의 학습 순서와 코드 실습 상태를 연결하는 마지막 안내서다.
 
 LangGraph 문서는 양이 많다.
 개념, 하우투, 튜토리얼, 플랫폼 문서가 따로 있고 각각 수십 페이지다.
@@ -16,6 +17,10 @@ LangGraph 문서는 양이 많다.
 이 글은 **무엇을 먼저 보고 무엇을 나중으로 미룰지**를 정리한 것이다.
 지식그래프 기반 분석 서비스를 만든다는 목표를 기준으로 우선순위를 매겼다.
 목표가 다르면 순서도 달라진다.
+
+개념 설명과 따라 하기 흐름의 원문은 이 블로그 시리즈에 둔다.
+[LangGraph4j in Action 저장소](https://github.com/jon890/langgraph4j-in-action)는 Java 코드, 미리 제공한 테스트와 실습 진행 상태만 관리한다.
+같은 학습 글을 블로그와 저장소에 나눠 두지 않는다.
 
 ---
 
@@ -50,7 +55,7 @@ Agentic RAG의 루프가 왜 안전한지는 checkpoint를 이해해야 보인�
 
 ---
 
-## 1단계 — 그래프 없이 시작한다
+## 그래프 없이 시작한다
 
 **목표**: 도구를 부르는 에이전트가 어떻게 도는지 몸으로 안다.
 
@@ -73,7 +78,7 @@ result = agent.invoke({"messages": [{"role": "user", "content": "..."}]})
 
 ---
 
-## 2단계 — State를 직접 설계한다
+## State를 직접 설계한다
 
 **목표**: 그래프를 손으로 조립하고, 리듀서가 왜 필요한지 실패로 배운다.
 
@@ -93,7 +98,7 @@ class State(TypedDict):
 
 ---
 
-## 3단계 — 저장하고 재개한다
+## 저장하고 재개한다
 
 **목표**: 프로세스를 죽였다가 이어서 실행해본다.
 
@@ -117,7 +122,7 @@ class State(TypedDict):
 
 ---
 
-## 4단계 — 목표에 도달한다
+## 목표에 도달한다
 
 **목표**: 검색을 채점하고 되돌아가는 그래프를 만든다.
 
@@ -141,7 +146,7 @@ Corrective RAG를 먼저 만든다. 노드가 네 개면 된다.
 
 ---
 
-## 5단계 — Java로 옮긴다
+## Java로 옮긴다
 
 **목표**: 같은 그래프를 langgraph4j로 다시 만든다.
 
@@ -189,14 +194,26 @@ Corrective RAG를 먼저 만든다. 노드가 네 개면 된다.
 
 ## 단계별 실습 과제
 
-각 과제는 [LangGraph4j in Action 학습 가이드](https://jon890.github.io/langgraph4j-in-action/)와 연결된다.
-가이드는 개념 설명 뒤에 작성 순서, 실패 관찰과 회고 질문을 둔다.
-완성 코드를 먼저 보지 않고 직접 작성하려면 브라우저와 편집기를 나란히 띄워 진행하면 된다.
+각 과제의 개념 설명과 작성 순서는 이 블로그 시리즈에서 읽는다.
+코드 작업은 [LangGraph4j in Action 저장소](https://github.com/jon890/langgraph4j-in-action)에서 진행한다.
+브라우저에는 블로그를 띄우고 편집기에는 저장소를 열면 된다.
+
+| 학습 범위 | 블로그 원문 | 코드에서 확인할 것 |
+| --- | --- | --- |
+| 전체 실행 구조 | [LangGraph 개요](./langgraph-overview.md) | State, Node, Edge와 Graph의 연결 |
+| 상태와 병합 | [State와 Reducer](./langgraph-state-and-reducer.md) | `AgentState`, Channel, 부분 갱신과 병렬 reducer |
+| 그래프 선택 기준 | [LangChain과 LangGraph의 경계](./langchain-vs-langgraph-boundary.md) | 고정 엣지, 조건부 엣지와 반복 상한 |
+| 지속 실행 | [Checkpoint](./langgraph-checkpoint-durable-execution.md) | thread, 저장, 재개와 과거 상태 분기 |
+| 사람 승인 | [Human-in-the-Loop](./langgraph-human-in-the-loop.md) | 승인 대기, 권한과 checkpoint 기반 재개 |
+| 검색 에이전트 | [Agentic GraphRAG](./langgraph-agentic-graphrag.md) | 라우팅, 병렬 검색, 평가와 개선 반복 |
+| Java 기초 | [langgraph4j 실전](./langgraph4j-in-spring-boot.md) | Spring Boot 빈, 상태 접근자와 그래프 컴파일 |
+| 실제 LLM | [Spring AI 2 연동](./langgraph4j-spring-ai-llm-tools.md) | 모델 포트, 구조화 출력, 도구 호출과 두 스트림 |
+| 실무 운영 | [LangGraph4j 실무 운영](./langgraph4j-production-operations.md) | 영속 saver, 하위 그래프, 관찰 가능성, API와 배포 호환성 |
 
 전체 과정은 다음 리듬을 반복한다.
 
-1. 개념 페이지에서 상태가 언제 바뀌는지 설명한다.
-2. “따라 해보기”의 클래스와 메서드 범위만 확인한다.
+1. 블로그에서 상태가 언제 바뀌는지 설명한다.
+2. “직접 작성”의 클래스와 메서드 범위만 확인한다.
 3. 코드를 직접 작성한다.
 4. 의도적인 실패에서 reducer, edge, 재개와 권한 경계를 관찰한다.
 5. 회고 질문에 답하고 다음 레슨으로 이동한다.
@@ -212,6 +229,10 @@ Corrective RAG를 먼저 만든다. 노드가 네 개면 된다.
 **4단계**: 문서 10건 정도로 Corrective RAG를 만든다. 일부러 관련 없는 질문을 던져 재작성이 도는지 본다.
 
 **5단계**: 4단계 그래프를 langgraph4j로 옮긴다. Studio로 구조를 뽑아 Python 버전과 비교한다.
+
+**6단계**: 모델 포트에 고정 결과 구현을 먼저 붙인다. 그래프가 결정적으로 동작한 뒤 Spring AI `ChatClient`와 Ollama를 연결한다.
+
+**7단계**: 메모리 checkpoint를 영속 saver로 바꾼다. 저장 실패, 중복 승인, SSE 재연결과 과거 상태 호환성 실패를 하나씩 주입한다.
 
 ---
 
@@ -261,6 +282,8 @@ Spring AI의 `ChatMemory`와 같은 것으로 봤는데 아니었다.
 4. [Human-in-the-Loop — 사람 승인을 그래프에 새기기](./langgraph-human-in-the-loop.md)
 5. [Agentic GraphRAG — 지식그래프 검색을 통제하기](./langgraph-agentic-graphrag.md)
 6. [langgraph4j 실전 — Java에서 돌려보기](./langgraph4j-in-spring-boot.md)
-7. 학습 로드맵 (이 글)
+7. [LangGraph4j와 Spring AI 2 연동](./langgraph4j-spring-ai-llm-tools.md)
+8. [LangGraph4j 실무 운영](./langgraph4j-production-operations.md)
+9. 학습 로드맵 (이 글)
 
 함께 보면 좋은 글: [LangGraph — 에이전트 워크플로를 그래프로 통제하기](./langgraph-overview.md)

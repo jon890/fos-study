@@ -388,14 +388,14 @@ cd langgraph4j-in-action
 ./gradlew test
 ```
 
-브라우저에서는 [LangGraph4j in Action 학습 가이드](https://jon890.github.io/langgraph4j-in-action/)를 연다.
+브라우저에서는 [LangGraph 학습 로드맵](./langgraph-learning-roadmap.md)을 연다.
 진행 순서는 다음과 같다.
 
-1. 00에서 State, Channel, Node, Edge의 전체 실행 흐름을 자기 말로 설명한다.
-2. 01과 02에서 이미 제공된 테스트와 운영 코드를 비교하며 상태 갱신을 관찰한다.
-3. 03부터는 가이드의 “따라 해보기”만 보고 먼저 코드를 작성한다.
-4. 실패하면 완성 코드보다 상태 스키마, 반환한 부분 갱신, 다음 노드 선택을 먼저 확인한다.
-5. Spring AI는 08의 모델 경계를 만든 뒤 09에서 연결한다.
+1. [LangGraph 개요](./langgraph-overview.md)에서 State, Node, Edge와 Graph의 전체 실행 흐름을 자기 말로 설명한다.
+2. [State와 Reducer](./langgraph-state-and-reducer.md)를 읽고 저장소의 기존 테스트와 운영 코드를 비교한다.
+3. 고정 Edge, 조건부 Edge와 반복을 한 번에 하나씩 직접 작성한다.
+4. 실패하면 완성 코드보다 상태 스키마, 부분 갱신과 다음 노드 선택을 먼저 확인한다.
+5. [Spring AI 2 연동](./langgraph4j-spring-ai-llm-tools.md)에서 모델 경계를 만든 뒤 실제 LLM을 연결한다.
 
 첫 그래프에서 LLM을 바로 호출하지 않는 이유가 있다.
 상태 병합과 엣지 오류를 모델 변동성과 동시에 만나면 어느 층이 잘못됐는지 구분하기 어렵다.
@@ -405,8 +405,8 @@ Ollama나 무료 API는 결정적인 그래프가 먼저 동작한 뒤 연결한
 
 ## 다음 편
 
-마지막 7편은 학습 로드맵이다.
-공식 문서를 어떤 순서로 읽을지, 무엇을 건너뛰어도 되는지, 그리고 단계별 실습 과제를 정리한다.
+다음 편은 Spring AI 2와 LLM을 연결한다.
+모델 경계, `ChatClient`, 구조화 출력, 도구 호출과 스트리밍을 그래프 상태와 분리해서 다룬다.
 
 ---
 
