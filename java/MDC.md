@@ -27,6 +27,57 @@ HTTP 요청
      └─ 요청 종료 → MDC 제거
 ```
 
+### ThreadLocal이라서 생기는 두 가지 사고
+
+"현재 스레드에만 저장"은 편의가 아니라 제약이다.
+스레드가 바뀌는 순간 두 방향으로 깨진다.
+
+**1. 비동기로 넘기면 traceId가 사라진다**
+
+`@Async`, `CompletableFuture`, `ExecutorService` 어디든 마찬가지다.
+작업이 다른 스레드에서 돌기 때문에 MDC가 따라가지 않는다.
+
+```java
+MDC.put("traceId", "abc-123");
+log.info("제출 전");                       // [traceId=abc-123] 제출 전
+
+executor.submit(() -> log.info("작업 안")); // [traceId=] 작업 안  ← 비어 있다
+```
+
+넘기려면 **제출하는 쪽에서 복사해 작업 스레드에서 다시 심어야** 한다.
+
+```java
+Map<String, String> context = MDC.getCopyOfContextMap();
+
+executor.submit(() -> {
+    Map<String, String> previous = MDC.getCopyOfContextMap();
+    if (context != null) MDC.setContextMap(context);
+    try {
+        log.info("작업 안");               // [traceId=abc-123] 작업 안
+    } finally {
+        // 풀 스레드는 재사용되므로 원래 상태로 되돌린다
+        if (previous != null) MDC.setContextMap(previous);
+        else MDC.clear();
+    }
+});
+```
+
+Spring이라면 매번 이렇게 감싸는 대신 `TaskDecorator`로 한 번만 심어두는 편이 낫다.
+
+**2. 정리하지 않으면 남의 traceId가 찍힌다**
+
+이쪽이 더 잘 안 보이는 사고다.
+스레드 풀은 스레드를 재사용하므로, 요청이 끝날 때 `MDC.clear()`를 빼먹으면
+그 값이 다음 요청에 그대로 남는다.
+
+```text
+Thread-8 ── 요청 A: MDC.put(traceId=A) ... 응답 (clear 누락)
+Thread-8 ── 요청 B: MDC.put 안 함      ... 로그에 [traceId=A] 가 찍힘
+```
+
+- 로그가 비는 게 아니라 **틀린 값이 찍히므로** 장애 추적에서 엉뚱한 요청을 쫓게 된다
+- 그래서 Filter나 Interceptor에서 `finally { MDC.clear(); }`가 필수다
+
 ## MDC로 어떻게 "분산 추적"이 되는가?
 
 - 핵심은 **traceId를 서비스 간에 전달**하는 것

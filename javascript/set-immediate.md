@@ -91,6 +91,43 @@ timeout
 - poll 끝 -> check -> setImmediate
 - 다음 루프 -> timers -> setTimeout
 
+### 메인 모듈 — 여기서는 "항상"이 아니다
+
+같은 코드를 I/O 콜백 밖, 즉 메인 모듈에 두면 순서가 보장되지 않는다.
+
+```js
+setTimeout(() => console.log('timeout'), 0);
+setImmediate(() => console.log('immediate'));
+```
+
+Node.js v24.15.0에서 200회 실행한 결과다.
+
+| 출력 순서 | 횟수 |
+| --- | ---: |
+| `immediate` -> `timeout` | 190 |
+| `timeout` -> `immediate` | 10 |
+
+즉 **대부분 immediate가 먼저지만 5%는 뒤집힌다.**
+한두 번 돌려보고 "항상 이 순서"라고 결론 내리기 쉬운 지점이다.
+
+왜 갈리는가.
+
+- `setTimeout(fn, 0)`은 내부적으로 1ms로 보정된다
+- 프로세스가 첫 이벤트 루프에 진입하기까지 걸린 시간이 그 1ms를 넘겼는지에 따라
+  timers 단계에서 바로 실행될 수도, 다음 루프로 밀릴 수도 있다
+- 이 시간은 프로세스 시작 비용에 좌우되므로 실행마다 달라진다
+
+**정리하면 이렇다.**
+
+| 등록 위치 | 순서 |
+| --- | --- |
+| I/O 콜백 안 | `setImmediate`가 항상 먼저 (poll 다음이 check라서) |
+| 메인 모듈 | 보장 없음 — 실측 190:10 |
+
+순서에 의존하는 코드를 짜야 한다면 메인 모듈이 아니라 I/O 콜백 안에서 등록해야 한다.
+
+출처: [Node.js — Event Loop, Timers, and process.nextTick()](https://nodejs.org/learn/asynchronous-work/event-loop-timers-and-nexttick)
+
 ## setInterval과 이벤트 루프 관계
 
 - 매 이벤트 루프의 **timers 단계**에서 검사

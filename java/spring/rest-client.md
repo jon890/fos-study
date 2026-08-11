@@ -1,6 +1,6 @@
 # RestClient
 
-- 스프링 부트 3.2에서 새롭게 도입
+- API 자체는 **Spring Framework 6.1**에서 도입되고, **Spring Boot 3.2**가 빌더 자동 설정을 제공한다
 - `RestTemplate`이나 `WebClient`를 사용했을 텐데 `RestClient`로 그 간극을 메워줄 수 있다.
 
 ## RestClient란 무엇인가?
@@ -11,19 +11,79 @@
   - 현대적 문법 : `WebClient` 처럼 `.get()`, `uri()`, `retrieve()` 형태로 가독성 좋게 코드를 짤 수 있음
   - Spring Boot 3.2+ : 최신 버전 프로젝트라면 이제 `RestTemplate` 대신 권장되는 선택지
 
+## 어떻게 쓰는가?
+
+Spring Boot는 `RestClient.Builder`를 자동 설정해 두므로 주입받아 쓰면 된다.
+직접 `RestClient.create()`로 만들면 타임아웃 같은 Boot 설정이 적용되지 않는다.
+
+```java
+@Service
+public class UserClient {
+
+    private final RestClient restClient;
+
+    public UserClient(RestClient.Builder builder) {
+        this.restClient = builder.baseUrl("https://api.example.com").build();
+    }
+
+    public User findById(long id) {
+        return restClient.get()
+                .uri("/users/{id}", id)
+                .retrieve()
+                .body(User.class);
+    }
+
+    public User create(CreateUserRequest request) {
+        return restClient.post()
+                .uri("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .body(User.class);
+    }
+}
+```
+
+### 에러 처리 — `onStatus`
+
+`retrieve()`는 4xx·5xx에서 예외를 던진다.
+상태 코드별로 다르게 처리하려면 `onStatus`로 가로챈다.
+
+```java
+return restClient.get()
+        .uri("/users/{id}", id)
+        .retrieve()
+        .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+            if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
+                throw new UserNotFoundException(id);
+            }
+            throw new IllegalArgumentException("잘못된 요청: " + res.getStatusCode());
+        })
+        .onStatus(HttpStatusCode::is5xxServerError, (req, res) -> {
+            throw new ExternalApiException("상대 서버 오류: " + res.getStatusCode());
+        })
+        .body(User.class);
+```
+
+- 예외를 던지지 않고 응답을 그대로 받고 싶으면 `retrieve()` 대신 `exchange()`를 쓴다
+- 제네릭 타입은 `body(new ParameterizedTypeReference<List<User>>() {})` 형태로 받는다
+
 ## 기본적으로 어떤 HTTP Client를 사용하는가?
 
 - 실제 통신은 하위의 `ClientHttpRequestFactory`가 담당하는 추상화 구조를 가짐
-- 기본 라이브러리
-  - 따로 설정을 하지 않는다면, **JDK의 표준 `HttpURLConnection`**을 사용함
-  - 하지만 이는 커넥션 풀링 같은 고급 기능을 지원하지 않아 운영 환경에서는 보통 교체해서 사용함
-- 라이브러리 감지 및 자동 설정
-  - Spring Boot는 클래스패스에 어떤 라이브러리가 있느냐에 따라 우선순위를 두고 라이브러리를 선택
-  - **Apache HttpClient 5** : 클래스패스에 있으면 최우선으로 사용 (가장 많이 쓰이는 옵션)
-    - `HttpComponentsClientHttpRequestFactory`
-  - **Jetty HttpClient** : Apache가 없고 Jetty가 있으면 사용
-  - **Reactor Netty** : WebFlux 환경일 때 주로 사용
-  - **JDK HttpClient** : Java 11 이상에서 제공하는 표준 클라이언트를 명시적으로 설정할 수 있음
+- 따로 설정하지 않으면 Spring Boot가 **클래스패스를 보고 선호 순서대로** 고른다
+  - 공식 문서의 순서는 다음과 같다 (In order of preference)
+    1. Apache HttpClient — `HttpComponentsClientHttpRequestFactory`
+    2. Jetty HttpClient
+    3. Reactor Netty HttpClient
+    4. JDK client (`java.net.http.HttpClient`)
+    5. Simple JDK client (`java.net.HttpURLConnection`)
+  - 여러 개가 함께 있으면 **가장 앞선 것**이 선택됨
+  - `spring.http.clients.imperative.factory` 로 명시 지정할 수 있음
+- **`HttpURLConnection`은 기본값이 아니라 마지막 폴백**이다
+  - 위 네 가지가 하나도 없을 때만 여기까지 내려온다
+  - 커넥션 풀링을 지원하지 않아, 여기까지 내려왔다면 운영 환경에서는 교체 대상이다
+  - 출처: [Spring Boot — HTTP Clients](https://docs.spring.io/spring-boot/reference/io/rest-client.html)
 
 ## Apache HttpClient 5를 사용하면 좋은 이유?
 
