@@ -9,7 +9,7 @@ public class Masulsa {
         try {
              new ByteBuddy.redefine(Moja.class)
                 .method(named("pullOut)).intercept(FixedValue.value("Rabiit!))
-                .make().saveIn(new File("/Users/gimbyoungtae/workspace/thejava/target/classes/));
+                .make().saveIn(new File("<프로젝트 경로>/target/classes/));
         } catch (IOExpcetion e) {
             e.printStackTrace();
         }
@@ -39,7 +39,7 @@ public class Masulsa {
                  ClassFileLocator.ForClassLoader.of(classLoader))
                 .method(named("pullOut)).intercept(FixedValue.value("Rabiit!))
                 .make()
-                .saveIn(new File("/Users/gimbyoungtae/workspace/thejava/target/classes/));
+                .saveIn(new File("<프로젝트 경로>/target/classes/));
         } catch (IOExpcetion e) {
             e.printStackTrace();
         }

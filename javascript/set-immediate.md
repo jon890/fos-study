@@ -56,7 +56,7 @@ setImmediate(fn);
 ```
 
 - poll 단계가 끝난 뒤
-- check 단ㄱPdptj tlfgod
+- check 단계에서 실행
 - 시간 개념 X
 
 ### 왜 존재하나?

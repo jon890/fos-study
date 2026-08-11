@@ -34,7 +34,7 @@ kubectl get nodes
 ## 쿠버네티스에 첫 번째 애플리케이션 실행하기
 
 ```bash
-kubectl run hello-workld --image=docker.io/hello-world --port=8080
+kubectl run hello-world --image=docker.io/hello-world --port=8080
 ```
 
 ![run-hello-world](./images/run-hello-world.png)
