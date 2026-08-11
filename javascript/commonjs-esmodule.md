@@ -125,9 +125,13 @@ add(1, 2);
   - 왜냐면 기존 CJS 패키지가 너무 많아서 둘을 함꼐 운용해야 한다.
   - 하지만 이 두 모듈 시스템은 철학이 완전 다르다
   - 이 차이 때문에 Node가 아래 기능을 만들어야 했는데.. 이게 진짜 어려웠다
-    - CJS -> ESM require 내부 변환 (Promise -> sync 변환)
-    - ESM -> CJS import 시 createRequire 생성
-    - 모듈 캐시를 양쪽에서 공유하지만 동일하게 유지
+    - CJS에서 ESM을 `require()` 하는 경로 — ESM은 본래 비동기 로딩이라 동기 `require`와 맞지 않는다
+      - 지금도 **동기 ESM에 한해서만** 가능하다. top-level `await`을 쓰는 모듈은 `require()`로 못 불러온다
+    - ESM 안에서 CJS를 CommonJS 방식으로 불러야 할 때 쓰는 `module.createRequire()`
+      - 단순 `import`로 CJS를 가져오는 것은 그냥 된다. `createRequire`는 `require` 고유 동작이 필요할 때다
+    - 두 캐시를 각각 관리 — **`require.cache`와 ESM 로더 캐시는 별개다**
+      - 공식 문서: "`require.cache` is not used by `import` as the ES module loader has its own separate cache"
+      - 테스트에서 `require.cache`를 지워도 `import`한 모듈은 다시 로드되지 않는다
     - 디렉토리 해석 규칙 통일
     - `.js` 파일이 CJS인지 ESM인지 판단해야 하는 규칙
   - 이런 "브릿지 레이어" 때문에 ESM 도입은 자연스럽게 몇 년씩 지연된 것
