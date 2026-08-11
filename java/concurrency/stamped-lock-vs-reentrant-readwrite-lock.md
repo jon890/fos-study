@@ -1,4 +1,4 @@
-# [초안] StampedLock vs ReentrantReadWriteLock: 백엔드 동시성 제어의 실전 선택
+# StampedLock vs ReentrantReadWriteLock: 백엔드 동시성 제어의 실전 선택
 
 ## 왜 이 주제가 중요한가
 

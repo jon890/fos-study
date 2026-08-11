@@ -1,4 +1,4 @@
-# [초안] Event Sourcing과 CQRS — 상태가 아니라 변화를 저장한다는 발상
+# Event Sourcing과 CQRS — 상태가 아니라 변화를 저장한다는 발상
 
 이 문서의 목표는 두 가지다.
 하나, "현재 상태를 덮어쓰는" 일반적인 CRUD 모델과 "일어난 사건을 append-only로 쌓는" Event Sourcing이 어떻게 다른지 감을 잡는 것.

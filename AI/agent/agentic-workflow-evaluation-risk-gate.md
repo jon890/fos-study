@@ -2,7 +2,7 @@
 thumbnail: ./images/agentic-workflow-evaluation-risk-gate-thumbnail.jpg
 ---
 
-# [초안] Agentic Workflow 평가와 Risk Gate 설계 — Human-in-the-loop와 LLM-as-a-judge
+# Agentic Workflow 평가와 Risk Gate 설계 — Human-in-the-loop와 LLM-as-a-judge
 
 ## 왜 이 주제가 중요한가
 

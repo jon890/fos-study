@@ -1,4 +1,4 @@
-# [초안] Redis Streams 소비자 그룹 신뢰성 — PEL, 재할당, 멱등성까지
+# Redis Streams 소비자 그룹 신뢰성 — PEL, 재할당, 멱등성까지
 
 > 이 문서는 Redis Streams의 소비자 그룹(Consumer Group)이 *어떻게 메시지 유실 없이 분산 처리를 보장하는가*를 운영·장애 관점에서 정리한다. Stream의 기본 명령어와 Pub/Sub과의 비교는 [pub-sub.md](./pub-sub.md)에 이미 있으므로, 본 문서는 그 위에서 한 단계 더 들어간다 — *소비자가 죽었을 때 메시지는 어디에 남고, 누가 다시 처리하며, 중복을 어떻게 막는가*. 결론부터 말하면 Streams는 "메시지를 영속한다"가 아니라 **at-least-once + PEL(Pending Entries List) + 명시적 ACK**라는 세 부품의 조합으로 신뢰성을 만든다. 이 세 가지를 분리해서 설명할 수 있어야 한다.
 

@@ -1,4 +1,4 @@
-# [초안] 라이브 코딩 대비 Monotonic Stack 패턴 정리 (Java)
+# 라이브 코딩 대비 Monotonic Stack 패턴 정리 (Java)
 
 ## 왜 이 주제가 라이브 코딩에서 중요한가
 

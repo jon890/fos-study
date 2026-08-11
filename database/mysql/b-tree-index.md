@@ -1,4 +1,4 @@
-# [초안] MySQL / InnoDB 인덱스 허브
+# MySQL / InnoDB 인덱스 허브
 
 ## 이 문서의 역할
 

@@ -38,7 +38,7 @@
 
 - [캐시 설계 전략 총정리](./cache-strategies.md) — Look-Aside, Read/Write-Through, Cache Stampede
 
-## 커머스/F&B 도메인 (초안)
+## 커머스/F&B 도메인
 
 멀티브랜드 F&B 디지털 채널 백엔드 설계 묶음. 인프라 패턴을 커머스·F&B 설계 언어로 적용하는 학습 노트.
 

@@ -1,4 +1,4 @@
-# [초안] RabbitMQ Basics — 실전 백엔드 관점에서 정리하는 메시지 브로커 기본기
+# RabbitMQ Basics — 실전 백엔드 관점에서 정리하는 메시지 브로커 기본기
 
 ## 왜 RabbitMQ를 다시 공부하는가
 

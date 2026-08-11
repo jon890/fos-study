@@ -1,4 +1,4 @@
-# [초안] RabbitMQ vs Kafka — 백엔드 메시징 선택 기준과 실전 운영 관점
+# RabbitMQ vs Kafka — 백엔드 메시징 선택 기준과 실전 운영 관점
 
 ## 왜 이 비교가 중요한가
 

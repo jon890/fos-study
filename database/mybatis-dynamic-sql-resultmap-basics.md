@@ -1,4 +1,4 @@
-# [초안] MyBatis 기본기 — XML Mapper, resultMap, 동적 SQL, 운영 패턴 정리
+# MyBatis 기본기 — XML Mapper, resultMap, 동적 SQL, 운영 패턴 정리
 
 ## 왜 지금 다시 보는가
 

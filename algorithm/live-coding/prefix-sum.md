@@ -1,4 +1,4 @@
-# [초안] Prefix Sum 완전 정복 - Java 라이브 코딩 대비 스터디 팩
+# Prefix Sum 완전 정복 - Java 라이브 코딩 대비 스터디 팩
 
 ## 왜 Prefix Sum을 깊이 파야 하는가
 

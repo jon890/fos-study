@@ -1,4 +1,4 @@
-# [초안] Two Pointers — 라이브 코딩 완전 정복 가이드 (Java)
+# Two Pointers — 라이브 코딩 완전 정복 가이드 (Java)
 
 ## 왜 Two Pointers인가
 

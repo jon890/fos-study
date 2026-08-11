@@ -1,4 +1,4 @@
-# [초안] 시니어 Java 백엔드를 위한 테스트 전략 완전 정리 — 피라미드부터 TestContainers, 마이크로벤치, Contract까지
+# 시니어 Java 백엔드를 위한 테스트 전략 완전 정리 — 피라미드부터 TestContainers, 마이크로벤치, Contract까지
 
 ## 1. 왜 테스트 전략이 면접의 핵심 주제가 되는가
 

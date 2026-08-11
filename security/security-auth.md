@@ -1,4 +1,4 @@
-# [초안] 시니어 백엔드를 위한 보안 / 인증 스터디 팩 — Spring Security, JWT, OAuth2, OWASP Top 10
+# 시니어 백엔드를 위한 보안 / 인증 스터디 팩 — Spring Security, JWT, OAuth2, OWASP Top 10
 
 ## 왜 이것이 면접에서 중요한가
 

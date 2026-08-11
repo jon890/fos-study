@@ -2,7 +2,7 @@
 thumbnail: ./images/binary-search-thumbnail.jpg
 ---
 
-# [초안] 이진 탐색 완전 정복 — Java 라이브 코딩 인터뷰 준비 가이드
+# 이진 탐색 완전 정복 — Java 라이브 코딩 인터뷰 준비 가이드
 
 ---
 

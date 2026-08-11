@@ -1,4 +1,4 @@
-# [초안] InnoDB Gap Lock & Next-Key Lock 심층 분석 — 구간 의미론부터 실무 디버깅까지
+# InnoDB Gap Lock & Next-Key Lock 심층 분석 — 구간 의미론부터 실무 디버깅까지
 
 > 이 문서는 **락의 '의미론'** 에 집중한다. MVCC 일반론은 [InnoDB MVCC](./innodb-mvcc.md), 데드락 해결/재시도/컨슈머 운영은 [Deadlock Analysis](./deadlock-analysis.md)를 참고한다. 여기서는 "왜 이 범위가 잠기는가", "어떤 락이 어떤 락과 충돌하는가", "로그의 어떤 표현이 어떤 상태인가"를 끝까지 파고든다.
 

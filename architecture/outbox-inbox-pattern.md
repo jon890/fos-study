@@ -1,4 +1,4 @@
-# [초안] Outbox / Inbox Pattern 심화 — 분산 메시징의 정합성 문제를 DB 트랜잭션으로 풀어내기
+# Outbox / Inbox Pattern 심화 — 분산 메시징의 정합성 문제를 DB 트랜잭션으로 풀어내기
 
 > 관련 문서: [분산 트랜잭션과 Outbox 패턴 — 왜 2PC를 피하고 어떻게 대신할 것인가](./distributed-transaction-outbox-pattern.md). 이 문서는 Outbox·Inbox 한 짝의 동작 메커니즘과 transaction boundary, polling/CDC 변형, ordering 등 심화 주제에 집중하고, 위 문서는 분산 트랜잭션 맥락에서 "왜 2PC가 아닌 Outbox인가"라는 의사결정 축을 다룬다.
 

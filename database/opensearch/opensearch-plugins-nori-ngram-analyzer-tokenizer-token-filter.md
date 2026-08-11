@@ -1,4 +1,4 @@
-# [초안] OpenSearch 검색 품질을 좌우하는 analyzer 구조: nori, ngram, tokenizer, token filter 제대로 이해하기
+# OpenSearch 검색 품질을 좌우하는 analyzer 구조: nori, ngram, tokenizer, token filter 제대로 이해하기
 
 ## 왜 이 주제를 공부해야 하는가
 

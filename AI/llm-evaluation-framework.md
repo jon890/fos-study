@@ -2,7 +2,7 @@
 thumbnail: ./images/llm-evaluation-framework-thumbnail.jpg
 ---
 
-# [초안] LLM 평가 프레임워크: 골든셋, 회귀 테스트, LLM-as-a-judge, 사람 피드백 루프
+# LLM 평가 프레임워크: 골든셋, 회귀 테스트, LLM-as-a-judge, 사람 피드백 루프
 
 ## 왜 이 주제가 중요한가
 

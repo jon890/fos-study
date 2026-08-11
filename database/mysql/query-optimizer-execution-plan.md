@@ -1,4 +1,4 @@
-# [초안] MySQL 옵티마이저와 실행 계획 생성 — 비용 모델·통계·optimizer_trace 실전 가이드
+# MySQL 옵티마이저와 실행 계획 생성 — 비용 모델·통계·optimizer_trace 실전 가이드
 
 ## 왜 알아야 하는가
 

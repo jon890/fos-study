@@ -1,4 +1,4 @@
-# [초안] 시니어 백엔드를 위한 SLO와 Error Budget 기반 장애 대응
+# 시니어 백엔드를 위한 SLO와 Error Budget 기반 장애 대응
 
 ## 왜 이 주제가 중요한가
 

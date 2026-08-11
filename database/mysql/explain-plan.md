@@ -1,4 +1,4 @@
-# [초안] MySQL EXPLAIN / EXPLAIN ANALYZE 완전 정복 — 실행 계획 읽기부터 Aurora 인터뷰 대비까지
+# MySQL EXPLAIN / EXPLAIN ANALYZE 완전 정복 — 실행 계획 읽기부터 Aurora 인터뷰 대비까지
 
 ## 왜 알아야 하는가
 

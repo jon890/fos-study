@@ -1,4 +1,4 @@
-# [초안] Spring Security 6.x OAuth2 + JWT 상용 인증 설계 — Grant 선택, Resource Server, Refresh Rotation, 로그아웃
+# Spring Security 6.x OAuth2 + JWT 상용 인증 설계 — Grant 선택, Resource Server, Refresh Rotation, 로그아웃
 
 > 본 문서는 OAuth2 + JWT 기반 **인증 시스템 설계**에 초점을 둔 deep-dive다.
 > 보안 일반(OWASP, XSS, SQL Injection, 암호화, Rate limiting, 비밀 관리)은 [security-auth.md](./security-auth.md) hub 문서를 참고한다.

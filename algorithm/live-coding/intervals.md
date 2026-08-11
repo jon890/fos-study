@@ -2,7 +2,7 @@
 thumbnail: ./images/intervals-thumbnail.jpg
 ---
 
-# [초안] Java 라이브 코딩 - Intervals 완전 정복: 정렬·병합·sweep line 면접 대비
+# Java 라이브 코딩 - Intervals 완전 정복: 정렬·병합·sweep line 면접 대비
 
 ## 왜 이 주제가 중요한가
 

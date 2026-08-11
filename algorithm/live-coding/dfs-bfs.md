@@ -2,7 +2,7 @@
 thumbnail: ./images/dfs-bfs-thumbnail.jpg
 ---
 
-# [초안] Java 라이브 코딩을 위한 DFS / BFS 실전 가이드
+# Java 라이브 코딩을 위한 DFS / BFS 실전 가이드
 
 ## 왜 이 주제가 중요한가
 

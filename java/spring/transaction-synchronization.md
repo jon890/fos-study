@@ -1,4 +1,4 @@
-# [초안] Spring TransactionSynchronization 실전: 커밋 이후 외부 호출을 안전하게 묶는 법
+# Spring TransactionSynchronization 실전: 커밋 이후 외부 호출을 안전하게 묶는 법
 
 ## 왜 이 주제가 중요한가
 

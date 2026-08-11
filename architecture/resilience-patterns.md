@@ -1,4 +1,4 @@
-# [초안] 시니어 백엔드를 위한 Resilience 패턴 실전 가이드 — Timeout, Retry, Circuit Breaker, Bulkhead, Backpressure
+# 시니어 백엔드를 위한 Resilience 패턴 실전 가이드 — Timeout, Retry, Circuit Breaker, Bulkhead, Backpressure
 
 ## 왜 이 주제가 중요한가
 

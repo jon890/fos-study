@@ -2,7 +2,7 @@
 thumbnail: ./images/llm-tool-calling-agent-workflow-thumbnail.jpg
 ---
 
-# [초안] LLM Tool Calling과 Agent Workflow 설계
+# LLM Tool Calling과 Agent Workflow 설계
 
 ## 왜 이 주제가 중요한가
 

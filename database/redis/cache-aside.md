@@ -1,4 +1,4 @@
-# [초안] Redis Cache-Aside 패턴: 실전 백엔드 관점의 설계와 함정
+# Redis Cache-Aside 패턴: 실전 백엔드 관점의 설계와 함정
 
 ## 왜 이 주제가 중요한가
 

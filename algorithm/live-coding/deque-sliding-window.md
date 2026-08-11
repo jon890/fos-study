@@ -2,7 +2,7 @@
 thumbnail: ./images/deque-sliding-window-thumbnail.jpg
 ---
 
-# [초안] 라이브 코딩 대비 — Deque 기반 Sliding Window 완전 정복
+# 라이브 코딩 대비 — Deque 기반 Sliding Window 완전 정복
 
 ## 왜 이 주제가 중요한가
 

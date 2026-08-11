@@ -1,4 +1,4 @@
-# [초안] Spring Kafka 컨슈머 오프셋 커밋과 트랜잭션 정렬: AckMode, manual ack, 멱등 처리
+# Spring Kafka 컨슈머 오프셋 커밋과 트랜잭션 정렬: AckMode, manual ack, 멱등 처리
 
 ## 이 글에서 답하는 질문
 

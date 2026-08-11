@@ -2,7 +2,7 @@
 thumbnail: ./images/binary-tree-thumbnail.jpg
 ---
 
-# [초안] 라이브 코딩 대비 — Binary Tree (Java)
+# 라이브 코딩 대비 — Binary Tree (Java)
 
 ## 왜 이 주제가 중요한가
 

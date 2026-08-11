@@ -1,4 +1,4 @@
-# [초안] Redis Pub/Sub 패턴 심화 — 실전 활용과 메시지 큐와의 경계
+# Redis Pub/Sub 패턴 심화 — 실전 활용과 메시지 큐와의 경계
 
 > 이 문서는 Redis Pub/Sub의 동작 원리와 실전 패턴(캐시 무효화, 실시간 이벤트 전파, 세션 클러스터링)을 백엔드 면접 관점에서 정리한다. Pub/Sub과 Stream의 비교는 [pub-sub.md](./pub-sub.md)에 이미 있으므로 본 문서는 *Pub/Sub 단일 채널을 패턴 수준에서 어떻게 쓰는가*에 집중하고, Kafka·RabbitMQ와의 선택 기준까지 다룬다. 코드 예시는 Spring Data Redis 6.x 기준이다.
 

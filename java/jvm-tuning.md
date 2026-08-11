@@ -1,4 +1,4 @@
-# [초안] JVM 튜닝 실전: 메모리 구조부터 Virtual Threads, GC 튜닝, 프로파일링까지
+# JVM 튜닝 실전: 메모리 구조부터 Virtual Threads, GC 튜닝, 프로파일링까지
 
 ## 왜 지금 JVM 튜닝을 다시 공부해야 하는가
 

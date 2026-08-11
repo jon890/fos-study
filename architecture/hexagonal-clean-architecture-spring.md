@@ -1,4 +1,4 @@
-# [초안] Hexagonal / Clean Architecture를 Spring 백엔드에 적용하기
+# Hexagonal / Clean Architecture를 Spring 백엔드에 적용하기
 
 ## 왜 지금 이 주제인가
 

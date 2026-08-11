@@ -1,4 +1,4 @@
-# [초안] Decorator & Chain of Responsibility — 행동을 체인으로 조립하는 두 가지 방식
+# Decorator & Chain of Responsibility — 행동을 체인으로 조립하는 두 가지 방식
 
 ---
 

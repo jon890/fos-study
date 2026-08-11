@@ -1,4 +1,4 @@
-# [초안] Spring Framework vs Spring Boot: 백엔드 개발자가 진짜 알아야 할 차이
+# Spring Framework vs Spring Boot: 백엔드 개발자가 진짜 알아야 할 차이
 
 ## 왜 이 주제가 중요한가
 

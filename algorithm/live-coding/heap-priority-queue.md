@@ -2,7 +2,7 @@
 thumbnail: ./images/heap-priority-queue-thumbnail.jpg
 ---
 
-# [초안] Heap과 PriorityQueue로 뚫는 라이브 코딩 Top-K 패턴 (Java)
+# Heap과 PriorityQueue로 뚫는 라이브 코딩 Top-K 패턴 (Java)
 
 라이브 코딩에서 "정렬하면 되지 않나요?"라고 먼저 답하는 순간, 면접관의 다음 질문은 거의 정해져 있다. "배열이 엄청 크고 k가 작으면요?" 이 한 마디에 무너지지 않으려면 Heap과 `PriorityQueue`를 손에 익혀둬야 한다. 이 문서는 HackerRank 스타일의 라이브 면접에서 Heap 계열 문제를 만났을 때, 접근 방식을 말로 설명하고 Java 코드로 구현하고 엣지 케이스까지 커버하는 전 과정을 한 번에 훈련하기 위한 스터디 팩이다.
 

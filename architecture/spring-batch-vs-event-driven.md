@@ -1,4 +1,4 @@
-# [초안] Spring Batch vs Event-Driven — 같은 비동기처럼 보이지만 전혀 다른 두 패러다임
+# Spring Batch vs Event-Driven — 같은 비동기처럼 보이지만 전혀 다른 두 패러다임
 
 > 관련 문서: [Outbox / Inbox Pattern 심화](./outbox-inbox-pattern.md), [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md). 본 문서는 두 처리 패러다임의 선택 기준과 trade-off에 집중하고, 위 두 문서는 이벤트 발행의 정합성 메커니즘에 집중한다.
 

@@ -1,4 +1,4 @@
-# [초안] Union-Find로 라이브 코딩 뚫기 — Java 백엔드 시니어용 실전 가이드
+# Union-Find로 라이브 코딩 뚫기 — Java 백엔드 시니어용 실전 가이드
 
 ## 왜 Union-Find인가
 
