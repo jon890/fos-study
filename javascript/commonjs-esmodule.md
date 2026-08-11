@@ -50,18 +50,18 @@ add(1, 2);
   - flag 여전히 필요
   - 생태계가 ESM을 쓰기엔 불안정
 
-- **3. Node.js 12.17 (2020년 5월) - 플래그 없이 '실험적' ESM 도입**
+- **3. Node.js 13.2 (2019년 11월) - 플래그 없이 ESM 도입**
 
-  - `--experimental-modules`없이 ESM 가능
-  - `.mjs`, `"type": module` 도입
-  - 점진적 실사용 시작
+  - `--experimental-modules` 없이 ESM 가능
+  - `.mjs`, `"type": "module"` 도입
   - 여기서 부터 "현대 Node.js ESM 형태"가 만들어짐
 
-- **4. Node.js 13.2 (2019년 말) - ESM 지원 안정화 단계 진입**
+- **4. Node.js 12.17 (2020년 5월) - LTS 12 로 백포트되며 실사용 확산**
 
+  - 13.2 의 플래그 없는 ESM 지원이 LTS 12 계열로 들어옴
   - CJS <-> ESM 상호운용성 개선
   - 동적 import 안정화
-  - loader 훅 안정화 작업 시작
+  - LTS 를 쓰는 실무 환경에서 점진적 실사용 시작
 
 - **5. Node.js 14 LTS (2020년 10월) - 공식적인 안정화**
 

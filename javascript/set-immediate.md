@@ -9,7 +9,7 @@
 
 핵심:
 
-- `setTimout` / `setInterval` -> 시간 기준
+- `setTimeout` / `setInterval` -> 시간 기준
 - `setImmediate` -> 이벤트 루프 단계 기준
 
 ## Node.js 이벤트 루프 구조
@@ -34,7 +34,7 @@ flowchart TD
     ```
   - "즉시 실행" 아님
   - 의미:
-    - **oms 이상 지난 후**
+    - **0ms 이상 지난 후**
     - timers 단계에서 실행 가능 상태가 되면 실행
   - poll 단계가 길어지면 **더 늦게 실행될 수 있음**
 - **setInterval**
@@ -119,7 +119,7 @@ timeout
 
 - I/O 이후 후처리
 - 이벤트 루프 양보
-- CPU-heavy 작업을 쪼갤 떄
+- CPU-heavy 작업을 쪼갤 때
 
 ## setImmediate vs Promise 실행 순서
 

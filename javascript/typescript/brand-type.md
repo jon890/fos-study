@@ -3,7 +3,7 @@
 > Brand 타입은 런타임에는 동일하지만,
 > 컴파일 타임에서만 서로 다른 타입으로 취급되게 만드는 기법
 
-Typescript는 구조적 타이핑(structural typing)이기 떄문에,
+Typescript는 구조적 타이핑(structural typing)이기 때문에,
 모양이 같으면 같은 타입으로 취급해버리는 문제가 있음
 
 ```ts
@@ -11,7 +11,7 @@ type UserId = string;
 type OrderId = string;
 
 const userId: UserId = 'u1';
-const orderId: OrderID = 'o1';
+const orderId: OrderId = 'o1';
 
 // 컴파일 에러 없음
 sendOrder(userId);
