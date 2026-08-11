@@ -9,7 +9,6 @@ Java 언어·JVM·생태계 학습 기록. 하위 폴더는 주제별 세부 정
 - [JDBC](./jdbc/README.md) — 커서, 배치 처리
 - [Java Testing](./testing/README.md) — Mockito, JVM 테스트 환경, CI 테스트 안정화
 - [OpenTelemetry](./opentelemetry/README.md) — 분산 추적
-- [바이트코드 조작과 리플렉션](./더_자바_코드를_조작하는_다양한_방법/README.md)
 
 ## JVM과 성능
 
@@ -26,4 +25,3 @@ Java 언어·JVM·생태계 학습 기록. 하위 폴더는 주제별 세부 정
 
 - [MDC (Mapped Diagnostic Context)](./MDC.md) — 로그에 컨텍스트 태깅
 - [OpenTelemetry](./opentelemetry/README.md) — 분산 추적 인덱스
-- [Java의 로깅 환경](./logging.md) — SLF4J, Logback

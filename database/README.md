@@ -23,10 +23,6 @@
 - [벡터 DB 5종 벤치마크](./vectordb-benchmark.md) — 데이터셋·질의·recall 측정법 + 같은 recall에서 QPS 실측 비교
 - [한국어 형태소 분석기 Nori vs Lindera](./nori-vs-lindera-korean-tokenizer.md) — OpenSearch·Milvus 전환 시 어휘 검색 정확도와 튜닝 재현
 
-## 도서
-
-- [김영한의 실전 데이터베이스 설계](./김영한의-실전-데이터베이스-설계/README.md)
-
 ## 면접 대비 — 커머스 응용
 
 - [JPA N+1과 커머스 조회 모델](./jpa-n-plus-one-commerce-read-model.md) — 주문/메뉴/쿠폰 도메인

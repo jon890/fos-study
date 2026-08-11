@@ -36,7 +36,3 @@
 - [L4와 VIP](../../network/L4-and-VIP.md) — 실전 연재 6편의 선행 지식
 - [Linux 프로세스 격리](../docker/linux-process-isolation.md) — 컨테이너가 격리되는 원리
 - [GPU 노드 /run tmpfs 포화](../../mlops/gpu-node-run-tmpfs-full.md) — GPU 노드 운영 사례
-
-## 도서
-
-- [쿠버네티스 인 액션](../k8s-in-action/README.md) — 책 정리
