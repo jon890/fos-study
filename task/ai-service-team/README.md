@@ -31,6 +31,7 @@ AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
 | 2026.04 | OCR 서버 배포·스케일인 시 503 에러 수정 — [Graceful Shutdown](../../devops/graceful-shutdown.md) 미적용 | [graceful-shutdown-503-fix.md](graceful-shutdown-503-fix.md) |
 | 2026.05 | Python 서버 RSS 누수 — gc.collect 한계, malloc_trim 적용 | [glibc-malloc-trim-python-leak.md](glibc-malloc-trim-python-leak.md) |
 | 2026.05–2026.07 | Document Parser 메모리·리소스 안정화 — 워커 강제 종료·좀비 프로세스·CUDA 중복 누수 방어 | [docparser-memory-stability.md](docparser-memory-stability.md) |
+| 2026.06–2026.07 | OCR 오토스케일 전환 connection 에러 — 기동 보류·종료 순서, 커넥션 풀 수명, 503 재시도, requestId 추적 | [ocr-scale-connection-resilience.md](ocr-scale-connection-resilience.md) |
 
 ### 리팩터링
 
