@@ -9,6 +9,11 @@ seriesOrder: 8
 
 > Graceful shutdown 개념은 [devops/graceful-shutdown.md](../../devops/graceful-shutdown.md) 참고
 
+> **이 글의 수치는 1차 대응 당시 값이다.**
+> 이후 grace 12초로는 서비스타임을 못 덮는다는 것이 드러나 30초로 올렸고,
+> scale-out 쪽에 별도 원인이 있다는 것도 밝혀졌다.
+> 현재 운영 값과 후속 대응은 [OCR 오토스케일 전환마다 나던 connection 에러](./ocr-scale-connection-resilience.md) 참고.
+
 ---
 
 ## 배경

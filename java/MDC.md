@@ -233,6 +233,33 @@ Logback MDC Bridge
 앞의 "ThreadLocal이라서 생기는 두 가지 사고"는 이 구조에서도 그대로 유효하다.
 브릿지가 값을 넣어줄 뿐, 저장 위치는 여전히 ThreadLocal이기 때문이다.
 
+## OTel이 항상 답은 아니다
+
+여기까지 읽으면 "그럼 OTel을 넣으면 되겠네"로 끝나기 쉽다.
+실제로 도입을 검토했다가 **넣지 않기로 한 적이 있다.**
+
+게이트웨이 뒤에 API 서버와 모델 서버가 있는 구조에서
+"한 요청의 로그를 처음부터 끝까지 묶어 보고 싶다"가 목적이었다.
+OTel과 W3C Trace Context가 정석이지만 두 가지가 걸렸다.
+
+- **게이트웨이가 `traceparent`를 보내지 않았다.** 표준을 쓰려면 앞단에 propagator를 따로 붙여야 했다
+- **trace 백엔드가 없었다.** span을 모아 시각화할 곳이 없으니 OTel의 강점인 호출 트리를 쓸 데가 없다
+
+반면 게이트웨이는 이미 `X-Request-Id`를 발급하고 있었다.
+그 값을 그대로 받아 MDC에 넣고 다음 서비스로 넘기는 것만으로 목적이 달성됐다.
+
+여기서 갈린 기준은 **"span 단위 추적이 필요한가, 로그 상관관계면 되는가"** 였다.
+
+| 필요한 것 | 맞는 도구 |
+| --- | --- |
+| 이 요청의 로그를 한데 모아 보기 | 헤더 하나와 MDC |
+| 이 요청 안에서 어디가 느렸는지 보기 | OpenTelemetry, 그리고 trace 백엔드 |
+
+뒤쪽이 필요해지면 그때 OTel로 가면 된다.
+앞쪽만 필요한데 OTel을 넣으면 propagator와 백엔드까지 딸려온다.
+
+> 실제 적용 기록은 [OCR 오토스케일 전환마다 나던 connection 에러](../task/ai-service-team/ocr-scale-connection-resilience.md) 참고
+
 ## 참고
 
 - [OpenTelemetry 공식 docs](https://opentelemetry.io/docs/what-is-opentelemetry/) — 관측 프레임워크 개념 정의
