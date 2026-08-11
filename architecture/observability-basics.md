@@ -531,4 +531,4 @@ public class OrdersController {
 
 - [Resilience 패턴](./resilience-patterns.md) — Circuit Breaker 상태와 Observability 연결
 - [Datadog APM 실전 투입 가이드](../devops/observability/datadog-apm-observability.md) — Java/Spring 관측성 스택
-- [OpenTelemetry (Java)](../java/opentelemetry/README.md) — traceId 생성과 전파
+- [로그에 traceId 남기기](../java/MDC.md) — MDC 부터 OpenTelemetry 까지

@@ -8,7 +8,6 @@ Java 언어·JVM·생태계 학습 기록. 하위 폴더는 주제별 세부 정
 - [Spring Batch](./spring-batch/README.md) — 배치 파이프라인, [AsyncItemProcessor](spring-batch/async-item-processor.md), StepScope
 - [JDBC](./jdbc/README.md) — 커서, 배치 처리
 - [Java Testing](./testing/README.md) — Mockito, JVM 테스트 환경, CI 테스트 안정화
-- [OpenTelemetry](./opentelemetry/README.md) — 분산 추적
 
 ## JVM과 성능
 
@@ -23,5 +22,4 @@ Java 언어·JVM·생태계 학습 기록. 하위 폴더는 주제별 세부 정
 
 ## 관찰성 / 로깅
 
-- [MDC (Mapped Diagnostic Context)](./MDC.md) — 로그에 컨텍스트 태깅
-- [OpenTelemetry](./opentelemetry/README.md) — 분산 추적 인덱스
+- [로그에 traceId 남기기](./MDC.md) — MDC 부터 OpenTelemetry 까지

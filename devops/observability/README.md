@@ -14,4 +14,4 @@
 ## 관련
 
 - [Observability 입문](../../architecture/observability-basics.md) — 개념과 장애 대응
-- [OpenTelemetry](../../java/opentelemetry/README.md) — Java 분산 추적
+- [로그에 traceId 남기기](../../java/MDC.md) — MDC 부터 OpenTelemetry 까지

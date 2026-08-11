@@ -1,4 +1,12 @@
-# MDC (Mapped Diagnostic Context)
+# 로그에 traceId 남기기 — MDC 부터 OpenTelemetry 까지
+
+로그를 보다가 "이 로그와 저 로그가 같은 요청인가"를 알 수 없으면 장애 추적이 멈춘다.
+그 연결고리를 만드는 것이 `traceId`이고, 로그에 그 값을 붙이는 도구가 MDC다.
+
+이 글은 MDC로 직접 붙이는 방식에서 시작해,
+OpenTelemetry가 그 일을 어디까지 대신해 주는지까지 이어서 본다.
+
+## MDC (Mapped Diagnostic Context)
 
 - 현재 실행 흐름(Thread)에 key-value 형태의 컨텍스트를 붙여두는 공간
 
@@ -142,3 +150,90 @@ MDC.put("traceId", traceId);
 
 > MDC = 로컬 컨텍스트 <br />
 > traceId 전파 = 분산 연결고리
+
+여기까지가 **손으로 하는 방식**이다.
+`UUID`를 만들고, 헤더에 싣고, 받는 쪽에서 꺼내 다시 `MDC.put` 한다.
+서비스가 셋을 넘어가면 이 코드가 서비스마다 반복된다.
+
+## OpenTelemetry는 이 일을 어디까지 대신하는가?
+
+`traceId`를 만드는 주체가 우리에서 SDK로 넘어간다.
+
+```text
+HTTP 요청 수신
+ └─ OTel Instrumentation
+     ├─ Trace 생성
+     ├─ traceId / spanId 생성
+     ├─ Context에 저장
+     └─ 다음 처리로 전달
+```
+
+| 우리가 하는 일 | OTel이 대신하는 일 |
+| --- | --- |
+| 의존성 추가 | `UUID` 생성 |
+| Instrumentation 활성화 | `MDC.put("traceId", ...)` |
+| Exporter 설정 | 헤더 수동 파싱과 전파 |
+
+### 추적 모델이 더 정밀해진다
+
+MDC로 하면 요청 하나에 `traceId` 하나다.
+OTel은 그 안을 다시 나눠 호출 트리를 만든다.
+
+```text
+Trace (하나의 요청)
+ ├─ Span: HTTP Server
+ │   ├─ Span: DB Query
+ │   └─ Span: Redis
+ └─ Span: HTTP Client (다른 서비스)
+```
+
+- `traceId` — 전체 요청을 묶는 ID
+- `spanId` — 각 작업 단위
+
+"이 요청이 느렸다"에서 멈추지 않고 "그중 DB 조회가 느렸다"까지 좁혀진다.
+
+### 전파는 표준 헤더로
+
+앞에서 직접 만든 `X-Trace-Id` 대신 W3C Trace Context 표준을 쓴다.
+
+```http
+traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
+```
+
+- 생성, 파싱, 전파가 모두 자동이다
+- 표준이라 다른 언어·프레임워크로 만든 서비스와도 그대로 이어진다
+
+## 그럼 MDC는 이제 필요 없나?
+
+아니다. 둘은 역할이 다르다.
+
+| 역할 | 담당 |
+| --- | --- |
+| 분산 트레이싱 | OpenTelemetry |
+| 로그 상관관계 | MDC |
+| 시각화 | Tempo / Jaeger |
+| 로그 검색 | NHN Log & Crash |
+
+OTel이 만든 `traceId`를 **로그에 찍으려면 결국 MDC를 거쳐야** 한다.
+그 연결은 자동 브릿지가 해준다.
+
+```text
+OTel Context
+   ↓
+Logback MDC Bridge
+   ↓
+로그에 traceId 출력
+```
+
+- Spring Boot에 OTel Instrumentation을 붙이면 `traceId`와 `spanId`가 MDC에 자동 주입된다
+- 로그 패턴에 `%X{trace_id}`를 쓸 수 있다
+
+즉 **traceId는 OTel이 만들고, MDC는 로그 출력을 위해 자동으로 받아쓴다.**
+
+앞의 "ThreadLocal이라서 생기는 두 가지 사고"는 이 구조에서도 그대로 유효하다.
+브릿지가 값을 넣어줄 뿐, 저장 위치는 여전히 ThreadLocal이기 때문이다.
+
+## 참고
+
+- [OpenTelemetry 공식 docs](https://opentelemetry.io/docs/what-is-opentelemetry/) — 관측 프레임워크 개념 정의
+- [W3C Trace Context](https://www.w3.org/TR/trace-context/) — `traceparent` 헤더 표준
