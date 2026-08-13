@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>김병태 이력서 — 백엔드·AI 서비스</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18181b;
+      --muted: #52525b;
+      --line: #d4d4d8;
+      --accent: #047857;
+      --accent-soft: #ecfdf5;
+      --paper: #ffffff;
+      --canvas: #e4e7ec;
+    }
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    html { background: var(--canvas); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+      font-size: 10.25pt;
+      line-height: 1.42;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .resume-page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 10mm auto;
+      padding: 14mm;
+      background: var(--paper);
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.14);
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 12mm;
+      padding-bottom: 6mm;
+      border-bottom: 2px solid var(--accent);
+    }
+    h1 { margin: 0; font-size: 25pt; line-height: 1.1; letter-spacing: -0.04em; }
+    .role { margin: 2mm 0 0; color: var(--accent); font-size: 12.5pt; font-weight: 750; }
+    .contact { color: var(--muted); font-size: 9pt; text-align: right; }
+    .contact a { display: block; margin-top: 1mm; }
+    h2 {
+      margin: 7mm 0 3mm;
+      padding-bottom: 1.5mm;
+      border-bottom: 1px solid var(--line);
+      color: var(--accent);
+      font-size: 12.5pt;
+      letter-spacing: -0.02em;
+    }
+    h3 { margin: 4mm 0 1.5mm; font-size: 10.5pt; line-height: 1.35; }
+    p { margin: 0 0 2.2mm; }
+    ul { margin: 1.5mm 0 3mm; padding-left: 5mm; }
+    li { margin: 1mm 0; }
+    a { color: inherit; text-decoration: none; }
+    strong { font-weight: 750; }
+    .lead {
+      margin-top: 4mm;
+      padding: 4mm;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-soft);
+      font-size: 10.75pt;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3mm;
+      margin-top: 3mm;
+    }
+    .summary-card { padding: 3.3mm; border: 1px solid var(--line); border-radius: 2mm; }
+    .summary-card strong { display: block; margin-bottom: 1mm; color: var(--accent); }
+    .project { margin-top: 3mm; padding-top: 3mm; border-top: 1px solid #e4e4e7; break-inside: avoid; }
+    .project:first-of-type { border-top: 0; }
+    .meta { color: var(--muted); font-size: 8.8pt; }
+    .decision { margin: 1.8mm 0; color: #3f3f46; }
+    .career-row {
+      display: grid;
+      grid-template-columns: 32mm 1fr;
+      gap: 4mm;
+      margin: 0 0 4mm;
+      break-inside: avoid;
+    }
+    .period { color: var(--muted); font-size: 9pt; font-weight: 650; }
+    .career-row h3 { margin-top: 0; }
+    .skills { display: grid; grid-template-columns: 28mm 1fr; gap: 1.7mm 4mm; }
+    .skills dt { color: var(--muted); font-weight: 700; }
+    .skills dd { margin: 0; }
+    .footer { margin-top: 5mm; color: var(--muted); font-size: 8.5pt; text-align: right; }
+    .resume-page:nth-of-type(2) {
+      padding-top: 11mm;
+      padding-bottom: 11mm;
+      font-size: 9.5pt;
+      line-height: 1.34;
+    }
+    .resume-page:nth-of-type(2) h2 { margin-top: 5mm; margin-bottom: 2.4mm; }
+    .resume-page:nth-of-type(2) h3 { margin-bottom: 1mm; }
+    .resume-page:nth-of-type(2) p { margin-bottom: 1.6mm; }
+    .resume-page:nth-of-type(2) .career-row { margin-bottom: 3mm; }
+    @media print {
+      html, body { background: white; }
+      .resume-page { margin: 0; box-shadow: none; break-after: page; }
+      .resume-page:last-child { break-after: auto; }
+    }
+    @media screen and (max-width: 800px) {
+      .resume-page { width: 100%; min-height: auto; margin: 0; padding: 24px; }
+      header, .career-row { grid-template-columns: 1fr; gap: 8px; }
+      .contact { text-align: left; }
+      .summary-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="resume-page">
+      <header>
+        <div>
+          <h1>김병태</h1>
+          <p class="role">백엔드·AI 서비스 개발자 · 경력 약 7년</p>
+        </div>
+        <div class="contact">
+          <a href="mailto:jon89071@gmail.com">jon89071@gmail.com</a>
+          <a href="https://github.com/jon890">github.com/jon890</a>
+        </div>
+      </header>
+
+      <section id="profile">
+        <h2>소개</h2>
+        <p class="lead">
+          Java·Kotlin 백엔드의 정합성, 동시성, 배치와 운영 문제를 해결해 왔습니다.
+          최근에는 RAG 색인, 문서 파싱과 AI 제품을 개발하고, 반복 업무를 AI 에이전트가 안전하게 실행할 수 있는 도구와 검증 흐름으로 바꾸고 있습니다.
+        </p>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <strong>백엔드 운영</strong>
+            캐시 정합성, 배치 재시작, 비동기 처리와 점진 리팩터링
+          </div>
+          <div class="summary-card">
+            <strong>AI 서비스</strong>
+            벡터 색인, 문서 파싱, OCR 연동과 풀스택 AI 제품
+          </div>
+          <div class="summary-card">
+            <strong>개발 생산성</strong>
+            에이전트 컨텍스트, 실행 CLI, 코드리뷰와 검증 자동화
+          </div>
+        </div>
+      </section>
+
+      <section id="selected-work">
+        <h2>대표 경험</h2>
+
+        <article class="project">
+          <h3>문서 파싱 서비스의 품질·성능·운영 개선</h3>
+          <p class="meta">2026.05–현재 · Python, FastAPI, OCR, Prometheus, Grafana</p>
+          <p class="decision">
+            PDF와 오피스 문서를 Markdown으로 변환하는 서비스에서 주 기여자로 워커 병렬화, 파서 분해, 품질 회귀와 운영 안정화를 맡았습니다.
+          </p>
+          <ul>
+            <li>회귀 검증과 golden 정답 평가를 분리하고, 표 구조는 셀 단위 F1으로 별도 검증했습니다.</li>
+            <li>대용량 XLSX를 행 단위로 처리해 27GiB 제한을 채우던 입력의 RSS를 약 92MB로 낮췄습니다.</li>
+            <li>중복 CUDA 의존성을 제거해 이미지 압축 크기를 9.89GB에서 6.82GB로 줄였고 동작 회귀가 없음을 확인했습니다.</li>
+          </ul>
+        </article>
+
+        <article class="project">
+          <h3>다중 소스 RAG 벡터 색인 배치</h3>
+          <p class="meta">2026.01–현재 · Java 21, Spring Batch, OpenSearch, MySQL</p>
+          <p class="decision">
+            여러 기여자와 함께 문서 수집, 변환, 임베딩, 색인과 삭제 동기화를 단계별로 분리하고 주요 처리 단계를 개발했습니다.
+          </p>
+          <ul>
+            <li>11개 Step으로 실패 범위를 격리하고 커서 기반 Reader로 중단 지점부터 재시작할 수 있게 했습니다.</li>
+            <li>비동기 Processor·Writer로 I/O 작업을 병렬화하고 변경 없는 문서의 임베딩을 건너뛰었습니다.</li>
+            <li>Testcontainers, JaCoCo와 SonarQube로 통합 테스트와 품질 검증을 자동화했습니다.</li>
+          </ul>
+        </article>
+
+        <article class="project">
+          <h3>OCR API와 배포 경로 안정화</h3>
+          <p class="meta">2026.03–현재 · Java 21, Reactor Netty, gRPC, Envoy, Kubernetes</p>
+          <ul>
+            <li>모델 서버의 기동·종료 순서와 OCR API의 커넥션 수명·재시도 정책을 함께 고쳤습니다.</li>
+            <li>도달할 수 없는 모델 주소의 연결 실패 시간을 약 30초에서 2.1초로 줄였습니다.</li>
+            <li>Gateway부터 모델 서버까지 요청 식별자를 전파하고 새 공인 호출 경로의 등가성·접근 차단·부하를 검증했습니다.</li>
+          </ul>
+        </article>
+      </section>
+    </section>
+
+    <section class="resume-page">
+      <section id="career">
+        <h2>경력</h2>
+
+        <div class="career-row">
+          <div class="period">2025.12–현재</div>
+          <div>
+            <h3>NHN · AI 서비스 개발</h3>
+            <p>RAG 벡터 색인 배치, 문서 파싱 서비스, OCR API·배포 환경과 AI 제품을 개발합니다.</p>
+            <p>Next.js·TypeScript·Gemini 기반 AI 웹툰 제작 도구는 전반 12일에 MVP를 만들고 이어진 12일 동안 구조, 관측성, 오류 처리와 통합 테스트를 보강했습니다.</p>
+          </div>
+        </div>
+
+        <div class="career-row">
+          <div class="period">2024.06–2025.11</div>
+          <div>
+            <h3>NHN · 슬롯 백엔드 개발</h3>
+            <p>Java 17·Spring Boot 3 기반 신규 슬롯 5종 개발에 참여했습니다.</p>
+            <p>반복이 확인된 뒤 서비스와 계산 규칙을 분리하고, 잠금 기반 캐시 읽기 보호와 알고리즘 기반 성능 개선을 적용했습니다.</p>
+            <p>20개 이상의 도메인 규칙과 사람 검토 흐름을 만들어 AI 에이전트가 신규 슬롯 3종을 구현하도록 운영했습니다.</p>
+          </div>
+        </div>
+
+        <div class="career-row">
+          <div class="period">2023.01–2024.03</div>
+          <div>
+            <h3>NHN · 스포츠 플랫폼 개발</h3>
+            <p>Java·Kotlin 백엔드에서 추천 보상 상태 처리, 다중 서버 정산, 캐시 읽기 보호와 13개 로케일 다국어 시스템을 개발했습니다.</p>
+          </div>
+        </div>
+
+        <div class="career-row">
+          <div class="period">2022.02–2022.11</div>
+          <div>
+            <h3>더퓨쳐컴퍼니 · Node.js 백엔드</h3>
+            <p>TypeScript·NestJS와 Redis Streams·JSON·검색 기능을 이용해 게임 아이템 거래 체결과 블록체인 입출금 흐름을 개발했습니다.</p>
+          </div>
+        </div>
+
+        <div class="career-row">
+          <div class="period">2018.08–2020.12<br>2021.07–2022.01</div>
+          <div>
+            <h3>엠씨에스텍 · Java SI 개발</h3>
+            <p>공공기관 시스템의 배치, 인사평가 로직 이전, Struts 기반 서비스의 Spring MVC 현대화와 Android 앱을 개발했습니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="motivation">
+        <h2>지향하는 역할</h2>
+        <p>
+          백엔드 운영의 깊이를 유지하면서 AI가 실제 제품과 업무 흐름 안에서 신뢰할 수 있게 동작하도록 만드는 역할을 지향합니다.
+          모델 자체보다 데이터 입력, 실행 경계, 실패 복구와 검증 체계를 제품 수준으로 연결하는 데 강점이 있습니다.
+        </p>
+      </section>
+
+      <section id="skills">
+        <h2>기술</h2>
+        <dl class="skills">
+          <dt>백엔드</dt>
+          <dd>Java 11·17·21, Kotlin, Spring Boot 2.6·3.x, Spring Batch, JPA, QueryDSL, WebClient, Reactor Netty</dd>
+          <dt>데이터</dt>
+          <dd>MySQL, PostgreSQL, Redis, OpenSearch, Ehcache</dd>
+          <dt>AI 서비스</dt>
+          <dd>RAG 색인, 문서 파싱, OCR 연동, Gemini API, Python·FastAPI 운영 개선</dd>
+          <dt>웹 제품</dt>
+          <dd>TypeScript, Node.js, NestJS, Next.js, React, Svelte</dd>
+          <dt>운영</dt>
+          <dd>Kubernetes, Helm, ArgoCD, Docker, Prometheus, Grafana</dd>
+          <dt>검증</dt>
+          <dd>JUnit 5, Testcontainers, JaCoCo, SonarQube, golden set, NED, 표 셀 F1</dd>
+        </dl>
+      </section>
+
+      <section>
+        <h2>개인 프로젝트</h2>
+        <p><strong>dooray-cli</strong> — 협업 시스템의 업무·위키·메일을 구조화된 명령과 JSON 출력으로 제공하는 TypeScript CLI</p>
+        <p><strong>nhncloud-cli</strong> — 클라우드 리소스 작업을 표준 종료 코드와 JSON 응답으로 통합한 TypeScript CLI</p>
+      </section>
+
+      <section>
+        <h2>학력·자격</h2>
+        <p>전남대학교 수학 전공, 소프트웨어공학 부전공 · 2019.02 졸업 · 정보처리기사</p>
+      </section>
+
+      <p class="footer">2026년 8월 갱신</p>
+    </section>
+  </main>
+</body>
+</html>

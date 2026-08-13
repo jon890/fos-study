@@ -16,7 +16,7 @@
 
 ### AI 서비스와 지식 기반
 
-- 사내 RAG를 위한 다중 소스 벡터 색인 파이프라인을 설계했습니다.
+- 사내 RAG를 위한 다중 소스 벡터 색인 파이프라인의 배치 구조와 주요 처리 단계를 개발했습니다.
 - Python·FastAPI 기반 문서 파싱 서비스의 워커 병렬화, 품질 검증과 운영 문제를 개선했습니다.
 - Next.js·TypeScript·Gemini 기반 AI 제품을 프론트엔드부터 데이터베이스와 AI 파이프라인까지 완성했습니다.
 
@@ -37,7 +37,7 @@
 
 | 영역 | 기술과 경험 |
 |---|---|
-| Backend | Java 11·17·21, Kotlin, Spring Boot, Spring Batch, Spring WebFlux, JPA, QueryDSL, NestJS |
+| Backend | Java 11·17·21, Kotlin, Spring Boot, Spring Batch, JPA, QueryDSL, WebClient·Reactor Netty, NestJS |
 | AI / Data | RAG, LLM workflow, Gemini API, OpenSearch vector search, document parsing, OCR quality evaluation |
 | Frontend | TypeScript, Next.js, React, Svelte, Server Actions, SSE |
 | Storage | MySQL, PostgreSQL, Redis, OpenSearch, Ehcache, Azure Blob Storage |
@@ -71,7 +71,7 @@
 
 #### 기여
 
-- Java 21·Spring Boot·Spring Batch 기반 파이프라인을 처음부터 설계했습니다.
+- Java 21·Spring Boot·Spring Batch 기반 파이프라인의 구조와 주요 처리 단계를 설계·구현했습니다.
 - 수집, 변환, 임베딩, 색인, 삭제 동기화와 완료 처리를 11개 Step으로 분리했습니다.
 - `AsyncItemProcessor`와 `AsyncItemWriter`로 I/O 작업을 병렬화했습니다.
 - `CompositeItemProcessor`로 변경 감지, 데이터 보강, 본문 변환과 임베딩 단계를 조합했습니다.
@@ -82,7 +82,7 @@
 
 #### 결과
 
-- 사내 AI 서비스의 RAG 색인 기반을 처음부터 구축했습니다.
+- 사내 AI 서비스의 RAG 색인 기반을 여러 기여자와 함께 구축했습니다.
 - Step별 실패 격리와 재시작이 가능한 운영 구조를 마련했습니다.
 - 문서 원천이 늘어나도 메타데이터 Provider를 추가해 확장할 수 있게 했습니다.
 
@@ -109,20 +109,42 @@ OCR과 문서 변환 결과는 라이브러리나 설정 변경에 따라 쉽게
 - 이전 출력과 비교하는 NED 회귀 검증에 사람이 확정한 golden 채점을 추가했습니다.
 - 표는 전체 텍스트 점수와 분리해 셀 단위 F1으로 평가했습니다.
 - 운영 서버를 사용하던 검증 방식을 일회성 클라우드 인스턴스로 전환했습니다.
-- 시간당 약 1.4GB씩 증가하던 워커 RSS를 glibc 메모리 단편화로 진단했습니다.
-- `gc.collect()`와 `malloc_trim`을 결합한 메모리 정리와 카나리 검증으로 RSS가 일정 범위에서 유지되도록 개선했습니다.
+- `gc.collect()` 뒤에도 남는 워커 RSS를 glibc 메모리 단편화 관점에서 진단했습니다.
+- `malloc_trim`을 환경변수로 제어하고 카나리에서 메모리 추이를 검증했습니다.
+- 대용량 XLSX를 행 단위로 처리해 27GiB 제한을 채우던 입력의 RSS를 약 92MB로 낮췄습니다.
+- 중복 CUDA 의존성을 제거해 컨테이너 이미지 압축 크기를 9.89GB에서 6.82GB로 줄였습니다.
 
 #### 결과
 
 - 품질 저하를 자동으로 차단하면서 개선 실험을 반복할 수 있는 기반을 만들었습니다.
 - 운영 인스턴스에 영향을 주지 않는 검증 환경을 마련했습니다.
-- 워커 강제 재시작에 의존하던 메모리 방어와 예열 비용을 줄였습니다.
+- 메모리, 좀비 프로세스와 GPU 이미지 크기를 운영 지표와 회귀 검증으로 관리할 수 있게 했습니다.
 
 #### 기술
 
 Python 3.11, FastAPI, ProcessPoolExecutor, docling, PaddleOCR, Docker, Prometheus, Grafana
 
 자세한 내용은 [문서 파싱 파이프라인](../task/ai-service-team/playground-document-parser.md)에서 확인할 수 있습니다.
+
+### OCR API와 배포 경로 안정화
+
+OCR 모델 서버의 배포·오토스케일 전환 때 기동 전 요청과 종료 중 연결 단절이 발생했습니다.
+기존 API Gateway를 제거한 뒤에는 HTTPS, 경로 변환과 접근 제어를 직접 책임져야 했습니다.
+
+- 모델 서버의 준비 신호 뒤에 Envoy가 요청을 받도록 기동 순서를 고쳤습니다.
+- gRPC 종료 유예, 프로세스 신호 전달과 Envoy drain 순서를 맞췄습니다.
+- OCR API의 커넥션 수명, 2초 연결 제한과 안전한 오류만 다시 보내는 재시도 정책을 적용했습니다.
+- Gateway부터 모델 서버까지 `X-Request-Id`를 전파해 로그를 연결했습니다.
+- 외부용 Ingress Controller, LoadBalancer, HTTPS와 IP 접근 제어를 구성했습니다.
+- 기존 경로와 새 경로의 응답 등가성, 접근 차단과 지속 부하를 검증했습니다.
+
+도달할 수 없는 모델 주소의 연결 실패를 약 30초에서 2.1초로 줄였습니다.
+기동과 종료 양쪽의 연결 실패를 서버와 호출자 계층에서 함께 방어했습니다.
+
+Java 21, Spring Boot 3.x, WebClient, Reactor Netty, Python, gRPC, Envoy, Kubernetes, Helm, ArgoCD
+
+- [OCR 오토스케일 연결 안정화](../task/ai-service-team/ocr-scale-connection-resilience.md)
+- [OCR 공인 진입점 전환](../task/ai-service-team/ocr-api-gateway-removal.md)
 
 ### AI 웹툰 제작 도구
 
@@ -145,7 +167,8 @@ Python 3.11, FastAPI, ProcessPoolExecutor, docling, PaddleOCR, Docker, Prometheu
 
 #### 결과
 
-- 12일 동안 199개 계획과 760개 커밋을 거쳐 MVP 범위를 완성했습니다.
+- 전반 12일 동안 199개 계획과 760개 커밋으로 MVP 범위를 완성했습니다.
+- 후반 12일에는 구조, 관측성, 오류 처리와 통합 테스트를 보강해 운영 단계로 확장했습니다.
 - 본인은 요구사항, 설계, 계획과 검토를 맡고 에이전트가 구현하는 개발 하네스를 정착시켰습니다.
 - 운영자가 단계별 결과를 검토하고 수정·재생성할 수 있는 제품 흐름을 만들었습니다.
 
@@ -163,7 +186,7 @@ Next.js 16, React 19, TypeScript, PostgreSQL, Prisma, Zod, Gemini API
 
 ### 슬롯 도메인과 아키텍처 개선
 
-- Spring Boot 3·Java 17 기반 신규 슬롯 5종을 개발했습니다.
+- Spring Boot 3·Java 17 기반 신규 슬롯 5종 개발에 참여했습니다.
 - 여러 슬롯 구현에서 반복되는 패턴을 확인한 뒤 `BaseSlotService`와 페이 조건 추상화(`SlotPayConditionChecker`)를 도입했습니다.
 - 플레이 모드별 중복 흐름을 템플릿과 핸들러 구조로 통합했습니다.
 - 슬롯별 당첨 계산 규칙은 Decorator와 Strategy 조합으로 확장했습니다.
