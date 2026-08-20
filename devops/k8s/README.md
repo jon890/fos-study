@@ -30,6 +30,12 @@
 | 6 | [IP whitelist가 조용히 뚫려 있었다](./client-ip-preservation.md) | L4 패스스루와 SNAT 로 클라이언트 IP 가 사라지는 구간 |
 | 7 | [파드가 서비스 이름을 못 푸는 이유](./pod-dns-policy-and-ndots.md) | dnsPolicy 4종, ndots 와 search 도메인 전개 |
 
+## 운영 기록 — 시리즈에 속하지 않는 글
+
+| 글 | 다루는 것 |
+|---|---|
+| [PodDisruptionBudget](./pod-disruption-budget.md) | minAvailable 과 maxUnavailable 의 계산식, 노드 교체 중 동시 중단 방지 |
+
 ## 함께 보면 좋은 글
 
 - [HTTPS는 어떻게 안전한가](../../http/https-tls-basics.md) — TLS termination 위치
