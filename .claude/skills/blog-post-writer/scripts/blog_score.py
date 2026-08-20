@@ -8,7 +8,8 @@ docs_score(저장소 전체) 와 달리 단일 글 대상이라, 두 용도로 �
   1. 글 작성 직후 자가점검 자동화 (markdown-pitfalls 체크리스트의 코드화)
   2. SkillOpt-Sleep 의 external_score reward (단일 response 채점)
 
-정적이 못 잡는 의미 품질(인사이트·AI 티·흐름)은 LLM judge 영역 — 여기 없음.
+정적이 못 잡는 의미 품질(인사이트, AI 티, 흐름)은 LLM judge 영역이고 여기 없다.
+언어와 매체 공통 축은 ~/.claude/scripts 의 두 검사기가 소유한다. 여기는 fos-blog 전용이다.
 이것은 2계층 reward 의 *1계층(회귀 방지 바닥)* 이다.
 
 사용:
@@ -22,26 +23,16 @@ import re
 import sys
 from pathlib import Path
 
-# 위반 가중치 — markdown-pitfalls 우선순위 반영
+# fos-blog 렌더러 고유 함정만 여기서 본다.
+# 언어·매체 공통 축(외래어, 물결표, §, 엠대시, 괄호 중첩)은 ~/.claude/scripts 의
+# korean-style-check.sh 와 check-readability.py 가 모든 .md 에 대해 강제한다.
 WEIGHTS = {
-    "bold_quote": 3,      # **"..."** — bold 렌더 실패
-    "bold_paren": 3,      # **텍스트(영문)** — bold 렌더 실패
-    "heading_number": 3,  # ## 1. 제목 — fos-blog 자동번호와 이중
-    "ascii_box": 2,       # ┌│▼ 박스 다이어그램 — mermaid 권장
-    "tilde": 2,           # ~ 취소선 함정
-    "section_sign": 2,    # § 특수문자
-    "italic_paren": 2,    # *한글(영문)* — 이탤릭 렌더 실패
-    "number_crossref": 1, # "위 3번", "섹션 2" — 자동번호와 어긋남
-    "awkward_term": 1,    # 외과적·트리아지 류 — 영어 직역/생소 비유어 (가독성)
-}
-
-# 영어 직역·생소 비유어 → 한국 독자가 한 번에 못 읽는 표현.
-# korean-style.md 매핑 표의 *명백한* 항목만 좁게 담는다. 맥락 의존(폭주 등)은
-# false positive 가 잦아 LLM judge(blog_judge.py)에 맡긴다.
-AWKWARD_TERMS = {
-    "외과적": "정밀한 / 국소적 / 범위를 좁힌",
-    "트리아지": "분류 / 분류 작업",
-    "오살": "엉뚱한 프로세스를 죽이는 문제",
+    "bold_quote": 3,      # **"..."**: bold 렌더 실패
+    "bold_paren": 3,      # **텍스트(영문)**: bold 렌더 실패
+    "heading_number": 3,  # ## 1. 제목: fos-blog 자동번호와 이중
+    "ascii_box": 2,       # ┌│▼ 박스 다이어그램: mermaid 권장
+    "italic_paren": 2,    # *한글(영문)*: 이탤릭 렌더 실패
+    "number_crossref": 1, # "위 3번", "섹션 2": 자동번호와 어긋남
 }
 
 CODE_FENCE = re.compile(r"```.*?```", re.DOTALL)
@@ -81,20 +72,10 @@ def score_text(text):
     # 그걸 mermaid 로 바꾸라는 규칙이라 마스킹하면 안 잡힌다 (트리 ├└─ 는 제외)
     if ASCII_BOX.search(text):
         d["ascii_box"].append("box-drawing char")
-    d["section_sign"] += ["§"] * masked.count("§")
     if ITALIC_PAREN.search(masked):
         d["italic_paren"].append("italic+paren")
     for m in NUMBER_CROSSREF.finditer(masked):
         d["number_crossref"].append(m.group(0))
-    for term, alt in AWKWARD_TERMS.items():
-        if term in masked:
-            d["awkward_term"].append(f"{term} → {alt}")
-    # tilde — paragraph 내 unescaped non-homepath ~ 2개+
-    for para in re.split(r"\n\s*\n", masked):
-        tmp = re.sub(r"~/[\w./-]+", "", para.replace("\\~", ""))
-        if tmp.count("~") >= 2:
-            d["tilde"].append("range-tilde paragraph")
-
     total = sum(len(v) for v in d.values())
     return total, d
 

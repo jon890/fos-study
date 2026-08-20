@@ -266,8 +266,17 @@ python3 scripts/blog_score.py <글.md>          # 위반 리포트
 python3 scripts/blog_score.py --json <글.md>    # 기계 판독용
 ```
 
-채점 축 (정적): `bold_quote`, `bold_paren`, `heading_number`, `ascii_box`, `tilde`, `section_sign`, `italic_paren`, `number_crossref`.
-위반 0이면 1계층 통과. 위반이 있으면 저장 전 교정한다.
+채점 축 (정적): `bold_quote`, `bold_paren`, `heading_number`, `ascii_box`, `italic_paren`, `number_crossref`.
+모두 fos-blog 렌더러 고유 함정이다. 위반 0이면 1계층 통과. 위반이 있으면 저장 전 교정한다.
+
+언어와 매체 공통 축은 여기서 보지 않는다. 전역 훅이 모든 `.md` 에 대해 강제한다.
+
+| 검사기 | 잡는 것 |
+| --- | --- |
+| `~/.claude/scripts/korean-style-check.sh` | 외래어 금지어, 인라인 `+` 연결 |
+| `~/.claude/scripts/check-readability.py` | 괄호 2겹 중첩, `§`, 범위 물결표, 엠대시 |
+
+엠대시는 제목과 평문에서 걸린다. 목록 항목과 표 셀의 이름-설명 구분은 통과한다.
 
 **안전 위반 일괄 교정 — `scripts/blog_fix.py`**:
 `heading_number`(`## N.` 자동번호)와 `bold_quote`(`**"..."**`)는 기계적으로 안전하게 되돌릴 수 있어 `blog_fix.py` 가 일괄 교정한다.

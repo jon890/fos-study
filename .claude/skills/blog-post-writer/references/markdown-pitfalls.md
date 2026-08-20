@@ -7,13 +7,13 @@
 스크립트 점검:
 
 ```bash
-grep -nE '\*\*"|"\*\*' <file>      # L. bold 안 따옴표 → 따옴표 제거
-grep -nE '[┌│▼└┐┘─├]' <file>      # M. ASCII 박스 다이어그램 → mermaid (트리 제외)
-grep -n "~" <file>                 # G. paragraph당 ~ 2개+ → 취소선 함정, 이스케이프
-grep -n "§" <file>                 # H. § → 평문 치환
-grep -nE "^#+ [0-9]+\." <file>     # K. heading 숫자 prefix 금지
-grep -nE "(위 [0-9]+|[0-9]+개 항목|[0-9]+번 항목|섹션 [0-9]+)" <file>  # K. 본문 숫자 cross-ref
+python3 ~/.claude/skills/blog-post-writer/scripts/blog_score.py <file>   # fos-blog 렌더 함정 6축
+python3 ~/.claude/scripts/check-readability.py <file>                    # 괄호 중첩, §, 물결표, 엠대시
+~/.claude/scripts/korean-style-check.sh <file>                           # 외래어 금지어, 인라인 + 연결
 ```
+
+세 검사기가 겹치지 않게 축을 나눠 갖는다. 물결표와 `§` 는 `check-readability.py` 로 옮겼으니
+`blog_score.py` 출력에서 찾지 않는다.
 
 수동 점검 (스크립트로 안 잡힘):
 
