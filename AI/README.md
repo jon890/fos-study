@@ -28,6 +28,7 @@ Java 백엔드 관점에서 LangGraph를 처음부터 익히고 Spring AI 2 연�
 ## Agent 설계 (agent/)
 
 - [엔터프라이즈 AI Agent 설계](./agent/enterprise-ai-agent-design.md) — reasoning, tool, memory, cost, governance를 운영 시스템으로 묶는 허브 문서
+- [Lost in the Middle와 컨텍스트 관리](./agent/lost-in-the-middle-context-management.md) — 긴 컨텍스트에서 가운데 정보가 사라지는 이유와 결정론적 조립 규칙
 - [온톨로지에서 코딩 에이전트 컨텍스트까지](./ontology-knowledge-graph-agent-context.md) — 클래스·별칭·관계 설계와 벡터 RAG 비교 평가
 - [LLM Tool Calling 에이전트 워크플로](./agent/llm-tool-calling-agent-workflow.md) — Tool Use 루프, 결정성/관측성 설계
 - [Agentic Workflow 상태 관리](./agent/agentic-workflow-state-management-langgraph.md) — LangGraph State Graph, Checkpoint, HITL, Tool 권한 경계
