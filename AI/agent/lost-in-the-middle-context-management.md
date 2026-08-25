@@ -9,6 +9,10 @@ thumbnail: ./images/lost-in-the-middle-context-management-thumbnail.jpg
 컨텍스트 창이 크다는 말은 많은 토큰을 입력할 수 있다는 뜻이다.
 그 안의 모든 정보를 같은 정확도로 찾아 연결한다는 보장은 아니다.
 
+[Transformer는 입력을 어떻게 다음 토큰 확률로 바꾸는가](../llm/transformer-from-tokens-to-logits.md)와
+[다음 토큰 예측은 왜 환각과 긴 컨텍스트 실패로 이어지는가](../llm/why-llms-hallucinate-and-lose-context.md)를 먼저 읽으면,
+이 글에서 사용하는 attention과 자동회귀 생성의 한계를 내부 계산부터 연결해서 볼 수 있다.
+
 긴 입력에서 중요한 근거가 가운데에 있을 때 모델이 놓치는 현상을 **Lost in the Middle**이라고 부른다.
 처음에는 이 문제를 모델의 기억력 한계로만 생각하기 쉽다.
 하지만 에이전트를 만드는 입장에서는 더 실용적인 결론을 얻을 수 있다.

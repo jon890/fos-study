@@ -4,6 +4,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 
 ## 하위 주제
 
+- [LLM 내부 구조](./llm/README.md) — Transformer 계산, next-token 학습, 환각과 긴 context 실패를 잇는 학습 순서
 - [RAG (Retrieval-Augmented Generation)](./RAG/README.md) — 임베딩, 벡터 검색, 실무 사례
 - [Neo4j GraphRAG 학습 시리즈](./RAG/neo4j-graphrag/README.md) — 관계 탐색과 원문 근거를 제공하는 에이전트 검색 도구 구축
 - [LangGraph](./langgraph/langgraph-overview.md) — 에이전트 워크플로를 그래프로 통제하기
@@ -33,6 +34,11 @@ Java 백엔드 관점에서 LangGraph를 처음부터 익히고 Spring AI 2 연�
 - [LLM Tool Calling 에이전트 워크플로](./agent/llm-tool-calling-agent-workflow.md) — Tool Use 루프, 결정성/관측성 설계
 - [Agentic Workflow 상태 관리](./agent/agentic-workflow-state-management-langgraph.md) — LangGraph State Graph, Checkpoint, HITL, Tool 권한 경계
 - [Agentic Workflow 평가와 Risk Gate](./agent/agentic-workflow-evaluation-risk-gate.md) — 궤적 평가, LLM-as-a-judge, HITL, 안전 점검 단계
+
+## LLM 내부 구조 (llm/)
+
+- [Transformer는 입력을 어떻게 다음 토큰 확률로 바꾸는가](./llm/transformer-from-tokens-to-logits.md) — token, embedding, Q·K·V, FFN, logits, KV cache
+- [다음 토큰 예측은 왜 환각과 긴 컨텍스트 실패로 이어지는가](./llm/why-llms-hallucinate-and-lose-context.md) — 학습 목표와 자동회귀 생성에서 환각·위치 편향까지 이어지는 원리
 
 ## 평가와 운영 (Applied AI)
 
