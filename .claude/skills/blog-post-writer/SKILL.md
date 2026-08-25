@@ -299,7 +299,12 @@ judge 명령이 없으면 1계층 정적 점검과 사람 검토로 대체한다
 ```bash
 BLOG_JUDGE_CMD='claude -p {prompt}' python3 scripts/blog_judge.py <글.md>
 python3 scripts/blog_judge.py --type study <글.md>
+python3 scripts/blog_judge.py --as-of 2026-08-25 <글.md>
 ```
+
+judge 프롬프트에는 실행 환경의 오늘 날짜가 자동으로 들어간다.
+과거 시점 기준의 글을 재평가할 때만 `--as-of YYYY-MM-DD`로 기준일을 고정한다.
+arXiv 식별자의 `YYMM`을 기준일과 비교하므로, 이미 지난 연월의 자료를 미래 자료로 오판하지 않는다.
 
 grade inflation·비결정을 두 장치로 막는다:
 

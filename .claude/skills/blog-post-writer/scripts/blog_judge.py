@@ -26,6 +26,7 @@ import re
 import shlex
 import subprocess
 import sys
+from datetime import date
 from pathlib import Path
 
 RUBRIC_HEAD = """당신은 한국 기술 블로그 글을 엄격하게 평가하는 시니어 개발자다.
@@ -52,6 +53,13 @@ RUBRIC_STUDY = """이 글은 본인이 직접 구현한 경험담이 아니라 �
 RUBRIC_TAIL = "후하게 주지 마라. 평범한 글은 0.5 근처다. 0.8 이상은 정말 뛰어난 글에만 준다."
 
 
+def build_temporal_context(as_of):
+    return f"""평가 기준일은 {as_of}다. 자료의 공개 시점과 제품 버전을 반드시 이 날짜 기준으로 판단하라.
+- arXiv 식별자의 앞 네 자리는 등록 연월(YYMM)이다. 예를 들어 2605는 2026년 5월이며, 기준일이 그 이후라면 미래 자료가 아니다.
+- 익숙하지 않다는 이유나 식별자만으로 출처가 존재하지 않는다고 단정하지 마라. 외부 확인 수단이 없으면 '실재를 확인할 수 없음'과 '시간상 존재할 수 없음'을 구분하라.
+- 기준일보다 뒤의 자료이거나 연월 형식이 불가능한 경우에만 시간 모순으로 감점하라."""
+
+
 def detect_type(path, text):
     """글 유형 자동 감지 — task/ 경로 또는 '진행 기간' 헤더면 experience, 그 외 study(보수적)."""
     p = path.replace("\\", "/")
@@ -62,9 +70,9 @@ def detect_type(path, text):
     return "study"
 
 
-def build_rubric(doc_type):
+def build_rubric(doc_type, as_of):
     body = RUBRIC_EXPERIENCE if doc_type == "experience" else RUBRIC_STUDY
-    return f"{RUBRIC_HEAD}\n\n{body}\n{RUBRIC_COMMON}\n\n{RUBRIC_TAIL}"
+    return f"{RUBRIC_HEAD}\n\n{build_temporal_context(as_of)}\n\n{body}\n{RUBRIC_COMMON}\n\n{RUBRIC_TAIL}"
 
 PROMPT_TAIL = (
     "\n\n먼저 이 글의 가장 큰 약점 3가지를 찾아라. 그 약점을 반영해 점수를 정하라.\n"
@@ -90,8 +98,9 @@ def build_command(prompt, model=""):
     return cmd, stdin
 
 
-def judge_once(text, model="", doc_type="study"):
-    prompt = f"{build_rubric(doc_type)}{PROMPT_TAIL}\n\n=== 평가 대상 글 ===\n{text}"
+def judge_once(text, model="", doc_type="study", as_of=None):
+    as_of = as_of or date.today().isoformat()
+    prompt = f"{build_rubric(doc_type, as_of)}{PROMPT_TAIL}\n\n=== 평가 대상 글 ===\n{text}"
     cmd, stdin = build_command(prompt, model)
     if not cmd:
         return None
@@ -108,8 +117,8 @@ def judge_once(text, model="", doc_type="study"):
         return None
 
 
-def score_quality(text, n=3, model="", doc_type="study"):
-    results = [judge_once(text, model, doc_type) for _ in range(n)]
+def score_quality(text, n=3, model="", doc_type="study", as_of=None):
+    results = [judge_once(text, model, doc_type, as_of) for _ in range(n)]
     results = [r for r in results if r and "score" in r]
     if not results:
         return 0.0, results
@@ -123,18 +132,27 @@ def main():
     ap.add_argument("file")
     ap.add_argument("--n", type=int, default=3)
     ap.add_argument("--model", default="")
+    ap.add_argument("--as-of", default=date.today().isoformat(),
+                    help="평가 기준일 YYYY-MM-DD (기본: 실행 환경의 오늘)")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--type", choices=["auto", "experience", "study"], default="auto",
                     help="글 유형 (기본 auto — task/ 경로·진행 기간 헤더로 감지)")
     args = ap.parse_args()
 
+    try:
+        date.fromisoformat(args.as_of)
+    except ValueError:
+        ap.error("--as-of는 YYYY-MM-DD 형식이어야 합니다")
+
     text = Path(args.file).read_text(encoding="utf-8", errors="ignore")
     doc_type = detect_type(args.file, text) if args.type == "auto" else args.type
-    median, results = score_quality(text, n=args.n, model=args.model, doc_type=doc_type)
+    median, results = score_quality(
+        text, n=args.n, model=args.model, doc_type=doc_type, as_of=args.as_of
+    )
 
     if args.json:
         print(json.dumps({
-            "file": args.file, "doc_type": doc_type, "quality": median,
+            "file": args.file, "doc_type": doc_type, "as_of": args.as_of, "quality": median,
             "n_valid": len(results), "judgements": results,
         }, ensure_ascii=False, indent=2))
         return 0
