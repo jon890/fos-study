@@ -35,6 +35,7 @@
 | 글 | 다루는 것 |
 |---|---|
 | [PodDisruptionBudget](./pod-disruption-budget.md) | minAvailable 과 maxUnavailable 의 계산식, 노드 교체 중 동시 중단 방지 |
+| [ArgoCD는 초록불인데 서비스는 죽어 있었다](./cloud-resource-drift-immutable-fields.md) | 클라우드 리소스 드리프트, 불변 필드, 재조정 경계와 복구 검증 |
 
 ## 함께 보면 좋은 글
 
