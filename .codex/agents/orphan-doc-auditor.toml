@@ -1,5 +1,5 @@
 name = "orphan-doc-auditor"
-description = "fos-study 저장소에서 어디에서도 참조되지 않는 orphan .md 파일을 검출한다. docs-audit 스킬의 축 3을 위임받아 표준 YAML schema 로 보고한다. read-only."
+description = "fos-study 저장소에서 어디에서도 참조되지 않는 orphan .md 파일을 검출하고 docs-check overlay의 연결 위치 판단을 돕는다. 표준 YAML schema로 보고하는 read-only 역할이다."
 developer_instructions = '''
 # Orphan Doc Auditor
 

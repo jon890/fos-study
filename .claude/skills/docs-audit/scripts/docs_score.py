@@ -2,15 +2,15 @@
 """
 docs_score.py — fos-study 문서 건전성 점수 측정기
 
-docs-audit 7축 중 *객관적으로 채점 가능한* 축만 점수로 환산한다.
-가시성(축 5)·cross-link(축 4) 은 주관 판단이라 점수에서 제외한다.
+fos-study 문서 감사 중 객관적으로 채점 가능한 구조와 문체 패턴만 점수로 환산한다.
+가시성과 cross-link는 주관 판단이므로 공용 docs-check와 프로젝트 overlay가 담당한다.
 
-reward = -(가중 위반 합).  위반이 0이면 score = 0 (만점).
-SkillOpt 의 reward 함수 역할 — 규칙 편집이 직전 버전 대비 개선인지 게이트로 쓴다.
+reward = -(가중 위반 합). 위반이 0이면 score = 0 (만점).
+SkillOpt 의 reward 함수 역할: 규칙 편집이 직전 버전 대비 개선됐는지 확인할 때 쓴다.
 
 사용:
   python3 docs_score.py                 # 측정 + 직전 대비 delta 출력
-  python3 docs_score.py --save          # 측정 후 history 에 기록 (게이트 통과 시)
+  python3 docs_score.py --save          # 측정 후 history 에 기록 (점검 통과 시)
   python3 docs_score.py --json          # 기계 판독용 JSON 만 출력
   python3 docs_score.py --root <path>   # 대상 저장소 루트 지정
 """
@@ -35,7 +35,7 @@ STYLE_EXEMPT_PATTERNS = [
 # orphan 판정 시 진입점으로 보아 제외 (어디서도 링크 안 돼도 정상)
 ORPHAN_ENTRYPOINTS = {"README.md", "INDEX.md", "CLAUDE.md", "AGENTS.md"}
 
-# 위반 가중치 — docs-audit 리포트 우선순위(높음/중간) 반영
+# 위반 가중치는 구조 오류의 복구 우선순위를 반영한다.
 WEIGHTS = {
     "broken_link": 5,      # 높음 — 링크가 깨지면 독자가 막힘
     "readme_missing": 3,   # 높음 — README 가 폴더 내용과 어긋남
@@ -111,7 +111,7 @@ def check_broken_links(md_files, root):
 
 
 def check_orphans(md_files, root):
-    """축 3 — 어느 문서에서도 링크되지 않은 .md (진입점 제외)."""
+    """어느 문서에서도 링크되지 않은 .md를 찾는다. 진입점은 제외한다."""
     linked = set()
     for f in md_files:
         text = f.read_text(encoding="utf-8", errors="ignore")
@@ -138,7 +138,7 @@ def check_orphans(md_files, root):
 
 
 def check_readme_integrity(md_files, root):
-    """축 7(부분) — 폴더 README 가 있으면 같은 폴더 .md 가 README 에 등재됐는지."""
+    """폴더 README가 있으면 같은 폴더 .md가 등재됐는지 확인한다."""
     findings = []
     by_dir = {}
     for f in md_files:
@@ -257,7 +257,7 @@ def print_report(result, last):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=None)
-    ap.add_argument("--save", action="store_true", help="history 에 기록 (게이트 통과 시)")
+    ap.add_argument("--save", action="store_true", help="history 에 기록 (점검 통과 시)")
     ap.add_argument("--json", action="store_true", help="JSON 만 출력")
     args = ap.parse_args()
 

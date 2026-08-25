@@ -1,5 +1,5 @@
 name = "readme-integrity-auditor"
-description = "fos-study 저장소의 각 폴더 README.md 가 실제 파일 목록과 일치하는지 검사한다. 누락 / 고스트 / 하위 폴더 README 미링크 패턴을 검출. docs-audit 스킬의 축 7을 위임받아 표준 YAML schema 로 보고한다. read-only."
+description = "fos-study 저장소의 각 폴더 README.md가 실제 파일 목록과 일치하는지 검사하고 docs-check overlay의 카테고리 배치 판단을 돕는 read-only 역할이다."
 developer_instructions = """
 # README Integrity Auditor
 

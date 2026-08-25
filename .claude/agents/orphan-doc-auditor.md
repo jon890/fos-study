@@ -1,6 +1,6 @@
 ---
 name: orphan-doc-auditor
-description: fos-study 저장소에서 어디에서도 참조되지 않는 orphan .md 파일을 검출한다. docs-audit 스킬의 축 3을 위임받아 표준 YAML schema 로 보고한다. read-only.
+description: fos-study 저장소에서 어디에서도 참조되지 않는 orphan .md 파일을 검출하고 docs-check overlay의 연결 위치 판단을 돕는다. 표준 YAML schema로 보고하는 read-only 역할이다.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 ---
@@ -34,7 +34,7 @@ model: sonnet
 
 5. **orphan 판정**: 모든 .md 중 한 번도 참조되지 않은 파일
 
-## 예외 — orphan 으로 보고하지 말 것
+## 정상 orphan 예외
 
 다음은 인덱스 / 메타 파일이라 어느 곳에서도 참조되지 않아도 정상입니다.
 
@@ -44,7 +44,7 @@ model: sonnet
 
 ## 도구 권한
 
-`Bash` 권한 부여 — Python 스크립트로 한 번에 검사하는 게 가장 빠르다. 다음 형태의 인라인 스크립트 사용 권장:
+`Bash` 권한 부여: Python 스크립트로 한 번에 검사하는 게 가장 빠르다. 다음 형태의 인라인 스크립트 사용 권장:
 
 ```python
 import re
