@@ -2,7 +2,7 @@
 thumbnail: ./images/claude-code-usage-reflection-2-thumbnail.jpg
 ---
 
-# Claude Code를 5주 더 쓴 결과 — 스킬·CLAUDE.md를 키워가는 방식
+# Claude Code를 5주 더 쓰며 스킬과 CLAUDE.md를 키운 방식
 
 [1탄](./claude-code-usage-reflection.md)을 쓴 게 4월 1일이니 5주 정도 지났다. 그때 글의 마지막 인사이트가 "반복 작업은 스킬로 만들 것" 한 줄이었다. 그 한 줄이 이후 5주 동안 어떻게 굴러갔는지 정리해두려고 한다.
 
@@ -14,7 +14,7 @@ thumbnail: ./images/claude-code-usage-reflection-2-thumbnail.jpg
 
 처음에 "스킬을 만들어라"는 추상적인 제안이었다. 막상 만들어보니 **어떤 작업을 스킬로 떼어내야 하는지**가 가장 어려웠다. 5주를 돌아보니 결국 **세 번 이상 같은 설명을 반복하게 되는 작업**이 스킬 후보였다. 다음은 실제로 박고 지금까지 살아 움직이는 스킬들이다.
 
-### blog-post-writer — 가장 두껍게 진화한 스킬
+### 가장 두껍게 진화한 blog-post-writer
 
 이 글도 이 스킬로 쓰고 있다. 처음 만든 건 3월 25일, 단순히 "블로그 글 작성 가이드"였다. 5주가 지난 지금은 SKILL.md가 574줄이고 안티패턴이 A부터 I까지 9개 박혀 있다.
 
@@ -41,7 +41,7 @@ thumbnail: ./images/claude-code-usage-reflection-2-thumbnail.jpg
 
 룰을 박는 것보다 **자가 점검 단계를 박는 게** 훨씬 효과적이다. 룰은 잊어버려도 점검 단계는 매번 실행되기 때문이다.
 
-### dooray-cli — 스킬을 넘어 npm 패키지로
+### 스킬을 넘어 npm 패키지가 된 dooray-cli
 
 원래는 사내 협업 도구의 업무를 자동으로 처리하고 싶다는 단순한 동기였다. "이 업무 댓글 가져와", "주간 보고 댓글로 달아줘" 같은 요청이 반복되니 스킬로 떼어냈다.
 
@@ -56,7 +56,7 @@ npm install -g @bifos/dooray-cli
 
 스킬을 만들다 외부 도구로 발전시킨 사례인데, **어떤 스킬은 결국 독립 도구로 가야 한다**는 신호를 일찍 받아두는 게 낫다는 걸 배웠다. CLI가 따로 있으면 다른 환경(다른 컴퓨터, 다른 사용자)에서도 쓸 수 있다.
 
-### docs-link-audit — 만든 당일에 효용을 입증한 스킬
+### 만든 당일에 효용을 입증한 docs-link-audit
 
 저장소가 커지면서 broken link, orphan 문서, 백틱으로만 적힌 경로 같은 게 누적됐다. 한 번 정리한 뒤 또 누적되는 패턴이 보여서 스킬로 떼어냈다.
 
@@ -69,17 +69,17 @@ npm install -g @bifos/dooray-cli
 
 만든 당일에 돌렸더니 broken 4건, orphan 23건, 구조 버그(`README.md` 폴더 안에 또 `README.md`가 들어 있는 케이스) 1건이 한 번에 잡혔다. 한 번에 정리하면서 **"애초에 이걸 자동화 안 해뒀으면 또 누적됐을 거다"**라는 확신이 들었다.
 
-이게 스킬을 만들 만한지 판단하는 또 다른 기준 같다. **검증 사이클이 있는 작업**(쓰고 → 점검하고 → 또 쓰고) — 이런 건 점검 부분을 스킬로 떼어두는 게 거의 항상 이득이다.
+이게 스킬을 만들 만한지 판단하는 또 다른 기준 같다. **검증 사이클이 있는 작업**은 쓰고 점검한 뒤 다시 쓰는 과정에서 점검 부분을 스킬로 떼어두는 게 거의 항상 이득이다.
 
-### apms 3종 — 사내 권한 신청 자동화
+### 사내 권한 신청을 자동화한 apms 세 종류
 
 `apms-iam-console-access`, `apms-linux-server-access`, `apms-nca-access` 세 개. 사내 시스템에서 권한을 신청하는 폼 작성을 cmux 브라우저 자동화로 풀어냈다.
 
-이 분야의 핵심 인사이트는 **폼 자체가 그냥 input + Enter로는 안 동작하더라**는 거였다. JS 콜백을 직접 호출해야 autocomplete가 잡혔고, 권한 팝업은 snapshot에 안 잡혀서 eval로 직접 조작해야 했다. 한 번 길을 뚫어두면 같은 폼이 재출현할 때 다시 헤매지 않는다.
+이 분야의 핵심 인사이트는 **입력칸을 채우고 Enter를 누르는 것만으로는 폼이 동작하지 않더라**는 거였다. JS 콜백을 직접 호출해야 autocomplete가 잡혔고, 권한 팝업은 snapshot에 안 잡혀서 eval로 직접 조작해야 했다. 한 번 길을 뚫어두면 같은 폼이 재출현할 때 다시 헤매지 않는다.
 
 스킬에는 "어떤 input은 일반 fill로 안 되고 JS 콜백 직접 호출이 필요하다"는 핵심 인사이트가 박혀 있다. 같은 폼이 갱신되어도 이 인사이트가 살아남는 한 다음에 적응하기 쉽다.
 
-### job-analyzer / resume-writer — 채용 워크플로우
+### 채용 흐름을 연결한 job-analyzer와 resume-writer
 
 채용 공고 URL을 받으면 회사 기술 블로그·공식 자료를 조사하고 본인 경력에 맞춰 직무 분석 문서를 만드는 게 `job-analyzer`. 그 결과를 받아 회사·직무 맞춤 이력서를 생성하는 게 `resume-writer`.
 
@@ -118,8 +118,8 @@ npm install -g @bifos/dooray-cli
 
 그런데 `blog-post-writer`는 fos-study 컨벤션에 묶이지만 다른 프로젝트에서도 쓰고 싶을 때가 있다. 이건 **프로젝트에 원본 두고 글로벌에서 심볼릭 링크**로 해결했다.
 
-```
-~/.claude/skills/blog-post-writer -> /Users/nhn/personal/fos-study/.claude/skills/blog-post-writer
+```text
+~/.claude/skills/blog-post-writer -> <fos-study-root>/.claude/skills/blog-post-writer
 ```
 
 원본은 한 곳, 참조는 여러 곳. 룰 변경이 모든 사용처에 즉시 반영된다.
@@ -148,7 +148,7 @@ npm install -g @bifos/dooray-cli
 
 이 결정 후로 cmux/tmux 혼동은 거의 안 났다. **환경 정보는 한 번만 박아두면 평생 효과**가 있다는 게 이런 영역의 핵심이다.
 
-### L2 공개 정책 — 블로그 스킬에 흡수
+### 블로그 스킬에 흡수한 L2 공개 정책
 
 회사 정보를 어디까지 노출할지의 기준은 처음에는 CLAUDE.md에 박았다. 그런데 실제로는 블로그 글을 쓸 때만 적용되니까, blog-post-writer 스킬의 3번 항목으로 옮겼다. CLAUDE.md에 있던 자리에는 "블로그 작성 시 L2 정책은 스킬 참조"만 남겼다.
 
