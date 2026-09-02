@@ -16,6 +16,7 @@ AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
 | 2026.04           | AI 웹툰 제작 도구 MVP — Next.js + Gemini + 하네스 기반 12일 풀스택    | [webtoon-maker-ai-pipeline.md](webtoon-maker-ai-pipeline.md) |
 | 2026.05–현재 | Document Parser 기여 개요 — 문서→markdown 파싱 서비스(docling·OCR) 운영·개선 총괄 | [playground-document-parser.md](playground-document-parser.md) |
 | 2026.05–2026.07 | Document Parser 관측성 체계 — Prometheus·Grafana, 초기화 순서 함정, 지표 단일화 | [docparser-observability.md](docparser-observability.md) |
+| 2026.05–현재 | 운영 관측과 주간 에러 분류 루프 — 지표·로그·요청 ID 를 붙여 AI 와 함께 분석하고 개선 순서를 정하는 구조 | [observability-to-error-triage-loop.md](observability-to-error-triage-loop.md) |
 | 2026.06–2026.07 | OCR 공인 진입점 전환 — API Gateway 제거, 공인 LB·Ingress 직접 노출, 경로 변환·HTTPS·IP 접근 제어 | [ocr-api-gateway-removal.md](ocr-api-gateway-removal.md) |
 
 ### 성능 개선
@@ -69,6 +70,10 @@ AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
   - 품질 운영: 정답지 24건을 원본과 다시 대조해 평균 NED 0.9912→0.9822에 가려진 결함을 드러내고, OCR 영역 3배 렌더로 한 표의 셀 F1을 0.8214→1.0으로 개선
   - API 계약: 빈 markdown 성공 응답에 숨던 변환 실패를 `status="error"`, 사유, HTTP 상태코드로 분리해 호출자와 운영 집계가 실패 원인을 구분하도록 개선
   - 지식 공유: 장애 관측, RSS 회수, 네 종류 검증, CLI 자동화의 판단 근거를 17쪽 사내 랩 세미나로 구조화해 발표
+- **운영 관측과 주간 에러 분류 루프**: 지표와 로그, 요청 ID 를 붙여 AI 와 함께 분석할 대상을 만들고, 그 위에 매주 도는 오류 분류 절차를 문서 파싱과 OCR 두 서비스에 각각 세움
+  - 관측: 워커 메모리와 실패 건수 패널을 만들어 `malloc_trim` 적용 여부와 효과를 판정, 단계별 처리 시간 로그로 표 분석이 225쪽 PDF 시간의 58.6% 임을 확인
+  - 분류: 로그 플랫폼 전수 조회와 색인 실패 목록 두 축으로 모아 원인별로 묶고, 미매핑 그룹을 남겨 다음 개선 대상으로 넘김
+  - 신뢰성: 전수 조회 중단, 잘린 봇 요약, 검증 인스턴스 노이즈, 조용히 죽는 제외 필터 네 가지를 실측으로 잡고 교차 확인 단계를 추가
 
 ---
 
