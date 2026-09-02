@@ -1,6 +1,6 @@
 ---
-series: "AI 서비스 실전 구축·운영"
-seriesOrder: 6
+series: "Document Parser 구축·운영"
+seriesOrder: 5
 ---
 
 # 문서 파싱 서비스 — 코드 구조 정리와 파싱 품질 회귀 검증

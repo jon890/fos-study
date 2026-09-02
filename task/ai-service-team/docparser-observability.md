@@ -1,6 +1,6 @@
 ---
-series: "AI 서비스 실전 구축·운영"
-seriesOrder: 3
+series: "Document Parser 구축·운영"
+seriesOrder: 2
 ---
 
 # 문서 파싱 서비스 관측성 체계 구축 — 초기화 순서 함정과 지표 단일화

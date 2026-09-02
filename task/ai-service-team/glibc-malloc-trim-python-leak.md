@@ -1,6 +1,6 @@
 ---
-series: "AI 서비스 실전 구축·운영"
-seriesOrder: 7
+series: "Document Parser 구축·운영"
+seriesOrder: 6
 ---
 
 # Python 서버 RSS 가 안 줄어들어 malloc_trim 을 박은 이야기

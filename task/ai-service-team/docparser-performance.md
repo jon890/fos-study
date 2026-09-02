@@ -1,6 +1,6 @@
 ---
-series: "AI 서비스 실전 구축·운영"
-seriesOrder: 4
+series: "Document Parser 구축·운영"
+seriesOrder: 3
 ---
 
 # 문서 파싱 서비스 성능 최적화 — OCR 병렬화부터 GPU 직렬 추론 실측까지

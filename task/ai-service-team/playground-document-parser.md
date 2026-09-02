@@ -1,6 +1,6 @@
 ---
-series: "AI 서비스 실전 구축·운영"
-seriesOrder: 2
+series: "Document Parser 구축·운영"
+seriesOrder: 1
 ---
 
 # Playground 문서 파싱 파이프라인 — 기여 개요

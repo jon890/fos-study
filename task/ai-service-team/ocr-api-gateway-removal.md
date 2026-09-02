@@ -1,5 +1,7 @@
 ---
 thumbnail: ./images/ocr-api-gateway-removal-thumbnail.jpg
+series: "OCR 서비스 구축·운영"
+seriesOrder: 2
 ---
 
 # API Gateway를 걷어내고 공인 LoadBalancer로 직접 노출하기

@@ -1,6 +1,6 @@
 ---
-series: "AI 서비스 실전 구축·운영"
-seriesOrder: 9
+series: "OCR 서비스 구축·운영"
+seriesOrder: 3
 ---
 
 # OCR 오토스케일 전환마다 나던 connection 에러 — 모델 서버와 호출자 양쪽에서 막기

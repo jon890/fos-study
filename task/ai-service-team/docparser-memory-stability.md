@@ -1,6 +1,6 @@
 ---
-series: "AI 서비스 실전 구축·운영"
-seriesOrder: 5
+series: "Document Parser 구축·운영"
+seriesOrder: 4
 ---
 
 # 문서 파싱 서비스, 리소스가 새는 자리를 하나씩 틀어막은 기록

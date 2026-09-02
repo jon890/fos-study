@@ -1,6 +1,6 @@
 ---
-series: "AI 서비스 실전 구축·운영"
-seriesOrder: 8
+series: "OCR 서비스 구축·운영"
+seriesOrder: 1
 ---
 
 # OCR 서버 배포·스케일인 시 503 에러 수정 — Graceful Shutdown 미적용
