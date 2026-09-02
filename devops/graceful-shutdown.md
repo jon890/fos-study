@@ -127,8 +127,8 @@ def serve():
     server.start()
 
     def handle_sigterm(signum, frame):
-        print("SIGTERM received, graceful shutdown (grace=12s)...")
-        server.stop(grace=12)  # 12초 내 in-flight RPC 완료 대기, 신규 요청 거부
+        print("SIGTERM received, graceful shutdown (grace=24s)...")
+        server.stop(grace=24)  # 24초 내 in-flight RPC 완료 대기, 신규 요청 거부
 
     signal.signal(signal.SIGTERM, handle_sigterm)
     server.wait_for_termination()
@@ -147,19 +147,29 @@ supervisord가 PID 1이면 SIGTERM이 supervisord에게 먼저 간다. superviso
 ```ini
 [program:grpc-server]
 stopsignal=TERM
-stopwaitsecs=17    # grace(12s) + 여유(5s)
+stopwaitsecs=27    # grace 24s 에 여유 3s
 ```
 
-### Kubernetes + NCS 환경에서의 시간 예산
+### Kubernetes 와 NCS 환경에서의 시간 예산
 
 NHN Cloud Container Service(NCS)는 `terminationGracePeriodSeconds`를 30초로 고정한다. API 스펙에 해당 필드가 없어 변경할 방법이 없다.
 
-```
-[NCS 30초 고정 예산]
-preStop sleep 15s
-+ SIGTERM → server.stop(grace=12s)
-= 27s  ← 30s 이내
-```
+그래서 각 단계의 시간을 늘리는 문제가 아니라 30초를 단계별로 나누는 문제가 된다.
+종료가 시작된 시각을 `t=0` 으로 두면 예산이 이렇게 나뉜다.
+
+| 구간 | 최대 소요 | 끝나는 시각 |
+| --- | ---: | ---: |
+| preStop 에서 Envoy admin 호출 | 2초 | `t=2` |
+| listener 전환 대기 | 1초 | `t=3` |
+| gRPC 처리 중 요청 대기 | 24초 | `t=27` |
+| Envoy 종료 | 약 1초 | `t=28` |
+| 남는 여유 | 2초 | `t=30` |
+
+남는 2초에는 인터프리터 종료와 GPU 문맥 정리가 들어가야 하므로 0으로 잡지 않는다.
+그리고 24초를 넘는 추론은 여전히 잘릴 수 있다는 한계가 남는다.
+
+preStop 을 3초까지 줄인 것이 핵심이다.
+Endpoints 전파를 기다리는 긴 sleep 대신 Envoy 에게 신규 연결을 직접 끊게 하면, 남은 예산을 처리 중인 요청 쪽으로 몰아줄 수 있다.
 
 ```mermaid
 sequenceDiagram
@@ -172,12 +182,12 @@ sequenceDiagram
     K8s->>EP: Pod를 Endpoints에서 제거 시작
     K8s->>PS: preStop hook 실행
     PS->>ENV: drain_listeners (신규 요청 차단)
-    Note over PS: sleep 15s (Endpoints 전파 대기)
+    Note over PS: 총 3s (admin 호출 2s, listener 전환 1s)
     PS-->>K8s: hook 완료
 
     K8s->>APP: SIGTERM 전달
-    APP->>APP: server.stop(grace=12) 시작
-    Note over APP: in-flight RPC 처리 중 (최대 12s)
+    APP->>APP: server.stop(grace=24) 시작
+    Note over APP: 처리 중인 RPC 완료 대기 (최대 24s)
     APP-->>K8s: 정상 종료
 
     Note over K8s: 총 30s 초과 시 SIGKILL
@@ -202,11 +212,21 @@ sequenceDiagram
 
 ### NHN Cloud Container 30초 고정 예산 하 OCR gRPC 서버 503 해결
 
-이 글의 "Kubernetes + NCS 환경에서의 시간 예산" 단락이 정확히 그 환경이다.
+이 글의 "Kubernetes 와 NCS 환경에서의 시간 예산" 단락이 정확히 그 환경이다.
+같은 30초를 두 번에 걸쳐 나눴고, 나눈 값이 달라졌다.
 
-- preStop 스크립트에서 Envoy `drain_listeners` 호출
-- preStop sleep 15s 로 Endpoints 전파 대기
-- Python gRPC `server.stop(grace=12)` 로 in-flight RPC 처리
-- supervisord `stopwaitsecs=17` 로 grace + 여유 확보
+| 항목 | 1차 대응 (2026.04, 운영 반영) | 재배분 (2026.09, 검증 환경) |
+| --- | ---: | ---: |
+| preStop | 15초 | 3초 |
+| gRPC `grace` | 12초 | 24초 |
+| supervisord `stopwaitsecs` | 17초 | 27초 |
 
-→ [OCR 서버 배포·스케일인 시 503 에러 수정](../task/ai-service-team/graceful-shutdown-503-fix.md)
+1차 대응은 Endpoints 전파를 sleep 으로 기다리는 구성이라 preStop 이 예산의 절반을 썼다.
+그 결과 유예가 12초뿐이었는데 밀집 문서의 서비스타임이 약 19초여서, 처리 중이던 추론을 유예가 먼저 끊고 있었다.
+
+재배분은 Envoy 에게 신규 연결을 직접 끊게 해서 preStop 을 3초로 줄이고, 그만큼을 처리 중인 요청 쪽으로 옮기는 것이다.
+오른쪽 열은 검증 환경까지 올라간 값이고 운영에는 아직 반영하지 않았다.
+실제 종료 시간을 재서 표의 예산과 맞는지 확인하는 단계가 남아 있다.
+
+- 1차 대응의 배경과 증상은 [OCR 서버 배포·스케일인 시 503 에러 수정](../task/ai-service-team/graceful-shutdown-503-fix.md)에 있다.
+- 재배분의 근거와 신호가 중간에서 멈추던 문제는 [OCR 오토스케일 전환의 connection 에러를 양쪽에서 막기](../task/ai-service-team/ocr-scale-connection-resilience.md)에 있다.
