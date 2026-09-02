@@ -81,7 +81,7 @@ TLS는 이렇게 조합한다.
 
 내가 맡은 작업의 맥락은 이랬다. 그동안 외부 HTTPS 처리(봉투 뜯기 + 인증서)는 앞단의 **API Gateway가 전부 해주고 있었다.** 클라이언트 ↔ API Gateway 구간만 HTTPS였고, 그 안쪽(쿠버네티스 내부)은 평문 HTTP였다. 그래서 클러스터 안의 모든 경로가 HTTP로 되어 있었던 거다.
 
-API Gateway를 걷어내면, **이 봉투 뜯는 역할을 LoadBalancer나 Ingress Controller가 넘겨받아야** 한다. "외부로 열었다"는 곧 "인터넷에 평문으로 열면 안 된다"는 뜻이라, TLS termination 위치와 인증서 관리 방식을 반드시 정하고 넘어가야 한다.
+API Gateway를 제거하면, **이 봉투 뜯는 역할을 LoadBalancer나 Ingress Controller가 넘겨받아야** 한다. "외부로 열었다"는 곧 "인터넷에 평문으로 열면 안 된다"는 뜻이라, TLS termination 위치와 인증서 관리 방식을 반드시 정하고 넘어가야 한다.
 
 테스트 단계에서는 사내 IP만 접근하도록 막아두고 평문 HTTP로 경로부터 검증할 수 있지만, 진짜 외부에 공개하는 순간 TLS는 선택이 아니라 필수가 된다.
 

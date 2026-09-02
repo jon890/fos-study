@@ -1,12 +1,12 @@
 ---
-series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
+series: "API Gateway를 제거하고 쿠버네티스로 직접 노출하기"
 seriesOrder: 1
 thumbnail: ./images/external-traffic-path-thumbnail.jpg
 ---
 
 # 외부 트래픽은 어떻게 Pod까지 닿는가 — LoadBalancer, Ingress Controller, 내부와 외부 분리
 
-회사에서 "API Gateway를 걷어내고, 쿠버네티스 앞에 LoadBalancer를 직접 붙여서 외부로 노출하자"는 작업을 맡게 됐다. 그런데 막상 들여다보니 나는 Ingress가 뭔지도 제대로 몰랐다. "외부 요청이 들어와서 서버가 응답한다" 정도로만 알고 있었지, 그 사이에 LoadBalancer니 Ingress Controller니 하는 것들이 몇 겹으로 끼어 있는지는 감이 없었다.
+회사에서 "API Gateway를 제거하고, 쿠버네티스 앞에 LoadBalancer를 직접 붙여서 외부로 노출하자"는 작업을 맡게 됐다. 그런데 막상 들여다보니 나는 Ingress가 뭔지도 제대로 몰랐다. "외부 요청이 들어와서 서버가 응답한다" 정도로만 알고 있었지, 그 사이에 LoadBalancer니 Ingress Controller니 하는 것들이 몇 겹으로 끼어 있는지는 감이 없었다.
 
 그래서 외부 트래픽이 인터넷에서 출발해 Pod 안의 애플리케이션까지 닿는 전체 경로를 한 번 정리하기로 했다. Service와 Ingress의 기본 개념은 [쿠버네티스 핵심 객체 4종](./k8s-core-objects.md)에 따로 정리해 뒀으니, 이 글은 그 위에서 "그래서 외부에서 진짜로 어떻게 들어오는가"에 집중한다.
 
@@ -110,7 +110,7 @@ flowchart TB
 
 처음 우리 클러스터는 **Ingress Controller가 딱 하나**였고, 외부 API든 내부 도구든 전부 그 하나의 Controller(사설 LB)에 붙어 있었다. 외부 노출은 별도의 API Gateway가 담당하고 있었기 때문에 가능한 구성이었다.
 
-그런데 "API Gateway를 걷어내고 Controller를 공인으로 바꾸자"라고 단순하게 생각하면 사고가 난다. 그 하나의 Controller를 공인으로 열어버리면, **거기 붙어 있던 ArgoCD와 관리자 콘솔까지 전부 인터넷에 노출**되기 때문이다. 게다가 그 LB의 IP가 바뀌는 순간, 같은 LB로 접근하던 배포 도구 자신이 끊겨서 손도 못 대는 상황이 올 수 있다(배포 도구로 그 변경을 적용하려다 배포 도구가 죽는 자기참조 문제).
+그런데 "API Gateway를 제거하고 Controller를 공인으로 바꾸자"라고 단순하게 생각하면 사고가 난다. 그 하나의 Controller를 공인으로 열어버리면, **거기 붙어 있던 ArgoCD와 관리자 콘솔까지 전부 인터넷에 노출**되기 때문이다. 게다가 그 LB의 IP가 바뀌는 순간, 같은 LB로 접근하던 배포 도구 자신이 끊겨서 손도 못 대는 상황이 올 수 있다(배포 도구로 그 변경을 적용하려다 배포 도구가 죽는 자기참조 문제).
 
 > 외부로 열 건 외부로 열 것만. 내부 도구를 외부 진입점에 같이 태우면, "노출 사고"와 "자기 발 묶기"가 동시에 온다.
 
@@ -157,7 +157,7 @@ spec:
 
 **첫째, admission webhook은 Controller 단위가 아니라 클러스터 전체로 동작한다.** ingress-nginx를 설치하면 "잘못된 Ingress 설정을 사전에 거부하는" 검증 webhook이 같이 깔린다. 그런데 이 webhook은 IngressClass로 격리되지 않고 **클러스터의 모든 Ingress 변경**을 가로챈다. 외부용 Controller를 새로 추가하면 webhook도 하나 더 생기는데, 이 새 webhook이 죽으면 **내부 Ingress 변경까지 거부**될 수 있다. Controller는 클래스로 갈라지지만 webhook은 안 갈라진다는 게 직관에 어긋나는 지점이었다. 외부 Controller의 webhook 범위를 자기 것으로 좁히거나, 필요하면 꺼서 내부 경로와 격리해야 한다.
 
-**둘째, TLS(HTTPS)를 어디서 끊을지 정해야 한다.**([TLS·HTTPS 기초](../../http/https-tls-basics.md)) 그동안 HTTPS 인증서 처리는 API Gateway가 다 해주고 있었다. API Gateway를 걷어내면 그 역할도 누군가 가져가야 한다. 공인 LB에서 끊을지(LB의 HTTPS 리스너), Ingress Controller에서 끊을지(Controller에 인증서 등록), 인증서는 누가 갱신할지를 결정해야 한다. "외부로 열었다"는 곧 "평문 HTTP로 인터넷에 열면 안 된다"는 뜻이라, 이 결정을 빼먹으면 안 된다.
+**둘째, TLS(HTTPS)를 어디서 끊을지 정해야 한다.**([TLS·HTTPS 기초](../../http/https-tls-basics.md)) 그동안 HTTPS 인증서 처리는 API Gateway가 다 해주고 있었다. API Gateway를 제거하면 그 역할도 누군가 가져가야 한다. 공인 LB에서 끊을지(LB의 HTTPS 리스너), Ingress Controller에서 끊을지(Controller에 인증서 등록), 인증서는 누가 갱신할지를 결정해야 한다. "외부로 열었다"는 곧 "평문 HTTP로 인터넷에 열면 안 된다"는 뜻이라, 이 결정을 빼먹으면 안 된다.
 
 ## 정리하면
 

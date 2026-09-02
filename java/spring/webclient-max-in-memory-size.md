@@ -1,6 +1,6 @@
 # WebClient가 큰 응답을 받으면 왜 죽는가 — maxInMemorySize와 DataBufferLimitException
 
-> [API Gateway를 걷어낸 자리 채우기](../../devops/k8s/api-gateway-removal-rewrite-and-https.md)에서 겪은 요청 크기 병목 4개 중 하나를 여기서 따로 깊게 다룬다. 그 글의 맥락(20MB 이미지 처리) 없이 WebClient 버퍼 설정 자체가 궁금해서 왔어도 이 글만으로 읽힌다.
+> [API Gateway를 제거한 자리 채우기](../../devops/k8s/api-gateway-removal-rewrite-and-https.md)에서 겪은 요청 크기 병목 4개 중 하나를 여기서 따로 깊게 다룬다. 그 글의 맥락(20MB 이미지 처리) 없이 WebClient 버퍼 설정 자체가 궁금해서 왔어도 이 글만으로 읽힌다.
 
 Spring WebFlux의 `WebClient`는 응답을 스트림으로 처리하는 리액티브 클라이언트인데도, 내부적으로는 응답 바디를 한 번에 메모리에 올려야 하는 순간이 있다. 그 한도를 넘기면 조용히 실패하는 게 아니라 `DataBufferLimitException`을 던지는데, 이 예외 메시지만 보고는 "버퍼가 왜?"라는 생각이 먼저 든다. 이 글은 그 왜를 정리한 기록이다.
 
@@ -48,7 +48,7 @@ flowchart LR
 
 예를 들어 30MB로 올려두고 요청이 동시에 5개 들어오면, 이론상 버퍼만으로 150MB까지 늘어날 수 있다. 여기에 JSON 역직렬화·이미지 디코딩 같은 추가 처리 메모리까지 겹치면 실제 사용량은 원본 크기의 몇 배가 된다. 컨테이너 환경에서 이 값을 올릴 때는 컨테이너 메모리 limit도 함께 계산해야 하는 이유가 여기 있다 — 버퍼 상한 하나만 넉넉하게 잡아 놓고 컨테이너 limit은 그대로 두면, 동시 요청이 몰리는 순간 OOMKilled로 이어진다.
 
-> 이 계산을 실제로 컨테이너 메모리 limit·k8s 노드 사양과 함께 어떻게 맞췄는지는 [API Gateway를 걷어낸 자리 채우기](../../devops/k8s/api-gateway-removal-rewrite-and-https.md)의 요청 크기 병목 부분에 있다.
+> 이 계산을 실제로 컨테이너 메모리 limit·k8s 노드 사양과 함께 어떻게 맞췄는지는 [API Gateway를 제거한 자리 채우기](../../devops/k8s/api-gateway-removal-rewrite-and-https.md)의 요청 크기 병목 부분에 있다.
 
 ## 판단 기준
 

@@ -3,7 +3,7 @@
 쿠버네티스 학습·운영 기록. 두 개의 시리즈로 나뉜다.
 
 - **기본기 시리즈** — 개념을 순서대로 쌓는다. 처음 보는 사람은 1편부터.
-- **실전 연재** — API Gateway 를 걷어내고 공인 LoadBalancer 로 직접 노출한 작업 기록. 기본기 3편(핵심 객체)까지 읽고 오면 따라가기 쉽다.
+- **실전 연재** — API Gateway 를 제거하고 공인 LoadBalancer 로 직접 노출한 작업 기록. 기본기 3편(핵심 객체)까지 읽고 오면 따라가기 쉽다.
 
 ## 시리즈 1 — 백엔드 개발자를 위한 쿠버네티스 기본기
 
@@ -18,14 +18,14 @@
 | 7 | [Argo CD](./argo-cd.md) | GitOps, Application, sync wave, 무한 sync |
 | 8 | [Helm 과 ArgoCD 로 GitOps 하기](./helm-argocd-gitops.md) | 새 컴포넌트 추가 전체 흐름 |
 
-## 시리즈 2 — API Gateway 를 걷어내고 쿠버네티스로 직접 노출하기
+## 시리즈 2 — API Gateway 를 제거하고 쿠버네티스로 직접 노출하기
 
 | # | 글 | 다루는 것 |
 |---|---|---|
 | 1 | [외부 트래픽은 어떻게 Pod까지 닿는가](./external-traffic-path.md) | LoadBalancer, Ingress Controller, 내부·외부 분리 |
 | 2 | [선언한 LoadBalancer가 안 만들어질 때](./loadbalancer-pending-diagnosis.md) | cloud-controller-manager 장애 격리 |
 | 3 | [관리형 클러스터는 누구의 권한으로 클라우드를 만지는가](./managed-cluster-identity-trust.md) | keystone trust, service user 전환 |
-| 4 | [API Gateway를 걷어낸 자리 채우기](./api-gateway-removal-rewrite-and-https.md) | path rewrite, 요청 크기 병목, HTTPS 종료 위치 |
+| 4 | [API Gateway를 제거한 자리 채우기](./api-gateway-removal-rewrite-and-https.md) | path rewrite, 요청 크기 병목, HTTPS 종료 위치 |
 | 5 | [ingress-nginx 운영 디테일](./ingress-nginx-operations.md) | admission webhook, whitelist, 배치, 리소스 사양 |
 | 6 | [IP whitelist가 조용히 뚫려 있었다](./client-ip-preservation.md) | L4 패스스루와 SNAT 로 클라이언트 IP 가 사라지는 구간 |
 | 7 | [파드가 서비스 이름을 못 푸는 이유](./pod-dns-policy-and-ndots.md) | dnsPolicy 4종, ndots 와 search 도메인 전개 |

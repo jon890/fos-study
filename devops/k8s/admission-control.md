@@ -104,7 +104,7 @@ admission을 이해하고 나서 남은 판단 기준은 이렇다.
 
 - [ingress-nginx 운영에서 부딪힌 디테일들 — webhook, whitelist, affinity, 리소스 사양](./ingress-nginx-operations.md) — 이 글의 self-lock을 실제로 어떻게 피했는지
 - [쿠버네티스 핵심 객체 4종 — Pod, Service, Ingress, Namespace의 관계](./k8s-core-objects.md)
-- [API Gateway를 걷어낸 자리 채우기 — path rewrite, 요청 크기 병목 4개, 그리고 HTTPS](./api-gateway-removal-rewrite-and-https.md)
+- [API Gateway를 제거한 자리 채우기 — path rewrite, 요청 크기 병목 4개, 그리고 HTTPS](./api-gateway-removal-rewrite-and-https.md)
 
 ## 참고 링크
 

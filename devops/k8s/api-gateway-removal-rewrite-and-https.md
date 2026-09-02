@@ -1,14 +1,14 @@
 ---
-series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
+series: "API Gateway를 제거하고 쿠버네티스로 직접 노출하기"
 seriesOrder: 4
 thumbnail: ./images/api-gateway-removal-rewrite-and-https-thumbnail.jpg
 ---
 
-# API Gateway를 걷어낸 자리 채우기 — path rewrite, 요청 크기 병목 4개, 그리고 HTTPS
+# API Gateway를 제거한 자리 채우기 — path rewrite, 요청 크기 병목 4개, 그리고 HTTPS
 
-> [관리형 클러스터는 누구의 권한으로 클라우드를 만지는가](./managed-cluster-identity-trust.md)의 후속 편이다. 그 글에서 클러스터 신원 문제를 해결하고 나서야, 원래 하려던 일 — API Gateway를 걷어내고 공인 LoadBalancer를 그 자리에 앉히는 작업 — 을 이어갈 수 있었다. 이 글은 LB가 뜬 다음부터의 이야기다.
+> [관리형 클러스터는 누구의 권한으로 클라우드를 만지는가](./managed-cluster-identity-trust.md)의 후속 편이다. 그 글에서 클러스터 신원 문제를 해결하고 나서야, 원래 하려던 일 — API Gateway를 제거하고 공인 LoadBalancer를 그 자리에 앉히는 작업 — 을 이어갈 수 있었다. 이 글은 LB가 뜬 다음부터의 이야기다.
 
-API Gateway를 걷어내기로 한 이유는 단순했다. 5MB 요청 크기 제한이 OCR 서비스에는 너무 작았다. 이미지 하나가 10MB를 넘는 경우가 흔한데 Gateway 단에서 먼저 잘려서 413이 났다. Gateway를 빼고 nginx Ingress Controller를 공인 LB 뒤에 직접 두는 방향으로 정했는데, 막상 옮겨보니 Gateway가 조용히 해주던 일이 생각보다 많았다. path rewrite가 그랬고, 요청 크기 제한은 한 겹이 아니라 네 겹이었다.
+API Gateway를 제거하기로 한 이유는 단순했다. 5MB 요청 크기 제한이 OCR 서비스에는 너무 작았다. 이미지 하나가 10MB를 넘는 경우가 흔한데 Gateway 단에서 먼저 잘려서 413이 났다. Gateway를 빼고 nginx Ingress Controller를 공인 LB 뒤에 직접 두는 방향으로 정했는데, 막상 옮겨보니 Gateway가 조용히 해주던 일이 생각보다 많았다. path rewrite가 그랬고, 요청 크기 제한은 한 겹이 아니라 네 겹이었다.
 
 ## path rewrite 23개를 nginx 정규식 4개로 접기
 

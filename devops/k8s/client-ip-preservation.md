@@ -1,6 +1,6 @@
 ---
 tags: [심화]
-series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
+series: "API Gateway를 제거하고 쿠버네티스로 직접 노출하기"
 seriesOrder: 6
 thumbnail: ./images/client-ip-preservation-thumbnail.jpg
 ---
@@ -212,7 +212,7 @@ IP 기반 접근 제어를 쓰는 환경이라면 이 순서로 확인하면 된
 
 - [외부 트래픽은 어떻게 Pod까지 닿는가](./external-traffic-path.md) — LoadBalancer부터 Pod까지의 경로. 이 글의 SNAT가 어느 구간에서 일어나는지 이해하는 배경
 - [ingress-nginx 운영에서 부딪힌 디테일들](./ingress-nginx-operations.md) — whitelist를 처음 걸었던 맥락
-- [API Gateway를 걷어낸 자리 채우기](./api-gateway-removal-rewrite-and-https.md) — TLS 종료 위치를 옮긴 작업
+- [API Gateway를 제거한 자리 채우기](./api-gateway-removal-rewrite-and-https.md) — TLS 종료 위치를 옮긴 작업
 - [L4와 VIP](../../network/L4-and-VIP.md) — L4 로드밸런싱의 기본
 
 ## 참고 링크

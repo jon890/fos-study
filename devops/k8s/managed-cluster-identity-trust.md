@@ -1,5 +1,5 @@
 ---
-series: "API Gateway를 걷어내고 쿠버네티스로 직접 노출하기"
+series: "API Gateway를 제거하고 쿠버네티스로 직접 노출하기"
 seriesOrder: 3
 thumbnail: ./images/managed-cluster-identity-trust-thumbnail.jpg
 ---

@@ -65,7 +65,7 @@ KUBERNETES_SERVICE_PORT=443
 | `request.serverPort` | 프로토콜에 맞춰 443 또는 80 |
 | `X-Forwarded-For` 헤더 | 처리한 프록시 IP 를 **제거한다** |
 
-마지막 줄이 핵심이다. 밸브는 `X-Forwarded-For` 를 **오른쪽부터 왼쪽으로** 훑으면서 신뢰할 수 있는 프록시 IP 를 걷어낸다. 공식 문서 표현은 이렇다.
+마지막 줄이 핵심이다. 밸브는 `X-Forwarded-For` 를 **오른쪽부터 왼쪽으로** 훑으면서 신뢰할 수 있는 프록시 IP 를 제거한다. 공식 문서 표현은 이렇다.
 
 > if it matches the internal proxies list, the ip/host is swallowed
 
@@ -95,8 +95,8 @@ flowchart LR
 1. Ingress 가 `X-Forwarded-For: 10.x.x.0` 을 붙여 보낸다
 2. Tomcat 이 받는다. TCP 소스는 Ingress 파드 IP(`10.x.x.55`)이고, 사설 대역이라 internal 로 판정
 3. 밸브가 XFF 를 오른쪽부터 훑는다. `10.x.x.0` 도 사설 대역이라 **swallowed**
-4. 걷어내고 남은 값이 없으니 **헤더 자체가 제거**된다
-5. `request.remoteAddr` 는 마지막으로 걷어낸 `10.x.x.0` 이 된다
+4. 제거하고 남은 값이 없으니 **헤더 자체가 제거**된다
+5. `request.remoteAddr` 는 마지막으로 제거한 `10.x.x.0` 이 된다
 
 공식 문서의 예시가 정확히 이 상황을 보여준다.
 
@@ -116,7 +116,7 @@ flowchart LR
 | | `internalProxies` | `trustedProxies` |
 | --- | --- | --- |
 | 의미 | 내 인프라의 프록시 | 신뢰하지만 기록은 남기고 싶은 외부 프록시 |
-| 처리 | 걷어내고 **버린다** | `X-Forwarded-By` 헤더로 **옮긴다** |
+| 처리 | 제거하고 **버린다** | `X-Forwarded-By` 헤더로 **옮긴다** |
 | 기본값 | 사설 대역 전체 | 비어 있음 |
 
 신뢰하지 않는 IP 를 만나면 거기서 멈추고 그 값이 `remoteAddr` 가 된다. 그 왼쪽에 남은 값들은 `X-Forwarded-For` 에 그대로 남는다.

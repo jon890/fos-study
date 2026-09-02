@@ -40,7 +40,7 @@ seriesOrder: 2
 체계를 배포한 직후 운영에서 핵심 메트릭 4종(`parse_requests_total`, `parse_processing_seconds`, `worker_restart_total`, `requests_rejected_total`)이 `/metrics` 응답에서 통째로 빠지는 걸 발견했다.
 워커 프로세스가 기록하는 메트릭(`worker_alive`, OCR 호출 관련)은 정상 노출됐는데, 메인 프로세스가 직접 기록하는 메트릭만 누락됐다.
 
-### 묻혀버린 실패부터 걷어냈다
+### 묻혀버린 실패부터 제거했다
 
 원인을 찾으려 해도 단서가 없었다.
 메트릭 기록 코드 8곳이 전부 `try/except`로 감싸져 있었고, 실패해도 `logging.debug` 또는 `except: pass`로 조용히 삼켜지고 있었다.
@@ -80,7 +80,7 @@ from prometheus_client import CollectorRegistry, generate_latest, CONTENT_TYPE_L
 이후 실제 요청의 `observe()`는 정상 동작했다.
 노이즈로 `count=1, sum=0`이 한 번 더 잡히지만 대시보드에는 영향이 없다.
 
-세 함정을 다 걷어내고 나서야 전 메트릭이 정상 노출되고 대시보드가 복구됐다.
+세 함정을 다 제거하고 나서야 전 메트릭이 정상 노출되고 대시보드가 복구됐다.
 이 사고로 원칙 하나를 얻었다 — multiproc 환경변수·디렉터리 준비는 항상 해당 라이브러리의 최초 import보다 앞서야 하고, `lifespan` 안에서의 설정은 "이미 늦은" 시점일 수 있다.
 
 ## drain 모드 도입

@@ -31,7 +31,7 @@ Spring은 기본적으로 **unchecked exception(RuntimeException)과 Error**가 
 public OrderResult placeOrder(OrderCommand cmd) { ... }
 ```
 
-또는 checked exception을 비즈니스 시그니처에서 걷어내고 도메인 RuntimeException으로 감싸 던지는 방식. 후자가 일반적으로 더 깔끔하고, 도메인 계층에 외부 라이브러리 예외 타입이 섞이지 않는다는 부수 효과도 있다.
+또는 checked exception을 비즈니스 시그니처에서 제거하고 도메인 RuntimeException으로 감싸 던지는 방식. 후자가 일반적으로 더 깔끔하고, 도메인 계층에 외부 라이브러리 예외 타입이 섞이지 않는다는 부수 효과도 있다.
 
 또 한 가지, `try-catch`로 RuntimeException을 잡아 "삼키면" 자동 롤백 트리거가 사라진다. 그런데 만약 그 예외가 **이미 내부 메서드에서 트랜잭션 매니저에 rollbackOnly 마크를 찍어 둔 뒤** 라면, 바깥에서 잡고 무시해도 커밋 시점에 `UnexpectedRollbackException`이 터진다. 이게 "rollbackOnly를 본 적 있느냐"라는 질문의 본체다.
 

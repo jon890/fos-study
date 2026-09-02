@@ -212,7 +212,7 @@ class TokenClock {
 - Kotlin처럼 class/method가 기본 final인 코드가 많다.
 - final class를 직접 mock해야 한다.
 - `mockStatic`, `mockConstruction`이 테스트 전략의 일부다.
-- 레거시 코드 때문에 static method를 당장 걷어내기 어렵다.
+- 레거시 코드 때문에 static method를 당장 제거하기 어렵다.
 
 즉 선택지는 "inline이 더 최신이고 subclass가 낡았다"가 아니다. 테스트가 요구하는 mock 능력과 실행 환경 제약이 무엇인지에 따라 고르는 문제다.
 

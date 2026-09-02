@@ -49,7 +49,7 @@ segment 가 실제 데이터 단위다 — 벡터·payload(메타데이터)·인
 - **병렬 최적화** — segment 별로 병렬 검색이 가능하다.
 - **무중단 인덱스 재구성** — 큰 segment 하나를 재구축하는 대신 작은 단위로 나눠 순차적으로 최적화한다.
 
-저장 엔진 자체는 v1.17 에서 RocksDB 를 완전히 걷어내고 자체 개발한 **Gridstore** 로 교체했다([Qdrant Blog — Gridstore](https://qdrant.tech/articles/gridstore-key-value-storage/)). Milvus 가 외부 C++ 라이브러리(Knowhere 등)를 조합하는 방식과 달리, Qdrant 는 저장 엔진까지 자체 Rust 구현으로 통일했다 — 이것도 "컴포넌트가 단순하다"의 한 축이다.
+저장 엔진 자체는 v1.17 에서 RocksDB 를 완전히 제거하고 자체 개발한 **Gridstore** 로 교체했다([Qdrant Blog — Gridstore](https://qdrant.tech/articles/gridstore-key-value-storage/)). Milvus 가 외부 C++ 라이브러리(Knowhere 등)를 조합하는 방식과 달리, Qdrant 는 저장 엔진까지 자체 Rust 구현으로 통일했다 — 이것도 "컴포넌트가 단순하다"의 한 축이다.
 
 ## HNSW 구현 — payload 필터와 결합된 그래프
 
