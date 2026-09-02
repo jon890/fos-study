@@ -318,6 +318,59 @@ const html = `<!doctype html>
       padding: 16px;
       min-height: 120px;
     }
+    .mermaid-zoom-bar { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .mermaid-zoom-bar button {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .mermaid-zoom-bar button:hover { color: var(--text); border-color: #94a3b8; }
+    .mermaid-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.82);
+      display: flex;
+      flex-direction: column;
+    }
+    .mermaid-modal[hidden] { display: none; }
+    .mermaid-modal-tools {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 12px 16px;
+    }
+    .mermaid-modal-tools button {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .mermaid-modal-stage {
+      flex: 1;
+      overflow: hidden;
+      touch-action: none;
+      cursor: grab;
+      position: relative;
+    }
+    .mermaid-modal-stage.is-panning { cursor: grabbing; }
+    .mermaid-modal-content {
+      transform-origin: 0 0;
+      width: max-content;
+    }
+    .mermaid-modal-content svg { display: block; }
     .toc {
       position: sticky;
       top: 70px;
@@ -340,9 +393,140 @@ const html = `<!doctype html>
     <article>${thumbnail ? `<img class="thumbnail-preview" src="${thumbnail}" alt="">` : ""}${content}</article>
     <aside><div class="toc"><strong>Preview</strong><div>blog.fosworld.co.kr 스타일에 맞춘 로컬 HTML 미리보기입니다.</div></div></aside>
   </div>
+  <div class="mermaid-modal" hidden role="dialog" aria-modal="true" aria-label="다이어그램 확대 보기">
+    <div class="mermaid-modal-tools">
+      <button type="button" data-act="out" aria-label="축소">&minus;</button>
+      <button type="button" data-act="in" aria-label="확대">+</button>
+      <button type="button" data-act="reset" aria-label="원래 크기로">&#8635;</button>
+      <button type="button" data-act="close" aria-label="닫기">&times;</button>
+    </div>
+    <div class="mermaid-modal-stage"><div class="mermaid-modal-content"></div></div>
+  </div>
   <script type="module">
     import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-    mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+    mermaid.initialize({ startOnLoad: false, theme: "neutral", securityLevel: "loose" });
+    await mermaid.run();
+
+    // 블로그의 MermaidZoomModal 과 같은 상수를 쓴다. 미리보기에서 본 확대 배율이
+    // 실제 글에서 달라지면 미리보기의 의미가 없다.
+    const MIN_SCALE = 0.5, MAX_SCALE = 12, MAX_INITIAL_SCALE = 6, SCALE_STEP = 1.5;
+    const WHEEL_SENSITIVITY = 0.0015;
+
+    const modal = document.querySelector(".mermaid-modal");
+    const stage = modal.querySelector(".mermaid-modal-stage");
+    const content = modal.querySelector(".mermaid-modal-content");
+    let t = { scale: 1, x: 0, y: 0 };
+    let baseScale = 1;
+    let opener = null;
+
+    const clamp = (v) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, v));
+
+    // 확대 중심을 화면에 고정한 채 배율만 바꾼다.
+    // transform 이 translate 뒤 scale 이므로 screen = x + s * c 이고,
+    // 같은 좌표를 같은 자리에 남기려면 x' = p - s' * (p - x) / s 다.
+    function zoomAt(nextScale, px, py) {
+      const scale = clamp(nextScale);
+      t = { scale, x: px - ((px - t.x) * scale) / t.scale, y: py - ((py - t.y) * scale) / t.scale };
+      apply();
+    }
+
+    function apply() {
+      content.style.transform = \`translate(\${t.x}px, \${t.y}px) scale(\${t.scale})\`;
+    }
+
+    function fit() {
+      const box = stage.getBoundingClientRect();
+      const svg = content.querySelector("svg");
+      if (!svg) return;
+      const w = svg.getBoundingClientRect().width / (t.scale || 1);
+      const h = svg.getBoundingClientRect().height / (t.scale || 1);
+      baseScale = clamp(Math.min(MAX_INITIAL_SCALE, Math.min(box.width / w, box.height / h)));
+      t = {
+        scale: baseScale,
+        x: Math.max(0, (box.width - w * baseScale) / 2),
+        y: Math.max(0, (box.height - h * baseScale) / 2),
+      };
+      apply();
+    }
+
+    function open(source, button) {
+      opener = button;
+      content.innerHTML = source.innerHTML;
+      t = { scale: 1, x: 0, y: 0 };
+      apply();
+      modal.hidden = false;
+      requestAnimationFrame(fit);
+    }
+
+    function close() {
+      modal.hidden = true;
+      content.innerHTML = "";
+      if (opener) opener.focus();
+    }
+
+    // 확대 버튼을 다이어그램 아래 줄에 둔다. 위에 겹치면 낮은 다이어그램을 가린다.
+    for (const fig of document.querySelectorAll(".mermaid-preview")) {
+      const target = fig.querySelector(".mermaid");
+      if (!target || !target.querySelector("svg")) continue;
+      const bar = document.createElement("div");
+      bar.className = "mermaid-zoom-bar";
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = "확대";
+      button.setAttribute("aria-label", "다이어그램 확대 보기");
+      button.addEventListener("click", () => open(target, button));
+      bar.append(button);
+      fig.append(bar);
+    }
+
+    modal.querySelector(".mermaid-modal-tools").addEventListener("click", (e) => {
+      const act = e.target.closest("button")?.dataset.act;
+      if (!act) return;
+      const box = stage.getBoundingClientRect();
+      const cx = box.width / 2, cy = box.height / 2;
+      if (act === "in") zoomAt(t.scale * SCALE_STEP, cx, cy);
+      else if (act === "out") zoomAt(t.scale / SCALE_STEP, cx, cy);
+      else if (act === "reset") fit();
+      else close();
+    });
+
+    stage.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const box = stage.getBoundingClientRect();
+      const factor = Math.exp(-e.deltaY * WHEEL_SENSITIVITY);
+      zoomAt(t.scale * factor, e.clientX - box.left, e.clientY - box.top);
+    }, { passive: false });
+
+    let dragging = null;
+    stage.addEventListener("pointerdown", (e) => {
+      dragging = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      stage.setPointerCapture(e.pointerId);
+      stage.classList.add("is-panning");
+    });
+    stage.addEventListener("pointermove", (e) => {
+      if (!dragging || dragging.id !== e.pointerId) return;
+      t = { ...t, x: t.x + (e.clientX - dragging.x), y: t.y + (e.clientY - dragging.y) };
+      dragging = { ...dragging, x: e.clientX, y: e.clientY };
+      apply();
+    });
+    for (const type of ["pointerup", "pointercancel"]) {
+      stage.addEventListener(type, () => {
+        dragging = null;
+        stage.classList.remove("is-panning");
+      });
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (modal.hidden) return;
+      const box = stage.getBoundingClientRect();
+      const cx = box.width / 2, cy = box.height / 2;
+      if (e.key === "Escape") close();
+      else if (e.key === "+" || e.key === "=") zoomAt(t.scale * SCALE_STEP, cx, cy);
+      else if (e.key === "-" || e.key === "_") zoomAt(t.scale / SCALE_STEP, cx, cy);
+      else if (e.key === "0") fit();
+      else return;
+      e.preventDefault();
+    });
   </script>
 </body>
 </html>`;
