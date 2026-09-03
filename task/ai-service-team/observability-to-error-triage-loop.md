@@ -104,8 +104,7 @@ D 와 E 가 비어 있으면 루프가 아니라 직선이다.
 **적용해도 되는지, 적용하고 나서 좋아졌는지를 판정한 수단이 앞에서 붙인 워커 메모리 패널이었다는 것이다.**
 지표가 없었으면 이 제안을 받고도 넣을 수 없었다.
 
-> 메모리 계층과 `gc.collect()` 의 한계는 [Python 서버의 RSS 가 안 줄어드는 이유](./glibc-malloc-trim-python-leak.md)에 따로 정리했다.
-> 대시보드를 만들며 밟은 초기화 순서 함정은 [문서 파싱 서비스의 관측성 체계](./docparser-observability.md)에 있다.
+> 메모리 계층과 `gc.collect()`의 한계는 [Python 서버 RSS가 줄지 않을 때 malloc_trim을 적용한 과정](./glibc-malloc-trim-python-leak.md)에 따로 정리했다.
 
 ---
 
@@ -327,8 +326,7 @@ OCR 쪽에서는 이것을 로그 레벨 자체의 문제로 봤다.
 
 ## 함께 읽기
 
-- [Python 서버의 RSS 가 안 줄어드는 이유](./glibc-malloc-trim-python-leak.md)
-- [문서 파싱 서비스의 관측성 체계](./docparser-observability.md)
+- [Python 서버 RSS가 줄지 않을 때 malloc_trim을 적용한 과정](./glibc-malloc-trim-python-leak.md)
 - [HTTP 200 응답 안의 OCR 오류를 운영 지표로 만들기](./ocr-business-error-monitoring.md)
 - [OCR 오토스케일 전환의 connection 에러를 양쪽에서 막기](./ocr-scale-connection-resilience.md)
 - [ThreadLocal 에서 contextvar 로](../../python/java-to-python-threadlocal-contextvar.md)

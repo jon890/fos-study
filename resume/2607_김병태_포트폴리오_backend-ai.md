@@ -128,7 +128,7 @@ Spring Batch 구조와 Reader, Processor, Writer, OpenSearch 색인의 주요 �
 #### 검증
 
 - Testcontainers로 OpenSearch와 MySQL을 포함한 통합 테스트를 구성했습니다.
-- JaCoCo 커버리지 게이트와 SonarQube를 CI에 연결했습니다.
+- JaCoCo 커버리지 통과 조건과 SonarQube를 CI에 연결했습니다.
 
 ### 결과
 
@@ -204,7 +204,7 @@ OCR 워커는 병렬 처리, GPU 상태와 메모리 단편화 때문에 운영 
 
 ### 링크
 
-- [문서 파싱 파이프라인](../task/ai-service-team/playground-document-parser.md)
+- [Document Parser 운영과 개선](../task/ai-service-team/document-parser.md)
 
 ## 프로젝트 4. OCR API와 배포 경로 안정화
 
@@ -294,7 +294,7 @@ API Gateway를 제거한 뒤에는 HTTPS, 경로 변환과 IP 접근 제어를 �
 ### 배운 점
 
 - AI 제품의 품질 문제는 프롬프트 문구보다 호출 경계와 컨텍스트 전달 구조에서 발생하는 경우가 많습니다.
-- 자동화 생산성을 높이려면 에이전트 수보다 입력 요구사항과 검증 게이트의 정확도가 중요합니다.
+- 자동화 생산성을 높이려면 에이전트 수보다 입력 요구사항과 검증 절차의 정확도가 중요합니다.
 - 비용 최적화는 모델 단가가 아니라 재생성까지 포함한 전체 작업 비용으로 판단해야 합니다.
 
 ### 링크

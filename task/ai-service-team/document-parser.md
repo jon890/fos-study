@@ -4,13 +4,12 @@ series: "Document Parser 구축·운영"
 seriesOrder: 1
 ---
 
-# Playground 문서 파싱 파이프라인 기여 개요
+# Document Parser 운영과 개선
 
 **진행 기간**: 2026.05–현재
 
-AI 서비스 개발팀의 사내 LLM 워크플로 제품 **Playground**는 다양한 형식의 문서를 입력으로 받는다.
-이 입력을 LLM이 다룰 수 있는 markdown으로 정규화하는 문서 파싱 서비스를 맡아 운영·개선했다.
-OCR 제품을 만드는 게 아니라, OCR을 활용해 문서를 markdown으로 변환하는 서비스다.
+PDF·이미지·오피스 문서를 LLM이 다룰 수 있는 Markdown으로 변환하는 Document Parser를 담당했다.
+OCR 제품을 만드는 게 아니라 OCR을 활용해 문서를 Markdown으로 변환하는 서비스다.
 
 - 스택: Python 3.11, FastAPI, docling(+TableFormer), 멀티프로세스 워커 풀, Docker(CUDA)/GPU
 - 입력: PDF / DOC(X) / PPTX / XLSX / HWP / CSV / 이미지 → markdown

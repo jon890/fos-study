@@ -110,7 +110,7 @@ OCR과 문서 변환 결과는 라이브러리나 설정 변경에 따라 쉽게
 - 표는 전체 텍스트 점수와 분리해 셀 단위 F1으로 평가했습니다.
 - 운영 서버를 사용하던 검증 방식을 일회성 클라우드 인스턴스로 전환했습니다.
 - `gc.collect()` 뒤에도 남는 워커 RSS를 glibc 메모리 단편화 관점에서 진단했습니다.
-- `malloc_trim`을 환경변수로 제어하고 카나리에서 메모리 추이를 검증했습니다.
+- `malloc_trim`을 환경변수로 제어하고 인스턴스 배포 후 메모리 추이를 검증했습니다.
 - 대용량 XLSX를 행 단위로 처리해 27GiB 제한을 채우던 입력의 RSS를 약 92MB로 낮췄습니다.
 - 중복 CUDA 의존성을 제거해 컨테이너 이미지 압축 크기를 9.89GB에서 6.82GB로 줄였습니다.
 
@@ -124,7 +124,7 @@ OCR과 문서 변환 결과는 라이브러리나 설정 변경에 따라 쉽게
 
 Python 3.11, FastAPI, ProcessPoolExecutor, docling, PaddleOCR, Docker, Prometheus, Grafana
 
-자세한 내용은 [문서 파싱 파이프라인](../task/ai-service-team/playground-document-parser.md)에서 확인할 수 있습니다.
+자세한 내용은 [Document Parser 운영과 개선](../task/ai-service-team/document-parser.md)에서 확인할 수 있습니다.
 
 ### OCR API와 배포 경로 안정화
 
