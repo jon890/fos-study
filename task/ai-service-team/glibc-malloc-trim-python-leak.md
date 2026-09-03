@@ -6,7 +6,7 @@ seriesOrder: 5
 
 # Python 서버 RSS가 줄지 않을 때 malloc_trim을 적용한 과정
 
-**진행 기간**: 2026.05–2026.09
+**진행 기간**: 2026.05–2026.06
 
 > 개념은 [Python 서버의 RSS가 줄지 않는 이유: CPython, gc.collect(), malloc_trim](../../python/python-rss-leak-glibc-malloc-trim.md)에서 다룬다. 이 글은 Document Parser에 적용한 판단과 운영 검증만 기록한다.
 
