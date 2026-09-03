@@ -8,7 +8,7 @@
 
 - **백엔드**: NestJS, TypeScript
 - **데이터 스토어**: Redis (Streams, JSON, RediSearch)
-- **블록체인**: Solana(주력), BTC, ETH, USDT — Alchemy / CryptoAPIs
+- **블록체인**: Solana(주력), BTC, ETH, USDT: Alchemy / CryptoAPIs
 - **도메인**: P2P 거래소(체결 엔진·호가창), 블록체인 입출금 데몬
 
 ---
@@ -19,8 +19,8 @@
 
 | 기간              | 업무                                                            | 문서                                                                 |
 | ----------------- | --------------------------------------------------------------- | -------------------------------------------------------------------- |
-| 2022.08           | 게임 아이템 거래소 엔진 — 체결 엔진, 호가창, Redis              | [trading-engine.md](trading-engine.md)                               |
-| 2022.09 ~ 2022.10 | 블록체인 입출금 시스템 — 입금 감지 데몬, 유저 지갑, 출금 처리   | [blockchain-deposit-withdrawal.md](blockchain-deposit-withdrawal.md) |
+| 2022.08           | 게임 아이템 거래소 엔진: 체결 엔진, 호가창, Redis              | [trading-engine.md](trading-engine.md)                               |
+| 2022.09 ~ 2022.10 | 블록체인 입출금 시스템: 입금 감지 데몬, 유저 지갑, 출금 처리   | [blockchain-deposit-withdrawal.md](blockchain-deposit-withdrawal.md) |
 
 ---
 

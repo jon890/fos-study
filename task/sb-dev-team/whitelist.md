@@ -121,4 +121,4 @@ cacheManager.getCache("WHITE_LIST").clear()
 
 ## 관련 문서
 
-- [캐시 아키텍처](./cache-architecture.md) — MQ 기반 캐시 전파 구조
+- [캐시 아키텍처](./cache-architecture.md): MQ 기반 캐시 전파 구조

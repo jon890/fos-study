@@ -25,13 +25,13 @@ flowchart TB
     Admin --> MainDB["메인 DB (승인/반려 상태)"]
 ```
 
-kyc-server는 NestJS + TypeScript로 구현했고, 메인 백엔드와 다른 스택이다. 당시에 PII 격리 목적으로 별도 서비스를 두는 방향으로 결정이 났고, 내가 kyc-server와 어드민 백엔드의 KYC 관련 부분을 맡았다.
+kyc-server는 NestJS, TypeScript로 구현했고, 메인 백엔드와 다른 스택이다. 당시에 PII 격리 목적으로 별도 서비스를 두는 방향으로 결정이 났고, 내가 kyc-server와 어드민 백엔드의 KYC 관련 부분을 맡았다.
 
 ---
 
 ## kyc-server: 파일 업로드
 
-신분증 이미지를 받아 Azure Blob Storage에 저장한다. 파일명은 날짜 + UUID 조합으로 생성해서 유추가 불가능하게 했다.
+신분증 이미지를 받아 Azure Blob Storage에 저장한다. 파일명은 날짜, UUID 조합으로 생성해서 유추가 불가능하게 했다.
 
 ```typescript
 @Injectable()
@@ -88,11 +88,11 @@ export class CryptService {
 
 결과 포맷이 `[salt(64) | iv(16) | tag(16) | ciphertext]`로 한 덩어리라, DB에는 컬럼 하나만 잡으면 된다. 복호화 시 같은 순서로 잘라서 복원한다.
 
-PBKDF2 iteration을 2145로 둔 이유는 코드 주석에 남겨뒀다 — MASTER_KEY 자체가 이미 암호학적으로 강한 키라면 password 기반처럼 수만 번 돌릴 이유가 없다. KDF 비용이 요청당 암·복호화 레이턴시에 직결되니 불필요하게 높이지 말 것. (사용자가 입력한 password를 돌리는 경우는 10만 회 이상이 기본)
+PBKDF2 iteration을 2145로 둔 이유는 코드 주석에 남겨뒀다: MASTER_KEY 자체가 이미 암호학적으로 강한 키라면 password 기반처럼 수만 번 돌릴 이유가 없다. KDF 비용이 요청당 암·복호화 레이턴시에 직결되니 불필요하게 높이지 말 것. (사용자가 입력한 password를 돌리는 경우는 10만 회 이상이 기본)
 
 GCM 모드는 auth tag를 함께 저장해야 복호화 시 무결성 검증이 된다. CBC만 쓰다가 GCM으로 넘어올 때 이 부분을 빼먹으면 "복호화는 되는데 변조 감지가 안 되는" 반쪽짜리 상태가 된다.
 
-> **인사이트.** 암호화 스펙을 택할 때 **알고리즘 선택**(AES-GCM)과 **부가 데이터 저장 위치**(auth tag, salt, iv)는 하나의 결정으로 묶여야 한다. 알고리즘만 보고 auth tag를 빠뜨리면 보안이 형식만 갖춘 상태가 된다.
+AES-GCM을 사용할 때는 알고리즘뿐 아니라 auth tag, salt, iv의 저장 형식도 함께 정해야 했다. 이 값이 누락되면 복호화나 변조 검증을 올바르게 수행할 수 없다.
 
 ### 객체 단위 암·복호화 유틸
 
@@ -118,7 +118,7 @@ encryptObject(object: { [key: string]: unknown }, exclude?: string[]) {
 
 반려 처리 시 Azure Blob에서 파일을 삭제하는 로직에서 암호화된 경로를 그대로 Azure에 넘기고 있었다. Blob SDK는 "존재하지 않는 경로"를 조용히 처리하는 경우가 있어서 한참 못 잡았다. 
 
-> **인사이트 3.** "평문/암호문이 섞인 동일 필드"는 언제든 이런 버그를 만든다. 설계 단계에서 **암호문은 레포지토리 레이어에서만 머물고, 서비스 레이어는 항상 평문만 본다**는 규칙을 그었어야 했다. 경로 값이 서비스 전체를 암호문 상태로 돌아다니다 보니 어떤 지점에서 복호화가 필요한지 매번 체크해야 했다.
+같은 필드가 경로에 따라 평문과 암호문으로 섞이면서 복호화 누락이 생겼다. 암호문은 repository 경계 안에서만 다루고 서비스 레이어에는 평문을 전달하도록 책임을 나눴어야 했다.
 
 ---
 
@@ -178,11 +178,11 @@ kyc-server에서는 Prisma ORM을 사용해 두 개 DB(`common-prisma.service.ts
 
 ---
 
-## 환경별 운영 구성 — Logger 전략 + CORS
+## 환경별 운영 구성: Logger 전략, CORS
 
-KYC 서버는 dev / alpha / stage / release 네 개 환경으로 배포됐다. 환경마다 로깅 요구가 달랐고(stage는 컨테이너 stdout만, release는 파일 + 일일 로테이션), CORS도 환경마다 허용 origin이 다르다. 이걸 `if (profile === 'stage')` 식으로 뿌리면 환경 추가 시 매번 코드를 뒤져야 하니, 시작점부터 분리했다.
+KYC 서버는 dev / alpha / stage / release 네 개 환경으로 배포됐다. 환경마다 로깅 요구가 달랐고(stage는 컨테이너 stdout만, release는 파일, 일일 로테이션), CORS도 환경마다 허용 origin이 다르다. 이걸 `if (profile === 'stage')` 식으로 뿌리면 환경 추가 시 매번 코드를 뒤져야 하니, 시작점부터 분리했다.
 
-### Winston Logger — 프로파일별 전략 패턴
+### Winston Logger: 프로파일별 전략 패턴
 
 로거 옵션은 프로파일별 클래스로 분리했다.
 
@@ -215,9 +215,9 @@ class ReleaseLoggerOption extends LoggerOption {
 }
 ```
 
-`getFileLogOption`은 `winston-daily-rotate-file`로 날짜별 로그 파일을 생성한다. handleExceptions를 켜서 uncaught exception도 같이 떨어지게 했다. 프로파일을 `if/else`로 분기하지 않고 Factory + 클래스로 쪼갠 이유는 단순히 취향이 아니라 **각 환경 정책을 한 파일에서 완결시키기 위해서**였다. 나중에 "이 환경에선 뭐가 달랐지?"를 추적할 때 그 환경의 클래스 하나만 읽으면 된다.
+`getFileLogOption`은 `winston-daily-rotate-file`로 날짜별 로그 파일을 생성한다. handleExceptions를 켜서 uncaught exception도 같이 떨어지게 했다. 프로파일을 `if/else`로 분기하지 않고 Factory, 클래스로 쪼갠 이유는 단순히 취향이 아니라 **각 환경 정책을 한 파일에서 완결시키기 위해서**였다. 나중에 "이 환경에선 뭐가 달랐지?"를 추적할 때 그 환경의 클래스 하나만 읽으면 된다.
 
-### CORS — 환경변수 기반 origin 주입
+### CORS: 환경변수 기반 origin 주입
 
 허용 origin은 코드에 하드코딩하지 않고 `CORS_ALLOW_ORIGIN` 환경변수를 콤마 split해서 넘겼다.
 
@@ -262,4 +262,4 @@ KYC는 PII를 다루는 기능이라 관여한 팀이 많았다. 백엔드 메�
 
 ## 관련 문서
 
-- [Ehcache 캐시 설계](./cache-architecture.md) — 메인 서비스의 멀티 인스턴스 캐시 정합성 패턴
+- [Ehcache 캐시 설계](./cache-architecture.md): 메인 서비스의 멀티 인스턴스 캐시 정합성 패턴

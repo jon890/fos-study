@@ -61,7 +61,7 @@ interface UserWallet {
 
 ---
 
-## Solana 입금 감지 — Alchemy로 트랜잭션 추적
+## Solana 입금 감지: Alchemy로 트랜잭션 추적
 
 Solana 트랜잭션 추적에는 **Alchemy**를 사용했다. Alchemy는 Solana RPC 노드를 직접 운영하지 않아도 REST/WebSocket API로 블록체인 데이터를 조회할 수 있는 서비스다.
 
@@ -84,7 +84,7 @@ const response = await alchemy.core.getSignaturesForAddress(
 const tx = await alchemy.core.getTransaction(signature);
 ```
 
-### 입금액 계산 — 잔액 변화로 판단
+### 입금액 계산: 잔액 변화로 판단
 
 SOL 입금은 트랜잭션의 **preBalances / postBalances** 차이로 계산한다. Solana 트랜잭션에는 변경된 모든 계정의 전후 잔액이 포함되어 있어서, 특정 주소의 잔액이 얼마나 늘었는지 직접 계산할 수 있다.
 
@@ -125,14 +125,14 @@ function extractSplDeposit(tx: SolanaTransaction, depositAddress: string, mint: 
 
 ---
 
-## 데몬 서비스 — 코인별 폴링 스케줄러
+## 데몬 서비스: 코인별 폴링 스케줄러
 
 NestJS `@Cron`으로 코인마다 독립된 스케줄러를 돌린다. 인터벌을 다르게 설정해 API 요청이 동시에 몰리지 않도록 한다.
 
 ```typescript
 @Injectable()
 export class DepositScheduler {
-  @Cron('0 */5 * * * *')   // 5분마다 — 메인 코인
+  @Cron('0 */5 * * * *')   // 5분마다: 메인 코인
   async detectSolDeposits() { ... }
 
   @Cron('0 */7 * * * *')   // 7분마다
@@ -167,7 +167,7 @@ async processAllSolDeposits() {
 
 ---
 
-## 멱등성 보장 — 같은 트랜잭션을 두 번 처리하지 않는다
+## 멱등성 보장: 같은 트랜잭션을 두 번 처리하지 않는다
 
 폴링 방식의 가장 큰 위험은 **같은 트랜잭션을 중복 처리**하는 것이다. Solana의 트랜잭션 식별자는 **시그니처**(signature) 다. 이 값을 이미 처리된 입금 이력에서 확인해 중복을 막는다.
 

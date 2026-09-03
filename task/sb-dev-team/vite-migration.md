@@ -12,7 +12,7 @@ tags: [tasks]
 
 ## 왜 Vite로
 
-당시 빌드 구조는 Rollup 설정 파일을 직접 관리하는 방식이었다. Svelte는 이미 공식적으로 Vite + `@sveltejs/vite-plugin-svelte` 조합을 권장하고 있었고, 설정이 단순해지는 것 외에도 개발 서버 HMR 속도 문제가 있어 전환을 결정했다.
+당시 빌드 구조는 Rollup 설정 파일을 직접 관리하는 방식이었다. Svelte는 이미 공식적으로 Vite, `@sveltejs/vite-plugin-svelte` 조합을 권장하고 있었고, 설정이 단순해지는 것 외에도 개발 서버 HMR 속도 문제가 있어 전환을 결정했다.
 
 ---
 
