@@ -1,6 +1,10 @@
+---
+tags: [study]
+---
+
 # Redis Streams 소비자 그룹 신뢰성 — PEL, 재할당, 멱등성까지
 
-> 이 문서는 Redis Streams의 소비자 그룹(Consumer Group)이 *어떻게 메시지 유실 없이 분산 처리를 보장하는가*를 운영·장애 관점에서 정리한다. Stream의 기본 명령어와 Pub/Sub과의 비교는 [pub-sub.md](./pub-sub.md)에 이미 있으므로, 본 문서는 그 위에서 한 단계 더 들어간다 — *소비자가 죽었을 때 메시지는 어디에 남고, 누가 다시 처리하며, 중복을 어떻게 막는가*. 결론부터 말하면 Streams는 "메시지를 영속한다"가 아니라 **at-least-once + PEL(Pending Entries List) + 명시적 ACK**라는 세 부품의 조합으로 신뢰성을 만든다. 이 세 가지를 분리해서 설명할 수 있어야 한다.
+> 이 문서는 Redis Streams의 소비자 그룹(Consumer Group)이 *어떻게 메시지 유실 없이 분산 처리를 보장하는가*를 운영·장애 관점에서 정리한다. Stream의 기본 명령어와 Pub/Sub과의 비교는 [pub-sub.md](./pub-sub.md)에 이미 있으므로, 본 문서는 그 위에서 한 단계 더 들어간다. 소비자가 죽었을 때 메시지는 어디에 남고, 누가 다시 처리하며, 중복을 어떻게 막는지 다룬다. 결론부터 말하면 Streams는 "메시지를 영속한다"가 아니라 **at-least-once, PEL**(Pending Entries List)과 명시적 ACK의 조합으로 신뢰성을 만든다.
 
 학습 목표는 다음 세 가지다.
 
@@ -14,7 +18,7 @@
 
 단일 소비자가 `XREAD`로 스트림을 읽는 것만으로는 신뢰성이 없다. 읽고 나서 처리 중에 프로세스가 죽으면 그 메시지가 처리됐는지 아무도 모른다. 다시 읽으려면 마지막으로 읽은 ID를 소비자가 직접 어딘가에 저장해야 하는데, 그 저장 자체가 또 하나의 장애 지점이 된다.
 
-소비자 그룹은 이 "어디까지 읽었나"와 "무엇을 아직 처리 못 했나"를 **서버 측 상태로** 들고 있다. 그래서 소비자가 재시작해도 자기가 받았지만 ACK하지 않은 메시지를 그대로 다시 받을 수 있다. Kafka의 컨슈머 그룹 + 오프셋 커밋과 같은 역할이지만, Redis는 오프셋 하나가 아니라 **개별 메시지 단위의 미처리 목록**(PEL)을 들고 있다는 점이 결정적으로 다르다.
+소비자 그룹은 이 "어디까지 읽었나"와 "무엇을 아직 처리 못 했나"를 **서버 측 상태로** 들고 있다. 그래서 소비자가 재시작해도 자기가 받았지만 ACK하지 않은 메시지를 그대로 다시 받을 수 있다. Kafka의 컨슈머 그룹과 오프셋 커밋에 대응하지만, Redis는 오프셋 하나가 아니라 **개별 메시지 단위의 미처리 목록**(PEL)을 들고 있다는 점이 결정적으로 다르다.
 
 ---
 
@@ -48,7 +52,7 @@ XREADGROUP GROUP workers consumer-1 COUNT 10 STREAMS orders 0
 - **처리 후 ACK** (권장 기본값): 처리 성공이 확인된 다음 `XACK`. 처리 중 죽으면 PEL에 남아 재처리된다 → **at-least-once**. 중복이 발생할 수 있으므로 멱등성이 필수다.
 - **처리 전 ACK**: 받자마자 `XACK` 후 처리. 처리 중 죽으면 메시지는 영영 사라진다 → **at-most-once**. 유실을 감수하는 게 맞는 비핵심 이벤트에만.
 
-Redis Streams는 구조적으로 exactly-once를 보장하지 않는다. "정확히 한 번"은 at-least-once 전달 + 멱등 소비로 *결과적으로* 만드는 것이지, 브로커가 주는 게 아니다.
+Redis Streams는 구조적으로 exactly-once를 보장하지 않는다. "정확히 한 번"은 at-least-once 전달과 멱등 소비로 *결과적으로* 만드는 것이지, 브로커가 주는 게 아니다.
 
 ---
 
@@ -100,7 +104,7 @@ at-least-once의 그림자는 *영원히 실패하는 메시지*다. 처리할 �
 - 별도의 데드레터 스트림으로 `XADD` 후 원본은 `XACK`로 PEL에서 제거.
 - 알림을 띄우고 사람이 수동 개입할 때까지 격리.
 
-Redis는 데드레터를 기본 제공하지 않으므로, "전달 횟수 임계값 + 데드레터 스트림 + 원본 ACK"를 직접 구성해야 한다. 이걸 빼먹으면 독약 메시지 하나가 회수 워커의 처리량을 통째로 갉아먹는다.
+Redis는 데드레터를 기본 제공하지 않으므로 전달 횟수 임계값, 데드레터 스트림과 원본 ACK를 직접 구성해야 한다. 이걸 빼먹으면 독약 메시지 하나가 회수 워커의 처리량을 통째로 갉아먹는다.
 
 ---
 
@@ -120,7 +124,7 @@ Redis는 데드레터를 기본 제공하지 않으므로, "전달 횟수 임계
 - **멱등 소비**: at-least-once이므로 같은 메시지가 두 번 올 수 있다. 메시지 ID나 비즈니스 키를 처리 완료 집합(예: Redis Set, DB unique 제약)에 기록해 중복 처리를 무력화한다.
 - **회수 워커 분리**: 정상 소비 경로(`>`)와 고아 회수 경로(`XAUTOCLAIM`)를 분리하면, 회수 로직 장애가 정상 처리량에 영향을 덜 준다.
 - **PEL 모니터링**: `XINFO GROUPS orders`의 `pending`(미처리 수)과 `lag`(아직 전달 안 된 수)를 지표로 수집한다. pending이 단조 증가하면 소비자가 처리를 못 따라가거나 ACK를 빠뜨리고 있다는 신호다.
-- **트리밍 안전 마진**: `XADD orders MAXLEN ~ 100000 * ...`처럼 근사 트리밍(`~`)으로 성능을 확보하되, 보존량은 최대 처리 지연 + 회수 지연을 견딜 만큼 잡는다.
+- **트리밍 안전 마진**: `XADD orders MAXLEN ~ 100000 * ...`처럼 근사 트리밍(`~`)으로 성능을 확보하되, 보존량은 최대 처리 지연과 회수 지연을 견딜 만큼 잡는다.
 - **단일 인스턴스 한계**: Redis Streams는 한 키가 한 노드에 산다. 클러스터에서 처리량을 늘리려면 스트림 키 자체를 샤딩해야 하고, Kafka 수준의 파티션 재분배·복제 보장이 필요하면 Stream이 맞는 도구인지 다시 본다.
 
 ---
@@ -156,7 +160,7 @@ container.receive(
 container.start();
 ```
 
-`receiveAutoAck(...)`을 쓰면 받는 즉시 ACK되어 at-most-once가 된다. 핵심 이벤트라면 위처럼 `receive(...)` + 명시 ACK를 쓴다.
+`receiveAutoAck(...)`을 쓰면 받는 즉시 ACK되어 at-most-once가 된다. 핵심 이벤트라면 위처럼 `receive(...)`와 명시 ACK를 쓴다.
 
 ---
 
@@ -201,4 +205,4 @@ redis-cli XPENDING orders workers
 
 - [pub-sub.md](./pub-sub.md) — Pub/Sub와 Stream 기본 명령어, 전달 시멘틱 비교
 - [pub-sub-patterns.md](./pub-sub-patterns.md) — Pub/Sub 실전 패턴과 메시지 큐 경계
-- [../../kafka/message-delivery-semantics.md](../../kafka/message-delivery-semantics.md) — at-least-once / exactly-once를 Kafka 관점에서 비교
+- [Kafka 실전 설계](../../kafka/kafka-design.md) — at-least-once와 exactly-once를 Kafka 관점에서 비교

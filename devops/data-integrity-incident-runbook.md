@@ -1,3 +1,7 @@
+---
+tags: [study, insights]
+---
+
 # 운영 데이터 정합성 장애 대응 — 결제 취소 누락과 중복 적재 런북
 
 ## 학습 목표 한 줄
@@ -155,7 +159,7 @@ ORDER BY cnt DESC;
 
 - **DB unique 제약**을 자연키에 건다. 애플리케이션 체크는 동시성에서 새고, DB 제약은 마지막 방어선이다.
 - 적재를 **멱등 upsert**로 바꾼다(`INSERT ... ON DUPLICATE KEY UPDATE` 또는 `INSERT ... ON CONFLICT DO NOTHING`).
-- 컨슈머에 **inbox/처리 이력 테이블**을 둬, 이미 처리한 메시지 id면 스킵한다. [Outbox/Inbox 패턴](../architecture/outbox-inbox-pattern.md), [Kafka 메시지 전달 보장](../kafka/message-delivery-semantics.md) 참고.
+- 컨슈머에 **inbox/처리 이력 테이블**을 둬, 이미 처리한 메시지 id면 스킵한다. [Outbox/Inbox 패턴](../architecture/outbox-inbox-pattern.md), [Spring Kafka 컨슈머 오프셋 커밋과 트랜잭션 정렬](../kafka/spring-kafka-listener-offset-commit-transaction.md) 참고.
 - 배치는 처리 구간(워터마크)을 기록해 재실행 시 이미 끝난 구간을 다시 처리하지 않게 한다.
 - 컨슈머 rebalance 신뢰성은 [Redis Streams consumer group 신뢰성](../database/redis/redis-streams-consumer-group-reliability.md)의 ack/재처리 모델과 같은 원리로 본다.
 
@@ -171,7 +175,7 @@ ORDER BY cnt DESC;
 여기에 운영 측면에서 다음을 더한다.
 
 - 의심 건은 **자동으로 추정해 고치지 않는다.** 진실원(PG, 업스트림)을 재조회해 결정한 뒤 보정한다.
-- 보정은 **작은 배치 + 단계별 검증**으로, 한 번에 전체를 돌리지 않는다.
+- 보정은 **작은 배치와 단계별 검증**으로 진행하고, 한 번에 전체를 돌리지 않는다.
 - 삭제·취소 같은 비가역 조치 전에는 백업/동결을 먼저 한다.
 
 ## 5. 점검 질문

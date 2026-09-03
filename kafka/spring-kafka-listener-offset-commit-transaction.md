@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Spring Kafka 컨슈머 오프셋 커밋과 트랜잭션 정렬: AckMode, manual ack, 멱등 처리
 
 ## 이 글에서 답하는 질문
@@ -142,7 +146,7 @@ ack는 **모든 부수 효과(특히 DB 커밋)가 끝난 뒤** 호출해야 한
 ### Kafka 트랜잭션이 보장하는 범위
 
 Kafka 트랜잭션(`producer.beginTransaction()` / `sendOffsetsToTransaction()` / `commitTransaction()`)은
-**consume-process-produce** 패턴에서 "입력 오프셋 커밋 + 출력 메시지 발행"을 원자적으로 묶는다.
+**consume-process-produce** 패턴에서 입력 오프셋 커밋과 출력 메시지 발행을 원자적으로 묶는다.
 즉 Kafka 안에서 읽고-처리하고-다시 Kafka로 쓰는 경로는 exactly-once가 된다.
 
 ```java
@@ -169,7 +173,7 @@ Spring Kafka에는 과거 `ChainedKafkaTransactionManager`로 DB 트랜잭션 �
 
 ### 그래서 현실적인 선택지
 
-진짜 분산 트랜잭션(XA/2PC)은 운영 비용과 성능 부담이 커서 대부분 피한다. 대신 둘 중 하나를 단일 진실원으로 택한다.
+진짜 분산 트랜잭션(XA/2PC)은 운영 비용과 성능 부담이 커서 대부분 피한다. 대신 DB나 Kafka 중 하나를 기준 데이터로 택한다.
 
 - **DB를 진실원으로** → Outbox 패턴. 비즈니스 데이터와 발행할 메시지를 같은 DB 트랜잭션에 INSERT하고, 별도 워커가 Kafka로 발행. (발행 측 정렬)
 - **Kafka를 진실원으로** → idempotent consumer. at-least-once로 받고, DB 쪽에서 중복을 흡수. (소비 측 정렬, 이 글의 주제)
@@ -234,31 +238,13 @@ Redis는 캐시일 뿐이라 정합성의 최종 책임은 DB 제약에 있어�
 지금까지를 한 흐름으로 잇는다.
 
 1. 컨테이너가 메시지를 가져와 리스너 호출.
-2. 리스너는 `@Transactional` 안에서 `processed_event` INSERT(dedup) + 비즈니스 로직을 묶어 실행.
+2. 리스너는 `@Transactional` 안에서 `processed_event` INSERT(dedup)와 비즈니스 로직을 묶어 실행.
 3. 메서드 반환 시점에 **DB 커밋**.
 4. 컨테이너가 그 뒤 **오프셋 커밋**.
 5. 3과 4 사이에서 죽으면 메시지 재전송 → 2의 dedup INSERT가 unique 위반으로 걸러냄 → 비즈니스 로직 미실행.
 
 이 구조에서 정확히 한 번 "전달"은 보장하지 못해도, **정확히 한 번 "처리"한 것과 같은 효과**(effectively-once)를 얻는다.
-이것이 실무에서 Kafka 정합성을 다루는 표준 답이다 — exactly-once delivery를 좇기보다 at-least-once + 멱등 설계로 간다.
-
-## 면접 답변 프레임
-
-**Q. 리스너가 정상 종료하면 오프셋은 언제 커밋되나요?**
-
-> Spring Kafka는 `enable.auto.commit=false`로 두고 컨테이너가 직접 커밋합니다. AckMode 기본값이 `BATCH`라 한 `poll()` 배치를 다 처리한 뒤 커밋되고, `RECORD`로 두면 레코드마다 커밋됩니다. 중요한 건 리스너가 예외 없이 반환된 뒤에 커밋된다는 점이고, 그래서 DB 작업이 함께 있으면 DB 커밋이 오프셋 커밋보다 먼저 일어납니다.
-
-**Q. DB 커밋과 오프셋 커밋 순서가 왜 중요한가요?**
-
-> `DB 커밋 → 오프셋 커밋` 순서라야 at-least-once가 됩니다. 둘 사이에서 죽으면 오프셋이 안 올라가 메시지가 재전송되고, DB에는 이미 반영됐으니 중복 처리가 됩니다. 반대 순서면 오프셋만 올라가고 DB가 롤백돼 메시지를 잃습니다. 유실보다 중복이 다루기 쉬우니 전자를 택하고 중복은 멱등성으로 흡수합니다.
-
-**Q. Kafka 트랜잭션으로 DB까지 원자적으로 묶을 수 있나요?**
-
-> Kafka 트랜잭션은 consume-process-produce, 즉 Kafka 안에서 읽고 다시 Kafka로 쓰는 경로의 오프셋 커밋과 발행을 묶어줍니다. 하지만 DB는 다른 자원이라 함께 못 묶습니다. `ChainedKafkaTransactionManager`로 순서대로 커밋할 수는 있었지만 2PC가 아니라 커밋 사이 실패 창이 남고, 지금은 deprecated입니다. 그래서 DB를 진실원으로 하는 Outbox나, Kafka를 진실원으로 하는 idempotent consumer 중 하나로 설계합니다.
-
-**Q. 중복 메시지는 어떻게 막나요?**
-
-> `processed_event` 테이블에 이벤트 고유 ID를 unique 제약으로 두고, dedup INSERT와 비즈니스 로직을 같은 DB 트랜잭션에 넣습니다. 재전송된 중복은 INSERT에서 unique 위반으로 걸러지고 비즈니스 로직은 건너뜁니다. 위반 catch 시 트랜잭션 오염을 피하려고 dedup INSERT를 트랜잭션 맨 앞에 두거나, `ON CONFLICT DO NOTHING` 같은 구문으로 처리합니다.
+이것이 실무에서 Kafka 정합성을 다루는 기본 접근이다. Exactly-once delivery를 좇기보다 at-least-once와 멱등 설계로 간다.
 
 ## 체크리스트
 
@@ -277,9 +263,7 @@ Redis는 캐시일 뿐이라 정합성의 최종 책임은 DB 제약에 있어�
 
 ## 관련 문서
 
-- [메시지 전달 신뢰성](./message-delivery-semantics.md) — at-most/least/exactly-once 의미와 컨슈머 멱등 전략
-- [Kafka 데이터 정합성 설계](./data-consistency.md) — 멱등 프로듀서, exactly-once, min.insync.replicas
-- [Kafka 실전 설계](./kafka-design.md) — 파티션/컨슈머 그룹/재시도 트레이드오프
+- [Kafka 실전 설계](./kafka-design.md) — 파티션, 컨슈머 그룹, 전달 보장과 복제 설정
 - [Spring 트랜잭션 전파·격리수준·AFTER_COMMIT 실전](../java/spring/transaction-propagation-isolation-after-commit.md) — DB 커밋 이후 Kafka로 **발행하는 쪽**의 정렬
 - [TransactionSynchronization 실전](../java/spring/transaction-synchronization.md) — afterCommit 훅 커스터마이징
 - [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md) — DB를 진실원으로 하는 발행 원자성

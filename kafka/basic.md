@@ -1,10 +1,14 @@
+---
+tags: [study]
+---
+
 # Kafka 기본 개념 — 토픽, 파티션, 오프셋, 복제
 
 Kafka 글을 여러 편 정리하다 보니 "기본 개념을 한 번 모아서 짚는 문서"가 빠져 있었다. 이 글은 토픽·파티션·오프셋·복제(Leader/Follower/ISR)에 한해서 입문 수준으로만 정리한다. 파티션 키 전략, 컨슈머 그룹 리밸런싱, 메시지 전달 보장(at-least-once 등) 같은 운영·설계 영역은 별도 문서에서 다룬다.
 
 - 파티션 수 결정 / 컨슈머 그룹 / 재시도·DLQ 같은 실전 설계 → [Kafka 실전 설계](./kafka-design.md)
-- At-most-once / At-least-once / Exactly-once → [메시지 전달 신뢰성](./message-delivery-semantics.md)
-- 멱등성 프로듀서, `min.insync.replicas` 등 정합성 옵션 → [Kafka 데이터 정합성 설계](./data-consistency.md)
+- At-most-once, At-least-once와 Exactly-once → [Kafka 실전 설계](./kafka-design.md)
+- 멱등성 프로듀서와 `min.insync.replicas` 정합성 옵션 → [Kafka 실전 설계](./kafka-design.md)
 
 ---
 
@@ -70,7 +74,7 @@ Kafka 가 다른 메시지 큐와 가장 다른 점이 여기서 드러난다.
 
 토픽을 만들 때 정하는 옵션 중 하나가 `replication.factor` 다. 값이 3이면 그 토픽의 모든 파티션은 클러스터 안에 **3개의 복제본** 을 갖는다는 뜻이다. 이 3개는 가능한 한 서로 다른 브로커에 배치된다 (한 브로커에 같은 파티션의 두 복제본이 들어가면 그 브로커가 죽었을 때 가용성이 깨지므로).
 
-> 즉 replication factor = 리더 1 + 팔로워 N - 1. 총 복제본 수다.
+> 즉 replication factor는 리더 1개와 팔로워 N-1개의 합이다. 이 값이 총 복제본 수다.
 
 ### Leader vs Follower
 
@@ -113,7 +117,7 @@ ISR 이 왜 중요한가는 "**커밋된 메시지**" 의 정의에서 드러난
 이 정책에 따라오는 트레이드오프가 두 가지 있다.
 
 1. **ISR 이 다 죽으면 가용성이 멈춘다.** 모든 ISR 멤버가 한 번에 죽으면 새 리더로 뽑을 후보가 없다. 이 경우 옵션은 두 개다 — (a) ISR 복구를 기다린다(consistency 우선, 기본값), (b) `unclean.leader.election.enable=true` 를 켜고 ISR 외부 복제본도 리더로 승격시킨다(availability 우선, 데이터 유실 가능). 기본값이 (a) 인 이유는 명확하다 — 메시지 큐로 쓰이는 시스템에서 침묵의 데이터 유실은 디버깅이 거의 불가능하기 때문이다.
-2. **`acks=all` + `min.insync.replicas` 는 ISR 정의 위에서 동작한다.** 프로듀서가 `acks=all` 로 발행하면 리더는 ISR 의 모든 멤버가 메시지를 적용한 뒤에야 ack 를 돌려준다. `min.insync.replicas` 는 "최소 이 정도 ISR 이 살아있어야 발행을 받아준다" 는 하한선이다. 둘이 같이 쓰여야 의미가 산다. 자세한 옵션 조합은 [Kafka 데이터 정합성 설계](./data-consistency.md) 참고.
+2. **`acks=all`과 `min.insync.replicas`는 ISR 정의 위에서 동작한다.** 프로듀서가 `acks=all`로 발행하면 리더는 ISR의 모든 멤버가 메시지를 적용한 뒤에야 응답한다. `min.insync.replicas`는 쓰기를 허용할 최소 ISR 수다. 둘이 같이 쓰여야 의미가 산다. 자세한 옵션 조합은 [Kafka 실전 설계](./kafka-design.md)에서 다룬다.
 
 ## 한 장 정리
 
@@ -135,8 +139,7 @@ Cluster
 ## 다음 읽을거리
 
 - [Kafka 실전 설계 — 파티션 / 컨슈머 그룹 / 재시도 / 순서 보장](./kafka-design.md)
-- [메시지 전달 신뢰성 — At-most-once / At-least-once / Exactly-once](./message-delivery-semantics.md)
-- [Kafka 데이터 정합성 설계 — 멱등성 프로듀서, `acks=all`, `min.insync.replicas`](./data-consistency.md)
+- [Kafka 실전 설계](./kafka-design.md) — 전달 보장, 멱등성 프로듀서와 복제 설정
 - [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md) — Kafka 발행 원자성 보장
 
 ---
