@@ -16,7 +16,7 @@ AI 서비스 플랫폼에서 진행한 업무 기록을 모았다.
 | 2026.04           | AI 웹툰 제작 도구 MVP: 웹소설 분석부터 60컷 이미지 생성까지의 6단계 파이프라인 | [AI 웹툰 제작 도구 MVP: 6단계 생성 파이프라인](webtoon-maker-ai-pipeline.md) |
 | 2026.04–현재 | OCR 비즈니스 오류 관측: HTTP 200 응답 안의 오류 코드 지표와 주간 원인 분류 | [HTTP 200 응답 안의 OCR 오류를 운영 지표로 만들기](ocr-business-error-monitoring.md) |
 | 2026.05–현재 | Document Parser 기여 개요: 문서→Markdown 파싱 서비스(docling·OCR) 운영·개선 담당 | [Document Parser 운영과 개선](document-parser.md) |
-| 2026.05–현재 | 운영 관측과 주간 에러 분류 루프: 지표·로그·요청 ID 를 붙여 AI 와 함께 분석하고 개선 순서를 정하는 구조 | [지표와 로그를 붙이자 AI 와 같이 볼 화면이 생겼다](observability-to-error-triage-loop.md) |
+| 2026.05–현재 | 운영 관측과 주간 오류 분류: 지표·로그·요청 ID로 원인을 묶고 개선 대상을 고르는 절차 | [운영 지표와 주간 오류 분류 루프](observability-to-error-triage-loop.md) |
 | 2026.06–2026.07 | OCR 공인 진입점 전환: API Gateway 제거, 공인 LB·Ingress 직접 노출, 경로 변환·HTTPS·IP 접근 제어 | [API Gateway를 제거하고 공인 LoadBalancer로 직접 노출하기](ocr-api-gateway-removal.md) |
 
 ### 성능 개선

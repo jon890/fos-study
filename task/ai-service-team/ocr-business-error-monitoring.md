@@ -139,7 +139,7 @@ Counter 동작은 Micrometer의 `SimpleMeterRegistry`를 주입한 단위 테스
 
 대시보드는 어떤 오류가 늘었는지 보여주지만 원인을 결정하지는 못한다. 개별 요청의 원인과 재시도 결과는 로그에서 확인한다.
 
-오류 지표로 범위를 좁히고 로그를 같은 원인끼리 묶어 다음 개선 대상을 정하는 과정은 [지표와 로그를 붙이자 AI와 같이 볼 화면이 생겼다](./observability-to-error-triage-loop.md)에 정리했다.
+오류 지표로 범위를 좁히고 로그를 같은 원인끼리 묶어 다음 개선 대상을 정하는 과정은 [운영 지표와 주간 오류 분류 루프](./observability-to-error-triage-loop.md)에 정리했다.
 
 ## 내가 한 일
 
@@ -161,6 +161,6 @@ HTTP 상태 코드는 전송 결과이고 응답 본문의 성공 여부는 서�
 
 - [Observability 입문](../../observability/basics.md)
 - [Kubernetes의 Spring Boot 메트릭 수집](../../observability/prometheus-k8s-remote-write.md)
-- [지표와 로그를 붙이자 AI와 같이 볼 화면이 생겼다](./observability-to-error-triage-loop.md)
+- [운영 지표와 주간 오류 분류 루프](./observability-to-error-triage-loop.md)
 - [Prometheus `rate()`와 `increase()`](https://prometheus.io/docs/prometheus/latest/querying/functions/)
 - [Grafana `$__rate_interval`](https://grafana.com/docs/grafana/latest/datasources/prometheus/template-variables/#use-__rate_interval)
