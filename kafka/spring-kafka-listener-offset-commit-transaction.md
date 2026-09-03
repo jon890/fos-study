@@ -34,7 +34,7 @@ Kafka 컨슈머는 메시지를 지우지 않는다. 대신 "이 파티션에서
 
 실무 기본값은 후자다. 유실보다 중복이 다루기 쉽기 때문이다. 중복은 멱등성으로 흡수할 수 있지만, 유실된 메시지는 되살릴 방법이 없다.
 
-## Spring Kafka의 AckMode — 오프셋을 언제 커밋할지의 정책
+## Spring Kafka AckMode와 오프셋 커밋 시점
 
 Spring Kafka 컨테이너는 `enable.auto.commit=false`로 두고 **컨테이너가 직접** 오프셋을 커밋한다.
 "언제 커밋하느냐"를 결정하는 것이 `ContainerProperties.AckMode`다.
@@ -178,7 +178,7 @@ Spring Kafka에는 과거 `ChainedKafkaTransactionManager`로 DB 트랜잭션 �
 - **DB를 진실원으로** → Outbox 패턴. 비즈니스 데이터와 발행할 메시지를 같은 DB 트랜잭션에 INSERT하고, 별도 워커가 Kafka로 발행. (발행 측 정렬)
 - **Kafka를 진실원으로** → idempotent consumer. at-least-once로 받고, DB 쪽에서 중복을 흡수. (소비 측 정렬, 이 글의 주제)
 
-## idempotent consumer — `processed_event` 테이블 패턴
+## idempotent consumer와 `processed_event` 테이블
 
 소비 측 중복 흡수의 표준은 "이 이벤트를 이미 처리했는가"를 DB unique 제약으로 판정하는 것이다.
 
@@ -196,7 +196,7 @@ CREATE TABLE processed_event (
 - `event_id`는 메시지에 실린 고유 키다. 주문번호나 발행 측이 심은 UUID처럼 **재전송돼도 같은 값**이어야 한다. Kafka의 `offset`은 재전송 시 같지만 토픽/파티션 재구성에 취약하므로 비즈니스 레벨 ID를 쓰는 편이 안전하다.
 - `consumer` 컬럼으로 컨슈머 그룹별 처리 여부를 분리한다. 같은 이벤트를 projection용과 알림용이 각자 한 번씩 처리해야 하기 때문이다.
 
-### 핵심 — dedup INSERT와 비즈니스 로직을 같은 트랜잭션에
+### dedup INSERT와 비즈니스 로직을 같은 트랜잭션에 묶는다
 
 ```java
 @KafkaListener(topics = "order-created", groupId = "order-projection")
@@ -233,7 +233,7 @@ DB 종류에 따라 `INSERT ... ON CONFLICT DO NOTHING`(PostgreSQL)이나 `INSER
 매번 DB를 때리는 비용이 부담이면, DB 트랜잭션 진입 전에 Redis `SETNX`로 1차 필터링한 뒤 DB unique 제약을 최종 방어선으로 둔다.
 Redis는 캐시일 뿐이라 정합성의 최종 책임은 DB 제약에 있어야 한다.
 
-## 전체 그림 — at-least-once + 멱등으로 만드는 effectively-once
+## at-least-once와 멱등으로 만드는 effectively-once
 
 지금까지를 한 흐름으로 잇는다.
 

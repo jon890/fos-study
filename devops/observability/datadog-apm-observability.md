@@ -18,7 +18,7 @@ Datadog을 쓰다 보면 "이 지표를 Metric으로 볼지, Log로 볼지, APM 
 
 **Metrics**는 시계열 수치 데이터다. CPU, 메모리, 요청 수, latency p99 같은 값들. 15초 이하 집계 단위로 저장되고 장기 보관(기본 15개월)이 가능하다. 특징은 태그 조합 카디널리티가 폭증하면 비용이 수직 상승한다는 점이다. `user_id`, `order_id` 같은 고유 식별자를 태그로 박으면 재앙이 시작된다. 백분위수 표현 (p50/p95/p99/p99.9) 이 익숙하지 않으면 [Observability 입문](../../architecture/observability-basics.md) 의 "Latency 백분위수" 섹션을 먼저 본다.
 
-**Logs**는 구조화된 이벤트다. JSON 로그로 보내면 각 필드가 검색 가능해진다. 보관 계층이 둘로 나뉜다 — 인덱싱된 로그(빠른 검색, 비싸다)와 리하이드레이션 가능한 아카이브(S3, 저렴하지만 즉시 검색은 안 됨). 로그는 "개별 사건" 추적에 강하다.
+**Logs**는 구조화된 이벤트다. JSON 로그로 보내면 각 필드가 검색 가능해진다. 보관 계층은 인덱싱된 로그와 리하이드레이션 가능한 아카이브로 나뉜다. 전자는 빠르게 검색할 수 있지만 비싸고, 후자는 저렴하지만 즉시 검색할 수 없다. 로그는 "개별 사건" 추적에 강하다.
 
 **APM**(Application Performance Monitoring) 은 요청 단위 분산 trace다. 하나의 HTTP 요청이 Spring Controller → Service → JPA → MySQL → Redis → Kafka Producer로 흐르는 전체 경로를 Span 트리로 재구성한다. 사용자가 "주문이 느려요"라고 할 때, 정확히 어느 span에서 800ms를 태웠는지 본다.
 
@@ -85,13 +85,13 @@ Auto-instrumentation 범위가 실전에선 매우 넓다. 설정 한 줄 없이
 
 실전 디버깅 플로우를 예시로 본다. p99 latency alert이 `oliveyoung-order-api` 서비스에서 발생했다고 가정한다.
 
-**1단계 — Service Map 진입.** APM → Service Map 에서 해당 서비스 노드를 클릭한다. 연결된 upstream / downstream 서비스가 화살표로 그려지고, 각 엣지에 requests/s, error %, p99 latency가 뜬다. 예를 들어 order-api → inventory-api 엣지의 p99가 평소 120ms에서 1.8s로 튀어 있으면 문제 지점이 좁혀진다.
+**1단계: Service Map 진입.** APM → Service Map 에서 해당 서비스 노드를 클릭한다. 연결된 upstream / downstream 서비스가 화살표로 그려지고, 각 엣지에 requests/s, error %, p99 latency가 뜬다. 예를 들어 order-api → inventory-api 엣지의 p99가 평소 120ms에서 1.8s로 튀어 있으면 문제 지점이 좁혀진다.
 
-**2단계 — Trace 리스트 필터링.** APM → Traces 에서 `service:oliveyoung-order-api env:prod @duration:>1s status:error` 같은 쿼리를 건다. Datadog의 trace query 문법은 로그와 비슷하다. 상위 10개 slow trace를 뽑아 본다.
+**2단계: Trace 리스트 필터링.** APM → Traces 에서 `service:oliveyoung-order-api env:prod @duration:>1s status:error` 같은 쿼리를 건다. Datadog의 trace query 문법은 로그와 비슷하다. 상위 10개 slow trace를 뽑아 본다.
 
-**3단계 — Flame Graph 분석.** 개별 trace를 열면 flame graph가 펼쳐진다. x축은 시간, y축은 호출 스택. Root span이 `POST /orders`라면 그 밑에 `OrderService.placeOrder` → `InventoryClient.reserve` → `http.request GET /inventory/reserve` → `jdbc.query SELECT ...` 가 펼쳐진다. 어느 span에서 대부분의 시간을 쓰는지 한눈에 보인다.
+**3단계: Flame Graph 분석.** 개별 trace를 열면 flame graph가 펼쳐진다. x축은 시간, y축은 호출 스택. Root span이 `POST /orders`라면 그 밑에 `OrderService.placeOrder` → `InventoryClient.reserve` → `http.request GET /inventory/reserve` → `jdbc.query SELECT ...` 가 펼쳐진다. 어느 span에서 대부분의 시간을 쓰는지 한눈에 보인다.
 
-**4단계 — Span 상세 조사.** SQL span을 클릭하면 실제 실행된 쿼리, DB host, connection pool wait time까지 태그로 붙는다. "connection pool이 고갈되어 300ms 대기 후 실행되었다" 같은 판정이 가능하다.
+**4단계: Span 상세 조사.** SQL span을 클릭하면 실제 실행된 쿼리, DB host, connection pool wait time까지 태그로 붙는다. "connection pool이 고갈되어 300ms 대기 후 실행되었다" 같은 판정이 가능하다.
 
 이 흐름이 실전에서 의미 있는 건, Grafana와 Jaeger 조합에서는 같은 작업에 3개 탭을 왔다 갔다 해야 하지만 Datadog은 한 화면에서 끝난다는 점이다.
 
@@ -162,7 +162,7 @@ try {
 }
 ```
 
-주의 — 고유 식별자(`order.id`, `user.id`)를 span 태그로 붙일 때는 APM 검색엔 유용하지만, 이걸 그대로 custom metric 태그로 가져가면 cardinality가 폭발한다.
+고유 식별자(`order.id`, `user.id`)를 span 태그로 붙이면 APM 검색에는 유용하다. 그러나 이를 custom metric 태그로 가져가면 cardinality가 폭발한다.
 
 ## 6. Log Correlation: trace_id 자동 주입
 
@@ -213,12 +213,12 @@ Datadog UI에서는 이 trace_id가 자동 파싱되어, 로그 한 줄 옆에 "
 
 Backend API 관측에 흔히 쓰는 두 프레임워크:
 
-**RED** — User-facing request 중심.
+**RED**는 User-facing request 중심이다.
 - Rate — 초당 요청 수
 - Errors — 에러율
 - Duration — 응답 시간 분포 (p50, p95, p99)
 
-**USE** — Resource 중심.
+**USE**는 Resource 중심이다.
 - Utilization — CPU/Memory 사용률
 - Saturation — queue 길이, 대기 시간
 - Errors — 에러 카운트
@@ -234,30 +234,30 @@ Datadog SLO Widget으로 이걸 추적한다. Error budget이 소진되면 Slack
 
 **언제 어떤 걸 쓰나?**
 
-Threshold monitor는 SLO 위반 같은 명확한 기준이 있을 때. Anomaly는 트래픽 패턴이 주기적이고 절대 threshold를 잡기 어려울 때(예: 심야 주문량 vs 피크 시간 주문량). Forecast는 자원 고갈(디스크, 커넥션 풀). Composite는 false positive를 줄여야 할 때 — 단일 메트릭 튐은 무시하고 복합 조건일 때만 호출.
+Threshold monitor는 SLO 위반 같은 명확한 기준이 있을 때 쓴다. Anomaly는 트래픽 패턴이 주기적이고 절대 threshold를 잡기 어려울 때 사용한다. Forecast는 디스크와 커넥션 풀 같은 자원 고갈을 예측한다. Composite는 단일 메트릭 변화는 무시하고 복합 조건일 때만 호출해 false positive를 줄인다.
 
 ## 8. Dashboard / Notebook: 장애 초기 10분 판단용 뷰
 
 서비스 온콜을 받았을 때, 10분 안에 "지금 문제가 내 서비스 책임인가, downstream인가"를 판정해야 한다. 그걸 위한 전용 대시보드 구성 예:
 
-**Row 1 — Golden Signals**(RED)
+**Row 1: Golden Signals**(RED)
 - Request rate (rpm) — 30분 window, 평소 대비 감소와 급증 확인
 - Error rate (%) — `trace.servlet.request.errors / trace.servlet.request.hits`
 - Latency p50/p95/p99 — 각 엔드포인트별
 
-**Row 2 — Dependency Health**
+**Row 2: Dependency Health**
 - Downstream HTTP call latency per service (inventory, payment, coupon)
 - Redis command duration p99
 - MySQL query p99, 특히 `connection_wait_time`
 - Kafka consumer lag per topic
 
-**Row 3 — Infrastructure**
+**Row 3: Infrastructure**
 - JVM heap usage, GC pause duration
 - CPU / Memory per pod
 - HTTP 5xx / 4xx 분포
 - Pod restart 이벤트
 
-**Row 4 — Business Metrics**
+**Row 4: Business Metrics**
 - 주문 성공률, 결제 성공률
 - 이상 값이 비즈니스 레벨에 보이는가
 
@@ -273,7 +273,7 @@ Datadog Continuous Profiler는 JVM에서 JFR(Java Flight Recorder)을 상시 돌
 - **Lock profile** — synchronized / ReentrantLock 경합이 어디서 생기나.
 - **Exception profile** — 예외가 어느 지점에서 던져지고 캐치되나.
 
-실전 활용 예 — "특정 엔드포인트만 p99가 튀는데 DB는 빠르다." APM trace를 봐도 Java 내부 CPU 시간이 긴 상태라면 Profiler로 가서 같은 시간대의 hot method를 본다. `com.fasterxml.jackson.databind.ObjectMapper` 직렬화가 CPU의 40%를 먹고 있다면, DTO 구조나 JSON 필드 수 문제가 원인이다.
+실전 활용 예를 보자. 특정 엔드포인트만 p99가 튀는데 DB는 빠르다고 하자. APM trace를 봐도 Java 내부 CPU 시간이 긴 상태라면 Profiler로 가서 같은 시간대의 hot method를 본다. `com.fasterxml.jackson.databind.ObjectMapper` 직렬화가 CPU의 40%를 먹고 있다면, DTO 구조나 JSON 필드 수 문제가 원인이다.
 
 ## 10. 비용 관리: Cardinality, Sampling, Indexing
 
@@ -304,7 +304,7 @@ Datadog 비용이 터지는 세 지점:
 
 ## 12. Bad vs Improved 예시
 
-**Bad 예시 1 — Unified Tagging 누락**
+**Bad 예시 1: Unified Tagging 누락**
 
 ```yaml
 env:
@@ -328,7 +328,7 @@ env:
     value: prod
 ```
 
-**Bad 예시 2 — Custom Metric에 고유 식별자**
+**Bad 예시 2: Custom Metric에 고유 식별자**
 
 ```java
 statsd.increment("order.placed",
@@ -338,7 +338,7 @@ statsd.increment("order.placed",
 
 사용자 10만 명 × 주문 수백만 → metric 카디널리티 폭발, 월말 청구서 3~10배 증가.
 
-**Improved — span attribute로 이동, metric은 low cardinality로**
+**Improved: span attribute로 이동하고 metric은 low cardinality로 유지**
 
 ```java
 statsd.increment("order.placed",
@@ -353,7 +353,7 @@ if (span != null) {
 }
 ```
 
-**Bad 예시 3 — 로깅과 trace 단절**
+**Bad 예시 3: 로깅과 trace 단절**
 
 ```java
 log.error("Failed to process order: " + orderId);

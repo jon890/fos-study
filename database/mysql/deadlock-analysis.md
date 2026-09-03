@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# MySQL 데드락 실전 분석 — SQS 컨슈머 환경에서 InnoDB 락을 읽고 풀어내는 법
+# MySQL 데드락 실전 분석: SQS 컨슈머 환경에서 InnoDB 락 읽기
 
 ## 왜 이 주제가 중요한가
 
@@ -12,7 +12,7 @@ tags: [study]
 
 시니어 백엔드 면접에서 "주문 처리 중 데드락이 발생하고 있어요. 어떻게 접근하시겠습니까"라는 질문은 거의 항상 나온다. 이때 기대하는 답은 "재시도하면 됩니다"가 아니다. **락 레벨을 읽어내고, `SHOW ENGINE INNODB STATUS` 로그를 해독하고, 원인을 설계 단계까지 되짚어가는 능력**이다. 이 문서는 그 능력을 재현 가능한 수준으로 정리한다.
 
-## InnoDB 락 모델 복습 — 데드락 로그를 읽기 위한 최소 지식
+## 데드락 로그를 읽기 위한 InnoDB 락 모델
 
 ### Shared / Exclusive Lock
 
@@ -318,7 +318,7 @@ CREATE TABLE account (
 INSERT INTO account VALUES (1, 10000), (2, 10000);
 ```
 
-## 실행 가능한 예제 1 — 역순 락 데드락 재현
+## 역순 락 데드락 재현
 
 두 개의 `mysql` 클라이언트 세션을 연다.
 
@@ -350,7 +350,7 @@ SHOW ENGINE INNODB STATUS\G
 
 `LATEST DETECTED DEADLOCK` 블록을 읽어 둘의 HOLDS / WAITING FOR 패턴이 정확히 엇갈리는 것을 확인한다.
 
-## 실행 가능한 예제 2 — Gap Lock 데드락
+## Gap Lock 데드락 재현
 
 ```sql
 CREATE TABLE coupon (
