@@ -1,6 +1,6 @@
-# Spring Batch 공부 내용 모음
+# Spring Batch 학습 문서
 
-스프링 배치 레퍼런스 문서와, 강의를 통해 학습 후 Spring Batch의 기본 개념과 실전에 대해서 정리해보고자 합니다.
+Spring Batch 5를 기준으로 생명주기, 내결함성과 메타데이터처럼 운영에서 다시 확인할 주제를 정리한다.
 
 - 2025.11.20 - Spring Batch 6이 출시되며 Spring Boot 4 버전과 완전하게 통합되었습니다.
   - 해당 문서는 Spring Batch 6은 다루지 않고 5버전을 다룰 예정입니다.
@@ -9,23 +9,14 @@
 
 ## 목차
 
-### 죽음의 스프링 배치
+### 실행 생명주기와 내결함성
 
-- **0. 배치란 무엇인가?, Spring Batch 시작해보기**
-  - [0.1. 배치란 무엇인가?](/java/spring-batch/0.1-introduce.md)
-  - [0.2. 첫 번째 배치 만들어보기](/java/spring-batch/0.2-first-job-example.md)
-- **1. 스프링 배치의 핵심 컴포넌트들**
-  - [1.1. 스텝의 종류는 어떤 것이 있을까?](/java/spring-batch/1.1-type-of-steps.md)
-  - [1.2. 잡 파라미터](/java/spring-batch/1.2-job-parameters.md)
-  - [1.3. 리스너](/java/spring-batch/1.3-listener.md)
-- **2. 다양한 데이터 소스를 처리하는 법**
-  - [2.1. 파일을 읽어보자 - FlatFileItemReader](/java/spring-batch/2.1-flat-file-item-reader.md)
-  - [2.2. 파일에 써보자 - FlatFileItemWriter](/java/spring-batch/2.2-flat-file-item-writer.md)
-- **4. 고급 스텝 기법 - 스텝을 해부해보자**
+- **핵심 컴포넌트**
+  - [리스너](/java/spring-batch/1.3-listener.md)
+- **스텝 생명주기**
   - [4.1. 아이템 스트림](/java/spring-batch/4.1-item-stream.md)
-  - [4.2. 아이템 프로세서](/java/spring-batch/4.2-item-processor.md)
-  - [4.3. 내결함성 (작성중..)](/java/spring-batch/4.3-fault-tolerant.md)
-- **5. 스프링 배치 정복**
+  - [4.3. 내결함성](/java/spring-batch/4.3-fault-tolerant.md)
+- **메타데이터**
   - [5.1. Job과 메타데이터 저장소](/java/spring-batch/5.1-job-and-metadata-repository.md)
 
 ### 다양한 기법들
