@@ -1,6 +1,6 @@
 ---
 categories: [database]
-tags: [심화]
+tags: [심화, study]
 thumbnail: ./images/08-production-security-operations-thumbnail.jpg
 ---
 

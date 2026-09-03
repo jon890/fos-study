@@ -2,7 +2,7 @@
 thumbnail: ./images/langgraph-state-and-reducer-thumbnail.jpg
 series: "LangGraph로 에이전트 워크플로 만들기"
 seriesOrder: 2
-tags: [입문]
+tags: [입문, study]
 ---
 
 # LangGraph State와 Reducer — 그래프를 흐르는 상태 설계

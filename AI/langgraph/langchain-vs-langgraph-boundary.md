@@ -2,7 +2,7 @@
 thumbnail: ./images/langchain-vs-langgraph-boundary-thumbnail.jpg
 series: "LangGraph로 에이전트 워크플로 만들기"
 seriesOrder: 1
-tags: [입문]
+tags: [입문, study]
 ---
 
 # LangChain과 LangGraph는 왜 나뉘어 있나 — 체인과 런타임의 경계

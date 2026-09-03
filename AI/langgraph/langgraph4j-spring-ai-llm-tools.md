@@ -2,7 +2,7 @@
 thumbnail: ./images/langgraph4j-spring-ai-llm-tools-thumbnail.jpg
 series: "LangGraph로 에이전트 워크플로 만들기"
 seriesOrder: 7
-tags: [심화]
+tags: [심화, study]
 categories: [java]
 ---
 

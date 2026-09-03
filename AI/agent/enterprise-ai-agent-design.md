@@ -1,12 +1,13 @@
 ---
 thumbnail: ./images/enterprise-ai-agent-design-thumbnail.jpg
+tags: [study]
 ---
 
-# 엔터프라이즈 AI Agent 설계 — reasoning, tool, memory, cost를 운영 시스템으로 묶기
+# 엔터프라이즈 AI Agent 설계: reasoning, tool, memory, cost를 운영 시스템으로 묶기
 
 AI Agent를 엔터프라이즈 환경에 올린다는 건 "LLM이 알아서 일하게 한다"가 아니다.
 모델의 reasoning 능력, 도구 호출, 메모리, 비용 예산, 권한, 감사 로그를 하나의 운영 시스템으로 묶는 일이다.
-이 글은 Chain of Thought부터 MCP, LangGraph, Agent SDK, memory, cost control, risk gate까지를 백엔드 설계 관점에서 정리한다.
+이 글은 Chain of Thought부터 MCP, LangGraph, Agent SDK, memory, cost control, 위험 점검까지를 백엔드 설계 관점에서 정리한다.
 
 내가 이 글에서 답하고 싶었던 질문은 셋이다.
 
@@ -16,7 +17,7 @@ AI Agent를 엔터프라이즈 환경에 올린다는 건 "LLM이 알아서 일�
 
 가져갈 판단 기준도 셋으로 좁힌다.
 
-- **자율성은 모델이 아니라 게이트가 정한다.**
+- **자율성의 범위는 모델이 아니라 실행 전 통과 조건이 정한다.**
 - **메모리는 저장소가 아니라 정책이다.**
 - **비용 최적화는 모델 선택보다 context 설계에서 먼저 갈린다.**
 
@@ -43,7 +44,7 @@ flowchart TB
     I --> C[Context builder]
     C --> M[Model or agent runtime]
     M --> D[Tool dispatcher]
-    D --> P[Permission and policy gate]
+    D --> P[Permission and policy check]
     P --> T[Enterprise tools]
     T --> V[Result validator]
     V --> M
@@ -99,7 +100,7 @@ ReAct 논문은 reasoning trace와 action을 엮으면 환각과 오류 전파�
 | 상황 | 권장 패턴 |
 | --- | --- |
 | 단순 조회·FAQ | RAG 또는 단일 tool call |
-| 정책 판단 + 근거 필요 | retrieve → answer → citation 검증 |
+| 정책 판단과 근거 필요 | retrieve → answer → citation 검증 |
 | 여러 도구를 순차 호출 | ReAct를 제한된 step 안에서 사용 |
 | 비가역 행동 포함 | plan → 사람 승인 → execute |
 | 고비용 탐색 문제 | Tree of Thoughts류 탐색을 offline 또는 batch로 제한 |
@@ -205,7 +206,7 @@ Google ADK 문서도 context를 단순 문자열 누적이 아니라 sessions, m
 | thread state | 요약보다 구조화 상태 우선 |
 | retrieval 결과 | top-k보다 source diversity와 freshness 우선 |
 | tool schema | 현재 요청에 필요한 subset만 |
-| 과거 대화 | 최근 일부 + compaction summary |
+| 과거 대화 | 최근 일부와 compaction summary |
 
 이 설계의 목표는 "많이 기억하는 Agent"가 아니다.
 목표는 **필요한 것만 정확히 현재 window에 올리는 Agent**다.
@@ -228,12 +229,12 @@ OpenAI cost optimization 문서는 Batch API로 비동기 작업을 묶어 처�
 
 | 요청 유형 | 싸고 안정적인 처리 |
 | --- | --- |
-| 정형 조회 | API 직접 호출 + 템플릿 응답 |
-| 단순 요약 | 작은 모델 + 짧은 context |
-| 근거 기반 답변 | RAG + citation 검증 |
+| 정형 조회 | API 직접 호출과 템플릿 응답 |
+| 단순 요약 | 작은 모델과 짧은 context |
+| 근거 기반 답변 | RAG와 citation 검증 |
 | 복잡한 multi-step | Agent loop |
 | 대량 비동기 처리 | batch workflow |
-| 위험 행동 | deterministic workflow + 사람 승인 |
+| 위험 행동 | deterministic workflow와 사람 승인 |
 
 모든 요청을 Agent로 보내면 비싸고 느리다.
 반대로 모든 요청을 정형 workflow로 묶으면 사용자가 원하는 유연성이 사라진다.
@@ -291,9 +292,8 @@ Agent를 개선하려면 raw transcript를 그냥 쌓는 게 아니라, **실패
 - 실패를 outcome failure, process failure, safety failure, cost failure로 라벨링한다.
 - 사람이 eval case로 승격할지 결정한다.
 - prompt, tool schema, router, policy 중 어디를 고칠지 분리한다.
-- canary에서 기존 eval과 신규 eval을 모두 통과해야 배포한다.
+- 일부 인스턴스에 배포한 뒤 기존 eval과 신규 eval을 모두 통과해야 전체에 배포한다.
 
-평가와 risk gate 자체는 [Agentic Workflow 평가와 Risk Gate 설계](./agentic-workflow-evaluation-risk-gate.md)에 더 자세히 정리했다.
 여기서 중요한 건 "발전"이 runtime magic이 아니라 software delivery loop라는 점이다.
 
 ## 프레임워크는 철학이 다르다
@@ -304,7 +304,7 @@ Agent를 개선하려면 raw transcript를 그냥 쌓는 게 아니라, **실패
 | --- | --- | --- | --- |
 | Provider SDK | OpenAI Agents SDK, Google ADK | 모델·도구·trace 통합이 빠름 | provider 기능에 설계가 끌려갈 수 있음 |
 | Graph runtime | LangGraph | durable execution, HITL, state 관리 | 추상화가 낮아 설계 책임이 큼 |
-| Multi-agent team | CrewAI, AutoGen | role 기반 협업, research/write 같은 작업에 직관적 | 자유도가 높아 gate 없으면 비용과 안전이 흔들림 |
+| Multi-agent team | CrewAI, AutoGen | role 기반 협업, research/write 같은 작업에 직관적 | 자유도가 높아 통과 조건이 없으면 비용과 안전이 흔들림 |
 | Harness pattern | Claude Code, Codex, custom harness | 파일·테스트·브라우저 등 실제 작업 환경과 결합 | 프레임워크보다 운영 규율이 중요 |
 
 OpenAI Agents SDK는 agents, handoffs, guardrails, sessions, tracing 같은 primitives를 제공하고, tracing으로 agentic flow를 시각화·디버깅·평가할 수 있다고 설명한다.
@@ -372,7 +372,7 @@ NIST AI RMF는 AI 제품의 설계, 개발, 사용, 평가에 trustworthiness �
 | --- | --- |
 | 권한 경계 | 모든 tool call은 사용자 auth context로 검증 |
 | 데이터 경계 | retrieval 전에 tenant, role, consent scope 필터 |
-| 행동 경계 | write/delete/send/pay 같은 비가역 행동은 HITL 또는 policy gate |
+| 행동 경계 | write/delete/send/pay 같은 비가역 행동은 HITL 또는 policy check |
 | 네트워크 경계 | browser와 internal API 접근 권한 분리 |
 | memory 경계 | 장기 memory 승격 전 sanitization과 user-visible edit path |
 | 비용 경계 | step, token, time, spend budget |

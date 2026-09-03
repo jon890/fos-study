@@ -1,6 +1,6 @@
 ---
 categories: [database]
-tags: [심화]
+tags: [심화, study]
 thumbnail: ./images/04-knowledge-graph-builder-thumbnail.jpg
 ---
 

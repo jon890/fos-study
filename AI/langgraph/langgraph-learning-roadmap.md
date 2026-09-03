@@ -2,7 +2,7 @@
 thumbnail: ./images/langgraph-learning-roadmap-thumbnail.jpg
 series: "LangGraph로 에이전트 워크플로 만들기"
 seriesOrder: 9
-tags: [입문]
+tags: [입문, study]
 ---
 
 # LangGraph 학습 로드맵 — 무엇을 어떤 순서로 볼까

@@ -1,6 +1,6 @@
 ---
 categories: [AI]
-tags: [심화, context-engineering, AI-agent]
+tags: [심화, context-engineering, AI-agent, study]
 thumbnail: ./images/lost-in-the-middle-context-management-thumbnail.jpg
 ---
 
@@ -233,7 +233,7 @@ stateDiagram-v2
 - 검증 결과
 - 다음에 허용되는 상태
 
-[Agentic Workflow 상태 관리](./agentic-workflow-state-management-langgraph.md)에서 설명한 checkpoint와 durable execution이 이 역할을 맡는다.
+각 전이 결과를 checkpoint에 저장하면 durable execution으로 이 역할을 구현할 수 있다.
 프로세스가 죽거나 사람 승인을 기다려도 모델의 대화 기억에 의존하지 않고 같은 실행을 이어갈 수 있다.
 
 ### 통과 검증

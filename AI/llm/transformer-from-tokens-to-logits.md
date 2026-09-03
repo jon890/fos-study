@@ -1,6 +1,6 @@
 ---
 categories: [AI]
-tags: [심화, LLM, Transformer]
+tags: [심화, LLM, Transformer, study]
 thumbnail: ./images/transformer-from-tokens-to-logits-thumbnail.jpg
 ---
 

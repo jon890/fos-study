@@ -1,6 +1,6 @@
 ---
 categories: [database]
-tags: [심화]
+tags: [심화, study]
 thumbnail: ./images/evaluation-driven-context-provider-thumbnail.jpg
 ---
 

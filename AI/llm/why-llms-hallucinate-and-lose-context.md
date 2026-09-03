@@ -1,6 +1,6 @@
 ---
 categories: [AI]
-tags: [심화, LLM, hallucination, long-context]
+tags: [심화, LLM, hallucination, long-context, study]
 thumbnail: ./images/why-llms-hallucinate-and-lose-context-thumbnail.jpg
 ---
 

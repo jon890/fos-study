@@ -2,7 +2,7 @@
 thumbnail: ./images/langgraph-human-in-the-loop-thumbnail.jpg
 series: "LangGraph로 에이전트 워크플로 만들기"
 seriesOrder: 4
-tags: [심화]
+tags: [심화, study]
 ---
 
 # LangGraph Human-in-the-Loop — 사람 승인을 그래프에 새기기

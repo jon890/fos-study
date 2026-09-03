@@ -1,6 +1,6 @@
 ---
 categories: [AI]
-tags: [심화]
+tags: [심화, study]
 thumbnail: ./images/ontology-knowledge-graph-agent-context-thumbnail.jpg
 ---
 
