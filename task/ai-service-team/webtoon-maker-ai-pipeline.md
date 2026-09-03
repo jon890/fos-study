@@ -2,17 +2,17 @@
 tags: [tasks]
 ---
 
-# AI 웹툰 제작 도구 MVP: 6단계 생성 파이프라인과 운영 안정화
+# AI 웹툰 제작 도구 MVP: 6단계 생성 파이프라인
 
-**진행 기간**: 2026.04.06 ~ 2026.04.30 (전반 12일 MVP, 후반 12일 안정화·운영 단계)
+**진행 기간**: 2026.04.06 ~ 2026.04.30
 
-웹소설 원작을 입력하면 운영자가 세계관과 캐릭터를 검토하고 웹툰 컷 이미지까지 생성할 수 있는 내부 MVP를 만들었다. 프론트엔드, 백엔드, 데이터베이스, AI 생성 파이프라인을 한 명이 맡았고, 첫 12일에는 동작하는 흐름을 만든 뒤 다음 12일에는 운영 안정성과 코드 경계를 보강했다.
+웹소설 원작을 입력하면 운영자가 세계관과 캐릭터를 검토하고 웹툰 컷 이미지까지 생성할 수 있는 내부 MVP를 만들었다.
 
-짧은 기간에 여러 영역을 함께 다루기 위해 계획, 구현, 검토 단계를 파일로 남기는 하네스를 사용했다. 이 글은 작업량보다 제품에서 마주친 문제와 해결 방법에 초점을 맞춘다. 하네스 자체의 설계는 [하네스 엔지니어링](../../AI/harness-engineering-practice.md)에 따로 정리했다.
+계획, 구현, 검토 단계를 파일로 남기는 하네스를 사용했다. 하네스 설계는 [하네스 엔지니어링](../../AI/harness-engineering-practice.md)에 따로 정리했다.
 
 ---
 
-## 뭘 만들었나
+## 구현 범위
 
 웹소설 .txt 파일을 넣으면 60컷짜리 웹툰 이미지가 나오는 웹 도구다. 파이프라인은 6단계.
 
@@ -22,7 +22,7 @@ tags: [tasks]
 [3] 스토리 각색   ← 기획안, 상세 각색안, 회차 매핑
 [4] 글콘티        ← 회차별 트리트먼트, 50~60컷 글콘티
 [5] 이미지 컷     ← 8대 요소 프롬프트 + Gemini Image
-[6] 말풍선 편집   ← 후반부에 음악·애니메이션 단계 대신 도입
+[6] 말풍선 편집
 ```
 
 운영자가 단계별로 결과를 확인하고, 인라인으로 수정하고, 재생성한다. 앞 단계를 수정하면 이후 단계의 확정이 연쇄적으로 해제된다. 브라우저를 닫아도 작업 상태는 보존된다.
@@ -31,18 +31,9 @@ AI 엔진은 Gemini 계열로 통일했다. 하나의 SDK(`@google/genai`)로 �
 
 ---
 
-## 작업 흐름
-
-| 기간 | 목표 | 주요 작업 |
-| --- | --- | --- |
-| 04.06~04.18 | MVP 구현 | 6단계 기본 흐름, 소설 분석, 캐릭터·각색·글콘티, 이미지 생성 |
-| 04.19~04.30 | 안정화 | 코드 경계 재정리, 관측성, 환각 검증, 재시도 정책, 통합 테스트 |
-
----
-
 ## 기술 스택
 
-짧은 기간에 전체 흐름을 구현해야 했기 때문에 "단일 코드베이스, 타입 안전성"을 기준으로 삼았다. Next.js 16, React 19, Prisma 7, Zod 4, Tailwind v4, `@google/genai`를 사용했다.
+전체 흐름을 하나의 코드베이스에서 구현하고 타입 오류를 줄이기 위해 Next.js 16, React 19, Prisma 7, Zod 4, Tailwind v4, `@google/genai`를 사용했다.
 
 운영 범위가 제한된 내부 MVP라 새 기능의 이점이 마이그레이션 위험보다 크다고 판단했다. Server Actions, Zod 4의 `z.toJSONSchema()`, Tailwind v4의 `@theme inline`과 `@source inline`을 활용해 별도 변환 코드를 줄였다.
 
@@ -195,7 +186,7 @@ Server Action을 입력 이벤트에 직접 연결하면 IME 조합과 서버 �
 
 ## 디자인 시스템, Container/Presenter: 디자이너와 충돌 해소
 
-후반부에 UX 디자이너 한 분이 합류했다. Claude Code를 같이 쓰면서 디자이너가 시각 변경을 PR로 올리는 구조였다. 며칠 같이 일하면서 두 가지 문제가 또렷이 보였다.
+UX 디자이너가 Claude Code로 시각 변경을 PR에 반영하는 과정에서 두 가지 문제가 드러났다.
 
 - **같은 파일을 동시에 건드린다.** `StepConti.tsx` 같은 503줄 god component에 상태 / 데이터 / 레이아웃 / 이벤트가 다 섞여 있었다. 디자이너가 카드 spacing을 바꾸려면 이 파일, 내가 컷 재정렬 로직을 바꾸려면 이 파일. PR 두 개가 동시에 올라오면 매번 충돌.
 - **인라인 magic spacing이 너무 많았다.** `flex flex-col gap-4`가 28곳에 흩어져 있어, "카드 사이 간격을 줄여달라"는 요구에 일일이 grep해서 바꿨다.
@@ -231,7 +222,7 @@ Tailwind v4에서 한 가지 함정은 있었다. primitive가 `GAP_MAP[gap]` �
 
 ## 하네스 개선: 즉석 구현에서 명세 기반 작업으로
 
-12일 동안 가장 많이 바뀐 게 하네스 자체였다. 기억나는 단계만 추리면 이렇다.
+개발을 진행하면서 하네스도 단계적으로 바뀌었다.
 
 ### 1단계: 한 세션에서 바로 구현
 
@@ -262,7 +253,7 @@ planning 결과물은 `tasks/planNNN-*/index.json`, 여러 phase 파일로 떨�
 
 ### 5단계: `/integrate-ux`로 디자이너 목업 통합
 
-후반에 UX 디자이너 한 분이 합류해 Claude Code로 컴포넌트 목업 PR을 올렸다. 화면 결과는 요구에 맞았지만 데이터 흐름과 컴포넌트 구조는 프로젝트 규칙과 달랐다.
+디자이너가 Claude Code로 올린 컴포넌트 목업은 화면 요구를 충족했지만 데이터 흐름과 컴포넌트 구조는 프로젝트 규칙과 달랐다.
 
 - 로컬 state로 데이터를 시뮬레이션 (Server Action 대신 useState, 하드코딩)
 - 공통 컴포넌트를 모르고 인라인으로 새로 그린 카드/버튼
@@ -297,105 +288,7 @@ ADR이 한 파일에 계속 쌓이면서 1,581줄까지 늘어난 적이 있다.
 
 ---
 
-## 후반 12일: MVP에서 운영 단계로
-
-4월 19일부터 30일까지는 MVP의 기능 범위를 넓히기보다 운영에 필요한 경계를 보강했다. 빠르게 만든 코드의 책임을 다시 나누고, 관측성, 환각 검증, 실패 처리와 테스트를 추가했다.
-
-### 6단계 재정의: 음악·애니메이션 폐기, 말풍선 편집 도입
-
-원래 6단계는 "동영상/음악"이었고 MVP 범위 밖의 빈 화면만 있었다. 후반부에 이 단계를 제거하고 **말풍선 편집**으로 재정의했다. 음악과 애니메이션은 별도 작업으로 분리할 수 있지만, 컷 위에 대사를 배치하는 기능은 웹툰 결과물을 완성하는 데 필요했다.
-
-이 결정 하나로 글 첫머리의 6단계 표가 바뀐다. 12일 시점에서 "Phase 2"로 미뤄뒀던 영역이 후반에 와서 "사실 우리에게 필요한 건 이게 아니었다"로 결론났다는 건, MVP 범위를 정할 때 **"무엇을 빼는지"가 "무엇을 하는지"만큼 중요하다**는 걸 다시 확인한 사건이었다. 빼두는 단계도 시간이 지나면 다시 평가받아야 한다.
-
-### 도메인 레이어 분리: Controller / Application / Domain
-
-초기에는 Action은 Zod, Repository는 Prisma를 쓰는 타입 경계만 나눴다. 코드가 늘자 SSE 도중 Action을 호출해 revalidate 시점이 불명확해지거나, repository에 비즈니스 정책이 들어가고, AI 레이어에서 Project row를 직접 쓰는 문제가 생겼다. 후반부에는 코드 위치도 도메인 단위로 정리했다.
-
-**Controller / Application / Domain**의 책임을 다음과 같이 정했다.
-
-- **Controller**(`actions/`·`app/api/`): Zod 파싱, application 호출, 응답 변환
-- **Application**(`lib/application/`, 도메인별 `lib/domains/{domain}/application/`): 트랜잭션 경계, revalidate 부수효과, 다중 도메인 조합
-- **Domain**(`lib/ai`·`lib/db`·`lib/schemas`, 도메인 vertical slice): 순수 기능
-
-Application을 거치는 기준은 트랜잭션, revalidate 부수효과, 둘 이상의 도메인 조합, `projectId`가 필요한 경로로 정했다. 단일 repository 호출과 단일 revalidate는 Controller에서 직접 처리해 의미 없는 wrapper가 늘지 않도록 했다.
-
-`lib/db/repository/`의 평면 구조를 `lib/db/domains/{domain}/`로 나눈 뒤 `lib/domains/{domain}/` 형태의 vertical slice를 일부 도메인에 적용했다. **`prisma` 직접 import는 repository 밖에서 금지**하고, 트랜잭션은 application의 `withTransaction`을 통해 받도록 ESLint 규칙을 추가했다.
-
-전반 12일에 "빠르게 짠 코드"의 부채를 후반 12일에 "경계를 다시 그어 갚는" 흐름이 자연스럽게 따라왔다.
-
-### 운영 관측성: pino, AsyncLocalStorage MDC
-
-12일 동안에는 `console.log` / `console.error`만으로 충분했다. 혼자 돌리는 MVP고 로그를 직접 보면 됐다. 후반부에 운영 시점이 가까워지면서 한계가 보였다. 같은 시간에 두 프로젝트가 돌면 **어느 요청·어느 프로젝트에서 발생한 로그인지** 추적이 안 됐고, 에러 전후 문맥을 재구성하려면 로그 줄을 수동으로 묶어야 했다.
-
-**pino와 `AsyncLocalStorage` 기반 MDC**를 도입했다. Java SLF4J의 MDC, Python의 `contextvars`와 같은 역할이다.
-
-- 고정 bindings: `service`, `env`
-- request-scoped: `requestId`, `projectId`, `projectName`
-- `src/proxy.ts`(Next.js 16+의 옛 `middleware.ts`)에서 `X-Request-ID` 생성·반사
-- 각 Server Action / Route Handler 진입점을 `withLogContext(fn)` wrapper로 감싸 als.run 시작
-- application의 `loadProjectForContext(id)`가 project 로드 직후 `logContext.update({projectId, projectName})` 주입
-- `console.*`는 서버 코드에서 ESLint `no-console` error로 금지. 클라이언트는 대상 외
-
-신규 코드만 새 logger를 쓰면 디버깅할 때 두 형식의 로그를 함께 봐야 하므로, 서버 로그 호출부를 한 번에 교체했다.
-
-`AsyncLocalStorage` 전파 경계는 한 가지 함정이 있다: Prisma EventEmitter나 AI retry/fallback 루프에서 컨텍스트가 끊길 수 있다. 이 경로들은 통합 테스트로 검증하고, 끊기면 request-scoped 필드 없이 고정 bindings만 남기는 식으로 받아들였다.
-
-초기 MVP에서는 직접 로그를 확인했지만 동시 요청이 생기는 운영 단계에서는 요청별 문맥이 필요했다. 기능 구현에서 운영 준비로 넘어가는 시점에 관측성을 보강했다.
-
-### 환각 차단 보강: sourceQuote와 트리트먼트 슬라이싱
-
-초기에는 Grounding 블록을 프롬프트 앞부분과 continuation에 넣고 허용되는 창작 범위를 명시했다. 후반부에는 출력 근거 검증과 입력 범위 제한을 추가했다.
-
-**sourceQuote 필수화와 부분 문자열 검증.** continuation 후반 컷에 원작 밖의 내용이 다시 등장했다. `buildContiPrompt`와 `buildContinuationPrompt`를 비교해보니, 첫 호출에는 PERSONA, CUT_WRITING_RULES, charactersBlock이 들어가지만 이어쓰기에는 grounding, treatment, tail과 짧은 rules만 있었다. 두 가지로 수정했다.
-
-1. **continuation 프롬프트 파리티**: 1차와 동일한 구성 블록을 continuation에 재주입. 토큰 비용 감수
-2. **`Cut.sourceQuote` 필수**: 각 컷이 원작 novelText에서 글자 그대로 추출한 인용을 함께 생성. generator가 `novelText.includes(sourceQuote)`로 substring 검증, 실패 시 logger().warn
-
-**트리트먼트 소설 범위 슬라이싱.** sourceQuote를 추가한 뒤에도 `novelText.includes`는 **소설 전체를 검증**하므로 트리트먼트 범위 밖의 원작 인용까지 통과했다. 트리트먼트 schema의 `novelRange`가 자연어 라벨("1부 5장 도입~중반")이라 정확한 글자 범위를 알 수 없었다.
-
-schema에 `Treatment.novelRangeStart: Int?`와 `novelRangeEnd: Int?`를 추가하고, application에서 `novelText.slice(start, end)`만 generator에 전달했다. 모델이 보는 입력을 해당 범위로 제한하면서 기존 sourceQuote 검사도 트리트먼트 범위 안의 인용만 통과시키게 됐다. 프롬프트의 원칙을 출력 검증과 입력 제한으로 옮긴 과정이었다.
-
-### 이미지 파이프라인 보강: AbortSignal 전파와 레퍼런스 첨부
-
-60컷 일괄 생성을 클라이언트 `Promise.allSettled`로 옮긴 뒤 컷, 배경, 소품 생성도 같은 패턴으로 맞추고 취소 신호를 SDK까지 전달했다.
-
-**배치 생성 통합.** 컷은 `AsyncIterable`과 [AbortController](../../javascript/abort-controller.md)를 사용하고, 배경과 소품은 `CONCURRENCY=3` 슬라이스와 `batchAbortedRef`로 취소를 처리하고 있었다. 후자를 제거하고 같은 흐름으로 맞췄다. 클라이언트 `fetch(signal)`에서 route의 `request.signal`, application, generator, `@google/genai` SDK의 `config.abortSignal`까지 신호를 전달했다.
-
-`@google/genai`의 `abortSignal`은 클라이언트 요청만 중단하므로 Google 서버에서 이미 시작한 작업 비용은 발생할 수 있다. 그래도 대기 중인 요청의 시작을 막고 클라이언트의 네트워크와 메모리를 회수할 수 있어 신호를 끝까지 전달했다.
-
-**Step5 컷 레퍼런스 첨부.** FloatingRegenBar와 즉시 재생성은 텍스트 지시만 사용했다. 포즈를 조금 바꾸거나 색을 유지하려는 경우에는 현재 컷을 레퍼런스로 다시 넣는 편이 의도 전달이 쉬웠다. 한 장만 세션 상태에 보관하고 Floating, 즉시 재생성, 실패 재시도 세 경로에 자동으로 주입했다.
-
-수정 작업이 한 세션 안에 끝난다는 전제로 DB에는 저장하지 않았다. 세션을 넘겨 편집해야 한다면 영속화가 필요하다는 제한도 남겼다.
-
-### 안정화: 테스트 범위와 retry 정책 정리
-
-전반부에는 운영자 한 명이 직접 흐름을 검증했다. 후반부에는 변경 범위가 넓어져 순수 함수와 application 유즈케이스부터 자동화 테스트를 추가했다.
-
-**테스트 범위.** 순수 함수(schemas, mappers, prompts, `classifyAiError`)와 application 유즈케이스(실제 DB, Gemini mock)를 먼저 검증했다. Storybook, Visual Regression, Playwright E2E, Testcontainers는 MVP 범위에서 보류했다.
-
-테스트 인프라 핵심은 **격리 방식**이었다. tx rollback은 application이 자체 `withTransaction`을 쓰니까 외부 savepoint가 bypass되어 불가. 그래서 각 테스트 `afterEach`에서 `TRUNCATE CASCADE`로 정리. 기존 docker-compose PostgreSQL을 `?schema=test` URL로 재사용해서 Testcontainers 대신. AI는 MSW로 Gemini HTTP를 intercept (Imagen SDK는 HTTP intercept 불가라 `vi.mock`으로 직접). 통합 테스트는 `pnpm ci`에 포함하지 않고 `pnpm test:integration`으로 분리해 PR CI 시간 30초 이내 목표를 지켰다.
-
-**retry 정책 통합.** conti 생성이 10회 중 약 8회 `fetch failed`로 5분 부근에서 실패하는 패턴을 발견했다. undici 기본 `headersTimeout`에 걸린 것이어서 두 레이어를 수정했다.
-
-1. **undici 전역 Agent 10분**: `instrumentation.ts`에서 `setGlobalDispatcher`로 timeout 교체
-2. **`withRetry` 네트워크 에러 분기**: `fetch failed` / `UND_ERR_HEADERS_TIMEOUT` / `ECONNRESET` 등을 감지해 기존 rate-limit fallback과 같은 흐름으로 모델 순회 (Pro→Flash→Lite)
-
-429, 503, network 세 분기에 약 50줄씩 반복되던 fallback 순회 로직은 `ErrorPolicy` 인터페이스와 rateLimit, serviceUnavailable, network 정책 객체로 바꿨다. `classify(err)`가 구체적인 오류부터 정책을 고르고, 새 오류 유형은 정책 객체와 `POLICIES` 배열에 추가하도록 했다.
-
----
-
-## 남은 것, 배운 것
-
-### 남은 것
-
-- 음악·애니메이션·음성은 후반에 6단계에서 폐기되고 말풍선 편집으로 재정의됐다. 음악/애니 자체는 별도 트랙으로 미정
-- 버전 관리 (단계별 생성 이력 / 롤백 / 비교)
-- API 비용 모니터링
-- 표지 생성, 외부 플랫폼 연동
-- Pro fallback 시 환각 약화: Flash/Lite로 떨어졌을 때 grounding 준수력이 약해지는 현상에 대한 별도 대응
-- 말풍선 합성 파이프라인의 운영 적용
-
-### 배운 것
+## 배운 것
 
 **하네스는 반복 작업과 재시작 비용을 줄였다.** 구현, 계획 검토, 문서 정합성 확인을 단계로 나누고 작업 상태를 파일에 남겼다. 나는 기능 범위와 트레이드오프를 결정하고 각 단계의 결과를 확인했다.
 
