@@ -2,7 +2,7 @@
 tags: [tasks]
 ---
 
-# 슬롯 당첨 계산 — Decorator 체인 + 우선순위 정렬
+# 슬롯 당첨 계산: Decorator 체인, 우선순위 정렬
 
 **진행 기간**: 슬롯 엔진 추상화 작업과 병행 (2025 하반기)
 
@@ -16,9 +16,9 @@ tags: [tasks]
 
 처음 후보는 세 가지였다.
 
-1. **분기 기반** — `if (isFreeGame) amount *= multiplier; if (hasBonus) ...` — 가장 익숙하지만 가장 빨리 망가짐
-2. **전략 패턴 한 번 더** — `WinCalculator` 인터페이스 + 구현체들. 그런데 "여러 계산을 순차 적용"이 본질이라 단일 선택이 아닌 **순서 있는 조합**이 필요했다
-3. **Decorator 체인** — 각 단계가 `PayableItem → PayableItem` 변환 함수. 순서대로 적용하면 누적
+1. **분기 기반**: `if (isFreeGame) amount *= multiplier; if (hasBonus) ...`: 가장 익숙하지만 가장 빨리 망가짐
+2. **전략 패턴 한 번 더**: `WinCalculator` 인터페이스, 구현체들. 그런데 "여러 계산을 순차 적용"이 본질이라 단일 선택이 아닌 **순서 있는 조합**이 필요했다
+3. **Decorator 체인**: 각 단계가 `PayableItem → PayableItem` 변환 함수. 순서대로 적용하면 누적
 
 본질이 "누적 장식"이었으므로 Decorator가 구조적으로 맞았다.
 
@@ -95,13 +95,13 @@ public class FreeGameMultiplierDecorator
 
 주목할 세 가지.
 
-- **Strategy를 Decorator 안에 품었다**. `multiplierTransformStrategy`는 `Function<PostSpinData, Integer>`로 주입된다. 슬롯마다 배수 계산식이 다르므로 **Decorator + Strategy 조합**이다
-- **`withWinAmount()` — 불변 객체로 변환**. 데코레이터는 원본을 변경하지 않고 새 객체를 반환한다. Kotlin의 copy처럼 Java의 builder 또는 `with...` 메서드로 구현
+- **Strategy를 Decorator 안에 품었다**. `multiplierTransformStrategy`는 `Function<PostSpinData, Integer>`로 주입된다. 슬롯마다 배수 계산식이 다르므로 **Decorator, Strategy 조합**이다
+- **`withWinAmount()`: 불변 객체로 변환**. 데코레이터는 원본을 변경하지 않고 새 객체를 반환한다. Kotlin의 copy처럼 Java의 builder 또는 `with...` 메서드로 구현
 - **`isApplicable()`로 조기 종료**. 프리게임이 아닌 일반 스핀에서는 체인에 포함돼 있어도 아무 변환도 하지 않는다. 체인 자체를 동적으로 재구성하지 않아도 된다
 
 ---
 
-## 체인 실행 — `AbstractWinService.applyDecorators()`
+## 체인 실행: `AbstractWinService.applyDecorators()`
 
 데코레이터를 실제로 적용하는 코드는 여기다.
 
@@ -130,7 +130,7 @@ protected abstract List<PayableItemDecorator<?>> payableItemDecorators();
 
 포인트:
 
-- **데코레이터 목록을 하위 슬롯 서비스가 제공한다**(`payableItemDecorators()` 추상 메서드). 슬롯별로 적용할 데코레이터 집합을 다르게 구성할 수 있다. A 슬롯은 프리게임 배수만, B 슬롯은 배수 + 프로그레시브 + 멀티플라이어 심볼 식으로 조립
+- **데코레이터 목록을 하위 슬롯 서비스가 제공한다**(`payableItemDecorators()` 추상 메서드). 슬롯별로 적용할 데코레이터 집합을 다르게 구성할 수 있다. A 슬롯은 프리게임 배수만, B 슬롯은 배수, 프로그레시브, 멀티플라이어 심볼 식으로 조립
 - **정렬은 매 호출마다 하지만 비용은 무시 가능**. 데코레이터 개수가 한 자릿수라 O(n log n)이 체감되지 않는다. 필요하면 `@PostConstruct`에서 미리 정렬해둘 수도 있다
 - **raw type 캐스팅**. 제네릭 `<C>`가 여러 타입을 가진 데코레이터들을 한 리스트에 담는 대가다. 각 데코레이터가 자기 타입의 컨텍스트만 만들어 쓰므로 런타임에 안전하다
 
@@ -154,7 +154,7 @@ return results.stream()
 
 **얻은 것**
 
-- 새 당첨 계산 규칙(예: "럭키 시간대 10% 보너스 이벤트")이 들어오면 **데코레이터 하나 추가 + 해당 슬롯의 `payableItemDecorators()` 리스트에 등록**만 하면 된다. 기존 데코레이터·서비스 코드 미수정
+- 새 당첨 계산 규칙(예: "럭키 시간대 10% 보너스 이벤트")이 들어오면 **데코레이터 하나 추가, 해당 슬롯의 `payableItemDecorators()` 리스트에 등록**만 하면 된다. 기존 데코레이터·서비스 코드 미수정
 - 단위 테스트가 쉬워졌다. 각 데코레이터는 순수 함수에 가까워서 `decorate(item, context)` 한 번 호출하고 결과 검증만 하면 된다
 
 **고민한 지점**
@@ -170,6 +170,6 @@ return results.stream()
 
 ## 관련 문서
 
-- [Decorator & Chain of Responsibility 패턴](../../architecture/patterns/decorator-chain-of-responsibility.md) — 개념 정리와 비교
-- [슬롯 엔진 추상화](./slot-engine-abstraction.md) — `AbstractWinService`를 포함한 상위 템플릿 구조
-- [슬롯 페이 조건 체크 Factory](./slot-payment-factory.md) — 이 데코레이터 체인이 장식하는 `PayableItem`의 출처
+- [Decorator & Chain of Responsibility 패턴](../../architecture/patterns/decorator-chain-of-responsibility.md): 개념 정리와 비교
+- [슬롯 엔진 추상화](./slot-engine-abstraction.md): `AbstractWinService`를 포함한 상위 템플릿 구조
+- [슬롯 페이 조건 체크 Factory](./slot-payment-factory.md): 이 데코레이터 체인이 장식하는 `PayableItem`의 출처

@@ -67,7 +67,7 @@ Welford's Online Algorithm은 입력마다 `count`, `mean`, `m2`를 갱신하므
 `AccumulateData.init()`을 `@Deprecated` 처리하고, 새로운 팩토리 메서드 `initWithWelfordOnlineCalculator()`를 추가했다.
 
 ```java
-// 기존 방식 — 더 이상 사용하지 않는다
+// 기존 방식: 더 이상 사용하지 않는다
 @Deprecated
 public static AccumulateData init() { ... }
 

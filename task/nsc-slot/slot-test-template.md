@@ -18,7 +18,7 @@ tags: [tasks]
 
 ## 1단계: 단위 테스트의 한계
 
-### 처음 만든 방식 — AbstractSlotUnitTest
+### 처음 만든 방식: AbstractSlotUnitTest
 
 초기에는 Spring 없이 순수 Java로 테스트를 돌렸다.
 
@@ -41,7 +41,7 @@ public abstract class AbstractSlotUnitTest<T extends SlotExtra> {
   private SlotGame initSlotGame(SlotGameCreateOptions options) {
     final SlotGame slotGame = getModelTest().createWithJson(getSlotExtraClass(), options);
 
-    // id 필드는 private — Reflection으로 강제 주입
+    // id 필드는 private: Reflection으로 강제 주입
     final Field idField = Game.class.getDeclaredField("id");
     idField.setAccessible(true);
     idField.set(slotGame, 9999L);
@@ -90,7 +90,7 @@ public abstract class AbstractSlotUnitTest<T extends SlotExtra> { ... }
 
 ## 2단계: 통합 테스트로 전환
 
-### AbstractSlotTest — Spring 컨텍스트 안에서
+### AbstractSlotTest: Spring 컨텍스트 안에서
 
 Spring 컨텍스트를 올리고, 실제 빈을 주입받는 방식으로 바꿨다.
 
@@ -159,7 +159,7 @@ void setup() {
 JUnit5 Extension으로 분리해서 테스트 클래스와 데이터 초기화 로직을 완전히 분리했다.
 
 ```java
-// 추상 Extension — 공통 초기화 로직 (AliasTable, ExtraAliasTable 포함)
+// 추상 Extension: 공통 초기화 로직 (AliasTable, ExtraAliasTable 포함)
 public abstract class SlotGameStaticDataLoaderExtension extends GameStaticDataLoaderExtension {
 
   @Override
@@ -180,7 +180,7 @@ public abstract class SlotGameStaticDataLoaderExtension extends GameStaticDataLo
   abstract SlotGame slotGame(); // 슬롯별 구현
 }
 
-// 슬롯별 구현체 — slotGame() 하나만 구현
+// 슬롯별 구현체: slotGame() 하나만 구현
 public class LinkGameSlotStaticDataLoaderExtension
     extends SlotGameStaticDataLoaderExtension {
 
@@ -213,10 +213,10 @@ class LinkGameBaseReelHelperTest
 Extension 도입 이전에는 `SlotStaticDataLoader.getSlotProduct()`를 static으로 호출하는 테스트가 있었다.
 
 ```java
-// 이전 방식: static 호출 — Mocking 불가능
+// 이전 방식: static 호출: Mocking 불가능
 SlotGame game = SlotStaticDataLoader.getSlotProduct(slotId);
 
-// 변경 후: Spring 빈 주입 — 테스트에서 동작 대체 가능
+// 변경 후: Spring 빈 주입: 테스트에서 동작 대체 가능
 @Autowired SlotStaticDataLoaderImpl slotStaticDataLoader;
 SlotGame game = slotStaticDataLoader.getSlotProduct(slotId);
 ```

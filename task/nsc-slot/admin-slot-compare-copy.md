@@ -57,7 +57,7 @@ ORIGINAL DB (현재 환경)   COMPARE DB (다음 환경)
 
 이 위험을 완화하는 방법으로 **feature flag 패턴**을 적용했다.
 
-### Feature Flag — `@CompareSlotEnabled`
+### Feature Flag: `@CompareSlotEnabled`
 
 real 환경에서는 복사할 "다음 환경"이 없다. 그런데 real 어드민에도 같은 코드가 배포된다. 잘못 설정되면 real DB에서 다른 환경으로 복사하는 사고가 날 수 있다.
 

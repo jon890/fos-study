@@ -21,7 +21,7 @@ tags: [tasks]
 
 ---
 
-## SlotTemplate — 페이 방식 추상화
+## SlotTemplate: 페이 방식 추상화
 
 슬롯 게임의 당첨 계산 방식은 크게 세 가지다.
 
@@ -59,7 +59,7 @@ public class Slot47Service extends BaseSlotService {
 
 ---
 
-## BaseSlotService — 서비스 공통 구현 추출
+## BaseSlotService: 서비스 공통 구현 추출
 
 `SlotService` 인터페이스에 `default` 구현이 점점 늘어나고 있었다. 인터페이스에 구현 로직이 있으면 테스트하기도 어렵고, Java의 `default` 메서드는 상태를 가질 수 없어서 한계가 있었다.
 
@@ -136,7 +136,7 @@ public class Slot47Service extends BaseSlotService {
 
 ## StaticDataLoader 개선
 
-### refreshAll 후 일시적 NPE — StampedLock 도입
+### refreshAll 후 일시적 NPE: StampedLock 도입
 
 `SlotStaticDataLoaderImpl`은 슬롯의 정적 데이터(릴 테이블, 심볼 설정, Alias 테이블 등)를 메모리에 올려 관리한다. 운영 중 어드민에서 설정이 바뀌면 RabbitMQ 메시지를 수신해 해당 슬롯 데이터를 갱신한다.
 
@@ -192,7 +192,7 @@ private <T> T getDataWithReadLock(Supplier<T> getDataFunction) {
 
 **추상화는 반복을 충분히 경험한 뒤에.** SlotTemplate, BaseSlotService 모두 슬롯을 직접 여러 개 만들고 나서야 올바른 공통점이 보였다. 처음에 추상화하면 잘못된 경계를 그을 가능성이 높다.
 
-**StampedLock은 읽기 성능을 포기하지 않으면서도 갱신 중 일관성을 보장한다.** writeLock으로 갱신 구간을 보호하고, tryReadLock에 타임아웃을 걸면 갱신이 완료될 때까지 조회가 대기한다. 갱신 빈도가 낮고 읽기가 압도적으로 많은 캐시 구조에 적합하다.
+**StampedLock은 읽기 중심 캐시에서 갱신 구간의 일관성을 지키는 선택지다.** writeLock으로 갱신 구간을 보호하고, tryReadLock에 타임아웃을 걸면 갱신이 완료될 때까지 조회가 대기한다. 이 구조처럼 갱신이 드물고 조회가 잦은 경우에 적용할 수 있다.
 
 ---
 

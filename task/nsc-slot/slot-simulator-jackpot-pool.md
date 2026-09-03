@@ -2,7 +2,7 @@
 tags: [tasks]
 ---
 
-# 시뮬레이터 잭팟 풀 — ThreadLocal 격리 버그
+# 시뮬레이터 잭팟 풀: ThreadLocal 격리 버그
 
 **진행 기간**: 2025.09
 
@@ -39,7 +39,7 @@ deleteAllJackpotPool(simulationSpinInfo.slotGame());  // 각 스레드마다 자
 
 ---
 
-## 해결: AtomicReference 기반 공유 풀 + 생명주기 분리
+## 해결: AtomicReference 기반 공유 풀, 생명주기 분리
 
 ### ThreadLocal 제거 → AtomicReference 공유 맵
 
@@ -52,10 +52,10 @@ private final Map<String, Map<String, AtomicReference<Double>>> jackpotPools = n
 누적은 `AtomicReference.updateAndGet()`으로 처리한다.
 
 ```java
-// 누적 — CAS로 race condition 없이 더함
+// 누적: CAS로 race condition 없이 더함
 atomic.updateAndGet(current -> current + accumulateAmount);
 
-// 당첨 — 원자적으로 읽고 0으로 초기화
+// 당첨: 원자적으로 읽고 0으로 초기화
 final Double accumulateAmount = atomic.getAndSet(0.0);
 ```
 
@@ -83,7 +83,7 @@ try {
 
 **ThreadLocal은 "스레드마다 독립된 상태"가 필요할 때 쓰는 도구다.** 잭팟 풀처럼 여러 스레드가 함께 쌓아야 하는 공유 상태에 ThreadLocal을 쓰면 격리가 목적이 아니라 버그가 된다.
 
-**생명주기의 위치가 맞지 않으면 데이터가 사라진다.** 풀을 만드는 곳과 쓰는 곳, 삭제하는 곳의 범위가 일치해야 한다. "각 태스크가 자신의 상태를 관리한다"는 패턴은 단일 스레드에서는 깔끔하지만, 병렬 실행에서는 공유 상태와 개별 상태를 명확히 구분해야 한다.
+**생명주기의 위치가 맞지 않으면 데이터가 사라진다.** 풀을 만드는 곳과 쓰는 곳, 삭제하는 곳의 범위가 일치해야 한다. "각 태스크가 자신의 상태를 관리한다"는 패턴을 병렬 실행에 적용할 때는 공유 상태와 개별 상태를 명확히 구분해야 한다.
 
 ---
 
