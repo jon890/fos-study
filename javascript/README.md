@@ -7,7 +7,6 @@ JavaScript 런타임과 언어 기능 학습 기록.
 - [Node.js](./nodejs.md) — 런타임 개요
 - [`setImmediate()`](./set-immediate.md) — 이벤트 루프 타이머
 - [CommonJS와 ECMAScript Modules](./commonjs-esmodule.md) — 모듈 시스템 비교
-- [npm vs pnpm](./npm-vs-pnpm.md) — 패키지 매니저 선택 기준
 
 ## 비동기 / 제어 흐름
 
