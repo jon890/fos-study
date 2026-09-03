@@ -1,10 +1,8 @@
 ---
 tags: [tasks]
-series: "OCR 서비스 구축·운영"
-seriesOrder: 1
 ---
 
-# OCR 서버 배포·스케일인 시 503 에러 수정 — Graceful Shutdown 미적용
+# OCR 서버 배포·스케일인 시 503 에러 수정: Graceful Shutdown 미적용
 
 **진행 기간**: 2026.04
 
@@ -29,7 +27,7 @@ transport failure reason: delayed connect error: 111
 
 error 111은 ECONNREFUSED, TCP 레벨에서 연결이 거부됐다는 뜻이다. 응답 헤더에 `server: envoy`가 있었고, 이건 Envoy 자체는 살아있는데 upstream(포트 50051)에 연결을 못 했다는 의미다.
 
-에러가 30~60초 주기로 묶음 발생하고 자연히 사라지는 패턴 — 배포/스케일인 이벤트와 정확히 일치했다.
+에러가 30~60초 주기로 묶음 발생하고 자연히 사라지는 패턴: 배포/스케일인 이벤트와 정확히 일치했다.
 
 ---
 
@@ -76,7 +74,7 @@ preStop sleep 15s + gRPC grace 12s + 여유 3s = 30s
 
 ## 수정 내용
 
-**`server_grpc_general_OCR.py`** — SIGTERM 핸들러 추가
+**`server_grpc_general_OCR.py`**: SIGTERM 핸들러 추가
 
 ```python
 import signal  # 추가
@@ -93,7 +91,7 @@ def serve():
     server.wait_for_termination()
 ```
 
-**`supervisord.conf`** — stopwaitsecs 추가
+**`supervisord.conf`**: stopwaitsecs 추가
 
 ```ini
 [program:grpc-server]
@@ -101,7 +99,7 @@ stopwaitsecs=17    # grace(12s) + 여유(5s)
 stopsignal=TERM
 ```
 
-**`Jenkinsfile_deploy_real`** — preStop sleep 단축
+**`Jenkinsfile_deploy_real`**: preStop sleep 단축
 
 ```
 "preStop": ["/bin/sh", "-c", "curl -sf ... drain_listeners || true; sleep 15"]

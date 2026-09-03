@@ -1,8 +1,6 @@
 ---
 thumbnail: ./images/ocr-api-gateway-removal-thumbnail.jpg
 tags: [tasks]
-series: "OCR 서비스 구축·운영"
-seriesOrder: 2
 ---
 
 # API Gateway를 제거하고 공인 LoadBalancer로 직접 노출하기
@@ -47,8 +45,8 @@ Service를 `type: LoadBalancer`로 선언하면 클라우드가 LB를 만들어�
 
 코드도 네트워크도 아닌 **사람에 묶인 인프라 의존성**이었다. 이건 예상 밖이었고, 배운 것도 가장 많았다.
 
-> [선언한 LoadBalancer가 안 만들어질 때](../../devops/k8s/loadbalancer-pending-diagnosis.md) — 어디서부터 격리해 들어갔는지<br>
-> [관리형 클러스터는 누구의 권한으로 클라우드를 만지는가](../../devops/k8s/managed-cluster-identity-trust.md) — 원인과 구조
+> [선언한 LoadBalancer가 안 만들어질 때](../../devops/k8s/loadbalancer-pending-diagnosis.md): 어디서부터 격리해 들어갔는지<br>
+> [관리형 클러스터는 누구의 권한으로 클라우드를 만지는가](../../devops/k8s/managed-cluster-identity-trust.md): 원인과 구조
 
 ### IP 접근 제한이 조용히 뚫려 있었다
 
@@ -62,12 +60,12 @@ Service를 `type: LoadBalancer`로 선언하면 클라우드가 LB를 만들어�
 
 두 가지를 크게 배웠다.
 
-- **보안 설정은 "설정했다"가 아니라 "실제로 막히는지"로 확인해야 한다.** 설정은 완벽했고 아무도 못 막고 있었다.
+- **보안 설정은 적용 여부가 아니라 차단 동작으로 확인해야 한다.** 설정 파일은 의도대로 작성돼 있었지만 실제 요청은 차단되지 않았다.
 - **자기 IP로 테스트하면 아무것도 증명되지 않는다.** 처음엔 한 환경에서 접속이 되길래 "열려 있구나" 판단했는데, 알고 보니 내 IP가 그 환경 허용 목록에 있었다. 목록에 없는 다른 환경과 비교해서야 진짜 문제가 드러났다.
 
 고칠 때는 방어 지점을 **LB 계층으로 올렸다.** LB는 주소가 바뀌기 전 단계라 진짜 클라이언트 IP를 보고, HTTP·HTTPS 양쪽에서 동작한다.
 
-> [IP whitelist가 조용히 뚫려 있었다](../../devops/k8s/client-ip-preservation.md) — 클라이언트 IP가 사라지는 구간
+> [IP whitelist가 조용히 뚫려 있었다](../../devops/k8s/client-ip-preservation.md): 클라이언트 IP가 사라지는 구간
 
 ### 컨트롤러 하나 추가하는 게 간단하지 않았다
 
@@ -75,8 +73,8 @@ Service를 `type: LoadBalancer`로 선언하면 클라우드가 LB를 만들어�
 
 가장 아찔했던 건 **admission webhook**이다. 새 Ingress를 만들면 검증하는 장치인데, 이게 네임스페이스나 클래스로 격리되지 않고 **클러스터 전체의 요청을 가로챈다.** 외부용 컨트롤러의 webhook이 잘못되면 사내용 Ingress 적용까지 막히는 구조였다. 그래서 외부용은 webhook을 끄는 선택을 했다.
 
-> [ingress-nginx 운영에서 부딪힌 디테일들](../../devops/k8s/ingress-nginx-operations.md) — webhook, 배치, 리소스 사양<br>
-> [쿠버네티스 Admission 단계](../../devops/k8s/admission-control.md) — 왜 하필 저장 직전인가
+> [ingress-nginx 운영에서 부딪힌 디테일들](../../devops/k8s/ingress-nginx-operations.md): webhook, 배치, 리소스 사양<br>
+> [쿠버네티스 Admission 단계](../../devops/k8s/admission-control.md): 왜 하필 저장 직전인가
 
 ## 검증을 어떻게 했나
 
@@ -84,13 +82,13 @@ Service를 `type: LoadBalancer`로 선언하면 클라우드가 LB를 만들어�
 
 **등가성 비교 스크립트.** 같은 요청을 Gateway 경로와 새 경로 양쪽에 보내 응답을 비교한다. 전수 확인은 인증 단계에서 실패하도록 더미 키를 써서 모델 서버에 부작용 없이 라우팅과 응답 형식만 본다. 실제 성공 응답까지 보는 깊은 비교는 부작용 없는 두 건만 유효한 자격증명으로 돌린다.
 
-**부하 테스트.** 크기 한도를 올렸으니 큰 요청이 몰릴 때 메모리가 버티는지 봐야 했다. 단발 요청 동시 실행으로는 지속 부하와 메모리 추이를 볼 수 없어서 k6로 단계적으로 동시성을 올리며 유지하는 시나리오를 만들었다. 이 과정에서 실패는 없지만 응답 시간이 크게 늘어나는 구간을 찾았다 — 클라이언트 타임아웃 설정에 따라 체감 장애가 될 수 있는 수준이었다.
+**부하 테스트.** 크기 한도를 올렸으니 큰 요청이 몰릴 때 메모리가 버티는지 봐야 했다. 단발 요청 동시 실행으로는 지속 부하와 메모리 추이를 볼 수 없어서 k6로 단계적으로 동시성을 올리며 유지하는 시나리오를 만들었다. 이 과정에서 실패는 없지만 응답 시간이 크게 늘어나는 구간을 찾았다: 클라이언트 타임아웃 설정에 따라 체감 장애가 될 수 있는 수준이었다.
 
 ## 내 기여와 협업
 
 인프라 변경은 대부분 내가 진행했다. 외부 전용 컨트롤러 추가, LB 발급과 IP 고정, 경로 변환 이전, HTTPS 적용, 환경별 확대, IP 접근 제어 이관까지다. 검증 도구도 직접 만들었다.
 
-혼자 한 건 아니다. 클러스터 신원 문제는 **플랫폼 팀 문의로 넘겨서** 답을 받았다 — 내가 격리할 수 있는 범위는 "클러스터 내부 인증 경로가 죽었다"까지였고, 그 너머는 플랫폼 쪽 영역이었다. 어디까지가 내 몫이고 어디부터 넘겨야 하는지 판단하는 것도 이번에 배운 것 중 하나다.
+혼자 한 건 아니다. 클러스터 신원 문제는 **플랫폼 팀 문의로 넘겨서** 답을 받았다: 내가 격리할 수 있는 범위는 "클러스터 내부 인증 경로가 죽었다"까지였고, 그 너머는 플랫폼 쪽 영역이었다. 어디까지가 내 몫이고 어디부터 넘겨야 하는지 판단하는 것도 이번에 배운 것 중 하나다.
 
 인증서는 **다른 팀이 이미 발급받아 쓰던 와일드카드 인증서를 담당자 확인 후 재사용**했다. OCR용으로 새로 발급받는 대신 기존 자산을 쓰는 쪽이 관리 지점을 늘리지 않는다고 판단했다.
 
@@ -110,13 +108,13 @@ Service를 `type: LoadBalancer`로 선언하면 클라우드가 LB를 만들어�
 
 **네트워크**
 
-- [L4와 VIP](../../network/L4-and-VIP.md) — L4가 왜 헤더를 못 만지는지
-- [HTTPS는 어떻게 안전한가](../../http/https-tls-basics.md) — TLS를 어디서 끝내느냐의 의미
+- [L4와 VIP](../../network/L4-and-VIP.md): L4가 왜 헤더를 못 만지는지
+- [HTTPS는 어떻게 안전한가](../../http/https-tls-basics.md): TLS를 어디서 끝내느냐의 의미
 
 **쿠버네티스**
 
-- [외부 트래픽은 어떻게 Pod까지 닿는가](../../devops/k8s/external-traffic-path.md) — 전체 경로
-- [Helm과 ArgoCD로 GitOps 하기](../../devops/k8s/helm-argocd-gitops.md) — 새 컴포넌트를 추가하는 흐름
-- [Graceful Shutdown](../../devops/graceful-shutdown.md) — 배포 중 요청이 끊기지 않으려면
+- [외부 트래픽은 어떻게 Pod까지 닿는가](../../devops/k8s/external-traffic-path.md): 전체 경로
+- [Helm과 ArgoCD로 GitOps 하기](../../devops/k8s/helm-argocd-gitops.md): 새 컴포넌트를 추가하는 흐름
+- [Graceful Shutdown](../../devops/graceful-shutdown.md): 배포 중 요청이 끊기지 않으려면
 
 `devops/k8s` 폴더에 이 작업을 순서대로 따라가는 [연재](../../devops/k8s/README.md)로 묶어 뒀다.

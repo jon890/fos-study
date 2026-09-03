@@ -1,7 +1,5 @@
 ---
 tags: [tasks]
-series: "OCR 서비스 구축·운영"
-seriesOrder: 3
 ---
 
 # OCR 오토스케일 전환의 connection 에러를 양쪽에서 막기
@@ -67,8 +65,8 @@ command=... exec python server_grpc_general_OCR.py
 supervisord의 priority는 시작 순서와 종료 순서를 함께 정하지만, 앞 프로그램이 준비될 때까지 다음 프로그램의 기동을 기다리지는 않는다.
 그래서 General 모델에서는 envoy를 wrapper 스크립트가 소유하게 했다.
 
-- **기동 보류** — gRPC ready 신호(`/tmp/start_success`) 전까지 5000 bind 를 미룬다
-- **종료 진단** — SIGTERM 을 trap 해 `drain_listeners`를 호출하고, envoy admin의 `quitquitquit`으로 정상 종료 흔적을 남긴다
+- **기동 보류**: gRPC ready 신호(`/tmp/start_success`) 전까지 5000 bind 를 미룬다
+- **종료 진단**: SIGTERM 을 trap 해 `drain_listeners`를 호출하고, envoy admin의 `quitquitquit`으로 정상 종료 흔적을 남긴다
 
 기동 보류가 scale-out의 503을 막는다.
 scale-in의 `PrematureClose`는 supervisord의 priority를 뒤집어 gRPC를 먼저 내리고 envoy를 마지막에 내리는 순서로 막는다.
@@ -141,7 +139,7 @@ scale-in 으로 종료된 pod 를 가리키는 커넥션이 stale 인 채 계속
 | --- | --- | --- |
 | envoy 503 upstream connect error | **닿지 못함** | 안전 |
 | `PrematureClose` | 연결이 끊김 | 안전 |
-| `ReadTimeout` | **닿은 뒤 실패** | 위험 — 중복 처리 |
+| `ReadTimeout` | **닿은 뒤 실패** | 위험: 중복 처리 |
 
 기존엔 `PrematureClose` 만 재시도하고 있어서, scale-out 전환 중의 503 이 그대로 사용자에게 나갔다.
 503 을 재시도 대상에 넣고, 대기도 `fixedDelay(3, 100ms)` 에서 `backoff(3, 200ms, maxBackoff 2초)` 로 늘렸다.
@@ -155,11 +153,11 @@ pod 재기동은 초 단위라 100ms 고정으로는 전환 창을 못 덮는다
 
 여기까지가 연결 실패 자체에 대한 대응이다. 별개로 오래 걸린 문제가 하나 더 있었다.
 
-에러를 분석할 때 **게이트웨이 로그, OCR.API 로그, 모델 서버 로그를 묶을 공통 키가 없었다.**
-`requestId` 는 있었지만 OCR.API 가 자체 생성한 UUID라, 게이트웨이 요청이나 모델 로그와 이어지지 않았다.
+에러를 분석할 때 **점검웨이 로그, OCR.API 로그, 모델 서버 로그를 묶을 공통 키가 없었다.**
+`requestId` 는 있었지만 OCR.API 가 자체 생성한 UUID라, 점검웨이 요청이나 모델 로그와 이어지지 않았다.
 한 요청이 어디서 끊겼는지 추적하다 매번 멈췄다.
 
-### 게이트웨이가 이미 주고 있던 값을 쓰기로 했다
+### 점검웨이가 이미 주고 있던 값을 쓰기로 했다
 
 API Gateway 가 발급하는 `X-Request-Id` 를 요청 전 구간의 추적 키로 채택했다.
 
@@ -173,8 +171,8 @@ flowchart LR
     V --> L
 ```
 
-- OCR.API — 인터셉터가 헤더를 MDC `requestId` 로 저장(sanitize, 없으면 UUID fallback)하고 로그 패턴·모델 호출 헤더로 전파
-- 모델 서버 — gRPC 진입점에서 `contextvar` 에 저장하고 `logging.Filter` 가 모든 로그 레코드에 자동 주입
+- OCR.API: 인터셉터가 헤더를 MDC `requestId` 로 저장(sanitize, 없으면 UUID fallback)하고 로그 패턴·모델 호출 헤더로 전파
+- 모델 서버: gRPC 진입점에서 `contextvar` 에 저장하고 `logging.Filter` 가 모든 로그 레코드에 자동 주입
 
 모델 서버 쪽에서 **로그마다 `extra={'requestId': ...}` 를 명시 전달하던 방식을 제거한 것**이 컸다.
 새 로그를 추가할 때 전달을 잊으면 그 줄만 추적에서 빠지는데, 진입점에서 한 번 저장하고 자동 주입하면 그 누락이 원천 차단된다.
@@ -183,7 +181,7 @@ flowchart LR
 
 표준을 따르자면 W3C Trace Context(`traceparent`)가 맞다. 검토했지만 채택하지 않았다.
 
-- 게이트웨이가 `traceparent` 를 보내지 않아 별도 propagator 를 붙여야 한다
+- 점검웨이가 `traceparent` 를 보내지 않아 별도 propagator 를 붙여야 한다
 - trace 백엔드가 없다. 목적이 **로그 상관관계**이지 시각적 span 추적이 아니다
 
 목적에 비해 도입 비용이 컸다. 나중에 span 단위 추적이 필요해지면 그때 다시 볼 문제로 남겼다.
@@ -192,9 +190,9 @@ flowchart LR
 
 `requestId` 를 MDC 에 얹고 나서 세 번 밟았다. 셋 다 원인이 같다. **MDC 는 스레드에 묶여 있다.**
 
-- **서블릿 async 재디스패치** — 비동기 처리 후 다시 디스패치될 때 MDC 가 비어 있어 `requestId` 를 재사용하도록 고쳤다
-- **감사 로그 뒤 복원 누락** — 중간에 MDC 를 바꿔 쓰고 되돌리지 않아 이후 로그에서 `requestId` 가 사라졌다
-- **헬퍼에서 `MDC.clear()`** — 중간 헬퍼가 전체를 지워 뒤따르는 로그가 통째로 추적에서 빠졌다
+- **서블릿 async 재디스패치**: 비동기 처리 후 다시 디스패치될 때 MDC 가 비어 있어 `requestId` 를 재사용하도록 고쳤다
+- **감사 로그 뒤 복원 누락**: 중간에 MDC 를 바꿔 쓰고 되돌리지 않아 이후 로그에서 `requestId` 가 사라졌다
+- **헬퍼에서 `MDC.clear()`**: 중간 헬퍼가 전체를 지워 뒤따르는 로그가 통째로 추적에서 빠졌다
 
 세 번째가 가장 찾기 어려웠다. 로그가 **비는 게 아니라 그냥 값이 없는 채로 정상 출력**되기 때문이다.
 회귀 테스트로 채택·전파·sanitize·누수 방지를 묶어 고정했다.
@@ -236,7 +234,7 @@ PDB 계산식과 단일 파드에서의 교착 조건은 [파드가 1개면 minA
 
 **재시도의 안전 여부는 "요청이 상대에 닿았는가" 로 갈린다.** 503 은 닿지 못한 실패라 재시도해도 되고, `ReadTimeout` 은 닿은 뒤 실패라 재시도하면 중복 처리가 된다. 같은 실패로 보여도 이 질문 하나로 나뉜다.
 
-**추적 키는 이미 있는 것을 쓰는 게 낫다.** 게이트웨이가 발급하던 값을 그대로 채택하니 표준 도입 없이 게이트웨이부터 모델까지 한 줄로 묶였다.
+**추적 키는 이미 있는 것을 쓰는 게 낫다.** 점검웨이가 발급하던 값을 그대로 채택하니 표준 도입 없이 점검웨이부터 모델까지 한 줄로 묶였다.
 
 **파드가 어떻게 내려가는가와 몇 개까지 내려가도 되는가는 다른 문제다.** graceful shutdown은 한 파드의 요청을 지키고, PodDisruptionBudget은 여러 파드가 함께 내려가는 것을 막는다. 둘 중 하나만으로는 노드 교체를 무중단으로 만들 수 없었다.
 

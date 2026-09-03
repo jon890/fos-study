@@ -2,7 +2,7 @@
 tags: [tasks]
 ---
 
-# Confluence 문서를 OpenSearch에 벡터 색인하기 — Spring Batch 파이프라인 설계기
+# Confluence 문서를 OpenSearch에 벡터 색인하기: Spring Batch 파이프라인 설계기
 
 **진행 기간**: 2026.01 ~ 2026.03
 
@@ -192,7 +192,7 @@ compositeProcessor.setDelegates(List.of(
 
 **BodyConvertProcessor**: ADF → Markdown 변환 (앞서 설명)
 
-**EmbeddingProcessor**: Markdown 텍스트 + 첨부파일 내용을 임베딩 API에 넘겨 벡터 생성
+**EmbeddingProcessor**: Markdown 텍스트, 첨부파일 내용을 임베딩 API에 넘겨 벡터 생성
 
 체이닝하면 각 Processor가 단일 책임을 가진다. 나중에 처리 단계를 추가하거나 교체할 때 다른 코드를 건드리지 않아도 된다.
 
@@ -297,7 +297,7 @@ DocumentParseResponse response = documentParseClient.parse(inputStream, fileName
 
 **ZIP 파일**은 내부 엔트리를 순회하면서 각각 파싱·색인한다. ZIP 하나를 단일 문서로 색인하면 내용이 섞여서 검색 품질이 떨어진다.
 
-**포맷 검증**은 MIME 타입만 보다가 확장자 + MIME 타입 이중 검증으로 강화했다. MIME 타입을 `application/octet-stream`으로 올리는 경우가 있어서 확장자 없이는 걸러내지 못했다.
+**포맷 검증**은 MIME 타입만 보다가 확장자, MIME 타입 이중 검증으로 강화했다. MIME 타입을 `application/octet-stream`으로 올리는 경우가 있어서 확장자 없이는 걸러내지 못했다.
 
 ---
 
@@ -429,7 +429,7 @@ public @interface BatchComponentTest {}
 
 이 배치를 만들면서 배운 게 꽤 많다.
 
-**임베딩처럼 I/O 바운드 작업은 무조건 비동기로**. 동기 처리는 API 대기 시간이 그대로 처리 시간이 된다. `AsyncItemProcessor` + `AsyncItemWriter` 조합이 Spring Batch에서 이걸 깔끔하게 해결한다.
+임베딩 API처럼 외부 응답을 기다리는 작업은 비동기 처리를 검토할 가치가 있다. 이 배치에서는 동기 처리 시 API 대기 시간이 그대로 누적됐고, `AsyncItemProcessor`와 `AsyncItemWriter`를 조합해 제한된 병렬 처리로 바꿨다.
 
 **Step 분리는 실패 격리다**. 댓글 Step이 실패해도 페이지 Step 결과는 살아있다. 재시작하면 댓글 Step부터 이어서 돌 수 있다. 하나의 거대한 Step 안에 다 넣으면 중간 실패 시 처음부터 다시 해야 한다.
 

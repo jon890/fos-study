@@ -25,11 +25,11 @@ seriesOrder: 5
 
 ```mermaid
 flowchart TB
-    A[app.py 단일 파일] --> B[src/parse — 파싱 API]
-    A --> C[src/health — 헬스체크]
-    A --> D[src/status — 상태 조회]
-    A --> E[src/admin — 관리자 API]
-    A --> F[src/dev — 개발용 엔드포인트]
+    A[app.py 단일 파일] --> B[src/parse: 파싱 API]
+    A --> C[src/health: 헬스체크]
+    A --> D[src/status: 상태 조회]
+    A --> E[src/admin: 관리자 API]
+    A --> F[src/dev: 개발용 엔드포인트]
 ```
 
 분리 자체보다 이행 과정이 까다로웠다.
@@ -47,13 +47,13 @@ flowchart TB
 
 | phase | 내용 |
 |---|---|
-| 1 | `src/converters/factory.py` 신설 — 컨버터 팩토리 함수 4개 + 캐시 dict 3개 |
-| 2 | `src/converters/warmup.py` 신설 — 워밍업 함수 5개 + 설정값 |
-| 3 | `src/converters/timings.py` 신설 — 파이프라인 타이밍 로그 |
-| 4 | `src/core/measurements.py` — GPU 측정·정리 함수 5개 |
-| 5 | `src/core/worker_pool/init.py` — 워커 프로세스 초기화 |
+| 1 | `src/converters/factory.py` 신설: 컨버터 팩토리 함수 4개, 캐시 dict 3개 |
+| 2 | `src/converters/warmup.py` 신설: 워밍업 함수 5개, 설정값 |
+| 3 | `src/converters/timings.py` 신설: 파이프라인 타이밍 로그 |
+| 4 | `src/core/measurements.py`: GPU 측정·정리 함수 5개 |
+| 5 | `src/core/worker_pool/init.py`: 워커 프로세스 초기화 |
 | 6 | `src/ocr`, `src/parse`에 OCR·이미지·PDF 청크 관련 함수 13개 분산 |
-| 7 | 남은 로더 함수를 `src/parse/loader.py`에 흡수 + `document_parser.py` 완전 삭제 |
+| 7 | 남은 로더 함수를 `src/parse/loader.py`에 흡수, `document_parser.py` 완전 삭제 |
 
 마지막 7단계에서 파일을 지우고 나니 여기저기서 더는 쓰이지 않는 import가 38건 남았다.
 이건 손으로 하나씩 찾지 않고 `ruff --select F401`로 일괄 정리했다.
@@ -67,8 +67,8 @@ flowchart TB
 
 그래서 리팩토링 도중에 테스트부터 두 계층으로 크게 얹었다.
 
-- **Tier 1 — 순수 함수 84건**: 파일 헬퍼, PDF 청크 분할, 이미지 유틸, Excel 파서, OCR 변환 함수, 마크다운 생성기, 타이밍 로그처럼 입력과 출력만 있는 함수들
-- **Tier 2 — mock 기반 44건**: 워커 풀, 컨버터 팩토리, 모니터링, 파싱 로더, OCR 호출, FastAPI lifespan처럼 외부 자원(GPU, 프로세스, 네트워크)에 의존하는 코드는 `monkeypatch`로 그 의존성만 갈아 끼워서 검증
+- **Tier 1: 순수 함수 84건**: 파일 헬퍼, PDF 청크 분할, 이미지 유틸, Excel 파서, OCR 변환 함수, 마크다운 생성기, 타이밍 로그처럼 입력과 출력만 있는 함수들
+- **Tier 2: mock 기반 44건**: 워커 풀, 컨버터 팩토리, 모니터링, 파싱 로더, OCR 호출, FastAPI lifespan처럼 외부 자원(GPU, 프로세스, 네트워크)에 의존하는 코드는 `monkeypatch`로 그 의존성만 갈아 끼워서 검증
 
 기존 7건까지 합쳐 135건이 전부 통과하는 걸 확인한 뒤에야 다음 리팩토링 phase로 넘어갔다.
 그 뒤로도 hwp 로더 교체, xlsx 스트리밍, 표 파서 3계층 분할 같은 리팩토링마다 테스트를 얹었고, 지금 `tests/unit`을 실행하면 241건이 돈다.
@@ -93,15 +93,15 @@ flowchart TB
 핵심 문서 13건에서 시작해 일본어 문서(`ja_doc_001`), 병합 셀이 있는 복잡한 표(`ko_table_complex_001`), 영문 스캔본(`en_scan_001`), 수식이 포함된 영문 문서(`en_formula_001`)를 신규 4건 더 추가했다.
 채점은 두 지표를 같이 본다.
 
-- **문자열 유사도**(NED) — `difflib.SequenceMatcher.ratio()`로 정답지와 파싱 결과 전체 텍스트를 비교한 값. 1.0이면 동일, 0.0이면 완전히 다름
-- **표 셀 정확도**(F1) — 표를 `(블록 인덱스, 행 인덱스, 열 인덱스, 셀 텍스트)` 튜플 집합으로 바꾼 뒤, 정답지와 파싱 결과 사이 일치하는 셀의 정밀도·재현율을 F1로 계산
+- **문자열 유사도**(NED): `difflib.SequenceMatcher.ratio()`로 정답지와 파싱 결과 전체 텍스트를 비교한 값. 1.0이면 동일, 0.0이면 완전히 다름
+- **표 셀 정확도**(F1): 표를 `(블록 인덱스, 행 인덱스, 열 인덱스, 셀 텍스트)` 튜플 집합으로 바꾼 뒤, 정답지와 파싱 결과 사이 일치하는 셀의 정밀도·재현율을 F1로 계산
 
 830페이지짜리 국내 장문서 같은 표본은 golden 채점에는 넣지 않았다. 정답지를 사람이 만들기 비현실적인 분량이라, 이런 표본은 뒤에서 다룰 benchmark 전용 표본으로 따로 뒀다.
 채점 로직 자체도 단위 테스트 15건으로 검증해 뒀다.
 
 ## 검증 자동화를 한 번 설계했다가 통째로 버렸다
 
-가장 크게 삽질한 부분이 여기다.
+가장 많은 시행착오가 있었던 부분이다.
 처음에는 회귀 검증을 CI에서 자동으로 돌리려고 했다.
 설계는 이랬다.
 
@@ -109,7 +109,7 @@ flowchart TB
 - **운영층**: 실제 GPU 인스턴스에서 실제 OCR로 파싱한 결과를 태그별로 캡처해 누적 비교한다(지금의 test-flow)
 
 문제는 CI 자동층이 일회성 자체 실행 러너(사내 GPU 인스턴스를 매번 발급하고 실행한 뒤 삭제하는 방식)를 전제로 설계됐다는 점이었다.
-실제로 붙여보니 사내 게이트웨이가 ssh ProxyJump를 막아 새로 발급한 인스턴스에 접근할 경로가 없었고, 신규 인스턴스는 자산 인벤토리에 등록도 안 돼 있어 접근권한 신청 자체가 매번 막혔다.
+실제로 붙여보니 사내 점검웨이가 ssh ProxyJump를 막아 새로 발급한 인스턴스에 접근할 경로가 없었고, 신규 인스턴스는 자산 인벤토리에 등록도 안 돼 있어 접근권한 신청 자체가 매번 막혔다.
 그리고 이 설계가 의존하던 OCR 응답 저장소(`fixtures/ocr_responses`)와 CI 전용 기준점(`baselines/ci`)은 애초에 한 번도 만들어진 적이 없었다. 즉 이 회귀 테스트는 로컬에서도 CI에서도 처음부터 전부 건너뛰고 있었다.
 
 ```mermaid

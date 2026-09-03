@@ -1,7 +1,5 @@
 ---
 tags: [tasks, insights]
-series: "OCR 서비스 구축·운영"
-seriesOrder: 4
 ---
 
 # HTTP 200 응답 안의 OCR 오류를 운영 지표로 만들기
