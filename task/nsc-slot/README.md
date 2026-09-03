@@ -14,34 +14,34 @@
 
 | 기간              | 업무                                                             | 문서                                                                     |
 | ----------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| 2024.06 \~ 2024.12 | Slot 21: 클러스터, 텀블링, 머지 슬롯                           | [slot-21-cluster-tumbling-merge.md](slot-21-cluster-tumbling-merge.md)   |
-| 2024.07 \~ 2024.12 | Admin 슬롯 비교/복사: Alpha ↔ Real 환경 동기화                  | [admin-slot-compare-copy.md](admin-slot-compare-copy.md)                 |
-| 2024.10 \~ 2024.12 | Slot 33: 링크게임, 디스크 배수, 홀드&스핀                      | [slot-33-linkgame-disk-multiplier.md](slot-33-linkgame-disk-multiplier.md) |
-| 2024.12           | BuyFeature 티켓 & 시나리오 스핀: 플랫폼 공통 기능               | [buyfeature-ticket-scenario-spin.md](buyfeature-ticket-scenario-spin.md) |
-| 2025.02 \~ 2025.08 | 신규 슬롯 5종: 라인/빙고/웨이(243) 메커닉, AI 에이전트 협업     | [new-slot-games.md](new-slot-games.md)                                   |
-| 2025.07 \~ 2025.10 | RCC (RTP Cache Control): RTP 편차 보정을 위한 백그라운드 결과 생성 시스템 | [rcc-rtp-cache-control.md](rcc-rtp-cache-control.md)                     |
-| 2025.08           | 어드민 슬롯 에셋 비동기 일괄 동기화: 전략 패턴, 진행 추적       | [admin-asset-async-sync.md](admin-asset-async-sync.md)                   |
+| 2024.06 \~ 2024.12 | Slot 21: 클러스터, 텀블링, 머지 슬롯                           | [Slot 21: 클러스터, 텀블링, 머지 슬롯 구현기](slot-21-cluster-tumbling-merge.md)   |
+| 2024.07 \~ 2024.12 | Admin 슬롯 비교/복사: Alpha ↔ Real 환경 동기화                  | [Admin 슬롯 비교/복사 기능 개발](admin-slot-compare-copy.md)                 |
+| 2024.10 \~ 2024.12 | Slot 33: 링크게임, 디스크 배수, 홀드&스핀                      | [Slot 33: 링크게임, 디스크 배수, 홀드&스핀 구현기](slot-33-linkgame-disk-multiplier.md) |
+| 2024.12           | BuyFeature 티켓 & 시나리오 스핀: 플랫폼 공통 기능               | [BuyFeature 티켓 & 시나리오 스핀 구현](buyfeature-ticket-scenario-spin.md) |
+| 2025.02 \~ 2025.08 | 신규 슬롯 5종: 라인/빙고/웨이(243) 메커닉, AI 에이전트 협업     | [신규 슬롯 게임 개발 (2025)](new-slot-games.md)                                   |
+| 2025.07 \~ 2025.10 | RCC (RTP Cache Control): RTP 편차 보정을 위한 백그라운드 결과 생성 시스템 | [RCC (RTP Cache Control) 시스템 설계 및 구축](rcc-rtp-cache-control.md)                     |
+| 2025.08           | 어드민 슬롯 에셋 비동기 일괄 동기화: 전략 패턴, 진행 추적       | [어드민 슬롯 에셋 비동기 일괄 동기화: 전략 패턴, 진행 추적](admin-asset-async-sync.md)                   |
 
 ### 아키텍처 개선
 
 | 기간              | 업무                                                               | 문서                                                     |
 | ----------------- | ------------------------------------------------------------------ | -------------------------------------------------------- |
-| 2024.06 \~ 2025.10 | 슬롯 테스트 공통 템플릿: 단위→통합 전환, AbstractSlotTest         | [slot-test-template.md](slot-test-template.md)           |
-| 2025.04 \~ 2025.11 | AI 개발 도구 도입: Cursor Rules 20종 이상, 에이전트 협업          | [ai-tool-adoption.md](ai-tool-adoption.md)               |
-| 2025.08 \~ 2025.10 | 시뮬레이터 공통 템플릿: ReactiveSimulator, 8종 전환               | [simulator-template.md](simulator-template.md)           |
-| 2025.09           | 전역 개인화 데이터: 베팅 인덱스 독립 구조 설계                    | [global-personal-data.md](global-personal-data.md)       |
-| 2025.09 \~ 2025.10 | 슬롯 엔진 추상화: SlotTemplate, BaseSlotService, ExtraConfig 분리 | [slot-engine-abstraction.md](slot-engine-abstraction.md) |
-| 2024.06 \~ 2025.11 | 슬롯 아키텍처 점진 정리: SpinOperationHandler 도입, static 해체 1년 여정 | [slot-architecture-evolution.md](slot-architecture-evolution.md) |
-| 2025 하반기       | 슬롯 페이 조건 체크 Factory: 제네릭 체커, 런타임 타입 디스패치       | [slot-payment-factory.md](slot-payment-factory.md)       |
-| 2025 하반기       | 슬롯 당첨 계산 Decorator 체인: 우선순위 기반 누적 변환                | [slot-win-decorator-chain.md](slot-win-decorator-chain.md) |
+| 2024.06 \~ 2025.10 | 슬롯 테스트 공통 템플릿: 단위→통합 전환, AbstractSlotTest         | [슬롯 테스트 공통 템플릿 구축](slot-test-template.md)           |
+| 2025.04 \~ 2025.11 | AI 개발 도구 도입: Cursor Rules 20종 이상, 에이전트 협업          | [AI 개발 도구 도입 및 Cursor Rules 구축](ai-tool-adoption.md)               |
+| 2025.08 \~ 2025.10 | 시뮬레이터 공통 템플릿: ReactiveSimulator, 8종 전환               | [시뮬레이터 공통 템플릿 도입](simulator-template.md)           |
+| 2025.09           | 전역 개인화 데이터: 베팅 인덱스 독립 구조 설계                    | [전역 개인화 데이터 (Global Personal Data) 구조 설계](global-personal-data.md)       |
+| 2025.09 \~ 2025.10 | 슬롯 엔진 추상화: SlotTemplate, BaseSlotService, ExtraConfig 분리 | [슬롯 엔진 추상화 및 구조 개선](slot-engine-abstraction.md) |
+| 2024.06 \~ 2025.11 | 슬롯 아키텍처 점진 정리: SpinOperationHandler 도입, static 해체 1년 여정 | [첫 슬롯을 만들며 시작된 1년의 아키텍처 정리: SpinOperationHandler와 static 해체, 그리고 남은 과제](slot-architecture-evolution.md) |
+| 2025 하반기       | 슬롯 페이 조건 체크 Factory: 제네릭 체커, 런타임 타입 디스패치       | [슬롯 페이 조건 체크: Factory, 런타임 타입 해석](slot-payment-factory.md)       |
+| 2025 하반기       | 슬롯 당첨 계산 Decorator 체인: 우선순위 기반 누적 변환                | [슬롯 당첨 계산: Decorator 체인, 우선순위 정렬](slot-win-decorator-chain.md) |
 
 ### 트러블슈팅
 
 | 기간              | 업무                                                                     | 문서                                                             |
 | ----------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------- |
-| 2025.01 \~ 2025.02 | 스핀 성능 최적화: AliasMethod O(1), SecureRandom → ThreadLocalRandom    | [slot-spin-performance.md](slot-spin-performance.md)             |
-| 2025.02           | 시뮬레이터 OOM: List<Long> 제거, Welford's Online Algorithm 도입        | [slot-simulator-oom.md](slot-simulator-oom.md)                   |
-| 2025.09           | 시뮬레이터 잭팟 풀 ThreadLocal 버그: 공유 상태를 AtomicReference로 전환 | [slot-simulator-jackpot-pool.md](slot-simulator-jackpot-pool.md) |
+| 2025.01 \~ 2025.02 | 스핀 성능 최적화: AliasMethod O(1), SecureRandom → ThreadLocalRandom    | [슬롯 스핀 성능 최적화: Alias Method 적용](slot-spin-performance.md)             |
+| 2025.02           | 시뮬레이터 OOM: List<Long> 제거, Welford's Online Algorithm 도입        | [시뮬레이터 OOM: Welford's Online Algorithm으로 전환](slot-simulator-oom.md)                   |
+| 2025.09           | 시뮬레이터 잭팟 풀 ThreadLocal 버그: 공유 상태를 AtomicReference로 전환 | [시뮬레이터 잭팟 풀: ThreadLocal 격리 버그](slot-simulator-jackpot-pool.md) |
 
 ---
 

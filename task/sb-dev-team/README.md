@@ -23,18 +23,18 @@
 
 | 기간              | 업무                                                              | 문서                                                       |
 | ----------------- | ----------------------------------------------------------------- | ---------------------------------------------------------- |
-| 2023.03 \~ 2023.12 | KYC 시스템: 신분증 인증, Azure Blob, AES-256-GCM 암호화           | [kyc-system.md](kyc-system.md)                             |
-| 2023.03 \~ 2024.02 | IP 화이트리스트: 점검 우회, Ehcache, MQ 기반 캐시 갱신           | [whitelist.md](whitelist.md)                               |
-| 2023.04 \~ 2024.03 | wemix 지갑 연동: prepare/token 플로우, 환경별 SDK 분리           | [wemix-wallet-integration.md](wemix-wallet-integration.md) |
-| 2023.08 \~ 2024.02 | 13개 로케일 다국어: Svelte derived 합성, 백엔드 캐시 사전 구성  | [i18n-system.md](i18n-system.md)                           |
-| 2023.10 \~ 2024.02 | 추천 프로그램: 추천/피추천 보너스, 미션 기반 토큰 클레임 3단계   | [referral-program.md](referral-program.md)                 |
+| 2023.03 \~ 2023.12 | KYC 시스템: 신분증 인증, Azure Blob, AES-256-GCM 암호화           | [KYC 시스템 구현](kyc-system.md)                             |
+| 2023.03 \~ 2024.02 | IP 화이트리스트: 점검 우회, Ehcache, MQ 기반 캐시 갱신           | [IP 화이트리스트 구현](whitelist.md)                               |
+| 2023.04 \~ 2024.03 | wemix 지갑 연동: prepare/token 플로우, 환경별 SDK 분리           | [wemix 블록체인 지갑 연동](wemix-wallet-integration.md) |
+| 2023.08 \~ 2024.02 | 13개 로케일 다국어: Svelte derived 합성, 백엔드 캐시 사전 구성  | [13개 로케일 다국어 시스템: Svelte derived 합성, 백엔드 캐시 사전 구성](i18n-system.md)                           |
+| 2023.10 \~ 2024.02 | 추천 프로그램: 추천/피추천 보너스, 미션 기반 토큰 클레임 3단계   | [블록체인 토큰 기반 추천 프로그램: 설계와 협업 기록](referral-program.md)                 |
 
 ### 아키텍처 개선
 
 | 기간              | 업무                                                                 | 문서                                       |
 | ----------------- | -------------------------------------------------------------------- | ------------------------------------------ |
-| 2023.03 \~ 2024.02 | 캐시 아키텍처: Ehcache, 인메모리 Map, MQ Fanout 정합성, 이중화 MQ | [cache-architecture.md](cache-architecture.md) |
-| 2023.12           | Vite 번들러 마이그레이션: Rollup → Vite, wemix SDK 환경별 분리      | [vite-migration.md](vite-migration.md)     |
+| 2023.03 \~ 2024.02 | 캐시 아키텍처: Ehcache, 인메모리 Map, MQ Fanout 정합성, 이중화 MQ | [Spring Boot 인메모리 캐시 구조: 다중 인스턴스 정합성](cache-architecture.md) |
+| 2023.12           | Vite 번들러 마이그레이션: Rollup → Vite, wemix SDK 환경별 분리      | [Svelte 프론트엔드 번들러 Vite로 교체](vite-migration.md)     |
 
 ---
 
