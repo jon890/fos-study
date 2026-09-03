@@ -19,7 +19,7 @@
 ## 대규모 트래픽
 
 - [대규모 커머스 트래픽 처리 패턴](./high-traffic-commerce-patterns.md) — 대규모 회원 / 메가 프로모션 대비 설계
-- [무중단 마이그레이션](./zero-downtime-migration.md) — Feature Flag + Shadow Mode 실전
+- [무중단 마이그레이션](./zero-downtime-migration.md) — Feature Flag와 Shadow Mode 실전
 
 ## 운영 품질
 
@@ -28,7 +28,6 @@
 
 ## API / 도메인 설계
 
-- [API 설계 실전 스터디 팩](./api-design.md) — REST, 멱등성, 페이지네이션, 버전 전략
 - [API 버저닝과 하위 호환성](./api-versioning-backward-compatibility.md) — 모바일 호환성, 폐기 수명주기, 계약 검증과 롤백
 - [DDD와 도메인 모델링](./ddd-domain-modeling.md) — 전술/전략 패턴 실전 가이드
 - [Event Sourcing과 CQRS](./event-sourcing-cqrs.md) — 상태 변화 이력과 읽기·쓰기 모델 분리
