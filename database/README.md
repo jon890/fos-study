@@ -23,9 +23,8 @@
 - [벡터 DB 5종 벤치마크](./vectordb-benchmark.md) — 데이터셋·질의·recall 측정법 + 같은 recall에서 QPS 실측 비교
 - [한국어 형태소 분석기 Nori vs Lindera](./nori-vs-lindera-korean-tokenizer.md) — OpenSearch·Milvus 전환 시 어휘 검색 정확도와 튜닝 재현
 
-## 면접 대비 — 커머스 응용
+## ORM과 SQL 매핑
 
-- [JPA N+1과 커머스 조회 모델](./jpa-n-plus-one-commerce-read-model.md) — 주문/메뉴/쿠폰 도메인
 - [MyBatis와 JPA/Hibernate 트레이드오프](./mybatis-jpa-tradeoffs.md) — 레거시 백엔드를 다루는 시니어 관점
 - [MyBatis 동적 SQL과 ResultMap 기본기](./mybatis-dynamic-sql-resultmap-basics.md) — 안전한 동적 쿼리·결과 매핑
 

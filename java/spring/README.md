@@ -23,7 +23,7 @@ Spring Framework / Spring Boot 학습 기록. IoC, 생명주기, 트랜잭션, A
 
 ## JPA
 
-- [JPA N+1 문제 완전 정복](./jpa-n-plus-one.md) — 발생 원인부터 EXPLAIN 분석까지
+- [JPA N+1](./jpa-n-plus-one.md) — 발생 원인, 탐지와 해결 선택지
 - [JPA 벌크 변경과 트랜잭션 정합성](./jpa-bulk-update-isolation-and-consistency.md) — 영속성 컨텍스트, 낙관적 잠금, JDBC batch, bulk update
 
 ## 스케줄링
