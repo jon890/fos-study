@@ -14,6 +14,7 @@ AI 서비스 플랫폼에서 진행한 주요 업무를 정리한 문서 모음.
 | ----------------- | -------------------------------------------------------------------- | -------------------------------------------------------- |
 | 2026.01–2026.03 | Confluence 벡터 색인 배치 — RAG 파이프라인, Spring Batch, OpenSearch | [rag-vector-search-batch.md](rag-vector-search-batch.md) |
 | 2026.04           | AI 웹툰 제작 도구 MVP — Next.js + Gemini + 하네스 기반 12일 풀스택    | [webtoon-maker-ai-pipeline.md](webtoon-maker-ai-pipeline.md) |
+| 2026.04–현재 | OCR 비즈니스 오류 관측 — HTTP 200 응답 안의 오류 코드 지표와 주간 원인 분류 | [ocr-business-error-monitoring.md](ocr-business-error-monitoring.md) |
 | 2026.05–현재 | Document Parser 기여 개요 — 문서→markdown 파싱 서비스(docling·OCR) 운영·개선 총괄 | [playground-document-parser.md](playground-document-parser.md) |
 | 2026.05–2026.07 | Document Parser 관측성 체계 — Prometheus·Grafana, 초기화 순서 함정, 지표 단일화 | [docparser-observability.md](docparser-observability.md) |
 | 2026.05–현재 | 운영 관측과 주간 에러 분류 루프 — 지표·로그·요청 ID 를 붙여 AI 와 함께 분석하고 개선 순서를 정하는 구조 | [observability-to-error-triage-loop.md](observability-to-error-triage-loop.md) |

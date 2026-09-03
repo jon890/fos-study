@@ -329,6 +329,7 @@ OCR 쪽에서는 이것을 로그 레벨 자체의 문제로 봤다.
 
 - [Python 서버의 RSS 가 안 줄어드는 이유](./glibc-malloc-trim-python-leak.md)
 - [문서 파싱 서비스의 관측성 체계](./docparser-observability.md)
+- [HTTP 200 응답 안의 OCR 오류를 운영 지표로 만들기](./ocr-business-error-monitoring.md)
 - [OCR 오토스케일 전환의 connection 에러를 양쪽에서 막기](./ocr-scale-connection-resilience.md)
 - [ThreadLocal 에서 contextvar 로](../../python/java-to-python-threadlocal-contextvar.md)
 - [로그에 traceId 남기기](../../java/MDC.md)

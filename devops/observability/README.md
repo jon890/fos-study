@@ -4,8 +4,7 @@
 
 ## Metrics
 
-- [K8s 위 Spring Boot 앱 메트릭 수집](./prometheus-k8s-remote-write.md) — Prometheus Agent + remote_write 구성
-- [Spring Boot 비즈니스 에러 카운터](./spring-boot-business-error-counter.md) — Micrometer로 도메인 에러를 메트릭화하는 방법
+- [K8s 위 Spring Boot 앱 메트릭 수집](./prometheus-k8s-remote-write.md) — Prometheus Agent와 remote_write 구성
 
 ## Tracing / APM
 
@@ -14,4 +13,5 @@
 ## 관련
 
 - [Observability 입문](../../architecture/observability-basics.md) — 개념과 장애 대응
+- [OCR 비즈니스 오류 관측](../../task/ai-service-team/ocr-business-error-monitoring.md) — HTTP 200 응답 안의 오류를 지표와 주간 분류로 연결한 업무
 - [로그에 traceId 남기기](../../java/MDC.md) — MDC 부터 OpenTelemetry 까지
