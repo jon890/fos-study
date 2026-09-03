@@ -1,4 +1,8 @@
-# 시뮬레이터 OOM — Welford's Online Algorithm으로 교체
+---
+tags: [tasks, insights]
+---
+
+# 시뮬레이터 OOM: Welford's Online Algorithm으로 전환
 
 **진행 기간**: 2025.02
 
@@ -35,12 +39,9 @@ private final List<Long> winmoneyList;
 
 시뮬레이션이 돌아가는 동안 스핀 한 번이 실행될 때마다 당첨금을 이 리스트에 쌓는다. 문제는 규모다.
 
-```
-1억 스핀 × Long 1개(8 bytes) = 800MB (시뮬레이션 1회)
-4명 동시 수행 = 800MB × 4 = 3.2GB
-```
+원시 `long` 값만 연속 배열에 저장한다고 가정해도 1억 개면 약 800MB다. 실제 `List<Long>`은 참조와 박싱 객체를 함께 관리하므로 JVM 설정과 객체 배치에 따라 더 많은 힙을 쓴다. 동시 실행 수와 작업 스레드가 늘면 이 상태가 실행 단위마다 반복된다.
 
-힙 12GB 중 winmoneyList만 3.2GB를 차지하고, 그 위에 시뮬레이터의 다른 누적 데이터, Spring 컨텍스트, GC 오버헤드까지 더해지면 OOM이 터질 조건이 충분히 만들어진다.
+힙 12GB에서도 시뮬레이터의 다른 누적 데이터, Spring 컨텍스트와 GC 여유 공간이 함께 필요하다. 입력 수에 비례하는 목록을 여러 실행이 동시에 유지하면 OOM이 발생할 조건이 만들어진다.
 
 시뮬레이터는 성능을 위해 멀티스레드로 스핀을 처리하고, 스레드마다 각자의 `AccumulateData`를 들고 있다가 나중에 합산한다. 합산할 때도 리스트 두 개를 이어 붙이므로(`concatList`) 순간적으로 메모리 사용량이 더 튀어오른다.
 
@@ -48,67 +49,16 @@ private final List<Long> winmoneyList;
 
 ---
 
-## 해결 — Welford's Online Algorithm
+## 해결: 온라인 분산 계산으로 전환
 
-분산을 구하기 위해 모든 데이터를 저장할 필요가 없다. Welford's Online Algorithm은 데이터를 하나씩 받을 때마다 평균과 분산을 즉시 갱신한다. 저장하는 값은 세 개뿐이다.
+분산 계산은 모든 결과를 보관하지 않아도 된다.
+Welford's Online Algorithm은 입력마다 `count`, `mean`, `m2`를 갱신하므로 입력 수와 관계없이 작은 상태만 유지한다.
 
-```
-count  — 지금까지 처리한 스핀 수 (int,    4 bytes)
-mean   — 현재 평균                 (double, 8 bytes)
-m2     — 분산 계산을 위한 누적 변수 (double, 8 bytes)
-```
+순차 갱신식과 스레드별 계산 결과의 병합식은 [Welford's Online Algorithm](../../algorithm/welford-online-algorithm.md)에 따로 정리했다.
 
-1억 스핀을 처리해도 메모리에 남는 건 20바이트다.
-
-`WelfordOnlineCalculator`를 새로 만들어서 이 로직을 구현했다.
-
-```java
-public void addWinMoney(long winMoney, long totalBetAmount) {
-    count++;
-    final double multiplier = (double) winMoney / totalBetAmount;
-
-    // 새 값이 평균에서 얼마나 벗어났는지
-    final double delta = multiplier - mean;
-
-    // 평균 업데이트
-    mean += delta / count;
-
-    // 업데이트된 평균 기준으로 다시 계산
-    final double delta2 = multiplier - mean;
-
-    // 편차의 제곱합 누적
-    m2 += delta * delta2;
-}
-
-double getVariance() {
-    return count > 1 ? m2 / (count - 1) : 0.0;
-}
-```
-
-스핀 한 번 처리할 때 리스트에 값을 추가하는 대신 `addWinMoney()`를 한 번 호출하면 된다.
-
-### 병렬 처리에서의 병합
-
-멀티스레드로 처리할 때 각 스레드의 계산기를 합산하는 것도 수학적으로 처리할 수 있다.
-
-```java
-public static WelfordOnlineCalculator merge(WelfordOnlineCalculator o1, WelfordOnlineCalculator o2) {
-    final WelfordOnlineCalculator merged = new WelfordOnlineCalculator();
-    merged.count = o1.count + o2.count;
-
-    if (merged.count == 0) {
-        return merged;
-    }
-
-    final double delta = o2.mean - o1.mean;
-    merged.mean = ((o1.mean * o1.count) + (o2.mean * o2.count)) / merged.count;
-    merged.m2 = o1.m2 + o2.m2 + delta * delta * o1.count * o2.count / merged.count;
-
-    return merged;
-}
-```
-
-기존 방식은 리스트 merge 시 1억 개짜리 리스트 두 개를 이어 붙이는 비용이 들었다. 이제는 숫자 몇 개의 연산으로 끝난다.
+실제 코드에는 `WelfordOnlineCalculator`를 추가했다.
+각 스레드는 계산기 하나만 유지하고, 작업이 끝나면 계산기의 상태를 합산한다.
+기존처럼 1억 개짜리 목록을 이어 붙이는 과정이 사라졌다.
 
 ---
 
@@ -135,7 +85,7 @@ public static AccumulateData initWithWelfordOnlineCalculator() {
 
 ## 결과
 
-스핀마다 리스트에 당첨금을 쌓던 방식이 사라졌다. 1억 스핀을 처리하는 동안 메모리에는 스칼라 값 3개(20바이트)만 유지된다. 4명이 동시에 시뮬레이션을 실행해도 winmoneyList로 인한 메모리 증가가 없다.
+스핀마다 리스트에 당첨금을 쌓던 방식이 사라졌다. 1억 스핀을 처리해도 계산 상태는 스칼라 값 3개로 유지된다. 여러 사용자가 동시에 시뮬레이션을 실행해도 `winmoneyList` 때문에 메모리가 입력 수에 비례해 증가하지 않는다.
 
 한 가지 검토한 부분이 있었다. Welford's Online Algorithm은 부동소수점 연산을 누적하기 때문에, 전체 데이터를 모아 한꺼번에 계산하는 방식과 결과가 완전히 일치하지 않는다. 두 방식의 결과를 실제로 비교해 오차를 확인했고, 변동성 지수 계산의 특성상 무시할 수 있는 범위였다. 메모리 안정성을 얻는 편이 훨씬 중요했다.
 
