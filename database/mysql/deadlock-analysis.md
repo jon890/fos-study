@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # MySQL 데드락 실전 분석 — SQS 컨슈머 환경에서 InnoDB 락을 읽고 풀어내는 법
 
 ## 왜 이 주제가 중요한가
@@ -23,7 +27,7 @@ REPEATABLE READ(RR) 격리 수준에서 InnoDB가 쓰는 핵심 락 단위다.
 
 - **Record Lock**: 인덱스 레코드 자체에 걸리는 락.
 - **Gap Lock**: 인덱스 레코드 사이의 "빈 공간"에 걸리는 락. 팬텀 리드를 막기 위해 존재.
-- **Next-Key Lock**: Record + 그 앞의 Gap을 묶은 것. RR 기본 락 단위.
+- **Next-Key Lock**: Record와 그 앞의 Gap을 묶은 것. RR 기본 락 단위.
 
 예를 들어 인덱스에 `user_id = 10, 20, 30` 레코드가 있을 때 `SELECT ... WHERE user_id BETWEEN 15 AND 25 FOR UPDATE`를 실행하면 InnoDB는 `20` 레코드뿐 아니라 `(10, 20]`과 `(20, 30]` Gap까지 락을 건다. 이 때문에 **다른 트랜잭션이 `user_id = 22`를 INSERT하려 하면 Gap Lock에 걸려 대기**한다.
 
@@ -173,7 +177,7 @@ INSERT INTO coupon(user_id, code) VALUES (100, 'Y');
 -- 세션 B의 Insert Intention Lock이 Gap을 점유 → 데드락
 ```
 
-이 패턴은 **RR 격리 + unique index 중복 체크 후 INSERT** 코드에서 끔찍하게 자주 터진다. 해결은 (1) 격리 수준을 READ COMMITTED로 낮추거나 (2) `INSERT ... ON DUPLICATE KEY UPDATE`로 원자화하거나 (3) unique 인덱스만 믿고 예외를 잡아 처리하는 것.
+이 패턴은 **RR 격리에서 unique index 중복 체크 후 INSERT**하는 코드에서 끔찍하게 자주 터진다. 해결은 (1) 격리 수준을 READ COMMITTED로 낮추거나 (2) `INSERT ... ON DUPLICATE KEY UPDATE`로 원자화하거나 (3) unique 인덱스만 믿고 예외를 잡아 처리하는 것.
 
 ## SQS / Kafka 컨슈머 병렬 실행에서의 락 충돌
 
@@ -244,7 +248,7 @@ SELECT id FROM outbox
 
 ## 커넥션 풀 고갈과 데드락의 연쇄
 
-HikariCP `maximumPoolSize = 20`인 서비스에서 긴 트랜잭션 + 데드락 재시도가 결합되면 이런 일이 일어난다.
+HikariCP `maximumPoolSize = 20`인 서비스에서 긴 트랜잭션과 데드락 재시도가 결합되면 이런 일이 일어난다.
 
 ```
 t=0s  : 컨슈머 10대 각자 트랜잭션 시작 (커넥션 10개 점유)
@@ -256,12 +260,12 @@ t=8s  : 헬스체크 실패로 인스턴스 순환 재시작
 ```
 
 방어책:
-- **풀 사이즈는 "CPU 코어 × 2 + 디스크 수"가 출발점** (HikariCP 공식 가이드). 무조건 늘린다고 좋은 게 아니다.
+- **풀 크기는 CPU 코어 수의 두 배에 디스크 수를 더한 값이 출발점이다.** 무조건 늘린다고 좋은 게 아니다.
 - `connectionTimeout`을 짧게(예: 3s) 잡아 빠르게 실패.
 - 트랜잭션 타임아웃(`@Transactional(timeout = 3)`)과 `innodb_lock_wait_timeout`(기본 50s → 5~10s로 낮춤)을 정렬.
 - 컨슈머 프리페치 크기를 제한해 DB로 쏟아지는 동시성을 조절.
 
-## Spring Retry + 트랜잭션 + 데드락 재시도 전략
+## Spring Retry와 트랜잭션을 이용한 데드락 재시도 전략
 
 Spring은 데드락을 `DeadlockLoserDataAccessException`(DataAccessException 계열)으로 감싼다. 재시도는 **트랜잭션 밖**에서 해야 한다. 트랜잭션 내부에서 재시도하면 같은 트랜잭션이 이미 롤백 표시된 상태라 의미가 없다.
 
@@ -443,24 +447,6 @@ UPDATE stock SET qty = qty - :n
 7. **회귀 테스트**: 동일 시나리오를 부하 테스트(`k6`, `jmeter`)로 돌려 데드락 수가 0에 수렴하는지 확인. 수정 전/후 에러 카운트를 그래프로 붙인다.
 8. **런북 업데이트**: 팀 위키에 "이런 로그가 또 보이면 이렇게 읽어라"를 남긴다.
 
-## 면접 답변 프레이밍
-
-**질문**: "주문 처리에서 데드락이 계속 나고 있어요. 어떻게 분석하고 해결하시겠어요?"
-
-**답변 구조**(STAR + 기술 디테일)
-
-1. **상황 정의**: "먼저 범위를 좁힙니다. 어느 트랜잭션 쌍에서, 어느 인덱스에서, 어떤 격리 수준에서 나는지를 확인합니다."
-2. **관측**: "`innodb_print_all_deadlocks`을 켜고, `SHOW ENGINE INNODB STATUS`의 `LATEST DETECTED DEADLOCK` 블록을 수집합니다. `performance_schema.data_locks`로 실시간 락 상태도 봅니다."
-3. **가설**: "가장 흔한 패턴 세 가지, 역순 락, Gap Lock + Insert Intention, FK 경합을 먼저 의심합니다. 로그에서 HOLDS / WAITING FOR의 인덱스 이름을 보면 구분됩니다."
-4. **재현**: "로컬 MySQL 8에서 동일 스키마로 두 세션 시나리오를 재현합니다. 재현 안 되면 가설을 바꿉니다."
-5. **수정 원칙**: "락 순서 정렬, 트랜잭션 단축, 인덱스로 락 범위 축소, 필요하면 격리 수준을 RC로 내립니다. 비즈니스 키는 unique 인덱스에 맡기고 upsert로 원자화합니다."
-6. **컨슈머 관점**: "같은 로직을 병렬 워커로 돌리는 환경이면 `FOR UPDATE SKIP LOCKED`나 분산락으로 경합을 줄이고, 외부 I/O는 트랜잭션 밖으로 뺍니다."
-7. **재시도**: "Spring Retry로 `DeadlockLoserDataAccessException`에 대해 지수 백오프 + 지터로 최대 3회 재시도, 실패 시 DLQ. 재시도는 반드시 트랜잭션 외부에서 합니다."
-8. **운영 보호**: "커넥션 풀 사이즈, 커넥션 타임아웃, `innodb_lock_wait_timeout`, 트랜잭션 타임아웃을 같이 조정합니다. 한 가지만 만지면 다른 곳이 터집니다."
-9. **검증**: "부하 테스트로 데드락 카운트와 p99가 목표치에 수렴하는지 확인하고 런북을 업데이트합니다."
-
-여기에 "유니크 키로 중복 발급 데드락을 없앴다", "복합 인덱스로 Next-Key Lock 범위를 좁혀 경합을 줄였다" 같은 구체 사례와 수치(예: "데드락 분당 20건 → 0건", "p99 레이턴시 800ms → 120ms")를 한 문장 얹으면 바로 시니어 톤이다.
-
 ## 자가 체크리스트
 
 - [ ] `LATEST DETECTED DEADLOCK` 블록을 보고 TRX1/TRX2의 HOLDS / WAITING FOR 인덱스를 짚어낼 수 있다.
@@ -470,7 +456,7 @@ UPDATE stock SET qty = qty - :n
 - [ ] 역순 락 데드락을 로컬 MySQL 8에서 10분 안에 재현할 수 있다.
 - [ ] Gap Lock 기반 데드락을 재현하고, 격리 수준 변경과 upsert로 각각 해결해보았다.
 - [ ] `SELECT FOR UPDATE SKIP LOCKED`를 언제 쓰는지, 왜 쓰는지 말할 수 있다.
-- [ ] Spring Retry + `@Transactional` 배치 순서를 실수 없이 그릴 수 있다.
+- [ ] Spring Retry와 `@Transactional`의 적용 순서를 실수 없이 그릴 수 있다.
 - [ ] HikariCP 풀 사이즈, `innodb_lock_wait_timeout`, `@Transactional(timeout)`을 함께 설계할 수 있다.
 - [ ] 외부 I/O를 트랜잭션 밖으로 빼는 세 가지 방법(비동기 이벤트, 아웃박스, AFTER_COMMIT 리스너)을 설명할 수 있다.
 - [ ] 데드락 수정 후 회귀 테스트로 수치 개선을 증명하는 루프를 갖고 있다.
