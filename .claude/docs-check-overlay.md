@@ -18,14 +18,10 @@
 ## 먼저 실행할 구조 점검
 
 fos-study에는 별도 ADR 트리가 없으므로 공용 `static-check.sh`에 임의 경로를 넘기지 않는다.
-다음 저장소 전용 점검을 먼저 실행한다.
+먼저 `docs-audit` 스킬의 저장소 전용 구조 점검을 실행한다.
 
-```bash
-python3 .claude/skills/docs-audit/scripts/docs_score.py --json
-```
-
-`score: 0`이 구조 점검 통과 조건이다.
-`broken_link`, `orphan_doc`, `readme_missing`, `style_*`의 세부 결과를 공용 F축 구조 무결성 리포트에 합친다.
+`ok: true`와 종료 코드 0이 구조 점검 통과 조건이다.
+`broken_link`, `orphan_doc`, `readme_missing`의 세부 결과를 공용 F축 구조 무결성 리포트에 합친다.
 
 ## 프로젝트 고유 의미 판정
 
@@ -77,7 +73,7 @@ python3 .claude/skills/docs-audit/scripts/docs_score.py --json
 
 ## 완료 조건
 
-- `docs_score.py --json`의 구조 위반이 0이거나 남긴 예외가 설명돼 있다.
+- `docs_score.py --json`의 `ok`가 `true`이거나 남긴 예외가 설명돼 있다.
 - 공용 A부터 F축 결과에 사실과 추정이 구분돼 있다.
 - `resume/` 보존 예외와 `task/`·기술 폴더 책임이 지켜졌다.
 - 변경했다면 문체 검사와 `git diff --check`가 통과한다.
