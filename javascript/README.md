@@ -13,7 +13,7 @@ JavaScript 런타임과 언어 기능 학습 기록.
 
 - [AbortController](./abort-controller.md) — 비동기 작업 취소
 - [Generator](./generator.md) — 제너레이터 함수
-- [Async Iterator](./async-iterator.md) — 비동기 이터레이터 + 제너레이터
+- [Async Iterator](./async-iterator.md) — 비동기 이터레이터와 제너레이터
 
 ## HTTP
 
@@ -27,8 +27,3 @@ JavaScript 런타임과 언어 기능 학습 기록.
 
 - [Brand Type](./typescript/brand-type.md) — 타입 안정성을 위한 브랜드 타입 패턴
 - [TypeScript 6.0 — 마지막 JS 컴파일러, Go 로 가는 다리](./typescript/typescript-6-0.md)
-
-## 자료구조 / 도서
-
-- [JavaScript로 배우는 자료구조와 알고리즘](./Data_Structures_and_Algorithms/README.md) — 책 정리 (Big O, JS 특성)
-- [Heap 자료구조](./Heap/README.md) — Min/Max Heap 구현
