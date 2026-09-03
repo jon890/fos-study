@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # L4와 VIP(Virtual IP Address)
 
 ## L4 Load Balancer - OSI 4 계층에서 트래픽을 분배하는 장치
