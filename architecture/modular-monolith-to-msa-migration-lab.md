@@ -1,6 +1,6 @@
 ---
 categories: [java, devops]
-tags: [학습중, 카카오뱅크, 금융도메인, 모듈러모놀리스, MSA, 점진적전환, StranglerFig, SpringModulith]
+tags: [학습중, 카카오뱅크, 금융도메인, 모듈러모놀리스, MSA, 점진적전환, StranglerFig, SpringModulith, study]
 ---
 
 # [학습중] 모듈러 모놀리스에서 MSA로 점진 전환하는 실습

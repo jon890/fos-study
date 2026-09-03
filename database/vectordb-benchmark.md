@@ -1,6 +1,6 @@
 ---
 categories: [database]
-tags: [심화]
+tags: [심화, study]
 ---
 
 # 벡터 DB 5종을 실제로 벤치마크했다 — 같은 recall에서 QPS는 얼마나 갈리나

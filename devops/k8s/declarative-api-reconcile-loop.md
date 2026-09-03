@@ -1,5 +1,5 @@
 ---
-tags: [입문]
+tags: [입문, study]
 series: "백엔드 개발자를 위한 쿠버네티스 기본기"
 seriesOrder: 2
 thumbnail: ./images/declarative-api-reconcile-loop-thumbnail.jpg

@@ -1,5 +1,5 @@
 ---
-tags: [심화]
+tags: [심화, study]
 series: "API Gateway를 제거하고 쿠버네티스로 직접 노출하기"
 seriesOrder: 6
 thumbnail: ./images/client-ip-preservation-thumbnail.jpg

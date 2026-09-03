@@ -1,5 +1,5 @@
 ---
-tags: ["LLM 서빙", "추론 최적화", "배칭"]
+tags: ["LLM 서빙", "추론 최적화", "배칭", study]
 ---
 
 # 배칭과 GPU 활용률 — batch 1이 GPU를 놀리는 이유부터 continuous batching까지

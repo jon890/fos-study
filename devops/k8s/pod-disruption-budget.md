@@ -1,5 +1,5 @@
 ---
-tags: [심화]
+tags: [심화, study]
 ---
 
 # 파드가 1개면 minAvailable 이 노드 교체를 막는다

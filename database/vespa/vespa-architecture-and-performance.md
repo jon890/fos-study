@@ -1,6 +1,6 @@
 ---
 categories: [AI]
-tags: [입문]
+tags: [입문, study]
 ---
 
 # Vespa 아키텍처 입문 — 왜 강력한데 학습 곡선이 가파른가

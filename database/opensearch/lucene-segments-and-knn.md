@@ -1,6 +1,6 @@
 ---
 categories: [database]
-tags: [심화]
+tags: [심화, study]
 ---
 
 # Lucene 세그먼트 구조와 그 위에서 kNN이 동작하는 방식

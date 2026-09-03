@@ -1,5 +1,5 @@
 ---
-tags: [심화]
+tags: [심화, tasks]
 thumbnail: ./images/observability-to-error-triage-loop-thumbnail.jpg
 ---
 

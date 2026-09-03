@@ -1,6 +1,6 @@
 ---
 categories: [AI]
-tags: [심화]
+tags: [심화, study]
 ---
 
 # 벡터 DB 5종, 아키텍처는 어떻게 다른가

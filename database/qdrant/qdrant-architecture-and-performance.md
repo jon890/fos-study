@@ -1,6 +1,6 @@
 ---
 categories: [AI]
-tags: [입문]
+tags: [입문, study]
 ---
 
 # Qdrant 벡터 데이터베이스 입문 — "컴포넌트가 단순하다"는 게 정확히 뭔가

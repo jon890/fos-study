@@ -1,6 +1,6 @@
 ---
 categories: [database]
-tags: [학습중, 카카오뱅크, 금융도메인, JPA, BulkUpdate, 트랜잭션격리, 잠금, 영속성컨텍스트]
+tags: [학습중, 카카오뱅크, 금융도메인, JPA, BulkUpdate, 트랜잭션격리, 잠금, 영속성컨텍스트, study]
 ---
 
 # [학습중] JPA 벌크 변경과 트랜잭션 정합성

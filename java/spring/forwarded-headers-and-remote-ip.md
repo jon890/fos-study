@@ -1,5 +1,5 @@
 ---
-tags: [심화]
+tags: [심화, study]
 thumbnail: ./images/forwarded-headers-and-remote-ip-thumbnail.jpg
 ---
 

@@ -1,6 +1,6 @@
 ---
 categories: [database]
-tags: [심화]
+tags: [심화, study]
 ---
 
 # 한국어 형태소 분석기 Nori vs Lindera — OpenSearch에서 Milvus로 갈 때 어휘 검색은 유지되나
