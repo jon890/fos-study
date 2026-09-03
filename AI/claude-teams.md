@@ -3,7 +3,7 @@ thumbnail: ./images/claude-teams-thumbnail.jpg
 tags: [study]
 ---
 
-# Claude Code 멀티 에이전트 — Teams
+# Claude Code Teams의 멀티 에이전트 구조
 
 Claude Code는 단일 에이전트로 동작하는 것 외에, 여러 전문화된 에이전트를 조율해서 복잡한 작업을 병렬로 처리하는 **팀 구조**를 지원한다.
 
@@ -144,7 +144,7 @@ tmux split-window -v
 tmux send-keys -t agents "# verifier agent pane" Enter
 ```
 
-`tmux capture-pane`으로 다른 페인의 에이전트 출력을 읽어서 오케스트레이터에게 전달하는 자동화도 가능하다. ([tmux 정리](../linux/tmux.md) 참고)
+`tmux capture-pane`으로 다른 페인의 에이전트 출력을 읽어서 오케스트레이터에게 전달하는 자동화도 가능하다.
 
 ---
 
@@ -166,5 +166,4 @@ PR이 생성되면 코드 리뷰, 보안 검토, 테스트 커버리지 분석�
 
 ## 관련 문서
 
-- [tmux — 멀티 에이전트 환경 구성](../linux/tmux.md)
 - [Claude Code 스킬 시스템](./claude-code-skill-system.md)
