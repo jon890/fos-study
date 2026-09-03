@@ -179,7 +179,7 @@ flowchart LR
 - 비율 대신 정수를 쓸 수 있는가. 비율은 올림 때문에 의도보다 느슨해진다.
 - 정족수가 필요한 워크로드인가. 그러면 `minAvailable` 이 맞다.
 
-PDB 만으로 안 되는 것도 같이 적어둔다. 파드가 내려갈 때 처리 중인 요청을 흘리지 않으려면 종료 처리가 따로 필요하다. PDB 는 **언제 내려도 되는지**만 정하고, **어떻게 내려가는지**는 [OCR 서버 배포·스케일인 시 503 에러 수정](../../task/ai-service-team/graceful-shutdown-503-fix.md)에서 다룬 graceful shutdown 의 영역이다. 둘 다 있어야 노드 교체가 조용히 지나간다.
+PDB 만으로 안 되는 것도 같이 적어둔다. 파드가 내려갈 때 처리 중인 요청을 잃지 않으려면 종료 처리가 따로 필요하다. PDB 는 **언제 내려도 되는지**만 정하고, **어떻게 내려가는지**는 [OCR 오토스케일 전환의 connection 에러를 양쪽에서 막기](../../task/ai-service-team/ocr-scale-connection-resilience.md)에서 다룬 graceful shutdown의 영역이다. 둘을 함께 적용해야 노드 교체 중인 요청을 보호할 수 있다.
 
 ## 참고
 

@@ -29,10 +29,9 @@ AI 서비스 플랫폼에서 진행한 업무 기록을 모았다.
 
 | 기간    | 업무                                                                          | 문서                                                                   |
 | ------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 2026.04 | OCR 서버 배포·스케일인 시 503 에러 수정: [Graceful Shutdown](../../devops/graceful-shutdown.md) 미적용 | [OCR 서버 배포·스케일인 시 503 에러 수정: Graceful Shutdown 미적용](graceful-shutdown-503-fix.md) |
 | 2026.05–2026.06 | Python 서버 RSS 누적 대응: `gc.collect()`의 한계 확인, `malloc_trim` 적용 | [Python 서버 RSS가 줄지 않을 때 malloc_trim을 적용한 과정](glibc-malloc-trim-python-leak.md) |
 | 2026.05–2026.07 | Document Parser 메모리·리소스 안정화: 워커 강제 종료·좀비 프로세스·CUDA 중복 누수 방어 | [문서 파싱 서비스, 리소스가 새는 자리를 하나씩 틀어막은 기록](docparser-memory-stability.md) |
-| 2026.06–현재 | OCR pod 증감·노드 교체 안정화: 30초 종료 예산, 커넥션 회복, PDB, 클러스터 업그레이드 | [OCR 오토스케일 전환의 connection 에러를 양쪽에서 막기](ocr-scale-connection-resilience.md) |
+| 2026.04–현재 | OCR pod 증감·노드 교체 안정화: 초기 503 원인, 30초 종료 예산, 커넥션 회복, PDB | [OCR 오토스케일 전환의 connection 에러를 양쪽에서 막기](ocr-scale-connection-resilience.md) |
 
 ### 리팩터링
 

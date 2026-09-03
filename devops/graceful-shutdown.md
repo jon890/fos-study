@@ -232,5 +232,4 @@ sequenceDiagram
 오른쪽 열은 검증 환경까지 올라간 값이고 운영에는 아직 반영하지 않았다.
 실제 종료 시간을 재서 표의 예산과 맞는지 확인하는 단계가 남아 있다.
 
-- 1차 대응의 배경과 증상은 [OCR 서버 배포·스케일인 시 503 에러 수정](../task/ai-service-team/graceful-shutdown-503-fix.md)에 있다.
-- 재배분의 근거와 신호가 중간에서 멈추던 문제는 [OCR 오토스케일 전환의 connection 에러를 양쪽에서 막기](../task/ai-service-team/ocr-scale-connection-resilience.md)에 있다.
+- 초기 503의 증상, 1차 대응의 한계와 종료 예산 재배분은 [OCR 오토스케일 전환의 connection 에러를 양쪽에서 막기](../task/ai-service-team/ocr-scale-connection-resilience.md)에 정리했다.
