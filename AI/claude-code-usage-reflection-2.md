@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/claude-code-usage-reflection-2-thumbnail.jpg
+tags: [study, insights]
 ---
 
 # Claude Code를 5주 더 쓰며 스킬과 CLAUDE.md를 키운 방식

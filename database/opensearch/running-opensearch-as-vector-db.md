@@ -1,5 +1,6 @@
 ---
 categories: [AI]
+tags: [study]
 ---
 
 # OpenSearch를 벡터 DB로 굴리며 알게 된 것 — 벡터는 heap이 아니라 native에 산다

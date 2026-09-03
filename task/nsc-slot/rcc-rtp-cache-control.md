@@ -1,3 +1,7 @@
+---
+tags: [tasks]
+---
+
 # RCC (RTP Cache Control) 시스템 설계 및 구축
 
 **진행 기간**: 2025.07 ~ 2025.10

@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Node 백엔드 운영 패턴 — Streams 백프레셔, pipe/pipeline, 멱등성 vs 분산 락
 
 기존 javascript/ 문서들이 다루지 않는 Node 백엔드 실전 패턴 두 가지를 묶어 정리한다.

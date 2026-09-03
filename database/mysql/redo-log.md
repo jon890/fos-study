@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # InnoDB Redo Log & Undo Log — WAL, Crash Recovery, Rollback 연계
 
 InnoDB의 내구성(Durability)과 원자성(Atomicity)을 지탱하는 두 로그가 Redo Log와 Undo Log다. 애플리케이션 개발자 입장에서 두 로그가 어떤 목적을 가지고, 어떻게 협력해서 커밋/롤백/크래시 복구를 구현하는지 정리했다.

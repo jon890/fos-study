@@ -1,3 +1,7 @@
+---
+tags: [study, insights]
+---
+
 # Python 서버의 RSS 가 안 줄어드는 이유 — gc.collect 의 한계와 malloc_trim
 
 Python 으로 long-running 서버 (FastAPI / Flask / Celery / uWSGI 등) 를 운영하다 보면 한 번쯤 마주치는 증상이 있다.

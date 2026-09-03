@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/claude-code-usage-reflection-thumbnail.jpg
+tags: [study, insights]
 ---
 
 # Claude Code를 11일 동안 쓴 결과 — 데이터로 본 나의 사용 패턴

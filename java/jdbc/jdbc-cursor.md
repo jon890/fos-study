@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Batch와 JdbcCursor
 
 - Cursor 방식이란 : 전체 데이터를 메모리에 올리지 않고, DB 서버와의 연결을 유지하며 레코드를 한 줄씩 가져오는 것

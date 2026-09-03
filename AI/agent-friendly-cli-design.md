@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/agent-friendly-cli-design-thumbnail.jpg
+tags: [study, insights]
 ---
 
 # 사람용 CLI와 AI 에이전트용 CLI는 설계가 다르다

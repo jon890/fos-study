@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # MySQL 옵티마이저 힌트 — 인덱스 힌트와 optimizer hint로 실행 계획을 다루는 법
 
 ## 이 문서의 목표

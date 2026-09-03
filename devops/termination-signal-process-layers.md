@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/termination-signal-process-layers-thumbnail.jpg
+tags: [study]
 series: "OCR 서비스 구축·운영"
 seriesOrder: 4
 ---

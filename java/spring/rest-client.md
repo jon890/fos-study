@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # RestClient
 
 - API 자체는 **Spring Framework 6.1**에서 도입되고, **Spring Boot 3.2**가 빌더 자동 설정을 제공한다

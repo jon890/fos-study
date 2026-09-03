@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # 제너레이터(Generator)
 
 - 제너레이터는 중단 가능한 함수(pausable function)이다

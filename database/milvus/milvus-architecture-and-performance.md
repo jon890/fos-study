@@ -1,5 +1,6 @@
 ---
 categories: [AI]
+tags: [study]
 ---
 
 # Milvus 벡터 데이터베이스 입문 — 아키텍처와 동작, 그리고 실무 규모에서의 성능

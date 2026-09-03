@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Async Iterator와 제너레이터
 
 비동기로 하나씩 값이 흘러오는 컬렉션을 순서대로 기다리며 소비하는 문법. Node.js 스트림, fetch의 ReadableStream, AI 모델 토큰 스트리밍, 페이지네이션이 있는 외부 API 등 "한꺼번에 메모리에 올리면 부담스러운 데이터"를 다룰 때 쓴다.

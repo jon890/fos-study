@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/openclaw-vs-hermes-agent-thumbnail.jpg
+tags: [study]
 ---
 
 # OpenClaw vs Hermes Agent — 갈아탈까 고민하며 정리한 비교

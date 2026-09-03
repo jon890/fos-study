@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Redis
 
 > "Remote Dictionary Server" — 원격에 위치한 프로세스로 동작하는 인메모리 키-값 데이터 구조 서버

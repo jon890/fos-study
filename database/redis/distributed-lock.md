@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Redis 분산 락 (Distributed Lock)
 
 여러 서버/프로세스가 동일한 자원에 동시에 접근하는 것을 막아야 할 때 Redis를 분산 락 저장소로 사용한다. JVM 내부의 `synchronized`나 `ReentrantLock`은 단일 프로세스 안에서만 동작하므로, 다중 서버 환경에서는 외부 저장소 기반의 락이 필요하다.

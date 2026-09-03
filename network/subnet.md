@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # IP Subnet
 
 ## IP 주소를 "집 주소"라고 생각해보자

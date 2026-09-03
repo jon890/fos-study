@@ -2,6 +2,7 @@
 series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
 seriesOrder: 10
 thumbnail: ./images/multimodal-thumbnail.jpg
+tags: [study]
 ---
 
 # 멀티모달 LLM (Multimodal Large Language Model)

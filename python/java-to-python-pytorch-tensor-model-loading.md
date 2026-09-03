@@ -1,4 +1,5 @@
 ---
+tags: [study]
 series: "자바 백엔드 개발자를 위한 Python 입문"
 seriesOrder: 7
 ---

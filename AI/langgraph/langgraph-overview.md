@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/langgraph-overview-thumbnail.jpg
+tags: [study]
 ---
 
 # LangGraph — 에이전트 워크플로를 그래프로 통제하기

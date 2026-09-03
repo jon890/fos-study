@@ -2,6 +2,7 @@
 series: "Milvus"
 seriesOrder: 3
 categories: [AI]
+tags: [study]
 ---
 
 # Milvus 3.0 은 무엇을 바꾸나 — 벡터 DB 에서 "벡터 레이크하우스"로

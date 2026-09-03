@@ -2,6 +2,7 @@
 series: "API Gateway를 제거하고 쿠버네티스로 직접 노출하기"
 seriesOrder: 4
 thumbnail: ./images/api-gateway-removal-rewrite-and-https-thumbnail.jpg
+tags: [study]
 ---
 
 # API Gateway를 제거한 자리 채우기 — path rewrite, 요청 크기 병목 4개, 그리고 HTTPS

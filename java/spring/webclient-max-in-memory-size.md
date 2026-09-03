@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # WebClient가 큰 응답을 받으면 왜 죽는가 — maxInMemorySize와 DataBufferLimitException
 
 > [API Gateway를 제거한 자리 채우기](../../devops/k8s/api-gateway-removal-rewrite-and-https.md)에서 겪은 요청 크기 병목 4개 중 하나를 여기서 따로 깊게 다룬다. 그 글의 맥락(20MB 이미지 처리) 없이 WebClient 버퍼 설정 자체가 궁금해서 왔어도 이 글만으로 읽힌다.

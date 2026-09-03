@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # 분산 트랜잭션과 Outbox 패턴 — 왜 2PC를 피하고 어떻게 대신할 것인가
 
 > 관련 문서: [Outbox / Inbox Pattern 심화](./outbox-inbox-pattern.md). 이 문서는 분산 트랜잭션 맥락에서 "왜 2PC가 아닌 Outbox인가"라는 의사결정 축을, 위 문서는 Outbox·Inbox 한 짝의 동작 메커니즘과 transaction boundary, polling/CDC 변형, ordering 같은 심화 주제를 다룬다.

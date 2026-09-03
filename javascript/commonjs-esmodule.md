@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # CommonJS와 ECMAScript Modules
 
 - Node.js에는 CommonJS, ECMAScript Modules(이하 CJS, ESM)라는 두가지 모듈 시스템이 있음

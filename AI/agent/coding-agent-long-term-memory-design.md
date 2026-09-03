@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/coding-agent-long-term-memory-design-thumbnail.jpg
+tags: [study]
 ---
 
 # 코딩 에이전트 장기 기억은 무엇을 저장하고 언제 다시 읽어야 할까

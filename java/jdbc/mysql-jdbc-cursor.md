@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # MySQL JDBC Cursor 방식
 
 MySQL JDBC 드라이버의 기본 동작 방식과 대용량 처리 시 주의해야 할 Cursor(Streaming) 모드를 정리했다.

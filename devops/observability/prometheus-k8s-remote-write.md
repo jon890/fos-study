@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # K8s 위 Spring Boot 앱 메트릭 수집하기 (Prometheus Agent + remote_write)
 
 K8s 클러스터에서 Spring Boot 애플리케이션을 운영하다 보면 JVM 힙 사용량, HTTP 요청 수, 응답 시간 같은 지표를 모니터링하고 싶어진다. 팀에 중앙 Grafana가 이미 있다면 클러스터 내에서 Prometheus로 긁어다가 remote_write로 쏴주기만 하면 된다.

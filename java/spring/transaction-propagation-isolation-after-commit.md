@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Spring 트랜잭션 전파·격리수준·AFTER_COMMIT 실전 정리: Outbox까지 이어지는 한 덩어리
 
 ## 왜 이 주제가 중요한가

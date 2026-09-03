@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Docker 기본기 학습
 
 ## Docker가 무엇인가?

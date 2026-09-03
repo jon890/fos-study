@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # DB Connection Pool Saturation과 Thread Pool 격리
 
 ## 왜 이 주제가 면접에서 중요한가

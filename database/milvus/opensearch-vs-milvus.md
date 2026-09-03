@@ -1,5 +1,6 @@
 ---
 categories: [AI]
+tags: [study]
 ---
 
 # OpenSearch vs Milvus — 벡터 검색, 무엇이 어떻게 다른가

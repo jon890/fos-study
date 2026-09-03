@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # DFS Query Then Fetch
 
 검색 정확도(Relevance)를 높이기 위해 사용하는 **검색 수행 모드**(Search Type) 중 하나이다. <br>

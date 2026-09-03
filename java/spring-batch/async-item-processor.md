@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # AsyncItemProcessor
 
 ## 아키텍처 및 Executor 구성

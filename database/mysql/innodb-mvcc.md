@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # InnoDB MVCC 완전 분석 — Undo Log, Read View, 잠금, 그리고 Crash Recovery까지
 
 ---

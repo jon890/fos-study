@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/claude-code-skill-system-thumbnail.jpg
+tags: [study]
 ---
 
 # Claude Code의 Skill 시스템 - 개발자를 위한 AI 자동화의 새로운 차원

@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/backend-reliability-for-ai-products-thumbnail.jpg
+tags: [study]
 ---
 
 # AI 제품 백엔드 안정성 — 지연·비용·권한·관측·도구 실패·폴백/재시도/사람 에스컬레이션

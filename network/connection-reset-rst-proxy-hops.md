@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Connection reset by peer는 누가 보낸 걸까 — 리버스 프록시 홉마다 TCP 연결은 따로 논다
 
 한 OCR API 서비스를 운영하다가 모니터링 알림을 받았다. 클라이언트(curl)에서는 호출이 실패했는데, 서버 쪽에서는 정상 처리되고 사용량(미터링)까지 집계된 건이었다. 클라이언트가 본 에러는 `curl exit 56 / OpenSSL SSL_read: Connection reset by peer (errno 104)`.

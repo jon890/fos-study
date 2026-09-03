@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Java StampedLock — 읽기 폭주에도 쓰기가 밀리지 않는 락
 
 ---

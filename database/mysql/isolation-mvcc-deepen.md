@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # MySQL 격리수준과 MVCC 심화 — 표준을 벗어난 경계 케이스와 운영 선택의 기준
 
 > 이 문서는 "Dirty Read / Non-Repeatable Read / Phantom Read" 3원소 매트릭스를 외운 다음 단계를 다룬다. MVCC 일반론은 [InnoDB MVCC](./innodb-mvcc.md), 락 의미론은 [Gap Lock & Next-Key Lock](./innodb-gap-next-key-lock.md), 데드락 분석은 [Deadlock Analysis](./deadlock-analysis.md)를 함께 본다. 여기서는 **MVCC와 락이 충돌하는 경계**, **표준 SQL과 InnoDB가 일치하지 않는 지점**, **격리수준 변경이 실제로 무엇을 바꾸는가**를 끝까지 파고든다.

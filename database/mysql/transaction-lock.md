@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # InnoDB 트랜잭션과 잠금
 
 Real MySQL 8.0 5장 내용을 정리한 문서. 개발자 입장에서 중요한 MVCC와 Lock 동작 방식에 집중했다.

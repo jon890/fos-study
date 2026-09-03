@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # MySQL 복제와 페일오버 심화: 운영 관점 deep-dive
 
 > 이 문서는 [MySQL 복제와 샤딩](./replication-sharding.md)의 후속 deep-dive다. binlog 포맷, GTID 개요, replica lag 원인 같은 기본 개념은 그 hub 문서에서 다루고, 여기서는 **장애 시 어떻게 primary가 바뀌고 트래픽이 끊김 없이 이어지는가**라는 한 가지 축만 깊게 본다.

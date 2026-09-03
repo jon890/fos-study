@@ -1,3 +1,7 @@
+---
+tags: [tasks]
+---
+
 # 전역 개인화 데이터 (Global Personal Data) 구조 설계
 
 **진행 기간**: 2025.09

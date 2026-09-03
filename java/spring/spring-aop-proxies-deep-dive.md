@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Spring AOP와 프록시 심층 분석: JDK Dynamic Proxy, CGLIB, ByteBuddy까지
 
 ## 왜 이 주제가 중요한가

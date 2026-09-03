@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # 리눅의에서 프로세스를 격리시키는 방법
 
 > Namespaces + Cgroups = 컨테이너 격리의 기반

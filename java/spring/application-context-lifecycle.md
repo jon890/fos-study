@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Application Context의 생명주기
 
 - `AbstractApplicationContext.refresh()` 메서드의 흐름과 동일하다.

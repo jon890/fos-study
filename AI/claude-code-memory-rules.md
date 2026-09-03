@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/claude-code-memory-rules-thumbnail.jpg
+tags: [study]
 ---
 
 # Claude Code 메모리: CLAUDE.md와 .claude/rules를 규칙으로 쓰는 법

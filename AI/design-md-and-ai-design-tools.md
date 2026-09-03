@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/design-md-and-ai-design-tools-thumbnail.jpg
+tags: [study]
 ---
 
 # AI 에이전트와 디자인의 새 컨벤션 — DESIGN.md, Google Stitch, Claude Design

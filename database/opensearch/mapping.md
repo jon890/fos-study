@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Mapping
 
 - OpenSearch의 데이터 타입은 인덱스의 **Mapping**을 통해 결정 됨

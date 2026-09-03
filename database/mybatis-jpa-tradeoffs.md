@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # MyBatis와 JPA/Hibernate 트레이드오프 — 레거시 백엔드를 다루는 시니어 관점
 
 ## 왜 이 주제가 중요한가

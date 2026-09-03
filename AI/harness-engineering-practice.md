@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/harness-engineering-practice-thumbnail.jpg
+tags: [study, insights]
 ---
 
 # 하네스 엔지니어링 실전 — 4인 에이전트 팀으로 코딩 파이프라인 구축하기

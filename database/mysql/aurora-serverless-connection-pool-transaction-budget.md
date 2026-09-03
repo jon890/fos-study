@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Aurora Serverless 환경의 커넥션 풀과 트랜잭션 예산 설계
 
 ## 왜 이 주제가 중요한가

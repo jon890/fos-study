@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/ocr-api-gateway-removal-thumbnail.jpg
+tags: [tasks]
 series: "OCR 서비스 구축·운영"
 seriesOrder: 2
 ---

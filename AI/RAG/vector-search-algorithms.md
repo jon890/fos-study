@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/vector-search-algorithms-thumbnail.jpg
+tags: [study]
 ---
 
 # 벡터 검색 알고리즘 — kNN에서 HNSW까지

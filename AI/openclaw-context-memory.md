@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/openclaw-context-memory-thumbnail.jpg
+tags: [study]
 ---
 
 # OpenClaw는 context와 memory를 어떻게 관리하나 — 나만의 에이전트를 구성하는 법

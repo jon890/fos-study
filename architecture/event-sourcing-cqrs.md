@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Event Sourcing과 CQRS — 상태가 아니라 변화를 저장한다는 발상
 
 이 문서의 목표는 두 가지다.

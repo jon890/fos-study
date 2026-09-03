@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Refresh Interval
 
 ## 내부 동작 메커니즘: 데이터가 검색되기까지

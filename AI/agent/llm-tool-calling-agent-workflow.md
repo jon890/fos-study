@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/llm-tool-calling-agent-workflow-thumbnail.jpg
+tags: [study]
 ---
 
 # LLM Tool Calling과 Agent Workflow 설계

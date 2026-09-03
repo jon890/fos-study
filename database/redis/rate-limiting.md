@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Redis Rate Limiting (요청 제한)
 
 특정 사용자/IP/API가 일정 시간 안에 너무 많은 요청을 보내는 것을 막는 기법이다. Redis는 원자적 명령어와 빠른 응답 속도 덕분에 Rate Limiting 구현에 적합하다.

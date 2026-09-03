@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # `setImmediate()`
 
 - `setTimeout(fn, delay)`

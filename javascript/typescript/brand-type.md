@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Typescript Brand Type (브랜드 타입)
 
 > Brand 타입은 런타임에는 동일하지만,

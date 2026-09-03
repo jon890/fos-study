@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/servlet-async-dispatch-thumbnail.jpg
+tags: [study]
 ---
 
 # DispatcherType과 서블릿 async 재디스패치 — Interceptor의 preHandle이 두 번 도는 이유

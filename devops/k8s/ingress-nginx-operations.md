@@ -2,6 +2,7 @@
 series: "API Gateway를 제거하고 쿠버네티스로 직접 노출하기"
 seriesOrder: 5
 thumbnail: ./images/ingress-nginx-operations-thumbnail.jpg
+tags: [study]
 ---
 
 # ingress-nginx 운영에서 부딪힌 디테일들 — webhook, whitelist, affinity, 리소스 사양

@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # tmux — Terminal Multiplexer
 
 "TMUX Masterclass: Terminal Multiplexing for the AI Agent Era" 영상을 보고 정리한 내용.

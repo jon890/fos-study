@@ -1,4 +1,5 @@
 ---
+tags: [study]
 series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
 seriesOrder: 3
 ---

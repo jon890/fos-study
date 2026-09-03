@@ -1,5 +1,6 @@
 ---
 categories: [AI]
+tags: [study]
 ---
 
 # OpenSearch로 RAG 검색 품질 높이기 — Hybrid Search, Reranking, Sentence Window

@@ -1,4 +1,5 @@
 ---
+tags: [tasks]
 series: "Document Parser 구축·운영"
 seriesOrder: 4
 ---

@@ -1,5 +1,6 @@
 ---
 categories: [AI]
+tags: [study]
 ---
 
 # 벡터 DB를 실제로 도입한 사례 — 빅테크 프로덕션

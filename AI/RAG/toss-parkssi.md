@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/toss-parkssi-thumbnail.jpg
+tags: [study]
 ---
 
 # 토스 : 100번 실패하고 살려낸 문서 시스템

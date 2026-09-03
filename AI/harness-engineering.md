@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/harness-engineering-thumbnail.jpg
+tags: [study]
 ---
 
 # 하네스 엔지니어링 — 오래 실행되는 AI 에이전트를 위한 설계

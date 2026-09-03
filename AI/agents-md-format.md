@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/agents-md-format-thumbnail.jpg
+tags: [study]
 ---
 
 # agents.md

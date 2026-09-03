@@ -1,5 +1,6 @@
 ---
 categories: [AI]
+tags: [study]
 ---
 
 # 벡터 DB 어떻게 고를까 — OpenSearch · Milvus · Qdrant · Vespa · pgvector 비교

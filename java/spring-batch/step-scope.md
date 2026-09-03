@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # @StepScope — Step 실행마다 새로운 빈을 만드는 이유
 
 ## @StepScope가 뭔가

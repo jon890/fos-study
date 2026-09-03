@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/mvp-with-ai-agent-thumbnail.jpg
+tags: [study, insights]
 ---
 
 # AI 에이전트와 함께 MVP 만들기 — dooray-cli 사례

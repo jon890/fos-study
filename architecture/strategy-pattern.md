@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Strategy Pattern — 분기문을 없애는 설계, 시니어 백엔드 인터뷰 핵심 패턴
 
 ---

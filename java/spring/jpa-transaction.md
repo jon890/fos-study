@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # Spring Data JPA 트랜잭션 흔한 실수들
 
 Spring Data JPA + `@Transactional`을 쓰면서 실수하기 쉬운 패턴들을 정리했다. 대부분 "작동은 하는데 의도대로 작동하지 않는" 케이스들이다.

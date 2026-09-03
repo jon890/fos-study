@@ -2,6 +2,7 @@
 series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
 seriesOrder: 8
 thumbnail: ./images/docling-thumbnail.jpg
+tags: [study]
 ---
 
 # Docling — IBM Research 의 문서 파싱 toolkit 상세 정리

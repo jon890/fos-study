@@ -1,3 +1,7 @@
+---
+tags: [study]
+---
+
 # 대규모 트래픽 중 무중단 마이그레이션 — Feature Flag + Shadow Mode 실전
 
 ## 왜 이 주제가 중요한가

@@ -2,6 +2,7 @@
 series: "백엔드 개발자를 위한 쿠버네티스 기본기"
 seriesOrder: 8
 thumbnail: ./images/helm-argocd-gitops-thumbnail.jpg
+tags: [study]
 ---
 
 # Helm과 ArgoCD로 GitOps 하기 — chart, Application, 그리고 새 컴포넌트 추가 흐름

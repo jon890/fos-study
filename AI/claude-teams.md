@@ -1,5 +1,6 @@
 ---
 thumbnail: ./images/claude-teams-thumbnail.jpg
+tags: [study]
 ---
 
 # Claude Code 멀티 에이전트 — Teams
