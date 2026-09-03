@@ -13,14 +13,14 @@
 
 ## 공통 주제
 
-- [인덱스 개론](./index.md) — DB 성능 최적화의 핵심
+- [MySQL/InnoDB 인덱스](./mysql/b-tree-index.md) — 구조, 실행 계획과 운영 기준
 - [커넥션 풀 크기](./connection-pool.md) — 풀 사이즈 결정 기준
 - [커넥션 풀 포화와 스레드 풀 격리](./connection-pool-saturation-thread-pool-isolation.md) — Saturation·Exhaustion·Starvation 구분과 격리 패턴
-- [정규화](./정규화.md) / [역정규화](./역정규화.md)
+- [정규화와 역정규화](./normalization-and-denormalization.md) — 무결성과 조회 비용 사이의 선택
 - [벡터 DB 비교 — OpenSearch·Milvus·Qdrant·Vespa·pgvector](./vectordb-comparison.md) — 데이터 규모·차원·하이브리드별 선택 가이드
 - [벡터 DB 5종 아키텍처 심층 비교](./vectordb-architecture-deep-dive.md) — 저장-연산 분리·segment·인덱스·필터링 구조 차이 (pgvector 포함)
 - [벡터 DB 도입 사례 — LINE·Reddit·TripAdvisor](./vectordb-production-cases.md) — 전용 벡터 DB 운영 사례
-- [벡터 DB 5종 벤치마크](./vectordb-benchmark.md) — 데이터셋·질의·recall 측정법 + 같은 recall에서 QPS 실측 비교
+- [벡터 DB 5종 벤치마크](./vectordb-benchmark.md) — 데이터셋·질의·recall 측정법과 같은 recall에서 QPS 실측 비교
 - [한국어 형태소 분석기 Nori vs Lindera](./nori-vs-lindera-korean-tokenizer.md) — OpenSearch·Milvus 전환 시 어휘 검색 정확도와 튜닝 재현
 
 ## ORM과 SQL 매핑
