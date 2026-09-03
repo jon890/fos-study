@@ -1,6 +1,10 @@
+---
+tags: [study]
+---
+
 # Java 21 테스트에서 Mockito `mock-maker-subclass`로 JVM attach를 피하기
 
-Spring Boot 3 + Java 21 프로젝트에서 테스트가 갑자기 Mockito 초기화 단계에서 깨졌다. 처음에는 내가 방금 건드린 테스트가 문제라고 생각했는데, 실제 원인은 테스트 코드가 아니라 Mockito의 mock 생성 방식이었다. 이 글은 `mock-maker-subclass`가 무슨 역할을 하는지, 왜 `-javaagent`보다 CI에서 다루기 쉬웠는지 정리한 기록이다.
+Spring Boot 3과 Java 21 프로젝트에서 테스트가 갑자기 Mockito 초기화 단계에서 깨졌다. 처음에는 내가 방금 건드린 테스트가 문제라고 생각했는데, 실제 원인은 테스트 코드가 아니라 Mockito의 mock 생성 방식이었다. 이 글은 `mock-maker-subclass`가 무슨 역할을 하는지, 왜 `-javaagent`보다 CI에서 다루기 쉬웠는지 정리한 기록이다.
 
 문제 상황은 단순했다. 새로 추가한 테스트만 돌리면 통과하는데, 전체 `mvn verify`를 돌리면 여러 테스트가 Mockito `MockMaker` 초기화에서 실패했다. 실패 지점은 비즈니스 로직이 아니라 Mockito가 mock 객체를 만들기 전에 사용하는 Byte Buddy agent attach 경로였다.
 
@@ -239,5 +243,4 @@ Mockito의 inline mock maker는 강력하다. final class, final method, static 
 
 ## 같이 보면 좋은 글
 
-- [시니어 Java 백엔드를 위한 테스트 전략](../../testing/testing-strategies.md)
 - [Spring AOP 프록시와 ByteBuddy](../spring/spring-aop-proxies-deep-dive.md)

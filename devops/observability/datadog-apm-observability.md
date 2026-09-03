@@ -1,14 +1,16 @@
+---
+tags: [study]
+---
+
 # Datadog APM 실전 투입 가이드: Java/Spring 서비스 관측성 스택 구축하기
 
 ## 왜 Datadog인가
 
 분산 요청이 5\~10 개 마이크로서비스를 타고 흐르는 환경에서 장애 탐지 시간(MTTD)과 복구 시간(MTTR)을 초/분 단위로 줄이려면, 로그만 뒤져서는 답이 안 나온다. "어디서 느려졌나"를 5분 안에 집어내려면 metric / log / trace 를 같은 trace_id 로 엮을 수 있어야 한다.
 
-Datadog 은 Metrics / Logs / APM / RUM / Profiler / Synthetics 를 한 UI 에서 상관관계로 엮을 수 있는 통합 관측성 플랫폼이다. ELK + Prometheus + Jaeger 를 각각 운영하는 팀 입장에서는 "같은 요청의 로그와 trace 를 한 번의 클릭으로 연결" 이라는 경험이 생산성을 결정한다.
+Datadog 은 Metrics / Logs / APM / RUM / Profiler / Synthetics 를 한 UI 에서 상관관계로 엮을 수 있는 통합 관측성 플랫폼이다. ELK, Prometheus와 Jaeger 를 각각 운영하는 팀 입장에서는 "같은 요청의 로그와 trace 를 한 번의 클릭으로 연결" 이라는 경험이 생산성을 결정한다.
 
 이 문서는 일반 observability 이론 팩이 아닌, Datadog 을 실전에 투입할 때 반드시 알아야 하는 데이터 모델, 태깅, 샘플링, 비용, 알람, 장애 대응 플레이북을 시니어 백엔드 관점에서 다룬다.
-
-> 운영 중 장애 탐지·추적을 묻는 면접 질문 답변 프레임은 [observability-interview-frame.md](../../interview/observability-interview-frame.md) 에 따로 정리.
 
 ## 1. Datadog 데이터 모델: 4개 제품의 범위와 한계
 
@@ -70,7 +72,7 @@ spec:
 Auto-instrumentation 범위가 실전에선 매우 넓다. 설정 한 줄 없이 자동으로 trace가 잡히는 것들:
 
 - Spring Web / WebFlux / MVC 컨트롤러 진입점
-- JDBC / Hibernate / JPA 쿼리 (rendered SQL + 실행 시간)
+- JDBC / Hibernate / JPA 쿼리 (rendered SQL과 실행 시간)
 - HTTP 클라이언트 (RestTemplate, WebClient, OkHttp, Apache HttpClient)
 - Redis (Lettuce, Jedis)
 - Kafka (Producer / Consumer, partition, offset, consumer group 태그 자동)
@@ -91,13 +93,13 @@ Auto-instrumentation 범위가 실전에선 매우 넓다. 설정 한 줄 없이
 
 **4단계 — Span 상세 조사.** SQL span을 클릭하면 실제 실행된 쿼리, DB host, connection pool wait time까지 태그로 붙는다. "connection pool이 고갈되어 300ms 대기 후 실행되었다" 같은 판정이 가능하다.
 
-이 흐름이 실전에서 의미 있는 건, Grafana + Jaeger 조합에서는 같은 작업에 3개 탭을 왔다 갔다 해야 하지만 Datadog은 한 화면에서 끝난다는 점이다.
+이 흐름이 실전에서 의미 있는 건, Grafana와 Jaeger 조합에서는 같은 작업에 3개 탭을 왔다 갔다 해야 하지만 Datadog은 한 화면에서 끝난다는 점이다.
 
 ## 4. Unified Service Tagging: DD_ENV / DD_SERVICE / DD_VERSION
 
 Datadog의 가장 강력한 기능 중 하나가 **Unified Service Tagging**이다. 이 세 태그를 일관되게 부착하면 Metrics, Logs, APM, Profiler가 자동으로 상관관계를 갖게 된다.
 
-- `env` — 환경 (prod, staging, dev, canary)
+- `env` — 환경 (prod, staging, dev, 일부 인스턴스 검증)
 - `service` — 서비스 이름 (oliveyoung-order-api, oliveyoung-catalog-api 등)
 - `version` — 배포 버전 (Git tag, SHA, 빌드 번호)
 
@@ -239,7 +241,7 @@ Threshold monitor는 SLO 위반 같은 명확한 기준이 있을 때. Anomaly�
 서비스 온콜을 받았을 때, 10분 안에 "지금 문제가 내 서비스 책임인가, downstream인가"를 판정해야 한다. 그걸 위한 전용 대시보드 구성 예:
 
 **Row 1 — Golden Signals**(RED)
-- Request rate (rpm) — 30분 window, 평소 대비 drop/spike 확인
+- Request rate (rpm) — 30분 window, 평소 대비 감소와 급증 확인
 - Error rate (%) — `trace.servlet.request.errors / trace.servlet.request.hits`
 - Latency p50/p95/p99 — 각 엔드포인트별
 
@@ -284,7 +286,7 @@ Datadog 비용이 터지는 세 지점:
 - **Head-based sampling** — 요청 시작 시점에 "이 trace를 기록할지"를 결정. `DD_TRACE_SAMPLE_RATE=0.1`로 설정하면 10%만 수집. 단점은 희귀한 에러 trace를 놓칠 수 있다.
 - **Tail-based sampling** — trace 종료 후 "이 trace가 에러가 있었나, 느렸나" 보고 결정. 에러 및 slow trace는 100% 보존. Datadog Agent가 Ingestion Control과 연동해 지원한다. 비용과 신호 대비 효율이 훨씬 낫다.
 
-정책 예: "정상 trace 5% + 에러 trace 100% + p99 > 1s trace 100%."
+정책 예: "정상 trace는 5%, 에러 trace와 p99가 1초를 넘는 trace는 100%."
 
 **Log Indexing.** Datadog Logs는 수집(ingestion)과 인덱싱(indexing)이 별도로 과금된다. 수집은 상대적으로 싸고, 인덱싱(7~30일 검색 보관)이 비싸다. Log Pipeline에서 exclusion filter를 걸어 "DEBUG 로그는 인덱싱하지 않는다", "health check 요청 로그는 제외" 같은 규칙을 만든다. 필요하면 장기 아카이브를 S3로 보내 reshydration으로 꺼내 쓴다.
 
@@ -375,7 +377,7 @@ MDC trace_id는 tracer가 자동으로 주입하고, key-value는 로그 필드�
 
 Datadog은 30일 trial이 있다. 학습용 환경을 간단히 구축하자.
 
-**Docker Compose로 Datadog Agent + Spring 앱 + MySQL + Redis + Kafka:**
+**Docker Compose로 Datadog Agent, Spring 앱, MySQL, Redis와 Kafka 구성:**
 
 ```yaml
 version: '3.8'
