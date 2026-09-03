@@ -27,10 +27,10 @@ fos-study/
 │   ├── spring/
 │   ├── spring-batch/
 │   └── ...
-├── devops/             # 인프라, 배포, 모니터링
+├── devops/             # 인프라와 배포
 │   ├── docker/
-│   ├── k8s/
-│   └── observability/
+│   └── k8s/
+├── observability/      # 지표, 로그, 추적과 장애 탐지
 ├── kafka/              # 메시지 브로커 (database가 아닌 최상위 유지)
 ├── network/            # HTTP, 인터넷 프로토콜 등
 ├── algorithm/
@@ -44,6 +44,7 @@ fos-study/
 - **task/** — 실제 업무 구현 경험. 개념 설명 아닌 "내가 이걸 왜, 어떻게 만들었나" 기록
 - **resume/** — 개인 이력을 보관하고 계속 갱신하는 이력서·경력기술서·포트폴리오
 - **architecture/** — 특정 기술에 종속되지 않는 설계 개념 (전략 패턴 등). 실제 사례 링크는 포함하되 사례 본문은 `task/`에 작성
+- **observability/** — 지표·로그·추적의 개념과 수집 방법. 실제 적용 경험은 `task/`에 작성
 - 신규 기술 문서는 기존 최상위 폴더에 맞는 게 없을 때만 새 폴더 생성
 
 ### resume/ 보존 예외

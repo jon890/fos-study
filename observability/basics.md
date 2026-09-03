@@ -62,7 +62,7 @@ Plain text 로그는 기계가 읽기 어렵다. 프로덕션 로그는 **구조
 }
 ```
 
-JSON 로그는 Elasticsearch/Loki/Datadog에 인덱싱해 `errorCode=PAYMENT_TIMEOUT AND env=prod` 같은 구조적 질의가 가능하다.
+JSON 로그는 Elasticsearch나 Loki에 인덱싱해 `errorCode=PAYMENT_TIMEOUT AND env=prod` 같은 구조적 질의가 가능하다.
 
 **Correlation ID**는 하나의 요청(또는 작업)에 부여되는 고유 식별자로, 여러 서비스와 로그 라인을 가로지르는 실을 만든다. Spring에서는 **MDC**(Mapped Diagnostic Context)에 주입해 모든 로그 라인에 자동 포함되게 한다.
 
@@ -129,7 +129,7 @@ public TaskDecorator mdcTaskDecorator() {
 
 실전에서는 **API 서비스는 RED로, DB/캐시/큐는 USE로** 본다. 둘 다 본다는 것이 핵심이다. Utilization이 60%로 여유로워 보여도 Saturation(예: connection pool이 꽉 차서 대기)이 있으면 사용자는 이미 느려졌다.
 
-## Latency 백분위수 — p50, p95, p99, p99.9 가 무엇인가
+## Latency 백분위수
 
 운영에서 latency 를 볼 때 **평균은 거의 쓰지 않는다**. 대신 `p50`, `p95`, `p99` 같은 **백분위수**(percentile) 를 쓴다. 시니어 백엔드 면접에서 자주 등장하는 표현이라 한 번에 정리한다.
 
@@ -153,7 +153,7 @@ public TaskDecorator mdcTaskDecorator() {
 
 평균만 보면 둘 다 "정상" 으로 보이지만, B 시나리오는 1% 사용자가 5초를 기다린다.
 
-**평균의 함정** (Latency Average Trap) — 평균은 outlier 에 둔감하다. p99 가 5,000ms 인데 평균은 200ms 로 평온하게 보일 수 있다. 사용자 경험은 평균이 아니라 **꼬리**(tail) 에서 결정된다.
+**평균의 함정** (Latency Average Trap): 평균은 outlier 에 둔감하다. p99 가 5,000ms 인데 평균은 200ms 로 평온하게 보일 수 있다. 사용자 경험은 평균이 아니라 **꼬리**(tail) 에서 결정된다.
 
 ### 어디서 어느 백분위수를 보는가
 
@@ -166,7 +166,7 @@ public TaskDecorator mdcTaskDecorator() {
 | p99 | 장애 감지 / 회고 | "꼬리 사용자 1%" — 이게 튀면 사용자 불만이 들어오기 시작 |
 | p99.9 | 대규모 서비스 / 결제 | 분당 1만 건이면 매분 10건이 이 값 이상. 결제·인증처럼 실패 비용이 큰 경로 |
 
-**규모와 함께 본다** — p99 가 100ms 인 서비스가 분당 100 만 요청을 처리한다면, 매분 1만 건의 사용자가 그 이상을 기다린다. p99 만 단독으로 보면 안 되고 **트래픽 규모와 함께** 봐야 한다.
+**규모와 함께 본다.** p99 가 100ms 인 서비스가 분당 100 만 요청을 처리한다면, 매분 1만 건의 사용자가 그 이상을 기다린다. p99 만 단독으로 보면 안 되고 **트래픽 규모와 함께** 봐야 한다.
 
 ### 흔히 받는 면접 꼬리 질문
 
@@ -190,7 +190,7 @@ histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket[1
 histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket[1m])))
 ```
 
-bucket 경계가 거칠면 백분위 추정도 거칠어진다 — Spring Boot 의 Micrometer 는 `@Timed` 또는 `management.metrics.distribution.percentiles-histogram` 설정으로 bucket 을 자동 박는다.
+bucket 경계가 거칠면 백분위 추정도 거칠어진다. Spring Boot 의 Micrometer 는 `@Timed` 또는 `management.metrics.distribution.percentiles-histogram` 설정으로 bucket 을 자동 박는다.
 
 ### 백분위수의 한계
 
@@ -314,7 +314,7 @@ java -javaagent:opentelemetry-javaagent.jar \
 - **Tail-based sampling**: Collector가 trace 전체를 일단 버퍼에 모으고, 완료 후 조건(예: 에러 있음, duration > 1s)을 보고 저장 여부 결정. **의미 있는 trace만 저장**되지만 collector 메모리 부담이 크다.
 - **Parent-based**: 부모 span의 샘플링 결정을 따라간다. 서비스 경계를 넘어도 일관성 유지.
 
-실전에서는 **parent-based + head-based 낮은 비율(1~10%) + tail-based로 에러/slow trace 100% 저장**을 조합한다.
+실전에서는 **parent-based와 낮은 비율의 head-based를 적용하고, tail-based로 에러와 slow trace를 모두 저장하는 방식**을 조합한다.
 
 ### Trace Context 전파: B3 vs W3C
 
@@ -391,7 +391,7 @@ public class PiiMaskingConverter extends ClassicConverter {
 
 ## 로컬 실습 환경
 
-Docker Compose로 **Prometheus + Grafana + Tempo(trace) + Loki(log) + OpenTelemetry Collector** 스택을 띄운다.
+Docker Compose로 **Prometheus, Grafana, Tempo(trace), Loki(log)와 OpenTelemetry Collector** 스택을 띄운다.
 
 ```yaml
 version: "3.9"
@@ -503,13 +503,13 @@ public class OrdersController {
 
 6. **회고**: "사후에는 postmortem에 '탐지까지 걸린 시간', 'MTTR', '알림이 액션으로 이어졌는가'를 적고, 알림 rule이나 runbook을 갱신합니다. Observability는 한 번 세팅하면 끝이 아니라, 장애마다 지표/알림이 진화합니다."
 
-이 구조는 면접관이 듣고 싶은 것 — **도구 이름 나열이 아니라 의사결정의 흐름** — 을 정확히 채운다.
+이 구조는 면접관이 듣고 싶은 **도구 이름 나열이 아니라 의사결정의 흐름**을 정확히 채운다.
 
 ## 자주 나오는 후속 질문
 
 - "왜 Summary 대신 Histogram을 쓰나요?" → 여러 인스턴스의 분위수 합산 가능성.
 - "Sampling 1%인데 드문 에러는 어떻게 잡나요?" → Tail-based sampling으로 에러/slow trace는 100% 저장.
-- "로그 비용이 폭발합니다. 어떻게 줄이나요?" → 레벨 조정, PII/payload 제거, 구조화 + 집계로 대체 가능한 신호는 metric으로 이동, 인덱스 필드 축소(라벨 cardinality 관리).
+- "로그 비용이 폭발합니다. 어떻게 줄이나요?" → 레벨 조정, PII/payload 제거, 구조화와 집계로 대체 가능한 신호는 metric으로 이동, 인덱스 필드 축소(라벨 cardinality 관리).
 - "trace ID를 어떻게 전파하나요?" → W3C `traceparent` 헤더, OTel propagator, 비동기 경계는 `TaskDecorator`/context propagation API.
 - "Prometheus의 한계는?" → 장기 저장 한계(Thanos/Mimir로 보완), push 기반 워크로드(short-lived job은 pushgateway), high-cardinality 취약.
 
@@ -524,7 +524,7 @@ public class OrdersController {
 - [ ] OpenTelemetry Java agent가 붙어 있고 W3C Trace Context로 서비스 경계를 넘는다.
 - [ ] Tail-based sampling으로 에러/slow trace는 100% 저장된다.
 - [ ] 로그에 PII, 토큰, 쿠키가 마스킹 필터로 제거된다.
-- [ ] 로컬 compose 스택(Prometheus + Grafana + Tempo + Loki + OTel Collector)에서 end-to-end로 drill-down이 동작한다.
+- [ ] 로컬 compose 스택(Prometheus, Grafana, Tempo, Loki와 OTel Collector)에서 end-to-end로 drill-down이 동작한다.
 - [ ] 최근 장애 1건에 대해 "탐지 → 판단 → 원인 → 회복 → 회고"를 한 문단으로 설명할 수 있다.
 - [ ] Histogram과 Summary의 차이, 여러 인스턴스 p99 계산 방식을 말로 설명할 수 있다.
 - [ ] Symptom alert와 cause alert의 차이, 왜 symptom을 우선하는지 설명할 수 있다.
@@ -533,6 +533,5 @@ public class OrdersController {
 
 ## 관련 문서
 
-- [Resilience 패턴](./resilience-patterns.md) — Circuit Breaker 상태와 Observability 연결
-- [Datadog APM 실전 투입 가이드](../devops/observability/datadog-apm-observability.md) — Java/Spring 관측성 스택
+- [Resilience 패턴](../architecture/resilience-patterns.md) — Circuit Breaker 상태와 Observability 연결
 - [로그에 traceId 남기기](../java/MDC.md) — MDC 부터 OpenTelemetry 까지

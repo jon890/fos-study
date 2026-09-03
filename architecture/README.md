@@ -1,6 +1,6 @@
 # Architecture
 
-언어·기술 독립적인 설계 개념 학습 기록. 패턴·분산·대규모 트래픽·관찰성·회복성·무중단 전환을 묶었다.
+언어·기술 독립적인 설계 개념 학습 기록. 패턴·분산·대규모 트래픽·회복성·무중단 전환을 묶었다.
 
 ## 설계 패턴
 
@@ -24,7 +24,6 @@
 ## 운영 품질
 
 - [Resilience 패턴](./resilience-patterns.md) — Timeout, Retry, Circuit Breaker, Bulkhead, Backpressure
-- [Observability 입문](./observability-basics.md) — 장애 탐지와 대응
 
 ## API / 도메인 설계
 

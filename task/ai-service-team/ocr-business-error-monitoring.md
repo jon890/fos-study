@@ -168,8 +168,8 @@ HTTP 상태 코드는 전송 결과이고 응답 본문의 성공 여부는 서�
 
 ## 배운 개념 링크
 
-- [Observability 입문](../../architecture/observability-basics.md)
-- [Kubernetes의 Spring Boot 메트릭 수집](../../devops/observability/prometheus-k8s-remote-write.md)
+- [Observability 입문](../../observability/basics.md)
+- [Kubernetes의 Spring Boot 메트릭 수집](../../observability/prometheus-k8s-remote-write.md)
 - [운영 관측과 에러 분류 루프](./observability-to-error-triage-loop.md)
 - [Prometheus `rate()`와 `increase()`](https://prometheus.io/docs/prometheus/latest/querying/functions/)
 - [Grafana `$__rate_interval`](https://grafana.com/docs/grafana/latest/datasources/prometheus/template-variables/#use-__rate_interval)

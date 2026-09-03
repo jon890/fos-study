@@ -2,25 +2,25 @@
 tags: [study]
 ---
 
-# 대규모 트래픽 중 무중단 마이그레이션 — Feature Flag + Shadow Mode 실전
+# 대규모 트래픽의 무중단 마이그레이션
 
 ## 왜 이 주제가 중요한가
 
 시니어 백엔드 면접에서 "트래픽이 평소의 10배로 튀는 상황에서 레거시 인증 모듈을 신규 모듈로 교체해야 한다. 어떻게 배포하시겠습니까?"라는 질문은 더 이상 이론 문제가 아니다. 대규모 커머스 세일, 쿠팡 로켓배송 피크, 네이버 쇼핑 라이브 같은 국내 커머스 환경은 초당 수만 요청 단위에서 무중단 마이그레이션을 상시로 요구한다. 재배포 한 번의 rollback 시간은 평균 10\~15분이지만, Feature Flag 기반 rollback은 수십 초 이내에 끝난다. 이 차이는 단순한 속도 문제가 아니라 "장애 시간 × 분당 매출"로 환산되는 직접적 비용이며, SRE·백엔드 리더십이 가장 민감하게 보는 지표다.
 
-실제로 대규모 커머스에서는 세일 시즌 중 OAuth2 인증 서버를 레거시에서 Spring Authorization Server로 전환하면서 재배포 없이 Feature Flag + Shadow Mode로 점진 전환하는 사례가 보고된다. 단순히 "무중단으로 옮겼다"가 아니라 "런타임 플래그 + 결과 섀도잉 + Circuit Breaker + Jitter"의 조합이 핵심이었다. 이 글은 그 네 축을 실제 코드 수준으로 재구성하고, 면접 답변까지 연결하는 것을 목표로 한다.
+실제로 대규모 커머스에서는 세일 시즌 중 OAuth2 인증 서버를 레거시에서 Spring Authorization Server로 전환하면서 재배포 없이 Feature Flag와 Shadow Mode로 점진 전환하는 사례가 보고된다. 단순히 "무중단으로 옮겼다"가 아니라 런타임 플래그, 결과 섀도잉, Circuit Breaker와 Jitter의 조합이 핵심이었다. 이 글은 그 네 축을 실제 코드 수준으로 재구성하고, 면접 답변까지 연결하는 것을 목표로 한다.
 
 ## 런타임 플래그가 재배포보다 안전한 이유
 
 운영 환경에서 "신규 코드 경로로 전환"은 본질적으로 두 가지 방법이 있다.
 
-**방법 A — 재배포 기반 전환**
+**방법 A: 재배포 기반 전환**
 1. 새 코드가 들어간 아티팩트를 빌드한다.
-2. 카나리 인스턴스에 배포한다.
+2. 일부 인스턴스에 먼저 배포해 검증한다.
 3. LB에서 트래픽을 서서히 넘긴다.
 4. 문제가 생기면 이전 아티팩트로 롤백한다.
 
-**방법 B — 런타임 플래그 기반 전환**
+**방법 B: 런타임 플래그 기반 전환**
 1. 두 경로(레거시, 신규)를 모두 포함한 아티팩트를 배포한다.
 2. Feature Flag로 트래픽 분기 비율을 조절한다.
 3. 문제가 생기면 플래그를 OFF로 전환한다.
@@ -29,7 +29,7 @@ tags: [study]
 
 단, 플래그 방식에는 비용이 있다. 두 경로의 코드가 동시에 빌드에 존재해야 하므로 **코드베이스 복잡도가 증가**하고, 플래그 제거(cleanup) 시점을 정해두지 않으면 "flag rot"이 쌓인다. 실제로 LinkedIn, Uber 등의 포스트모템을 보면 장기 방치된 플래그가 장애의 트리거가 된 사례가 다수 있다. 따라서 플래그는 항상 "언제 제거할 것인지 티켓으로 남긴다"가 원칙이다.
 
-## Feature Flag 아키텍처 — 세 가지 레벨
+## Feature Flag 아키텍처의 세 가지 레벨
 
 ### Static config
 
@@ -60,7 +60,7 @@ CREATE TABLE feature_flag (
 ```
 
 장점: 운영 어드민 화면만 만들면 런타임 전환 가능. 인프라 추가 부담이 적다.
-단점: 매 요청마다 DB/Redis를 때릴 수 없으므로 **로컬 캐시**가 필수다. 캐시 TTL이 길면 플래그 반영이 늦고, 짧으면 DB 부하가 올라간다. 보통 Caffeine 로컬 캐시 + 5\~30초 TTL + pub/sub으로 invalidation을 푸시하는 조합이 실무 표준이다.
+단점: 매 요청마다 DB/Redis를 때릴 수 없으므로 **로컬 캐시**가 필수다. 캐시 TTL이 길면 플래그 반영이 늦고, 짧으면 DB 부하가 올라간다. 보통 Caffeine 로컬 캐시와 5\~30초 TTL을 사용하고, pub/sub으로 invalidation을 전파한다.
 
 ### SaaS (LaunchDarkly, Unleash, Flagsmith 등)
 
@@ -79,7 +79,7 @@ CREATE TABLE feature_flag (
 - **퍼센트 롤아웃**: 해시(userId) % 100 < rolloutPercentage. 사용자별로 결과가 결정적(deterministic)이어야 한다. 그래야 같은 유저가 새로고침마다 다른 경로로 가지 않는다.
 - **Kill switch**: 어떤 세그먼트/퍼센트에서도 문제가 생기면 `enabled=false`로 전체 OFF. 이 전환이 **10초 안에 전 인스턴스에 반영**되어야 플래그 시스템이 의미 있다.
 
-## Strategy 패턴으로 Feature Flag 구현하기 — 코드 레벨 분기와 무엇이 다른가
+## Strategy 패턴을 활용한 Feature Flag 구현
 
 가장 흔한 실수는 플래그를 `if/else`로 도배하는 것이다.
 
@@ -99,7 +99,7 @@ public TokenResponse issueToken(TokenRequest req) {
 
 이 패턴은 처음 한두 군데만 있을 때는 괜찮지만, 분기점이 늘면 한 메서드 안에 수십 줄의 조건문이 쌓이고, 테스트는 플래그 값 조합마다 폭발한다. 더 큰 문제는 "플래그 제거" 시점에 if 블록만 삭제하면 될 줄 알았는데 내부에서 레거시 객체에 의존하는 다른 분기들이 얽혀 있어 손대기 어렵다는 점이다.
 
-**개선된 예 — Strategy 패턴 + Flag 라우팅**
+**개선된 예: Strategy 패턴과 Flag 라우팅**
 
 ```java
 public interface TokenIssuer {
@@ -134,7 +134,7 @@ public class TokenIssuerRouter {
 
 각 구현체는 독립적으로 테스트·프로파일링·교체 가능하다. 플래그 제거 시점에는 Router를 단순화하고 Legacy 구현체를 통째로 지우면 된다. 실제 대규모 전환에서는 이 패턴이 "cleanup 공포"를 크게 줄인다.
 
-## Shadow Mode — 결과만 비교하는 조용한 실전 검증
+## Shadow Mode를 활용한 결과 비교
 
 Feature Flag가 "경로를 바꾼다"라면, Shadow Mode는 **경로는 바꾸지 않고 병렬로 실행해서 결과만 비교한다**이다.
 
@@ -156,7 +156,7 @@ flowchart TD
     WARN --> ANALYZE["원인 분석 후 신규 경로 수정"]
 ```
 
-Shadow Mode의 가장 큰 가치는 **사용자에게 피해 0 + 실제 트래픽 분포로 검증**이다. 스테이징 환경 부하 테스트는 실제 사용자 패턴을 재현하지 못한다. Shadow는 프로덕션 트래픽 그대로를 신규 경로에 태우므로 엣지 케이스가 그대로 드러난다.
+Shadow Mode의 가장 큰 가치는 **사용자에게 영향을 주지 않으면서 실제 트래픽 분포로 검증할 수 있다는 점**이다. 스테이징 환경 부하 테스트는 실제 사용자 패턴을 재현하지 못한다. Shadow는 프로덕션 트래픽 그대로를 신규 경로에 태우므로 엣지 케이스가 그대로 드러난다.
 
 **Shadow 구현 스케치**
 
@@ -189,7 +189,7 @@ public class ShadowExecutor {
 }
 ```
 
-Shadow 경로는 반드시 **별도 스레드풀**에서 돌아야 한다. 그래야 Shadow 쪽 장애나 지연이 primary 경로에 백프레셔를 주지 않는다. 또한 Shadow 스레드풀은 반드시 **bounded queue + reject policy**를 가져야 한다. 무제한 큐는 메모리 폭증으로 이어진다.
+Shadow 경로는 반드시 **별도 스레드풀**에서 돌아야 한다. 그래야 Shadow 쪽 장애나 지연이 primary 경로에 백프레셔를 주지 않는다. 또한 Shadow 스레드풀은 반드시 **bounded queue와 reject policy**를 가져야 한다. 무제한 큐는 메모리 폭증으로 이어진다.
 
 주의할 엣지 케이스 몇 가지가 있다.
 - **Side effect가 있는 연산을 Shadow로 돌리면 안 된다.** 결제 승인, 이메일 발송, 외부 쓰기 API는 Shadow에서 절대 실행 금지. 읽기/계산 로직만 대상.
@@ -284,7 +284,7 @@ public TokenResponse issue(@RequestBody TokenRequest req) {
 인증과 달리 이 두 경로는 돈과 재고가 걸려 있어 Shadow Mode 적용 규칙이 정반대로 갈린다.
 F&B 디지털 채널처럼 점심·저녁 주문 러시와 선착순 쿠폰 오픈이 겹치는 환경에서는 "전환 중에 결제가 한 건이라도 깨지면 안 된다"가 제약 조건이 된다.
 
-### 주문 생성 — 계산은 Shadow, 쓰기는 Canary
+### 주문 생성에서 계산은 Shadow, 쓰기는 일부 트래픽 적용
 
 레거시 `OrderService`의 가격·쿠폰·재고 판정 로직을 신규 정책 엔진으로 옮기는 경우를 보자.
 같은 주문이라도 "계산"과 "쓰기"를 분리해서 전환 기법을 다르게 적용해야 한다.
@@ -320,7 +320,7 @@ public class OrderPricingRouter {
 레거시가 "정액 → 정률" 순으로 깎던 걸 신규 엔진이 반대로 처리하면 최종 결제 금액이 몇 원 단위로 어긋난다.
 이건 스테이징 부하 테스트로는 거의 못 잡고, 실제 쿠폰 조합 분포가 흐르는 프로덕션 Shadow에서만 드러난다.
 
-### 결제 PG 전환 — Shadow 금지, Canary + 멱등키 + Outbox
+### 결제 PG 전환에서 Shadow 금지와 멱등키, Outbox 적용
 
 결제 승인은 외부 PG에 실제로 돈을 청구하는 side effect다.
 **절대 Shadow로 두 번 호출하면 안 된다.** 같은 주문에 이중 승인이 나간다.
@@ -356,16 +356,16 @@ public class PaymentGatewayRouter {
 - **주문-결제 상태 분리**: "결제는 승인됐는데 주문 전환이 실패"하는 사고를 막으려면, 결제 결과를 Outbox에 적재하고 `@TransactionalEventListener(AFTER_COMMIT)`으로 주문 상태를 후처리한다. 발행 실패는 `REQUIRES_NEW`로 별도 저장 후 스케줄러 재전송한다.
 - **부분 취소·환불**은 보상 트랜잭션이다. 전환 기간에 "레거시 PG로 승인된 결제를 신규 어댑터로 취소"하는 교차 케이스가 반드시 생기므로, 취소 라우팅은 발급(승인) 경로와 무관하게 **원 결제의 PG**로 보내야 한다. OAuth2의 `iss` claim 라우팅과 같은 원리다.
 
-### 피크 트래픽 — 쿠폰 오픈과 Jitter
+### 피크 트래픽의 쿠폰 오픈과 Jitter
 
 F&B 커머스의 피크는 토큰 만료보다 **선착순 쿠폰 오픈**과 **오픈런 주문**에서 온다.
 "11시 정각 쿠폰 1만 장" 같은 이벤트는 동일 초에 수만 요청이 몰리는 전형적 thundering herd다.
 여기서도 Jitter 원리는 같지만 적용 지점이 다르다.
 
-- 쿠폰 발급 자체는 Jitter로 늦출 수 없다(선착순이 깨진다). 대신 **재고 차감을 Redis 원자 연산 + 분산락**으로 막고, 실패한 요청은 즉시 `429` + `Retry-After`로 돌려보낸다.
-- Jitter는 **캐시 워밍·재시도 백오프·재고 동기화 스케줄러**에 적용한다. 매장별 메뉴·재고 캐시를 정각마다 한꺼번에 갱신하면 그 순간 DB가 스파이크를 맞는다. 갱신 시각에 ±수십 초 jitter를 주어 평탄화한다.
+- 쿠폰 발급 자체는 Jitter로 늦출 수 없다(선착순이 깨진다). 대신 **재고 차감을 Redis 원자 연산과 분산락**으로 막고, 실패한 요청은 즉시 `429`와 `Retry-After`로 돌려보낸다.
+- Jitter는 **캐시 워밍·재시도 백오프·재고 동기화 스케줄러**에 적용한다. 매장별 메뉴·재고 캐시를 정각마다 한꺼번에 갱신하면 그 순간 DB 부하가 급증한다. 갱신 시각에 ±수십 초 jitter를 주어 평탄화한다.
 
-## Resilience4j — Circuit Breaker + Timeout + Retry 3단계 방어
+## Resilience4j의 3단계 방어
 
 신규 Authorization Server가 트래픽 10배 상황에서 불안정하면, 인증 실패가 전체 서비스로 번진다. 이를 막는 것이 **3단계 방어**다.
 
@@ -447,9 +447,9 @@ public LocalDateTime computeExpiry(LocalDateTime base, Duration ttl) {
 
 Jitter는 토큰 만료뿐 아니라 **캐시 만료, 스케줄러 실행, 재시도 백오프**에도 동일하게 적용된다. 재시도 백오프는 `exponential backoff + full jitter`가 AWS 권장 패턴이다. 핵심은 "완전 동기화는 서버를 죽인다, 적당한 desync가 서버를 살린다"이다.
 
-## 모니터링 — 두 경로를 실시간으로 비교하는 대시보드
+## 두 경로를 실시간으로 비교하는 대시보드
 
-Shadow Mode와 Canary가 의미 있으려면 **"두 경로의 차이"를 실시간으로 봐야 한다**. 보통 Micrometer + Prometheus + Grafana 스택을 쓴다.
+Shadow Mode와 일부 트래픽 적용이 의미 있으려면 **"두 경로의 차이"를 실시간으로 봐야 한다**. 보통 Micrometer, Prometheus와 Grafana를 함께 쓴다.
 
 수집해야 하는 최소 메트릭:
 
@@ -468,9 +468,9 @@ meter.counter("shadow.diff", "field", "scope").increment();
 4. **Circuit Breaker 상태**: open/half-open/closed 타임라인.
 5. **Feature Flag 현재 값**: 대시보드 상단에 상수처럼 고정 표시. "지금 몇 퍼센트에 켜져 있는가"를 항상 보이게 한다.
 
-알람은 **성공률**과 **P95**에 걸고, 레이턴시 알람은 반드시 **baseline 대비 상대값**으로 설정한다. 절대값 알람은 트래픽이 낮은 새벽에 오탐이 폭주한다.
+알람은 **성공률**과 **P95**에 걸고, 레이턴시 알람은 반드시 **기준값 대비 상대값**으로 설정한다. 절대값 알람은 트래픽이 낮은 새벽에 오탐이 과도하게 발생한다.
 
-## 실전 Java/Spring 예제 — @ConditionalOnProperty, FeatureFlagFilter
+## Java와 Spring 예제
 
 `@ConditionalOnProperty`는 static config 레벨에서 빈 자체를 켜고 끌 때 쓴다. 런타임 전환은 아니지만 **이 기능을 아예 빌드에서 비활성화**하는 경우에 유용하다.
 
@@ -520,11 +520,11 @@ public boolean isEnabledFor(String key, String userId) {
 
 1. **Docker Compose로 최소 스택 구성**
    - Redis(플래그 캐시 pub/sub), MySQL(플래그 저장), Prometheus, Grafana.
-2. **Spring Boot 3.2 + Spring Authorization Server 1.2** 샘플 앱 두 개
+2. **Spring Boot 3.2와 Spring Authorization Server 1.2** 샘플 앱 두 개
    - `legacy-auth`: 자체 JWT 발급
    - `new-auth-server`: Spring Authorization Server
 3. **Resource Server** 하나를 띄우고 `DualTokenAuthenticationFilter` 적용
-4. **k6 또는 JMeter**로 1,000 RPS 부하 + 10초마다 피크 스파이크 시나리오
+4. **k6 또는 JMeter**로 1,000 RPS 부하를 주고 10초마다 피크 부하를 재현하는 시나리오
 5. **flag CLI 스크립트**로 rolloutPercentage를 0 → 10 → 50 → 100으로 단계적 변경
 6. **Grafana 대시보드**에 P95 / 성공률 / Shadow diff rate / Circuit Breaker 상태 패널 구성
 
@@ -534,23 +534,23 @@ public boolean isEnabledFor(String key, String userId) {
 
 - **플래그 default가 "enabled"인 경우**: SaaS 장애 시 기본값이 ON이면 장애가 번진다. default는 항상 "안전한 쪽(보통 OFF)".
 - **Shadow 결과 비교를 동기로 실행**: primary 지연이 커진다. 반드시 비동기.
-- **플래그를 매 요청 DB 조회**: DB가 bottleneck. Caffeine 캐시 + 짧은 TTL.
+- **플래그를 매 요청 DB 조회**: DB가 bottleneck. Caffeine 캐시와 짧은 TTL을 사용한다.
 - **퍼센트 롤아웃을 Math.random()으로**: 사용자별 일관성 깨짐. 반드시 hash(userId).
-- **Circuit Breaker 임계값 50% + 슬라이딩 윈도우 10개**: 샘플이 너무 작아 flapping 발생. 윈도우는 최소 100건 이상.
+- **Circuit Breaker 임계값 50%와 슬라이딩 윈도우 10개**: 샘플이 너무 작아 flapping이 발생한다. 윈도우는 최소 100건 이상으로 설정한다.
 - **Legacy 경로를 먼저 지우고 나중에 플래그 제거**: 순서가 반대다. 플래그 제거 → 하드코딩 → legacy 삭제.
-- **Jitter 없이 스케줄러 여러 개**: 매 정각마다 스파이크.
+- **Jitter 없이 스케줄러 여러 개**: 매 정각마다 부하가 급증한다.
 
-## 면접 답변 Framing — "트래픽 10배에 배포를 어떻게 하시나요"
+## 트래픽 10배 상황의 배포 전략
 
 다음은 시니어 백엔드 포지션에서 바로 쓸 수 있는 1\~2분 답변 구조다.
 
-> 평소의 10배 트래픽 상황에서 인증 모듈 같은 핵심 경로를 교체해야 한다면, 저는 재배포 기반 전환이 아닌 **Feature Flag + Shadow Mode 조합**을 선택합니다. 이유는 rollback 시간 차이 때문인데, 재배포 롤백은 이미지 pull부터 LB 재등록까지 10분 이상 걸리지만 플래그는 30초 이내에 복구됩니다. 트래픽 10배 상황에서 10분은 매출 손실로 직결되니까요.
+> 평소의 10배 트래픽 상황에서 인증 모듈 같은 핵심 경로를 교체해야 한다면, 저는 재배포 기반 전환이 아닌 **Feature Flag와 Shadow Mode 조합**을 선택합니다. 이유는 rollback 시간 차이 때문인데, 재배포 롤백은 이미지 pull부터 LB 재등록까지 10분 이상 걸리지만 플래그는 30초 이내에 복구됩니다. 트래픽 10배 상황에서 10분은 매출 손실로 직결되니까요.
 >
-> 구체적으로는 네 단계로 진행합니다. 첫째, 신규 경로를 **Strategy 패턴**으로 구현해 레거시 경로와 같은 인터페이스로 주입합니다. if/else 분기는 유지보수가 안 됩니다. 둘째, **Shadow Mode**로 프로덕션 트래픽을 신규 경로에도 흘려 결과를 비교하되 사용자에게는 레거시 응답만 내보냅니다. 이 단계에서 claim drift, 응답 타입 불일치 같은 엣지 케이스를 발견합니다. 셋째, Shadow diff rate가 충분히 낮아지면 **Feature Flag로 1% → 5% → 25% → 50% → 100%**로 canary 롤아웃합니다. 이때 **Resilience4j로 Circuit Breaker, Timeout, Retry 3단계**를 걸어 신규 경로가 흔들려도 레거시로 자동 fallback되게 합니다. 넷째, 전환 완료 후 플래그와 Legacy 코드를 같은 PR에서 제거합니다.
+> 구체적으로는 네 단계로 진행합니다. 첫째, 신규 경로를 **Strategy 패턴**으로 구현해 레거시 경로와 같은 인터페이스로 주입합니다. if/else 분기는 유지보수가 안 됩니다. 둘째, **Shadow Mode**로 프로덕션 트래픽을 신규 경로에도 흘려 결과를 비교하되 사용자에게는 레거시 응답만 내보냅니다. 이 단계에서 claim drift, 응답 타입 불일치 같은 엣지 케이스를 발견합니다. 셋째, Shadow diff rate가 충분히 낮아지면 **Feature Flag로 1%, 5%, 25%, 50%, 100% 순서로 트래픽 비율을 높입니다**. 이때 **Resilience4j로 Circuit Breaker, Timeout, Retry 3단계**를 걸어 신규 경로가 흔들려도 레거시로 자동 fallback되게 합니다. 넷째, 전환 완료 후 플래그와 Legacy 코드를 같은 PR에서 제거합니다.
 >
-> 여기에 특히 토큰/캐시 만료가 피크를 만드는 경우 **±30초 Jitter**를 넣어 TPS 피크를 평탄화합니다. 이전 프로젝트 배포에서도 비슷한 패턴으로 재배포 없이 쿼리 경로를 교체한 적이 있고, 그레이스풀 셧다운 troubleshooting 과정에서 in-flight 요청이 두 경로에 섞이는 문제를 해결했던 경험이 있어 이 방식의 함정을 실제로 알고 있습니다.
+> 여기에 특히 토큰/캐시 만료가 피크를 만드는 경우 **±30초 Jitter**를 넣어 TPS 피크를 평탄화합니다. 이전 프로젝트 배포에서도 비슷한 패턴으로 재배포 없이 쿼리 경로를 교체한 적이 있고, 그레이스풀 셧다운 troubleshooting 과정에서 처리 중인 요청이 두 경로에 섞이는 문제를 해결했던 경험이 있어 이 방식의 함정을 실제로 알고 있습니다.
 
-이 답변이 강한 이유는 (1) 왜 이 방식인지(rollback 시간), (2) 단계가 분명함(Strategy → Shadow → Canary → Cleanup), (3) 방어 장치가 구체적(Resilience4j 3단계 + Jitter), (4) 본인 경험으로 마무리한다는 점이다. 면접관은 "이 사람이 실제로 해봤는가"를 가장 중요하게 본다.
+이 답변이 강한 이유는 (1) 왜 이 방식인지(rollback 시간), (2) 단계가 분명함(Strategy → Shadow → 일부 트래픽 적용 → Cleanup), (3) 방어 장치가 구체적(Resilience4j 3단계와 Jitter), (4) 본인 경험으로 마무리한다는 점이다. 면접관은 "이 사람이 실제로 해봤는가"를 가장 중요하게 본다.
 
 ## 후속 질문 대비
 
@@ -561,7 +561,7 @@ public boolean isEnabledFor(String key, String userId) {
 - **Refresh token 호환성은?** → 토큰 자체에 `iss` claim을 넣고 리소스 서버에서 발급자별 decoder 라우팅. 전환 완료 후 일정 기간 레거시 decoder 유지.
 - **퍼센트 롤아웃 중 사용자가 새로고침하면?** → hash(userId) 기반 bucketing이므로 동일 유저는 동일 경로 고정. Math.random() 쓰면 이 질문에서 바로 걸린다.
 
-## F&B 커머스 1차 면접 답변 — 도메인 언어로 번역
+## F&B 커머스 1차 면접 답변
 
 F&B/e-Commerce 자사 백엔드 면접에서는 "무중단 배포 해봤나요"가 아니라 **주문·결제처럼 돈이 걸린 경로를 운영 중에 어떻게 바꾸나요**로 들어온다.
 이때 일반론(Feature Flag 좋아요)이 아니라 **실무 경험을 커머스 도메인 언어로 번역**해서 답해야 밀도가 산다.
@@ -570,12 +570,12 @@ F&B/e-Commerce 자사 백엔드 면접에서는 "무중단 배포 해봤나요"�
 
 - **Kafka Transactional Outbox 경험** → "결제 승인 결과를 Outbox에 적재하고 AFTER_COMMIT으로 주문 상태를 후처리해서, PG 어댑터를 바꾸는 동안에도 결제-주문 정합성이 깨지지 않게 합니다. 발행 실패는 REQUIRES_NEW로 따로 저장하고 스케줄러로 재전송합니다."
 - **다중 서버 캐시 정합성**(JPA 이벤트 → MQ Fanout → StampedLock) → "메뉴·프로모션 정책 캐시를 어드민에서 바꿔도 전 인스턴스가 같은 시점에 갱신되도록 Fanout으로 무효화하고, 갱신 구간은 락으로 보호합니다. Feature Flag 값 전파도 같은 메커니즘으로 30초 내 반영합니다."
-- **graceful shutdown 503 해결**(preStop + grace 예산 설계) → "전환·롤백 중 재배포가 일어나도 in-flight 주문이 끊기지 않게 readiness를 먼저 내리고 preStop으로 드레인합니다. 플래그 전환은 이 재배포 자체를 줄여줘서 503 노출 창을 더 좁힙니다."
+- **graceful shutdown 503 해결**(preStop과 grace 예산 설계) → "전환·롤백 중 재배포가 일어나도 처리 중인 주문이 끊기지 않게 readiness를 먼저 내리고 preStop으로 드레인합니다. 플래그 전환은 이 재배포 자체를 줄여줘서 503 노출 창을 더 좁힙니다."
 - **StampedLock / 동시성 기본기** → "선착순 쿠폰 오픈처럼 동시 요청이 몰리는 구간은 재고 차감을 원자 연산으로 막고, 실패는 429로 빠르게 돌려보내 큐가 쌓이지 않게 합니다."
 
 1차 면접 답변 1분 버전 예시:
 
-> 주문·결제 로직을 운영 중에 바꿔야 한다면 재배포 전환이 아니라 **Feature Flag + 단계별 검증**을 씁니다. 다만 경로 성격에 따라 기법을 나눕니다. 금액·쿠폰 계산처럼 side effect 없는 부분은 **Shadow Mode**로 프로덕션 트래픽을 신규 엔진에도 흘려 결과 diff를 먼저 모읍니다. 여기서 쿠폰 적용 우선순위 같은 미묘한 불일치가 잡힙니다. 반대로 결제 승인·재고 차감처럼 돈과 재고가 걸린 쓰기는 Shadow를 금지하고 **멱등키 기반 Canary 1%**로 직접 검증합니다. 결제 PG 어댑터는 **Circuit Breaker로 감싸 신규 PG가 흔들리면 즉시 레거시로 fallback**하고, 플래그 fail-safe default도 레거시 PG입니다. 결제-주문 정합성은 이전 프로젝트에서 운영했던 **Kafka Outbox + AFTER_COMMIT** 패턴을 그대로 적용해 "결제는 됐는데 주문은 실패" 같은 사고를 막습니다.
+> 주문·결제 로직을 운영 중에 바꿔야 한다면 재배포 전환이 아니라 **Feature Flag와 단계별 검증**을 씁니다. 다만 경로 성격에 따라 기법을 나눕니다. 금액·쿠폰 계산처럼 side effect 없는 부분은 **Shadow Mode**로 프로덕션 트래픽을 신규 엔진에도 흘려 결과 diff를 먼저 모읍니다. 여기서 쿠폰 적용 우선순위 같은 미묘한 불일치가 잡힙니다. 반대로 결제 승인·재고 차감처럼 돈과 재고가 걸린 쓰기는 Shadow를 금지하고 **멱등키를 붙여 1% 트래픽에 먼저 적용**합니다. 결제 PG 어댑터는 **Circuit Breaker로 감싸 신규 PG가 흔들리면 즉시 레거시로 fallback**하고, 플래그 fail-safe default도 레거시 PG입니다. 결제-주문 정합성은 이전 프로젝트에서 운영했던 **Kafka Outbox와 AFTER_COMMIT** 패턴을 그대로 적용해 "결제는 됐는데 주문은 실패" 같은 사고를 막습니다.
 
 이 답변이 강한 이유: (1) 경로별로 기법을 나눠 "다 해봤다"가 아니라 "왜 다르게 하는지"를 보여주고, (2) 결제·쿠폰·재고라는 F&B 도메인 언어를 쓰며, (3) Outbox·캐시 정합성이라는 **검증된 실무 경험**으로 닫는다.
 
@@ -585,7 +585,7 @@ F&B/e-Commerce 자사 백엔드 면접에서는 "무중단 배포 해봤나요"�
 - [ ] 플래그 fail-safe default가 OFF인가
 - [ ] 퍼센트 롤아웃이 hash(userId)로 deterministic한가
 - [ ] Strategy 패턴으로 if/else 분기를 제거했는가
-- [ ] Shadow 경로가 별도 스레드풀 + bounded queue인가
+- [ ] Shadow 경로가 별도 스레드풀과 bounded queue를 사용하는가
 - [ ] Shadow는 read-only 로직에만 적용되었는가
 - [ ] 두 경로의 P95와 성공률을 실시간으로 볼 수 있는 대시보드가 있는가
 - [ ] Shadow diff rate에 알람이 걸려 있는가
@@ -602,7 +602,7 @@ F&B/e-Commerce 자사 백엔드 면접에서는 "무중단 배포 해봤나요"�
 ## 관련 문서
 
 - [Resilience 패턴](./resilience-patterns.md) — Timeout/Retry/CircuitBreaker 체인 상세
-- [Observability 입문](./observability-basics.md) — Shadow 경로 모니터링
+- [Observability 입문](../observability/basics.md) — Shadow 경로 모니터링
 - [대규모 커머스 트래픽 처리 패턴](./high-traffic-commerce-patterns.md) — 피크 트래픽 대응과의 결합
 - [F&B 주문·매장·픽업 상태머신](./fnb-order-store-pickup-state-machine.md) — 주문 경로 전환 시 상태 정합성
 - [F&B 결제·환불·정산 운영](./fnb-payment-refund-settlement-operations.md) — 결제 PG 전환과 보상 트랜잭션

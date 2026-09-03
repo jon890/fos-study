@@ -185,7 +185,7 @@ AOP 적용 실패 질문에는 자기 호출이 프록시를 우회한다는 점
 - [Spring AOP와 프록시](./spring-aop-proxies-deep-dive.md)
 - [Spring Data JPA 트랜잭션 흔한 실수들](./jpa-transaction.md)
 - [점검 모드 화이트리스트](../../task/sb-dev-team/whitelist.md)
-- [관측성 입문](../../architecture/observability-basics.md)
+- [관측성 입문](../../observability/basics.md)
 
 ## 공식 참고 자료
 
