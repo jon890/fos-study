@@ -16,11 +16,6 @@
 - [MSA 서비스 간 통신](./msa-service-communication.md) — Redis [Cache-Aside](../database/redis/cache-aside.md) × Kafka 이벤트 하이브리드
 - [Spring Batch vs Event-Driven](./spring-batch-vs-event-driven.md) — 배치와 이벤트 드리븐의 선택 기준
 
-## 대규모 트래픽
-
-- [대규모 커머스 트래픽 처리 패턴](./high-traffic-commerce-patterns.md) — 대규모 회원 / 메가 프로모션 대비 설계
-- [무중단 마이그레이션](./zero-downtime-migration.md) — Feature Flag와 Shadow Mode 실전
-
 ## 운영 품질
 
 - [Resilience 패턴](./resilience-patterns.md) — Timeout, Retry, Circuit Breaker, Bulkhead, Backpressure
@@ -47,13 +42,7 @@
 - [F&B 이커머스 결제·환불·정산 운영 가이드](./fnb-payment-refund-settlement-operations.md)
 - [쿠폰/프로모션 동시성과 정합성 기본기](./coupon-promotion-concurrency-basics.md)
 
-## 금융 거래 설계 (학습중)
-
-- [금융 거래 상태와 원장 설계](./financial-transaction-state-and-ledger.md) — 거래 상태, 복식 원장, 잔액, 멱등성
-- [금융 거래 취소·정정·대사·일마감 운영](./financial-reversal-correction-reconciliation-close.md) — 확정 거래 복구와 장부 불일치 해소
-
 ## 아키텍처 전환과 현대화
 
 - [Hexagonal / Clean Architecture를 Spring 백엔드에 적용하기](./hexagonal-clean-architecture-spring.md)
 - [레거시 JSP/jQuery 화면과 신규 API가 공존하는 백엔드 운영 전략](./legacy-jsp-jquery-api-coexistence.md)
-- [모듈러 모놀리스에서 MSA로 점진 전환](./modular-monolith-to-msa-migration-lab.md) — 경계 검증, Strangler Fig, 데이터 소유권, 롤백 실습

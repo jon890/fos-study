@@ -861,11 +861,6 @@ v1 응답에서 `Deprecation`, `Sunset`, `Link` 헤더를 확인한다.
 - [ ] Brownout의 필요성, 영향 범위, 종료 조건을 사전에 합의했는가
 - [ ] 외부 파트너에게 헤더 외의 채널로도 폐기 일정을 알렸는가
 
-## 함께 읽을 문서
-
-- [무중단 마이그레이션](./zero-downtime-migration.md)
-  데이터베이스와 애플리케이션을 롤백 가능하게 전환하는 방법을 다룬다.
-
 ## 공식 참고 자료
 
 - [RFC 9745: The Deprecation HTTP Response Header Field](https://www.rfc-editor.org/rfc/rfc9745.html)
