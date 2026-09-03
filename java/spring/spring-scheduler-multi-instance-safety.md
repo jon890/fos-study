@@ -8,7 +8,7 @@ tags: [study]
 >
 > 한 줄 결론: `@Scheduled`는 JVM 하나 안에서만 동작하므로 인스턴스 간 조율 장치가 전혀 없다. 같은 잡을 한 번만 돌리려면 외부 저장소 기반의 잠금(또는 단 하나의 실행 주체)을 별도로 붙여야 한다.
 >
-> 관련 문서: [Redis 분산 락](../../database/redis/distributed-lock.md), [Spring Batch vs Event-Driven](../../architecture/spring-batch-vs-event-driven.md)
+> 관련 문서: [Redis 분산 락](../../database/redis/distributed-lock.md), [Spring Batch vs Event-Driven](../../architecture/distributed-systems/spring-batch-vs-event-driven.md)
 
 ---
 

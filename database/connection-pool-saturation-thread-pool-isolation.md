@@ -275,7 +275,7 @@ tomcat_threads_busy_threads / tomcat_threads_config_max_threads
 
 **개선**: PG 호출을 트랜잭션 밖으로 분리(주문 생성 trx 커밋 후 별도 executor에서 PG 호출), PG 호출에 circuit breaker, PG executor 풀 분리(20), 주문 trx timeout 3s, MAX_EXECUTION_TIME 1s.
 
-이때 trx 경계와 PG 호출의 분리는 [Outbox Pattern](../architecture/distributed-transaction-outbox-pattern.md)으로 자연스럽게 연결된다.
+이때 trx 경계와 PG 호출의 분리는 [Outbox Pattern](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md)으로 자연스럽게 연결된다.
 
 ### 시나리오 B — 백오피스 통계 쿼리가 운영 풀을 잡아먹음
 
@@ -379,7 +379,7 @@ bulkhead 패턴 정의 → DataSource 격리 / Executor 격리 / 라이브러리
 
 - [커넥션 풀 크기는 얼마나 조정해야 할까?](./connection-pool.md) — 풀 사이즈 기본 공식과 HikariCP 권장 설정
 - [Aurora Serverless 환경의 커넥션 풀과 트랜잭션 예산 설계](./mysql/aurora-serverless-connection-pool-transaction-budget.md) — Aurora Serverless 환경의 ACU/풀/트랜잭션 예산
-- [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md) — 트랜잭션 밖으로 외부 호출 빼기 패턴
+- [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md) — 트랜잭션 밖으로 외부 호출 빼기 패턴
 - [Spring 트랜잭션 전파·격리수준·AFTER_COMMIT 실전 정리](../java/spring/transaction-propagation-isolation-after-commit.md) — `AFTER_COMMIT` / `REQUIRES_NEW` 활용
 - [HikariCP — About Pool Sizing](https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing)
 - [Resilience4j Bulkhead](https://resilience4j.readme.io/docs/bulkhead)

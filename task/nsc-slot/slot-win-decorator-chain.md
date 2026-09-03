@@ -170,6 +170,6 @@ return results.stream()
 
 ## 관련 문서
 
-- [Decorator & Chain of Responsibility 패턴](../../architecture/decorator-chain-of-responsibility.md) — 개념 정리와 비교
+- [Decorator & Chain of Responsibility 패턴](../../architecture/patterns/decorator-chain-of-responsibility.md) — 개념 정리와 비교
 - [슬롯 엔진 추상화](./slot-engine-abstraction.md) — `AbstractWinService`를 포함한 상위 템플릿 구조
 - [슬롯 페이 조건 체크 Factory](./slot-payment-factory.md) — 이 데코레이터 체인이 장식하는 `PayableItem`의 출처

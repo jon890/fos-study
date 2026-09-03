@@ -30,4 +30,4 @@
 
 ## 관련
 
-- [캐시 설계 전략](../architecture/cache-strategies.md) — 캐시 패턴 총정리
+- [캐시 설계 전략](../architecture/distributed-systems/cache-strategies.md) — 캐시 패턴 총정리

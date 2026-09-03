@@ -533,5 +533,5 @@ public class OrdersController {
 
 ## 관련 문서
 
-- [Resilience 패턴](../architecture/resilience-patterns.md) — Circuit Breaker 상태와 Observability 연결
+- [Resilience 패턴](../architecture/distributed-systems/resilience-patterns.md) — Circuit Breaker 상태와 Observability 연결
 - [로그에 traceId 남기기](../java/MDC.md) — MDC 부터 OpenTelemetry 까지

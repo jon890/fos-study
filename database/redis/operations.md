@@ -329,7 +329,7 @@ redis-cli SET hot:key {value} EX 3600
 redis-cli EXPIREAT hot:key {future_timestamp}
 ```
 
-**근본 해결:** 확률적 조기 갱신(Probabilistic Early Expiration) 또는 Lock 기반 갱신 → [캐시 설계 전략](../../architecture/cache-strategies.md#3-cache-stampede-캐시-폭풍)
+**근본 해결:** 확률적 조기 갱신(Probabilistic Early Expiration) 또는 Lock 기반 갱신 → [캐시 설계 전략](../../architecture/distributed-systems/cache-strategies.md#3-cache-stampede-캐시-폭풍)
 
 ---
 
@@ -444,4 +444,4 @@ tcp-keepalive 300
 
 - [Redis 기본](./basic.md) — 아키텍처, 자료구조, 사용 사례
 - [Redis 영속성과 클러스터](./backup.md) — RDB/AOF 상세 설정, Cluster 구성
-- [캐시 설계 전략](../../architecture/cache-strategies.md) — Cache Stampede 해결책 포함
+- [캐시 설계 전략](../../architecture/distributed-systems/cache-strategies.md) — Cache Stampede 해결책 포함

@@ -30,4 +30,4 @@ Redis 자료구조·패턴·운영 학습 기록. 캐시, 분산 락, Pub/Sub, �
 
 ## 관련 문서
 
-- [캐시 설계 전략 총정리](../../architecture/cache-strategies.md)
+- [캐시 설계 전략 총정리](../../architecture/distributed-systems/cache-strategies.md)

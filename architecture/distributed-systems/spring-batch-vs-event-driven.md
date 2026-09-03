@@ -2,13 +2,13 @@
 tags: [study]
 ---
 
-# Spring Batch vs Event-Driven — 같은 비동기처럼 보이지만 전혀 다른 두 패러다임
+# Spring Batch와 Event-Driven의 선택 기준
 
 > 관련 문서: [Outbox / Inbox Pattern 심화](./outbox-inbox-pattern.md), [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md). 본 문서는 두 처리 패러다임의 선택 기준과 trade-off에 집중하고, 위 두 문서는 이벤트 발행의 정합성 메커니즘에 집중한다.
 
 ## 왜 중요한가
 
-백엔드를 4\~5년차 이상 다루다 보면 어느 시점에서 "이건 동기로 처리하기 어렵다"는 결론에 도달한다. 사용자가 결제 버튼을 누르면 결제 승인은 동기적으로 끝나야 하지만, 알림 발송, 통계 집계, 추천 모델 재학습, 검색 색인 갱신, CRM 동기화는 모두 비동기로 빠진다. 이때 두 가지 길이 갈린다.
+백엔드 시스템을 운영하다 보면 "이 작업은 동기로 처리하기 어렵다"는 결론에 도달하는 경우가 있다. 사용자가 결제 버튼을 누르면 결제 승인은 동기적으로 끝나야 하지만, 알림 발송, 통계 집계, 추천 모델 재학습, 검색 색인 갱신, CRM 동기화는 비동기로 분리할 수 있다. 이때 두 가지 선택지가 생긴다.
 
 하나는 데이터를 모아 **일정 시점에 한 번에 처리**하는 길**(batch)**이다. 또 하나는 발생하는 변화를 **그 즉시 메시지로 흘려보내고 소비자들이 각자 받아 처리**하는 길**(event-driven)**이다. 표면적으로는 둘 다 "비동기"라는 이름으로 묶여 동등하게 비교되지만, 실전에서 두 길은 운영 방식, 장애 처리, 데이터 정합성, 모니터링 지표, 심지어 채용 면접에서 받는 질문의 형태까지 완전히 다르다.
 
@@ -39,9 +39,9 @@ tags: [study]
 
 ---
 
-## Spring Batch 핵심 개념 — Step 단위 실패 격리
+## Spring Batch의 Step 단위 실패 격리
 
-Spring Batch는 단순한 "스케줄러 + 루프"가 아니다. 핵심은 **재시작 가능성**(restartability)과 **Step 단위 실패 격리**다.
+Spring Batch는 단순한 "스케줄러와 루프"가 아니다. 핵심은 **재시작 가능성**(restartability)과 **Step 단위 실패 격리**다.
 
 ```java
 @Configuration
@@ -117,7 +117,7 @@ public AsyncItemProcessor<Document, EmbeddedDocument> asyncProcessor(
 
 ---
 
-## Event-Driven 핵심 개념 — Topic, Partition, Consumer Group
+## Event-Driven의 핵심 구성요소
 
 Event-Driven에서는 broker(Kafka, RabbitMQ, SQS)가 핵심 인프라다.
 
@@ -167,7 +167,7 @@ Kafka의 강점은 메시지를 일정 기간 보존한다는 점이다. consume
 
 ---
 
-## 선택 기준 — 무엇을 보고 고르는가
+## 선택 기준
 
 | 관점 | Batch가 유리 | Event-Driven이 유리 |
 |---|---|---|
@@ -205,7 +205,7 @@ flowchart TB
 
 ---
 
-## 실패 처리 — 가장 큰 차이가 여기서 나온다
+## 실패 처리 방식의 차이
 
 ### Batch의 실패 처리 모델
 
@@ -260,11 +260,11 @@ public void onOrderPlaced(OrderPlaced event, Acknowledgment ack) {
 
 ### Batch와 달리 Event-Driven은 "skip"이 명시적이지 않다
 
-Spring Batch의 `skipLimit(50)`은 "잘못된 건이 50개 이하라면 진행"이라는 명시적 정책이다. Event-Driven에서 같은 의미를 구현하려면 DLQ + 모니터링 + 알림 임계치를 별도로 설계해야 한다. 이게 운영 부담의 한 축이다.
+Spring Batch의 `skipLimit(50)`은 "잘못된 건이 50개 이하라면 진행"이라는 명시적 정책이다. Event-Driven에서 같은 의미를 구현하려면 DLQ, 모니터링과 알림 임계치를 별도로 설계해야 한다. 이게 운영 부담의 한 축이다.
 
 ---
 
-## Bad vs Improved — 흔한 잘못된 선택
+## 잘못된 선택 사례
 
 ### Bad 1. "이벤트가 많으니까 일단 다 Kafka로 흘리자"
 
@@ -293,7 +293,7 @@ Debezium 같은 도구로 binlog 변경을 Kafka로 흘리면 polling batch의 �
 
 ---
 
-## 하이브리드 패턴 — 실전에서는 거의 같이 쓴다
+## Batch와 Event-Driven의 조합
 
 ### 패턴 1. Event-Driven이 1차, Batch가 정합성 백업
 
@@ -328,7 +328,7 @@ public class IndexJobCompletionPublisher implements JobExecutionListener {
 
 ---
 
-## 로컬 실습 환경 — 둘 다 짚어보기
+## 로컬 실습 환경
 
 ```bash
 docker run -d --name mysql-batch \
@@ -350,51 +350,9 @@ docker run -d --name kafka-local \
   -p 9092:9092 bitnami/kafka:3.7
 ```
 
-Spring Batch 쪽은 `spring-boot-starter-batch` + `BatchAutoConfiguration` + `JobLauncherApplicationRunner`로 가장 빠르게 띄울 수 있다. Event-Driven 쪽은 `spring-kafka` + `KafkaTemplate` + `@KafkaListener`로 publisher와 consumer를 같은 모듈 안에 두고 실습하면 된다.
+Spring Batch 쪽은 `spring-boot-starter-batch`, `BatchAutoConfiguration`과 `JobLauncherApplicationRunner`로 가장 빠르게 띄울 수 있다. Event-Driven 쪽은 `spring-kafka`, `KafkaTemplate`과 `@KafkaListener`로 publisher와 consumer를 같은 모듈 안에 두고 실습하면 된다.
 
 실습 시나리오 추천:
 
 - batch — 1만 건 더미 데이터를 reader가 읽어 processor가 임베딩 흉내**(Thread.sleep 100ms)**를 내고 writer가 OpenSearch에 쓴다. chunk size를 10/100/1000으로 바꿔가며 throughput을 비교.
 - event — `order.placed.v1` topic에 producer가 초당 100건 발행하고 consumer 두 개**(notification, statistics)**가 각자 처리. consumer 하나를 강제 죽였다가 부활시켜 lag을 확인.
-
----
-
-## 면접 답변 프레임 — 1분 안에 갈 길
-
-### Q. "왜 이 작업은 Spring Batch로 하셨어요?"
-
-답변 골격:
-
-- 처리 단위가 시간 윈도우 기반이었고**(예 일 단위 색인 재구축)**, 단건 latency보다 chunk 단위 throughput과 재시작 가능성이 핵심이었다.
-- Step 분리로 임베딩 단계 실패가 수집 단계 결과를 무효화하지 않게 했다.
-- AsyncItemProcessor로 I/O 병렬화를 챙겼지만 외부 API rate limit에 맞춰 chunk size와 thread pool을 같이 튜닝했다.
-- Kafka로 흘렸을 때 얻을 수 있는 이득**(즉시성)**보다 broker 운영 비용과 메시지 단위 처리의 복잡도가 컸기 때문에 batch가 더 적합했다.
-
-### Q. "이 흐름은 왜 event-driven으로 가셨어요?"
-
-답변 골격:
-
-- 발생 즉시 후속 처리가 필요했고**(주문 직후 알림, 통계, 추천 갱신)** 소비자가 여러 개라 fan-out이 필요했다.
-- DB 커밋과 이벤트 발행의 정합성은 Outbox 패턴 또는 `@TransactionalEventListener(AFTER_COMMIT)`로 분리했다.
-- partition key로 ordering 단위를 명시했고, DLQ를 분리해 poison message가 컨슈머 전체를 막지 않게 했다.
-- batch로 동등하게 만들려면 polling 주기를 짧게 가져가야 했고 그건 broker 한 번 띄우는 것보다 비효율적이었다.
-
-### Q. "둘 다 쓰셨다면 경계를 어떻게 그렸어요?"
-
-답변 골격:
-
-- 사건 반응성이 가치인 흐름은 event, 시간 윈도우 집계가 가치인 흐름은 batch로 분리했다.
-- 누락 정합성은 새벽 batch가 event 흐름을 보정하는 형태로 이중화했다.
-- batch 결과가 다른 시스템에 영향을 줘야 할 때는 batch 종료 시 단일 이벤트를 발행해 다운스트림이 반응하도록 연결했다.
-
----
-
-## 체크리스트 — 면접 직전에 한 번 더
-
-- [ ] "이건 왜 batch인가 / 왜 event인가"를 한 문장으로 말할 수 있다.
-- [ ] Spring Batch에서 chunk, retry, skip, restart의 의미를 구분해 설명할 수 있다.
-- [ ] Kafka partition key가 ordering에 미치는 영향을 설명할 수 있다.
-- [ ] Outbox + AFTER_COMMIT 조합이 왜 dual write 문제를 푸는지 설명할 수 있다.
-- [ ] DLQ를 분리하지 않으면 어떤 운영 사고가 나는지 한 번 이상 그려본 적이 있다.
-- [ ] hybrid 패턴**(batch가 이벤트를 발행 / 이벤트 흐름을 batch가 보정)**의 실제 예를 댈 수 있다.
-- [ ] 두 패러다임 모두에서 "이 지표가 무너지면 알람이 떠야 한다"는 핵심 신호를 댈 수 있다 — batch 쪽이라면 job duration, item 처리량, skip 비율 / event 쪽이라면 consumer lag, DLQ rate, retry rate.

@@ -1,48 +1,10 @@
 # Architecture
 
-언어·기술 독립적인 설계 개념 학습 기록. 패턴·분산·대규모 트래픽·회복성·무중단 전환을 묶었다.
+특정 언어나 제품에 종속되지 않는 설계 원칙과 시스템 구조를 관심사별로 정리한다.
 
-## 설계 패턴
+## 하위 주제
 
-- [전략 패턴 (Strategy Pattern)](./strategy-pattern.md) — 런타임에 알고리즘 교체
-- [템플릿 메서드 패턴](./template-method-pattern.md) — 처리 골격 고정, 변형은 서브클래스
-- [Decorator & Chain of Responsibility](./decorator-chain-of-responsibility.md) — 행동을 체인으로 조립하는 두 방식
-
-## 분산 시스템
-
-- [분산 트랜잭션](./distributed-transaction.md) — 2PC와 대안
-- [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md) — 왜 2PC를 피하고 어떻게 대신할 것인가
-- [Outbox / Inbox 패턴](./outbox-inbox-pattern.md) — exactly-once 전송과 멱등 수신
-- [MSA 서비스 간 통신](./msa-service-communication.md) — Redis [Cache-Aside](../database/redis/cache-aside.md) × Kafka 이벤트 하이브리드
-- [Spring Batch vs Event-Driven](./spring-batch-vs-event-driven.md) — 배치와 이벤트 드리븐의 선택 기준
-
-## 운영 품질
-
-- [Resilience 패턴](./resilience-patterns.md) — Timeout, Retry, Circuit Breaker, Bulkhead, Backpressure
-
-## API / 도메인 설계
-
-- [API 버저닝과 하위 호환성](./api-versioning-backward-compatibility.md) — 모바일 호환성, 폐기 수명주기, 계약 검증과 롤백
-- [DDD와 도메인 모델링](./ddd-domain-modeling.md) — 전술/전략 패턴 실전 가이드
-- [Event Sourcing과 CQRS](./event-sourcing-cqrs.md) — 상태 변화 이력과 읽기·쓰기 모델 분리
-
-## 캐시
-
-- [캐시 설계 전략 총정리](./cache-strategies.md) — Look-Aside, Read/Write-Through, Cache Stampede
-
-## 커머스/F&B 도메인
-
-멀티브랜드 F&B 디지털 채널 백엔드 설계 묶음. 인프라 패턴을 커머스·F&B 설계 언어로 적용하는 학습 노트.
-
-- [F&B · e-Commerce 디지털 채널 도메인 한 장 정리](./fnb-ecommerce-domain-overview.md)
-- [커머스 도메인 모델링 — 주문·재고·노출](./commerce-domain-modeling-order-inventory-display.md)
-- [커머스 주문 상태와 데이터 정합성 기본기](./commerce-order-state-consistency-fundamentals.md)
-- [F&B 주문/매장/픽업 상태머신 설계](./fnb-order-store-pickup-state-machine.md)
-- [F&B 쿠폰·프로모션·멤버십·포인트 설계](./fnb-coupon-promotion-membership-design.md)
-- [F&B 이커머스 결제·환불·정산 운영 가이드](./fnb-payment-refund-settlement-operations.md)
-- [쿠폰/프로모션 동시성과 정합성 기본기](./coupon-promotion-concurrency-basics.md)
-
-## 아키텍처 전환과 현대화
-
-- [Hexagonal / Clean Architecture를 Spring 백엔드에 적용하기](./hexagonal-clean-architecture-spring.md)
-- [레거시 JSP/jQuery 화면과 신규 API가 공존하는 백엔드 운영 전략](./legacy-jsp-jquery-api-coexistence.md)
+- [설계 패턴](./patterns/README.md) — 객체 협력 방식과 애플리케이션 경계
+- [분산 시스템](./distributed-systems/README.md) — 통신, 정합성, 메시징과 회복성
+- [시스템 전환](./evolution/README.md) — API 호환성과 레거시 전환
+- [도메인 모델링](./domain/README.md) — DDD와 비즈니스 도메인 설계

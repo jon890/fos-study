@@ -180,4 +180,4 @@ ZRANGE leaderboard "(1000" "+inf" BYSCORE REV  # 1000점 초과 내림차순
 ## 관련 문서
 
 - [Redis 기본](./basic.md) — Sorted Set 명령어 전체 목록
-- [캐시 설계 전략](../../architecture/cache-strategies.md) — 랭킹 결과 캐싱 전략
+- [캐시 설계 전략](../../architecture/distributed-systems/cache-strategies.md) — 랭킹 결과 캐싱 전략

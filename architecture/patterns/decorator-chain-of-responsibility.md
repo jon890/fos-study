@@ -184,7 +184,7 @@ Spring Security의 `FilterChain`, Servlet `Filter`, OkHttp `Interceptor`가 대�
 
 ## 실제 사례 — 슬롯 당첨 계산 데코레이터 체인
 
-Decorator Pattern이 도메인 로직에 깔끔하게 맞는 사례 하나를 언어·도메인 독립적으로 정리했다: [슬롯 당첨 계산 — Decorator 체인 + 우선순위 정렬](../task/nsc-slot/slot-win-decorator-chain.md).
+Decorator Pattern이 도메인 로직에 깔끔하게 맞는 사례 하나를 언어·도메인 독립적으로 정리했다: [슬롯 당첨 계산 — Decorator 체인 + 우선순위 정렬](../../task/nsc-slot/slot-win-decorator-chain.md).
 
 요점만 옮기면 이렇다.
 

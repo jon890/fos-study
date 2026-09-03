@@ -11,7 +11,7 @@ tags: [study]
 결론부터 말하면, **두 패턴 모두 "기본값으로 깔지 말아야 할" 고급 패턴**이다.
 대부분의 서비스는 CRUD + 읽기 전용 복제본으로 충분하고, Event Sourcing은 감사(audit) 요구가 강하거나 상태 변화 이력 자체가 비즈니스 가치인 도메인에서만 비용을 정당화한다.
 
-> 관련 문서: [DDD와 도메인 모델링](./ddd-domain-modeling.md), [Outbox / Inbox Pattern 심화](./outbox-inbox-pattern.md), [Spring Batch vs Event-Driven](./spring-batch-vs-event-driven.md), [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md).
+> 관련 문서: [DDD와 도메인 모델링](../domain/ddd-domain-modeling.md), [Outbox / Inbox Pattern 심화](./outbox-inbox-pattern.md), [Spring Batch vs Event-Driven](./spring-batch-vs-event-driven.md), [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md).
 > 본 문서는 "상태를 어떻게 저장하고 읽을 것인가"라는 모델링 축에 집중하고, 위 문서들은 이벤트 발행의 정합성 메커니즘과 도메인 모델 설계에 집중한다.
 
 ## CRUD가 잃어버리는 것

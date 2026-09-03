@@ -140,7 +140,7 @@ Cluster
 
 - [Kafka 실전 설계 — 파티션 / 컨슈머 그룹 / 재시도 / 순서 보장](./kafka-design.md)
 - [Kafka 실전 설계](./kafka-design.md) — 전달 보장, 멱등성 프로듀서와 복제 설정
-- [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md) — Kafka 발행 원자성 보장
+- [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md) — Kafka 발행 원자성 보장
 
 ---
 

@@ -212,7 +212,7 @@ try {
 
 **주의:** Redis 다운 → DB로 트래픽 전부 쏠림 → DB도 다운 (연쇄 장애)이 실제로 가장 자주 발생한다. DB 쪽 보호(커넥션 풀 상한, 쿼리 타임아웃, 비상 rate limit)가 준비되지 않으면 Redis 다운보다 더 큰 장애가 난다.
 
-→ [Cache-Aside 장애 섹션 1 Redis 완전 다운](./cache-aside.md#장애-1--redis-완전-다운), [Resilience 패턴](../../architecture/resilience-patterns.md)
+→ [Cache-Aside 장애 섹션 1 Redis 완전 다운](./cache-aside.md#장애-1--redis-완전-다운), [Resilience 패턴](../../architecture/distributed-systems/resilience-patterns.md)
 
 ---
 
@@ -260,7 +260,7 @@ try {
 
 > 캐시 계층 장애를 서비스 전체 장애로 번지지 않게 하는 것이 원칙입니다. 모든 Redis 호출은 50~500ms 타임아웃으로 감싸고 Circuit Breaker로 감지합니다. 단 DB 폴백을 준비하는 것으로 끝이 아니고, Redis 트래픽이 DB로 쏠릴 때 DB가 죽지 않도록 커넥션 풀 상한과 비상 rate limit이 같이 설계돼 있어야 합니다.
 
-(링크: [cache-aside 장애 섹션 1](./cache-aside.md#장애-1--redis-완전-다운), [resilience-patterns](../../architecture/resilience-patterns.md))
+(링크: [cache-aside 장애 섹션 1](./cache-aside.md#장애-1--redis-완전-다운), [resilience-patterns](../../architecture/distributed-systems/resilience-patterns.md))
 
 ---
 
@@ -303,5 +303,5 @@ try {
 - [Redis 운영 가이드](./operations.md) — 성능, 메모리, 모니터링, 장애 대응, 설정
 
 **교차 주제:**
-- [캐시 설계 전략](../../architecture/cache-strategies.md) — Look-Aside, Read/Write-Through 전반
-- [Resilience 패턴](../../architecture/resilience-patterns.md) — Circuit Breaker, 타임아웃, 폴백
+- [캐시 설계 전략](../../architecture/distributed-systems/cache-strategies.md) — Look-Aside, Read/Write-Through 전반
+- [Resilience 패턴](../../architecture/distributed-systems/resilience-patterns.md) — Circuit Breaker, 타임아웃, 폴백

@@ -446,7 +446,7 @@ logging:
 
 - [TransactionSynchronization 실전](./transaction-synchronization.md) — `registerSynchronization()` 기반 afterCommit 커스터마이징
 - [Spring Data JPA 트랜잭션 실수 모음](./jpa-transaction.md)
-- [분산 트랜잭션과 Outbox 패턴](../../architecture/distributed-transaction-outbox-pattern.md) — 2PC 대안 아키텍처
+- [분산 트랜잭션과 Outbox 패턴](../../architecture/distributed-systems/distributed-transaction-outbox-pattern.md) — 2PC 대안 아키텍처
 - [InnoDB MVCC 완전 분석](../../database/mysql/innodb-mvcc.md) — 격리 수준의 DB 레이어 의미
 - [Gap Lock & Next-Key Lock](../../database/mysql/innodb-gap-next-key-lock.md) — RR에서의 gap lock 교착
 - [Spring 트랜잭션 전파, 커머스 주문/결제에서 실전으로 이해하기](./spring-transaction-propagation-commerce.md) — 같은 주제의 커머스 시나리오 적용 사례

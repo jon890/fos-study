@@ -223,5 +223,5 @@ Redis 세션 저장소가 다운되면 모든 사용자가 로그아웃되는 �
 ## 관련 문서
 
 - [Redis 기본](./basic.md) — Redis String, Hash 자료구조
-- [캐시 설계 전략](../../architecture/cache-strategies.md) — 캐싱 패턴
+- [캐시 설계 전략](../../architecture/distributed-systems/cache-strategies.md) — 캐싱 패턴
 - [Redis 영속성과 클러스터](./backup.md) — 고가용성 구성

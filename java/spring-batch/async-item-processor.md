@@ -86,5 +86,5 @@ fun taskExecutor(): TaskExecutor {
 ## 관련 문서
 
 - [Virtual Thread와 Project Loom](../virtual-thread.md) — I/O 바운드 작업에서 경량 스레드의 위력
-- [Resilience 패턴](../../architecture/resilience-patterns.md) — RateLimiter/Retry/Bulkhead 상세
+- [Resilience 패턴](../../architecture/distributed-systems/resilience-patterns.md) — RateLimiter/Retry/Bulkhead 상세
 - [Confluence 벡터 색인 배치](../../task/ai-service-team/rag-vector-search-batch.md) — AsyncItemProcessor 실전 사례

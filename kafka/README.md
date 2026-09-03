@@ -9,4 +9,4 @@ Apache Kafka 기본부터 실전 설계까지 학습 기록.
 
 ## 관련
 
-- [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md) — Kafka 발행 원자성 보장
+- [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md) — Kafka 발행 원자성 보장

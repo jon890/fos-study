@@ -155,6 +155,6 @@ public abstract class AbstractWinService implements WinService {
 
 ## 관련 문서
 
-- [Strategy Pattern](../../architecture/strategy-pattern.md) — 인터페이스 + 구현체 + 런타임 교체의 기본 개념
+- [Strategy Pattern](../../architecture/patterns/strategy-pattern.md) — 인터페이스 + 구현체 + 런타임 교체의 기본 개념
 - [슬롯 엔진 추상화](./slot-engine-abstraction.md) — `SlotTemplate`/`BaseSlotService`와 이 Factory가 결합되는 상위 구조
 - [슬롯 당첨 계산 데코레이터 체인](./slot-win-decorator-chain.md) — Factory로 고른 체커의 결과를 다시 Decorator로 장식하는 후속 단계

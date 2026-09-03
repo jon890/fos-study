@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# MSA 서비스 간 통신: Redis [Cache-Aside](../database/redis/cache-aside.md) × Kafka 이벤트 하이브리드 설계
+# MSA 서비스 간 통신: Redis [Cache-Aside](../../database/redis/cache-aside.md) × Kafka 이벤트 하이브리드 설계
 
 ## 이 주제가 왜 중요한가
 
@@ -327,4 +327,4 @@ services:
 - [캐시 설계 전략 총정리](./cache-strategies.md) — Cache-Aside 상세 패턴과 Stampede 대응
 - [분산 트랜잭션과 Outbox 패턴](./distributed-transaction-outbox-pattern.md) — `AFTER_COMMIT` + Outbox 구현 디테일
 - [Resilience 패턴](./resilience-patterns.md) — Circuit Breaker, Bulkhead, Backpressure
-- [Java StampedLock](../java/stamped-lock.md) — 읽기 폭주 대응 락
+- [Java StampedLock](../../java/stamped-lock.md) — 읽기 폭주 대응 락

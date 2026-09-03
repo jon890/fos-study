@@ -401,5 +401,5 @@ public class FailedNotificationRetryJob {
 ## 관련 문서
 
 - [트랜잭션 전파·격리수준·AFTER_COMMIT 실전](./transaction-propagation-isolation-after-commit.md) — `@TransactionalEventListener` 기본
-- [분산 트랜잭션과 Outbox 패턴](../../architecture/distributed-transaction-outbox-pattern.md) — afterCommit의 다음 단계
+- [분산 트랜잭션과 Outbox 패턴](../../architecture/distributed-systems/distributed-transaction-outbox-pattern.md) — afterCommit의 다음 단계
 - [Spring Data JPA 트랜잭션 실수 모음](./jpa-transaction.md)

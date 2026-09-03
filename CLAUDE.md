@@ -18,7 +18,11 @@ HTML·PDF 등 검토용 미리보기 산출물은 저장소 밖의 `/private/tmp
 fos-study/
 ├── task/               # 회사 업무 기록 (팀별 하위 디렉터리)
 ├── resume/             # 개인 이력서·경력기술서·포트폴리오 보관과 갱신
-├── architecture/       # 설계 패턴, 원칙 등 언어/기술 독립적 개념
+├── architecture/       # 언어와 기술에 독립적인 설계 개념
+│   ├── patterns/
+│   ├── distributed-systems/
+│   ├── evolution/
+│   └── domain/
 ├── database/           # 데이터 스토어 전반
 │   ├── mysql/
 │   ├── opensearch/
@@ -43,7 +47,11 @@ fos-study/
 - **database/** — 데이터를 저장·검색하는 스토어. MySQL, OpenSearch, Redis 포함. Kafka는 메시지 브로커라 최상위 유지
 - **task/** — 실제 업무 구현 경험. 개념 설명 아닌 "내가 이걸 왜, 어떻게 만들었나" 기록
 - **resume/** — 개인 이력을 보관하고 계속 갱신하는 이력서·경력기술서·포트폴리오
-- **architecture/** — 특정 기술에 종속되지 않는 설계 개념 (전략 패턴 등). 실제 사례 링크는 포함하되 사례 본문은 `task/`에 작성
+- **architecture/patterns/** — 객체 협력 방식과 애플리케이션 경계
+- **architecture/distributed-systems/** — 통신, 정합성, 메시징과 회복성
+- **architecture/evolution/** — API 호환성과 시스템 전환
+- **architecture/domain/** — DDD와 비즈니스 도메인 모델링
+- 실제 업무 사례는 `architecture/`에 복제하지 않고 `task/`에 작성한 뒤 개념 문서와 연결한다.
 - **observability/** — 지표·로그·추적의 개념과 수집 방법. 실제 적용 경험은 `task/`에 작성
 - 신규 기술 문서는 기존 최상위 폴더에 맞는 게 없을 때만 새 폴더 생성
 

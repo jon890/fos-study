@@ -266,7 +266,7 @@ Redis는 캐시일 뿐이라 정합성의 최종 책임은 DB 제약에 있어�
 - [Kafka 실전 설계](./kafka-design.md) — 파티션, 컨슈머 그룹, 전달 보장과 복제 설정
 - [Spring 트랜잭션 전파·격리수준·AFTER_COMMIT 실전](../java/spring/transaction-propagation-isolation-after-commit.md) — DB 커밋 이후 Kafka로 **발행하는 쪽**의 정렬
 - [TransactionSynchronization 실전](../java/spring/transaction-synchronization.md) — afterCommit 훅 커스터마이징
-- [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-transaction-outbox-pattern.md) — DB를 진실원으로 하는 발행 원자성
+- [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md) — DB를 진실원으로 하는 발행 원자성
 
 ## 참고 공식 문서
 
