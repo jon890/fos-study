@@ -4,9 +4,17 @@ tags: [tasks]
 
 # KYC 시스템 구현
 
-**진행 기간**: 2023.03 ~ 2023.12
+**진행 기간**: 2023.03 ~ 2023.04
 
-스포츠 베팅 서비스에서 KYC(Know Your Customer, 본인 인증) 기능을 구현했다. 신분증 이미지를 안전하게 저장하고, 어드민에서 승인/반려 처리하며, 법적 보존 기간이 지난 데이터를 자동 삭제하는 전체 흐름이다.
+스포츠 베팅 서비스에서 KYC(Know Your Customer, 본인 인증) 기능을 구현했다.
+신분증 이미지를 안전하게 저장하고, 어드민에서 승인/반려 처리하는 흐름이다.
+
+기능 구현은 2023년 3월 14일 첫 커밋부터 4월 11일 암호화 모듈까지 약 4주에 끝났다.
+`kyc-server` 저장소의 본인 커밋은 3월 27건과 4월 34건으로 61건이고,
+이후 12월까지 남은 다섯 건은 release 환경 추가, winston 로그 설정, 로그 옵션의 profile 분리처럼 설정 수준의 변경이다.
+저장소 자체는 2024년 2월까지 다른 팀원이 CORS 허용 도메인 추가와 MySQL 8 전환을 이어갔다.
+
+**이 서비스는 오픈 1달 만에 종료됐다.** 이 사실은 본인의 기억이며 커밋으로는 확인하지 않았다.
 
 ---
 
@@ -144,37 +152,43 @@ encryptObject(object: { [key: string]: unknown }, exclude?: string[]) {
 
 ---
 
-## Spring Batch: KYC 데이터 6개월 후 자동 삭제
+## 배치: 6개월 경과 KYC 데이터 삭제
 
-신분증 이미지는 법적으로 정해진 보존 기간 이후에 반드시 삭제해야 한다. 이걸 Spring Batch Job으로 처리했다.
+**이 기능은 `kyc-server` 에 없다.** 사내 배치 저장소에 있는 별도 Spring Batch Job이고,
+2023년 3월 23일에 본인이 317줄 규모로 추가했다.
+`kyc-server` 는 NestJS 이고 이쪽은 Java 와 Spring Batch 라 같은 KYC 기능이면서 스택이 다르다.
+
+이후 4월 7일에 다른 팀원이 같은 파일에 출금과 개인정보 관련 Job 을 더했다. 그 두 Job 은 본인 것이 아니다.
 
 ```java
 // 6개월 이상 보관된 KYC 상세 정보를 제거하는 Job을 추가했습니다. (#48)
 ```
 
-Job 흐름:
-1. KYC DB에서 6개월 이상 된 레코드 조회
-2. 각 레코드의 blob 경로를 복호화
-3. Azure Blob Storage에서 파일 삭제
-4. KYC DB에서 상세 정보 레코드 삭제
+Job 흐름은 `RepositoryItemReader` → `ItemProcessor` → `RepositoryItemWriter` 의 chunk 처리다.
 
-Blob 삭제와 DB 삭제를 같이 처리하는 게 트랜잭션으로 묶이지 않아서 순서가 중요했다. Blob을 먼저 삭제하고 DB를 지우는 방향으로 했다. Blob 삭제가 실패하면 재시도할 수 있도록.
+1. `findByRegDateBefore(now - 6개월)` 로 KYC 상세 레코드를 조회한다. chunk 크기와 `maxItemCount` 가 모두 100이다
+2. processor 에서 `filePath` 의 마지막 `/` 뒤를 잘라 blob 이름을 얻고 Azure Blob Storage 의 파일을 삭제한다
+3. writer 에서 `KycDetail` 레코드를 삭제한다
+
+Blob 삭제와 DB 삭제가 한 트랜잭션으로 묶이지 않으므로 순서가 결과를 가른다.
+Blob 을 먼저 지우고 DB 를 지우면, 중간에 실패해도 DB 레코드가 남아 다음 회차에 다시 조회된다.
+
+**보존 기간 6개월의 근거는 확인하지 못했다.** 코드와 커밋 메시지에 남은 값은 6개월뿐이고,
+그 값이 법령에서 나온 것인지는 저장소에서 확인할 수 없었다.
 
 ---
 
 ## 두 개의 DB
 
-KYC 데이터는 메인 DB와 별도 KYC 전용 DB에 저장된다. Spring Boot에서 멀티 DataSource를 설정해서 메인과 KYC DB를 분리해서 접근했다.
+KYC 데이터는 메인 DB와 별도 KYC 전용 DB에 저장된다. 접근하는 쪽마다 분리 방식이 다르다.
 
-```java
-// KyC DB 설정
-@Configuration
-public class KycConfiguration {
-    // KYC 전용 DataSource, TransactionManager 설정
-}
-```
+| 접근 주체 | 분리 방식 |
+| --- | --- |
+| kyc-server (NestJS) | Prisma client 를 둘로 나눠 `common-prisma.service.ts` 와 `kyc-prisma.service.ts` 로 관리 |
+| 어드민 백엔드 (Spring Boot) | 프로파일 설정에 `kycDataSource` 를 메인 datasource 와 별도로 선언 |
+| 배치 (Spring Batch) | `KycConfiguration` 에서 KYC 전용 DataSource 와 TransactionManager 를 구성 |
 
-kyc-server에서는 Prisma ORM을 사용해 두 개 DB(`common-prisma.service.ts`, `kyc-prisma.service.ts`)를 각각 관리했다.
+`KycConfiguration` 은 배치 저장소에만 있다. 어드민 백엔드는 설정 파일에서 datasource 를 나누고 별도 설정 클래스를 두지 않았다.
 
 ---
 
