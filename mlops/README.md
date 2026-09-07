@@ -27,3 +27,9 @@ Triton, BentoML, Ray Serve를 층위별로 비교한 스터디 시리즈. OCR �
 - [BentoML](./serving-frameworks/bentoml.md) — Python 코드를 프로덕션 API로 포장하는 프레임워크
 - [Ray Serve](./serving-frameworks/ray-serve.md) — 여러 모델을 분산·오토스케일하는 오케스트레이션 층
 - [Triton vs BentoML vs Ray Serve](./serving-frameworks/triton-vs-bentoml-vs-ray.md) — 층이 다른 셋을 어떻게 고르나
+
+## Model Router (시리즈)
+
+모델 호출이 지나는 한 지점에서 어느 모델과 어느 인스턴스로 보낼지 정하는 계층을 정리한 스터디 시리즈. 관리형 라우터로 충분한 구간과 자체 구축으로 넘어가는 조건을 가르기 위한 기록이다.
+
+- [Model Router 란 무엇인가](./model-router/what-is-model-router.md) — 모델을 고르는 계층과 인스턴스를 고르는 계층
