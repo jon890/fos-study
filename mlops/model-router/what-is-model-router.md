@@ -218,3 +218,6 @@ Uber 는 이 처리가 지연을 늘리고 결과 품질도 함께 해친다고 
 - [llm-d Precise Prefix Cache Aware Routing](https://llm-d.ai/docs/guide/Installation/precise-prefix-cache-aware)
 - [prompt caching 가격 구조](https://tokencost.app/blog/prompt-caching-pricing-2026)
 - [TrueFoundry. KV cache routing](https://www.truefoundry.com/blog/kv-cache-routing-why-standard-load-balancers-break-prefix-caching-and-how-to-fix-it)
+- [Uber GenAI Gateway](https://www.uber.com/en-CA/blog/genai-gateway/)
+- [Netflix 사내 LLM 서빙](https://netflixtechblog.com/in-house-llm-serving-at-netflix-a5a8e799ea2c)
+- [Netflix LLM 플랫폼 정리 (InfoQ)](https://www.infoq.com/news/2026/07/netflix-llm-platform/)
