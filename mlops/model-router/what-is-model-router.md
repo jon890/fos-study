@@ -8,6 +8,7 @@ seriesOrder: 1
 
 > [GPU로 LLM을 서빙한다는 것](../llm-serving/gpu-llm-serving-basics.md)이 모델 한 대를 어떻게 굴리는지를 다뤘다면, 이 글은 그 위 계층을 다룬다.
 > 모델이 여러 개가 되고 제공자가 섞이는 순간 생기는 문제다.
+> 아래 서빙 계층 자체의 비교는 [Triton vs BentoML vs Ray Serve](../serving-frameworks/triton-vs-bentoml-vs-ray.md)가 다룬다.
 
 애플리케이션에서 LLM 을 처음 붙일 때는 SDK 하나를 호출하면 끝난다.
 그런데 모델이 둘 이상 되고, 어떤 요청은 싼 모델로 충분하고 어떤 요청은 비싼 모델이 필요하고, 제공자 한 곳이 죽었을 때 다른 곳으로 넘겨야 하는 상황이 오면 그 판단을 어디에 둘지가 문제가 된다.
