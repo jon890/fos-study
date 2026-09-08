@@ -33,3 +33,10 @@ Triton, BentoML, Ray Serve를 층위별로 비교한 스터디 시리즈. OCR �
 모델 호출이 지나는 한 지점에서 어느 모델과 어느 인스턴스로 보낼지 정하는 계층을 정리한 스터디 시리즈. 관리형 라우터로 충분한 구간과 자체 구축으로 넘어가는 조건을 가르기 위한 기록이다.
 
 - [Model Router 란 무엇인가](./model-router/what-is-model-router.md) — 모델을 고르는 계층과 인스턴스를 고르는 계층
+- [어느 모델로 보낼지 무엇으로 정하는가](./model-router/routing-criteria-and-cost.md) — 판단 방식 넷과 그 판단에 드는 시간
+- [모델을 골라주는 계층이 대신 가져오는 제약](./model-router/router-constraints.md) — 컨텍스트 한도, 대상 목록 고정, 결정 추적, 캐시와의 충돌
+- [캐시를 보고 인스턴스를 고른다](./model-router/cache-aware-routing.md) — prefix aware 와 KV cache aware 의 차이
+- [첫 토큰이 나간 뒤에는 재시도할 수 없다](./model-router/streaming-retry-boundary.md) — streaming 중 장애의 재시도 경계
+- [LiteLLM 로 라우팅 정책을 설정하는 방법](./model-router/litellm-routing-strategies.md) — 라우팅 전략, fallback, cooldown, 예산
+- [vLLM 지표를 라우팅 판단에 쓰는 방법](./model-router/vllm-metrics-for-routing.md) — 요청 경로에서 볼 값과 사후 진단에 쓸 값
+- [같은 문제를 회사마다 다른 층에서 푼다](./model-router/industry-cases.md) — 토스증권, Netflix, Uber, KT 의 계층 경계
