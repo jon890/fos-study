@@ -15,7 +15,7 @@ RAG 파이프라인 구성 요소 학습 기록. 임베딩·벡터 검색·알�
 
 ## 실무 사례
 
-- [엔터프라이즈 RAG 구축 사례 (Kubeflow + Milvus + LLaMA3)](./enterprise-rag-with-kubeflow.md)
+- [엔터프라이즈 RAG 구축 사례](./enterprise-rag-with-kubeflow.md) — Kubeflow, Milvus, LLaMA3 조합
 - [STORM Parse](./storm-parse.md) — 구조화 추출/파싱 방법
 - [Docling](./docling.md) — IBM Research 의 문서 파싱 toolkit. 표·스캔본·다단 레이아웃 처리와 OCR 플러그인
 - [토스: 100번 실패하고 살려낸 문서 시스템](./toss-parkssi.md) — 외부 사례 정리
