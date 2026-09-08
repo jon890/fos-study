@@ -129,6 +129,7 @@ Uber 의 GenAI Gateway 는 이 기록을 감사 로그 하나로 통합해 비�
 이 절이 라우터 설계에서 가장 반직관적인 부분이다.
 
 외부 제공자의 prompt caching 은 값이 셋이다.
+아래는 2026년 공개 자료 기준이고, 제공자마다 다르며 단가는 바뀐다.
 
 | 값 | 크기 |
 | --- | --- |
@@ -154,7 +155,7 @@ Claude Haiku 4.5 를 예로 들면 100만 토큰당 cache read $0.10 대 기본 
 
 **그래서 토큰 단가만 보고 고른 "가장 싼 모델" 이 실제로 가장 싼 선택이 아닐 수 있다.**
 캐시가 이미 붙어 있는 비싼 모델이 더 싸게 끝나는 구간이 있다.
-DigitalOcean 이 자사 inference router 를 소개한 글의 제목이 이 지점을 그대로 가리킨다.
+DigitalOcean 은 자사 inference router 를 소개하며 [가장 싼 모델이 가장 싸지 않은 이유](https://www.digitalocean.com/blog/inference-router-cache-aware)를 이 캐시 문제로 설명한다.
 
 정책에 넣으려면 값을 셋 알아야 한다.
 
