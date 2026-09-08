@@ -5,9 +5,9 @@ thumbnail: ./images/docling-thumbnail.jpg
 tags: [study]
 ---
 
-# Docling — IBM Research 의 문서 파싱 toolkit 상세 정리
+# Docling: IBM Research 의 문서 파싱 toolkit
 
-문서를 RAG·LLM 컨텍스트로 넣으려면 PDF·PPTX·HTML 같은 입력을 깨끗한 텍스트 (또는 markdown / JSON) 으로 변환해야 한다. 이걸 "쉽게" 해주는 라이브러리는 의외로 많지 않다. 표가 있는 PDF, 스캔본, 다단 레이아웃, 페이지 안의 그림과 캡션 같은 변형이 많기 때문.
+문서를 RAG·LLM 컨텍스트로 넣으려면 PDF·PPTX·HTML 같은 입력을 깨끗한 텍스트 (또는 markdown / JSON) 으로 변환해야 한다. 이 변환을 쉽게 해주는 라이브러리는 의외로 많지 않다. 표가 있는 PDF, 스캔본, 다단 레이아웃, 페이지 안의 그림과 캡션처럼 변형이 많기 때문이다.
 
 **Docling** 은 IBM Research (Zurich) 가 2024 년에 오픈소스로 공개한 문서 파싱 toolkit 이다.
 MIT 라이선스이고, 2025년 4월 IBM 이 **LF AI & Data Foundation** 에 기증해 지금은 재단이 호스팅한다.
@@ -36,11 +36,11 @@ LangChain·LlamaIndex 와도 곧바로 연결된다.
 | LlamaParse | LlamaIndex 의 클라우드 서비스 | markdown, JSON |
 
 오픈소스, 로컬 실행, 다포맷, 구조 인식을 한꺼번에 만족하는 것이 Docling 의 자리다.
-RAG 파이프라인에서 "전처리 단계의 표준" 자리를 노린다.
+RAG 파이프라인의 전처리 단계를 표준화하는 것이 이 프로젝트의 목표다.
 
 ## 두 가지 아키텍처 패러다임
 
-Docling 은 흥미롭게도 같은 프로젝트 안에 두 가지 다른 접근을 가지고 있다.
+Docling 은 같은 프로젝트 안에 두 가지 접근을 함께 두고 있다.
 
 ### 1) 전통적 multi-stage 파이프라인
 
@@ -51,12 +51,12 @@ PDF → Layout 감지 → OCR → 표 인식 → reading order → markdown.
 - **Layout** — RT-DETR 아키텍처를 DocLayNet 데이터셋으로 학습한 모델. 페이지에서 텍스트·표·그림·헤더 영역을 box 로 잡아낸다. 2025년 12월 도입된 **Heron layout model** 이 속도 개선판.
 - **OCR** — 텍스트 박스의 픽셀을 글자로. EasyOCR (기본), Tesseract, RapidOCR, OcrMac (macOS Vision framework), 또는 사용자 정의 플러그인.
 - **Table structure** — 표 영역을 셀 grid 로 복원. TableFormer 모델 사용.
-- **Cell matching** — Layout 의 표 좌표와 텍스트 박스를 매칭해 셀 컨텐츠 채우기.
+- **Cell matching** — Layout 의 표 좌표와 텍스트 박스를 매칭해 셀 내용을 채운다.
 - **Reading order 와 markdown** — bbox 좌표와 카테고리로 자연스러운 순서를 정하고 markdown 으로 export 한다.
 
-장점은 각 단계가 교체 가능하다는 점. OCR 만 클라우드 API 로 바꾸거나 layout 모델만 더 좋은 걸로 갈아끼울 수 있다.
+장점은 각 단계를 교체할 수 있다는 것이다. OCR 만 클라우드 API 로 바꾸거나 layout 모델만 더 좋은 걸로 갈아끼울 수 있다.
 
-단점은 **cascading error**. 앞 단계의 작은 실수가 뒤 단계로 누적된다. Layout 이 표 영역을 잘못 잡으면 cell matching 이 통째로 망가지는 식.
+단점은 **cascading error** 다. 앞 단계의 작은 실수가 뒤 단계로 누적된다. Layout 이 표 영역을 잘못 잡으면 cell matching 이 통째로 망가진다.
 
 ### 2) Granite-Docling VLM (2026년 1월 공개)
 
@@ -68,11 +68,11 @@ PDF → Layout 감지 → OCR → 표 인식 → reading order → markdown.
 
 장점은 cascading error 가 사라지고, 단일 모델이라 배포가 단순하다는 것.
 단점은 VLM 추론이 무겁고 (GPU 필요) 커스터마이징 여지가 적다는 점.
-표 안의 표나 각주 같은 복잡한 케이스에서 멀티-스테이지가 더 잘 잡는 경우도 여전히 있다.
+표 안의 표나 각주처럼 복잡한 문서에서는 multi-stage 가 더 잘 잡는 경우도 여전히 있다.
 
-### 3) 두 패러다임이 다시 만나는 지점 — 2-stage 변형
+### 3) 2-stage 변형에서 두 패러다임이 다시 만난다
 
-흥미로운 건 이 두 갈래가 갈라지기만 한 게 아니라 다시 합쳐지고 있다는 점이다.
+이 두 갈래는 갈라지기만 한 것이 아니라 다시 합쳐지고 있다.
 
 `granite-docling-2stage-258m` 은 단일 VLM 앞에 **layout 감지 단계를 되돌려 놓은** 변형이다.
 
@@ -85,14 +85,14 @@ PDF → Layout 감지 → OCR → 표 인식 → reading order → markdown.
 정리하면 이렇다.
 순수 단일 VLM 은 cascading error 를 없앴지만 처음 보는 레이아웃에서 흔들렸고,
 그래서 layout 단계만 앞에 다시 붙여 "힌트를 주는" 형태로 절충한 것이다.
-멀티-스테이지의 단계 교체 가능성과 VLM 의 통합 추론 중 어느 한쪽이 이겼다기보다,
+multi-stage 의 단계 교체 가능성과 VLM 의 통합 추론 중 어느 한쪽이 우세하다기보다,
 **layout 은 별도 모델, 나머지는 VLM** 이라는 구도로 수렴하는 중으로 보인다.
 
 우리 서비스는 다국어 OCR 분기와 외부 OCR API 연동 때문에 multi-stage 를 쓴다.
 한국어는 사내 클라우드 OCR API, 일본어는 로컬 PaddleOCR 로 갈라야 하는데 단일 VLM 에는 그 갈래를 끼울 자리가 없다.
 반대로 언어 분기가 필요 없고 GPU 여유가 있다면 VLM 경로가 더 단순한 선택이다.
 
-## DoclingDocument — 단일 중간 표현
+## DoclingDocument 라는 단일 중간 표현
 
 Docling 의 핵심 추상화. 모든 변환 경로가 결과적으로 `DoclingDocument` 를 만들고, 거기서 다양한 포맷으로 export 한다.
 
@@ -118,9 +118,9 @@ tags = doc.export_to_doctags() # 학습용 마크업
 - **Pictures** — 그림 객체 (좌표·메타데이터·선택적 base64 PNG)
 - **Provenance** — 각 요소가 어느 페이지 어느 좌표에서 왔는지 추적
 
-자바로 비유하면 IR (Intermediate Representation) 또는 AST. 입력 포맷이 무엇이든 같은 트리로 정규화되고, export 단계가 포맷별 visitor 패턴.
+자바로 비유하면 IR (Intermediate Representation) 또는 AST 에 해당한다. 입력 포맷이 무엇이든 같은 트리로 정규화되고, export 단계가 포맷별 visitor 패턴을 맡는다.
 
-## Pipeline 옵션 — 실전에서 만지는 부분
+## 실전에서 만지는 Pipeline 옵션
 
 `DocumentConverter` 에 `PdfFormatOption(pipeline_options=...)` 으로 옵션을 주입한다. 자주 만지는 항목:
 
@@ -166,9 +166,9 @@ converter = DocumentConverter(
 이런 옵션은 한 번 잘못 박히면 요청 수에 비례해 손해가 누적된다.
 "켜 둔 옵션의 산출물을 실제로 소비하고 있는가" 를 초기에 한 번 확인하는 게 싸게 먹힌다.
 
-## ThreadedPdfPipelineOptions — 단계 간 파이프라이닝
+## ThreadedPdfPipelineOptions 로 단계 간 파이프라이닝
 
-PDF 처리는 페이지 단위로 layout → OCR → table → assemble 같은 단계가 직렬로 흐른다. 페이지 N개를 순차 처리하면 한 페이지가 모두 끝나야 다음 페이지가 시작.
+PDF 처리는 페이지 단위로 layout → OCR → table → assemble 같은 단계가 직렬로 흐른다. 페이지 N개를 순차 처리하면 한 페이지가 모두 끝나야 다음 페이지가 시작된다.
 
 `ThreadedPdfPipelineOptions` 는 단계들을 별도 thread 로 분리해 **다른 페이지가 다른 단계에 있어도 동시에 처리**되게 한다. CPU/GPU 단계가 섞여 있을 때 GPU 가 idle 한 시간이 줄어든다.
 
@@ -185,7 +185,7 @@ opts = ThreadedPdfPipelineOptions(
 자바로 비유하면 Spring Batch 의 `chunk` 에 단계별 `TaskExecutor` 를 따로 붙인 구조다.
 ETL 파이프라인에서 단계마다 스레드 풀을 다르게 잡는 패턴과 같다.
 
-### 함정 — 옵션만 넣으면 켜지지 않는다
+### 옵션만 넣으면 켜지지 않는다
 
 여기서 우리가 오래 못 알아챈 버그가 하나 있었다.
 `ThreadedPdfPipelineOptions` 를 만들어 넘기는 것만으로는 threaded pipeline 이 켜지지 않는다.
@@ -204,7 +204,7 @@ PdfFormatOption(
 ```
 
 `ThreadedPdfPipelineOptions=` 는 `PdfFormatOption` 에 없는 필드명이다.
-그런데 pydantic 이 이걸 extra 로 조용히 버리고 예외를 내지 않는다.
+그런데 pydantic 이 이 값을 extra 로 버리면서 예외를 내지 않는다.
 결과적으로 코드에는 threaded 라고 적혀 있고 실제로는 기본 파이프라인이 도는 상태가 유지됐다.
 
 **교훈은 하나다. 옵션을 넣었다고 믿지 말고 생성된 객체를 확인한다.**
@@ -218,13 +218,13 @@ print(opt.pipeline_cls)   # ThreadedStandardPdfPipeline 인지 눈으로 확인
 자바에서 Spring 설정을 바꿔 놓고 `@Bean` 이 실제로 교체됐는지 런타임에서 확인하는 것과 같다.
 설정 객체가 관대할수록 (extra 허용, 무효 kwarg 무시) 이 확인이 필요해진다.
 
-한 가지 더 — docling 2.96 부터 threaded 구현이 `StandardPdfPipeline` 본체에 흡수됐다.
+한 가지 더 있다. docling 2.96 부터 threaded 구현이 `StandardPdfPipeline` 본체에 흡수됐다.
 `ThreadedStandardPdfPipeline` 은 하위 호환 alias 로 남아 있다.
 그래서 최신 버전에서는 이 함정 자체가 덜 위험해졌지만, 명시 선언은 의도를 코드에 남기는 값이 있어 유지하고 있다.
 
 ### 외부 OCR 을 쓰면 효과가 줄어든다
 
-OCR 단계가 외부 API 호출이라면 이 파이프라이닝의 효과가 거의 사라진다. 내부 처리 단계만 빨라지고 외부 호출 지연이 그대로 노출되기 때문. 외부 OCR 을 쓰면 단계 안에서 영역 단위 병렬 호출 (ThreadPoolExecutor) 이 별도로 필요하다.
+OCR 단계가 외부 API 호출이라면 이 파이프라이닝의 효과가 거의 사라진다. 내부 처리 단계만 빨라지고 외부 호출 지연이 그대로 노출되기 때문이다. 외부 OCR 을 쓰면 단계 안에서 영역 단위 병렬 호출 (ThreadPoolExecutor) 이 별도로 필요하다.
 
 ## OCR 엔진 플러그인 시스템
 
@@ -268,10 +268,10 @@ def ocr_engines():
 ocr_engines = "my_ocr_plugin.plugin:ocr_engines"
 ```
 
-`pip install` 만 하면 Docling 이 entry-point 로 발견해 사용 가능하다. 자바 SPI (Service Provider Interface) 와 같은 패턴.
+`pip install` 만 하면 Docling 이 entry-point 로 발견해 사용 가능하다. 자바 SPI (Service Provider Interface) 와 같은 패턴이다.
 
 한 가지 주의할 점은 `allow_external_plugins=True` 를 파이프라인 옵션에 켜 줘야 외부 플러그인이 실제로 로드된다는 것이다.
-설치만 해 놓고 이 플래그를 안 켜면 기본 엔진으로 조용히 넘어간다.
+설치만 해 놓고 이 플래그를 켜지 않으면 경고 없이 기본 엔진으로 넘어간다.
 
 ### 우리가 플러그인을 두 개 쓰는 이유
 
@@ -285,7 +285,7 @@ ocr_engines = "my_ocr_plugin.plugin:ocr_engines"
 Docling 본체는 한 줄도 고치지 않았다.
 fork 를 뜨면 업스트림 패치를 계속 따라가야 하고 보안 패치를 놓칠 위험이 생기는데, entry-point 방식은 그 비용이 없다.
 
-### 함정 — 플러그인이 base 를 덮으면 업스트림 개선이 안 들어온다
+### 플러그인이 base 를 덮으면 업스트림 개선이 들어오지 않는다
 
 `BaseOcrModel` 에는 `get_ocr_rects` 라는 메서드가 있다.
 페이지에서 "OCR 을 돌릴 영역" 을 계산하는 함수인데, 우리 한국어 플러그인은 이걸 자체 구현으로 덮어써 놓았다.
@@ -308,11 +308,11 @@ PDF 자체를 파싱해 페이지 이미지·텍스트 레이어를 뽑는 단�
 - **DoclingParseDocumentBackend** — IBM 자체 파서, 더 정확하지만 느릴 수 있음.
 - **PdfPlumberBackend** — pdfplumber 기반.
 
-대부분 케이스에 pypdfium2 가 적당. 텍스트 레이어가 깨진 PDF·복잡한 폼은 다른 backend 를 시도해볼 가치가 있다.
+대부분의 문서에는 pypdfium2 가 적당하다. 텍스트 레이어가 깨진 PDF 와 복잡한 폼은 다른 backend 를 시도해볼 가치가 있다.
 
 ## LangChain / LlamaIndex 통합
 
-Docling 은 RAG 파이프라인의 전처리 자리를 노리고 있어서 LangChain·LlamaIndex 와 곧바로 연결된다.
+Docling 은 RAG 파이프라인의 전처리를 맡는 것을 목표로 하므로 LangChain 과 LlamaIndex 에 곧바로 연결된다.
 
 ```python
 # LangChain
@@ -328,9 +328,9 @@ reader = DoclingReader()
 documents = reader.load_data(file_path="doc.pdf")
 ```
 
-`DoclingDocument` → LangChain `Document` 자동 변환. markdown 출력을 그대로 청크 분할기로 넘기는 흐름.
+`DoclingDocument` 는 LangChain `Document` 로 자동 변환된다. markdown 출력을 그대로 청크 분할기로 넘기면 된다.
 
-## 우리 운영 설정 — 전체 그림
+## 우리 운영 설정의 전체 그림
 
 지금까지의 조각을 우리 서비스가 실제로 어떻게 조립해 쓰는지로 모아 본다.
 FastAPI 앞단에 GPU 워커 풀을 두고, 워커 프로세스마다 Docling converter 를 만들어 쓰는 구조다.
@@ -373,11 +373,11 @@ converter = DocumentConverter(format_options={
 | `num_threads` | `min(4, cpu_count())` | 워커 여러 개가 한 호스트에 뜨므로 워커당 스레드를 묶어 둔다.<br>안 묶으면 워커 수 × 스레드 수가 코어 수를 넘어 컨텍스트 스위치 손해가 난다 |
 | `device` | `AUTO` | GPU 가 있으면 CUDA, 로컬 Mac 개발에서는 MPS 또는 CPU 로 알아서 내려간다 |
 | `confidence_threshold` | `0.0` | OCR 결과를 임계값으로 버리지 않고 전부 받는다.<br>버릴지 말지는 우리가 뒷단에서 정한다 |
-| `images_scale` | `3.0` | OCR 인식률 때문에 유지한다. 픽셀은 제곱으로 늘어 기본값 대비 9배다 |
+| `images_scale` | `3.0` | OCR 인식률 때문에 유지한다 |
 | `generate_picture_images` | `False` | 최종 markdown 이 base64 픽셀을 안 쓴다. 켜 두면 비용만 낸다 |
 | `backend` | `PyPdfiumDocumentBackend` | 명시 선언. docling 이 자동으로 골라 주던 것을 의도가 드러나게 고정했다 |
 
-### converter 캐시 — 옵션 조합마다 하나
+### converter 캐시는 옵션 조합마다 하나다
 
 `do_ocr`, `do_table`, `ja_doc` 세 스위치의 조합마다 converter 가 달라진다.
 매 요청마다 새로 만들면 모델 로딩 비용을 반복해서 낸다.
@@ -400,21 +400,21 @@ PyTorch 와 cuDNN 의 JIT 비용 때문에 첫 변환이 수십 초 걸리기 �
 이 warmup 이 없으면 그 비용을 첫 실사용자가 낸다.
 
 Docling 은 warmup 헬퍼를 제공하지 않으므로 직접 짜야 한다.
-모델 파일 자체도 마찬가지다 — 아래 "모델 다운로드 비용" 을 함께 본다.
+모델 파일도 빌드 시점에 미리 받아 두어야 한다. 아래 "모델 다운로드 비용" 절에서 함께 다룬다.
 
-## 최근 업스트림의 방향 — 변환 도구에서 문서 표준으로
+## 최근 업스트림은 변환 도구에서 문서 표준으로 움직인다
 
 이 글을 처음 쓴 뒤로도 릴리스가 계속 나왔다.
 우리는 2.115 에 고정해 두었고, 그사이 업스트림은 2.118 까지 왔다.
 방향성을 세 갈래로 정리할 수 있다.
 
-### 1) DocLang — 출력 포맷의 표준화
+### 1) DocLang 으로 출력 포맷을 표준화한다
 
 2026년 6월, LF AI & Data 재단이 **DocLang Specification Working Group** 을 만들었다.
 IBM·NVIDIA·Red Hat 이 창립 멤버이고 ABBYY·HumanSignal 이 참여한다.
 
 목표는 "AI 가 읽기 위한 문서 포맷" 의 개방 표준이다.
-PDF 는 사람이 보라고 만든 포맷이라 기계가 구조를 복원하려면 지금 우리가 하는 짓 (layout 감지, OCR, 표 복원) 을 매번 해야 한다.
+PDF 는 사람이 보라고 만든 포맷이라, 기계가 구조를 복원하려면 지금 우리가 하는 일 (layout 감지, OCR, 표 복원) 을 매번 해야 한다.
 그 복원 결과를 표현하고 시스템 사이에 주고받는 형식을 표준으로 못박겠다는 것이다.
 
 기반은 Docling 이 이미 쓰고 있는 것들이다.
@@ -446,7 +446,7 @@ Docling 이 변환(ingestion) 을 맡고 DocLang 이 교환 형식을 맡는 분
 - 타입 기반 에러 분류와 예외 체이닝 (에러 사유를 문자열 매칭으로 가르던 코드를 제거할 근거가 된다)
 
 마지막 항목은 특히 반갑다.
-예외를 문자열로 분류하는 코드는 업스트림 메시지가 바뀌는 순간 조용히 오분류를 시작하기 때문이다.
+예외를 문자열로 분류하는 코드는 업스트림 메시지가 바뀌는 순간부터 오류를 내지 않고 잘못된 분류를 내놓기 때문이다.
 
 ### 3) OCR 단계 자체의 재정비
 
@@ -454,7 +454,7 @@ Docling 이 변환(ingestion) 을 맡고 DocLang 이 교환 형식을 맡는 분
 2.117 에서 OCR 렌더링 배율이 하드코딩에서 설정값으로 바뀌었다.
 2.118 은 RapidOcrModel 을 리팩터링해 PP-OCR 의 모든 언어를 지원하게 했다.
 
-우리처럼 OCR 을 플러그인으로 갈아끼운 쪽에는 양날이다.
+우리처럼 OCR 을 플러그인으로 갈아끼운 쪽에는 이득과 손실이 함께 있다.
 공통 계층이 좋아지는 건 이득이지만, 앞서 적은 `get_ocr_rects` 사례처럼 **덮어쓴 지점은 그 개선을 받지 못한다.**
 OCR 계층 리팩터링이 계속되면 우리 플러그인과 base 사이의 간격도 함께 벌어진다.
 
@@ -464,20 +464,20 @@ OCR 계층 리팩터링이 계속되면 우리 플러그인과 base 사이의 �
 
 ### 모델 다운로드 비용
 
-처음 사용 시 HuggingFace 에서 layout/table/OCR 모델을 자동 다운로드한다. 합쳐서 수백 MB. Docker 빌드 시점에 미리 받아두지 않으면 첫 컨테이너 시작이 매우 느려진다.
+처음 사용 시 HuggingFace 에서 layout/table/OCR 모델을 자동 다운로드한다. 합쳐서 수백 MB 다. Docker 빌드 시점에 미리 받아두지 않으면 첫 컨테이너 시작이 매우 느려진다.
 
 ```bash
 # 빌드 시점에 미리 다운로드
 docling-tools models download
 ```
 
-자바 진영의 Maven 의존성 사전 다운로드 (`mvn dependency:go-offline`) 같은 패턴.
+자바 진영의 Maven 의존성 사전 다운로드 (`mvn dependency:go-offline`) 와 같은 패턴이다.
 
 ### 청크 처리
 
-매우 큰 PDF (수백 페이지) 는 메모리 부담이 크다. 페이지를 N개씩 잘라 별도로 변환하고 합치는 chunking 패턴이 일반적. Docling 의 `page_range` 옵션을 활용해 페이지 범위로 잘라 처리할 수 있다.
+매우 큰 PDF (수백 페이지) 는 메모리 부담이 크다. 페이지를 N개씩 잘라 별도로 변환하고 합치는 chunking 패턴이 일반적이다. Docling 의 `page_range` 옵션을 활용해 페이지 범위로 잘라 처리할 수 있다.
 
-다만 청크 경계에서 표·각주가 잘리면 후처리가 까다롭다. 표 영역이 페이지 경계를 넘는 케이스가 특히 어려움.
+다만 청크 경계에서 표와 각주가 잘리면 후처리가 까다롭다. 표 영역이 페이지 경계를 넘을 때가 특히 어렵다.
 
 ### 멀티 페이지 표
 
@@ -487,7 +487,7 @@ docling-tools models download
 
 `do_ocr`, `do_table`, `do_picture_classification`, OCR engine, layout model, table model 같은 옵션이 곱셈으로 늘어난다.
 각 조합마다 converter 객체를 따로 만들면 메모리 압박이 온다.
-조합별 캐시가 필요하지만, 캐시 키에 스위치 하나를 빠뜨리면 다른 설정의 converter 를 재사용하는 버그가 조용히 생긴다.
+조합별 캐시가 필요하지만, 캐시 키에 스위치 하나를 빠뜨리면 다른 설정의 converter 를 재사용하는데, 예외가 나지 않아 발견이 늦어진다.
 
 ### 프로파일링 스위치가 두 개다
 
@@ -561,7 +561,7 @@ OCR 엔진은 entry-point 플러그인으로 교체 가능해서 클라우드 OC
 - **버전 업그레이드는 출력이 바뀌는 변경이다** — 회귀를 가릴 채점 수단을 먼저 갖추고 올린다
 
 업스트림은 변환 도구를 넘어 문서 표준 (DocLang) 과 서비스 운영 쪽으로 무게를 옮기는 중이다.
-RAG 파이프라인의 전처리 자리를 노리던 라이브러리가 문서 데이터 계층 전체를 노리는 방향으로 커지고 있다.
+RAG 전처리를 맡던 라이브러리가 문서 데이터 계층 전체로 범위를 넓히고 있다.
 
 ## 참고
 
