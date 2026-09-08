@@ -83,7 +83,7 @@ flowchart TB
 자체 호스팅 vLLM 을 여러 대 띄우는 순간부터 아래 계층이 내 몫이 된다.
 
 이 구분이 도구 선택으로 바로 이어진다.
-LiteLLM proxy 의 `routing_strategy` 는 `simple-shuffle`(기본), `least-busy`, `usage-based-routing`, `latency-based-routing` 네 가지인데, **넷 중 캐시 상태를 보는 것이 없다.**
+LiteLLM proxy 의 `routing_strategy` 는 `simple-shuffle`(기본), `least-busy`, `usage-based-routing`, `latency-based-routing`, `cost-based-routing` 다섯 가지인데, **다섯 중 캐시 상태를 보는 것이 없다.**
 캐시를 보는 판단은 vLLM production stack 과 llm-d 가 아래 계층에서 따로 제공한다.
 위 계층 도구에 아래 계층 기대를 걸면 없는 기능을 찾게 된다.
 
@@ -135,7 +135,7 @@ fallback 대상도 그 목록이 겸하므로 승인하지 않은 모델로 넘�
 같은 앞부분을 가진 요청이 이미 그 앞부분을 계산해 둔 인스턴스로 가면 prefill 을 다시 하지 않는다.
 일반 로드 밸런서는 이 상태를 모르고 요청을 흩어 보내므로 prefix cache 적중이 떨어진다.
 
-여기서 두 방식이 갈린다. 시리즈 4번에서 자세히 다룬다.
+여기서 두 방식이 갈린다. [캐시를 보고 인스턴스를 고른다](./cache-aware-routing.md)에서 자세히 다룬다.
 
 | 방식 | 판단 |
 | --- | --- |
@@ -192,7 +192,7 @@ Uber 는 이 처리가 지연을 늘리고 결과 품질도 함께 해친다고 
 - **라우팅 계층을 새로 만들지 않는 선택도 있다.** Netflix 는 추천 시스템의 라우팅과 A/B 테스트를 이미 담당하던 JVM 서빙 계층에 LLM 호출을 붙였다.
 - **오픈소스를 쓰고 정책만 직접 만드는 절충이 있다.** KT 는 인증과 로깅과 모니터링을 LiteLLM 에 맡기고, 요청을 Task 와 Domain 과 Level 과 Capability 네 축으로 분류하는 정책을 그 위에 얹었다.
 
-각 사례의 판정 기준과 배경은 시리즈 8번에서 따로 다룬다.
+각 사례의 판정 기준과 배경은 [같은 문제를 회사마다 다른 층에서 푼다](./industry-cases.md)에서 따로 다룬다.
 
 ## 정리
 
@@ -207,6 +207,8 @@ Uber 는 이 처리가 지연을 늘리고 결과 품질도 함께 해친다고 
 다음 글에서는 결정 계층이 실제로 무엇을 보고 모델을 고르는지를 다룬다.
 규칙, 임베딩 유사도, 분류 모델, 계단식 네 가지 기준이 있고 각각 라우팅 판단 자체에 지연을 얹는다.
 "싼 모델로 보내 비용을 줄인다" 는 말이 그 판단 비용을 계산에 넣으면 어떻게 달라지는지가 그 글의 주제다.
+
+[어느 모델로 보낼지 무엇으로 정하는가](./routing-criteria-and-cost.md)로 이어진다.
 
 ## 참고 링크
 
