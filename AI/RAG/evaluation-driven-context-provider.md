@@ -332,7 +332,7 @@ ARES는 합성 데이터와 소량의 사람 표기를 결합해 평가자를 �
 RAGChecker는 기존 자동 지표보다 사람 판단과 더 높은 상관을 보였다고 보고한다.
 그 결과가 사람 평가를 완전히 대체한다는 뜻은 아니다.
 
-골든셋, 회귀 검사, LLM 평가자, 사람 검토를 연결하는 일반적인 흐름은 [LLM 평가 프레임워크](../llm-evaluation-framework.md)에 별도로 정리했다.
+골든셋, 회귀 검사, LLM 평가자, 사람 검토를 연결하는 일반적인 흐름은 [LLM 평가 프레임워크](../ops/llm-evaluation-framework.md)에 별도로 정리했다.
 
 그래서 평가 수단도 역할을 나눈다.
 
@@ -430,7 +430,7 @@ VectorDB와 임베딩이 좋다는 말을 **무엇이 얼마나 좋아졌을 때
 - [벡터 DB 어떻게 고를까](../../database/vectordb-comparison.md)
 - [벡터 DB 5종을 실제로 벤치마크했다](../../database/vectordb-benchmark.md)
 - [OpenSearch로 RAG 검색 품질 높이기](../../database/opensearch/rag-search-quality.md)
-- [LLM 평가 프레임워크](../llm-evaluation-framework.md)
+- [LLM 평가 프레임워크](../ops/llm-evaluation-framework.md)
 
 ### 외부 자료
 

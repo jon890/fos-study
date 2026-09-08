@@ -8,7 +8,7 @@ tags: [tasks]
 
 웹소설 원작을 입력하면 운영자가 세계관과 캐릭터를 검토하고 웹툰 컷 이미지까지 생성할 수 있는 내부 MVP를 만들었다.
 
-계획, 구현, 검토 단계를 파일로 남기는 하네스를 사용했다. 하네스 설계는 [하네스 엔지니어링](../../AI/harness-engineering-practice.md)에 따로 정리했다.
+계획, 구현, 검토 단계를 파일로 남기는 하네스를 사용했다. 하네스 설계는 [하네스 엔지니어링](../../AI/harness/harness-engineering-practice.md)에 따로 정리했다.
 
 ---
 
@@ -289,7 +289,7 @@ planning 결과물은 `tasks/planNNN-*/index.json`, 여러 phase 파일로 떨�
 
 즉석 구현에서 시작해 명세 작성, 재시작 가능한 단계 실행, 독립 검토, 목업 통합 순서로 하네스를 보완했다. 작업 상태와 결정 근거를 파일에 남겨 세션이 끊겨도 이어갈 수 있었고, 반복되는 통합 절차는 스킬로 재사용했다.
 
-상세한 구조와 진화 과정은 [하네스 엔지니어링 실전편](../../AI/harness-engineering-practice.md)에 정리해뒀다.
+상세한 구조와 진화 과정은 [하네스 엔지니어링 실전편](../../AI/harness/harness-engineering-practice.md)에 정리해뒀다.
 
 ---
 
@@ -323,5 +323,5 @@ ADR이 한 파일에 계속 쌓이면서 1,581줄까지 늘어난 적이 있다.
 
 ## 참고
 
-- [하네스 엔지니어링](../../AI/harness-engineering-practice.md): 에이전트 작업 파이프라인의 구조와 변화
-- [하네스 설계 원칙](../../AI/harness-engineering.md): 하네스 개념과 설계 기준
+- [하네스 엔지니어링](../../AI/harness/harness-engineering-practice.md): 에이전트 작업 파이프라인의 구조와 변화
+- [하네스 설계 원칙](../../AI/harness/harness-engineering.md): 하네스 개념과 설계 기준

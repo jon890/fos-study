@@ -310,4 +310,4 @@ Text2Cypher는 허용하지 않은 쿼리를 실행하지 않아야 한다.
 
 - 이전 글: [GraphRAG 평가와 벡터 RAG 제거 실험](./07-evaluation-and-ablation.md)
 - 함께 읽기: [RAG를 평가에서 역설계하기](../evaluation-driven-context-provider.md)
-- 함께 읽기: [온톨로지에서 코딩 에이전트 컨텍스트까지](../../ontology-knowledge-graph-agent-context.md)
+- 함께 읽기: [온톨로지에서 코딩 에이전트 컨텍스트까지](../../agent/ontology-knowledge-graph-agent-context.md)

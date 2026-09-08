@@ -16,7 +16,7 @@ LLM을 붙인 제품의 백엔드는 일반 CRUD 백엔드와 안정성 모델�
 
 그래서 AI 제품 백엔드의 안정성은 "장애가 안 나게 한다"가 아니라 **비결정성·가변 지연·실시간 비용·외부 의존을 전제로 깔고, 나빠질 때 어디서 끊고 어떻게 우아하게 내려갈지를 설계한다** 가 핵심이다. 이 문서는 그 설계를 지연·비용·권한·관측·실패 처리 다섯 축으로 정리한다.
 
-도구 호출 자체의 설계(레지스트리, 스키마 검증, dispatcher)는 [LLM Tool Calling과 Agent Workflow 설계](agent/llm-tool-calling-agent-workflow.md)에서, 일반 분산 시스템 resilience 스택(Timeout/Retry/Circuit Breaker/Bulkhead/Backpressure)은 [Resilience 패턴 가이드](../architecture/distributed-systems/resilience-patterns.md)에서 다룬다. 이 문서는 그 둘을 AI 제품 운영 관점에서 묶는 허브 역할을 한다.
+도구 호출 자체의 설계(레지스트리, 스키마 검증, dispatcher)는 [LLM Tool Calling과 Agent Workflow 설계](agent/llm-tool-calling-agent-workflow.md)에서, 일반 분산 시스템 resilience 스택(Timeout/Retry/Circuit Breaker/Bulkhead/Backpressure)은 [Resilience 패턴 가이드](../../architecture/distributed-systems/resilience-patterns.md)에서 다룬다. 이 문서는 그 둘을 AI 제품 운영 관점에서 묶는 허브 역할을 한다.
 
 ## 핵심 개념: 안정성 5개 축
 
@@ -88,7 +88,7 @@ AI 백엔드에서 비용 급증은 "느린 장애"다. 모니터링 그래프�
 
 ## 관측 (Observability)
 
-AI 백엔드는 "왜 이 답이 나왔는가"를 사후에 재구성할 수 없으면 개선도 사고 대응도 못 한다. 일반 [관측성 기본기](../observability/basics.md)에 더해, AI 특화 항목을 남긴다.
+AI 백엔드는 "왜 이 답이 나왔는가"를 사후에 재구성할 수 없으면 개선도 사고 대응도 못 한다. 일반 [관측성 기본기](../../observability/basics.md)에 더해, AI 특화 항목을 남긴다.
 
 ### 무엇을 남기는가
 

@@ -65,7 +65,7 @@ flowchart LR
 
 ## 성공 조건은 온톨로지가 아니라 컨텍스트다
 
-[온톨로지에서 코딩 에이전트 컨텍스트까지](../../ontology-knowledge-graph-agent-context.md)에서는 온톨로지를 클래스와 관계의 계약으로 봤다.
+[온톨로지에서 코딩 에이전트 컨텍스트까지](../../agent/ontology-knowledge-graph-agent-context.md)에서는 온톨로지를 클래스와 관계의 계약으로 봤다.
 이번 시리즈도 같은 전제를 둔다.
 
 다만 이번 프로젝트의 성공 조건은 온톨로지 문서가 완성되는 것이 아니다.

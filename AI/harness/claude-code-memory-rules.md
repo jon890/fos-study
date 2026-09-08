@@ -14,7 +14,7 @@ PR 본문은 이렇게 써라, Dooray 업무 제목은 이 형식이다, 한국�
 나는 그동안 이런 규칙을 프로젝트 안 `.claude/skills/_shared/` 같은 폴더에 마크다운으로 두고 CLAUDE.md에서 링크만 걸어왔다.
 그런데 어느 순간 깨달았다. **링크만 걸어두면 Claude가 그 파일을 잘 안 본다.** 규칙을 적어놨는데 안 지켜지는 경험이 반복됐다.
 이번에 그 구조를 제대로 정리하면서, Claude Code의 메모리 시스템이 정확히 무엇을 언제 읽는지 공식 문서까지 뒤져 확인했다.
-관련해서 스킬·CLAUDE.md를 키워온 과정은 [Claude Code를 5주 더 쓴 결과](./claude-code-usage-reflection-2.md)에 정리해뒀고, 이 글은 그중 **로딩 메커니즘**을 깊이 판다.
+관련해서 스킬·CLAUDE.md를 키워온 과정은 [Claude Code를 5주 더 쓴 결과](../claude-code/claude-code-usage-reflection-2.md)에 정리해뒀고, 이 글은 그중 **로딩 메커니즘**을 깊이 판다.
 
 ## 무엇이 언제 컨텍스트에 들어오나
 
@@ -105,7 +105,7 @@ Hook은 셸 명령으로 실행되고, Claude가 무엇을 하기로 결정하�
 그런데 이러면 팀원이 레포를 clone했을 때 `~/.claude/...` 파일이 없어서 참조가 깨진다.
 애초에 "한국어로 풀어 써라" 같은 건 내 개인 취향이지 팀 강제 규칙이 아닌데, 레포 문서가 그걸 가리키는 것 자체가 잘못된 결합이었다.
 
-그래서 출처 기준으로 갈랐다. (이 "출처 기준 분리"는 [5주 회고](./claude-code-usage-reflection-2.md)에서 한 번 정리했던 원칙인데, 이번에 위치까지 못 박았다.)
+그래서 출처 기준으로 갈랐다. (이 "출처 기준 분리"는 [5주 회고](../claude-code/claude-code-usage-reflection-2.md)에서 한 번 정리했던 원칙인데, 이번에 위치까지 못 박았다.)
 
 | 규칙 성격 | 위치 | 이유 |
 | --- | --- | --- |
@@ -142,5 +142,5 @@ Hook은 셸 명령으로 실행되고, Claude가 무엇을 하기로 결정하�
 ## 참고
 
 - [Claude Code 공식 문서 — 메모리](https://code.claude.com/docs/ko/memory)
-- [Claude Code를 5주 더 쓴 결과 — 스킬·CLAUDE.md를 키워가는 방식](./claude-code-usage-reflection-2.md)
-- [Claude Code의 Skill 시스템](./claude-code-skill-system.md)
+- [Claude Code를 5주 더 쓴 결과 — 스킬·CLAUDE.md를 키워가는 방식](../claude-code/claude-code-usage-reflection-2.md)
+- [Claude Code의 Skill 시스템](../claude-code/claude-code-skill-system.md)

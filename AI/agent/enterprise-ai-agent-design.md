@@ -357,7 +357,7 @@ Claude.md 같은 agent manifest를 분석한 연구들은 공개 repository의 �
 | permission mode가 제품 핵심이다 | autonomy는 model prompt가 아니라 실행 권한 정책으로 제어한다 |
 | manifest가 성능을 좌우한다 | `AGENTS.md`, `CLAUDE.md`, skill 문서를 운영 artifact로 관리한다 |
 
-이 관점은 [하네스 엔지니어링](../harness-engineering.md)과도 이어진다.
+이 관점은 [하네스 엔지니어링](../harness/harness-engineering.md)과도 이어진다.
 coding agent가 오래 살아남으려면 프롬프트보다 harness가 중요하고, harness는 파일, 테스트, 권한, 상태, review loop를 제품화한 것이다.
 
 ## 엔터프라이즈에서 반드시 필요한 경계

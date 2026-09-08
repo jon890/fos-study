@@ -20,10 +20,10 @@ thumbnail: ./images/ontology-knowledge-graph-agent-context-thumbnail.jpg
 - 그래프를 힘들게 구축한 만큼 벡터 RAG보다 나아졌는지 어떻게 측정하는가?
 
 에이전트의 메모리와 권한을 포함한 전체 운영 구조가 먼저 필요하다면
-[엔터프라이즈 AI Agent 설계](./agent/enterprise-ai-agent-design.md)를 함께 보면 좋다.
+[엔터프라이즈 AI Agent 설계](./enterprise-ai-agent-design.md)를 함께 보면 좋다.
 
 이 글의 클래스·관계 계약을 Neo4j에 옮기고 검색 도구로 구현하는 과정은
-[Neo4j GraphRAG로 에이전트 컨텍스트 제공자 만들기](./RAG/neo4j-graphrag/README.md)에서 이어간다.
+[Neo4j GraphRAG로 에이전트 컨텍스트 제공자 만들기](../RAG/neo4j-graphrag/README.md)에서 이어간다.
 
 ## 그래프 데이터베이스보다 온톨로지가 먼저다
 
@@ -741,7 +741,7 @@ MCP가 컨텍스트 교환을 표준화하지만,
 애플리케이션이 컨텍스트를 어떻게 선택하고 관리할지는 규정하지 않는다고 설명한다.
 
 프로젝트 지침을 어떤 형태로 전달할지는
-[AGENTS.md 포맷](./agents-md-format.md)도 함께 참고할 수 있다.
+[AGENTS.md 포맷](../harness/agents-md-format.md)도 함께 참고할 수 있다.
 
 ### 읽기 이후에는 후보 주장만 되돌려 쓴다
 

@@ -68,4 +68,4 @@ tags: [study, insights]
 - 너그러운 입력 해석
 
 이렇게 만든 CLI를, 반복 작업을 절차로 고정한 skill이 호출하면 업무 자동화가 한 단계 더 매끄러워진다.
-skill로 절차를 고정하는 쪽은 [Claude Code의 Skill 시스템](./claude-code-skill-system.md)에서 다룬다.
+skill로 절차를 고정하는 쪽은 [Claude Code의 Skill 시스템](../claude-code/claude-code-skill-system.md)에서 다룬다.

@@ -16,7 +16,7 @@
 
 먼저 읽으면 좋은 글은 두 편이다.
 
-- [온톨로지에서 코딩 에이전트 컨텍스트까지](../../ontology-knowledge-graph-agent-context.md)
+- [온톨로지에서 코딩 에이전트 컨텍스트까지](../../agent/ontology-knowledge-graph-agent-context.md)
   - 클래스, 개체 동일성, 주장과 근거를 어떤 계약으로 다룰지 설명한다.
 - [RAG를 평가에서 역설계하기](../evaluation-driven-context-provider.md)
   - 검색 결과가 아니라 컨텍스트 제공자 전체를 어떻게 평가할지 설명한다.

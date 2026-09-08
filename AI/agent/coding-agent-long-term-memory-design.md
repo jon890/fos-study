@@ -43,7 +43,7 @@ Claude Code는 사람이 작성한 `CLAUDE.md`와 에이전트가 작성하는 �
 공식 문서는 이 기억을 강제 설정이 아니라 모델에 제공하는 context라고 명시한다.
 반드시 실행해야 하는 검사는 기억에 적어 두는 대신 hook이나 테스트로 강제한다.
 
-이 경계는 [Claude Code 메모리](../claude-code-memory-rules.md)에서 실제 규칙 파일을 다루며 겪은 문제와도 이어진다.
+이 경계는 [Claude Code 메모리](../harness/claude-code-memory-rules.md)에서 실제 규칙 파일을 다루며 겪은 문제와도 이어진다.
 문서에 “검사하라”고 적는 것과 검사가 실행되는 것은 다르다.
 
 Anthropic의 장시간 에이전트 예시는 더 단순하고 실용적이다.

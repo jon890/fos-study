@@ -11,7 +11,7 @@ Neo4j 모델링은 명사를 라벨로 옮기는 작업이 아니다.
 
 > 이전 글: [Neo4j GraphRAG의 목표와 기준선](./01-goal-and-baseline.md)
 
-[온톨로지에서 코딩 에이전트 컨텍스트까지](../../ontology-knowledge-graph-agent-context.md)를 먼저 읽으면 좋다.
+[온톨로지에서 코딩 에이전트 컨텍스트까지](../../agent/ontology-knowledge-graph-agent-context.md)를 먼저 읽으면 좋다.
 이 글은 그 온톨로지 관점을 Neo4j 속성 그래프에 맞춰 줄이는 단계다.
 
 이 글은 세 질문에 답한다.

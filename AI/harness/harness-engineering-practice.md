@@ -97,7 +97,7 @@ team-lead → task 파일 생성 → critic 평가
 
 자신이 만든 결과물을 자신이 평가하지 않는다. team-lead가 짠 계획을 team-lead가 평가하지 않는다. executor가 고친 코드를 executor가 검증하지 않는다.
 
-에이전트 간 통신은 SendMessage로 이뤄진다. critic이 판정을 내리면 team-lead에게 메시지를 보내고, team-lead는 그 내용을 바탕으로 executor에게 지시한다. 파이프라인 전체가 Claude Code의 Agent Teams 위에서 돌아간다. (→ [Claude Teams 기본 개념](./claude-teams.md))
+에이전트 간 통신은 SendMessage로 이뤄진다. critic이 판정을 내리면 team-lead에게 메시지를 보내고, team-lead는 그 내용을 바탕으로 executor에게 지시한다. 파이프라인 전체가 Claude Code의 Agent Teams 위에서 돌아간다. (→ [Claude Teams 기본 개념](../claude-code/claude-teams.md))
 
 커밋 권한은 team-lead만 갖는다. executor는 코드를 수정하지만 커밋은 하지 않는다. 모든 phase가 완료되고 docs-verifier까지 통과한 뒤, team-lead가 한 번에 커밋한다. 각 커밋은 완결된 작업 단위를 나타낸다.
 
@@ -398,7 +398,7 @@ docs-verifier는 예상보다 훨씬 유용했다. 코드 변경에만 집중하
 ## 참고
 
 - [하네스 엔지니어링 이론편](./harness-engineering.md) — 하네스의 개념, Anthropic/Fowler 사례, 설계 원칙
-- [Claude Teams 기본 개념](./claude-teams.md) — Agent Teams, SendMessage, 에이전트 타입
+- [Claude Teams 기본 개념](../claude-code/claude-teams.md) — Agent Teams, SendMessage, 에이전트 타입
 - [Harness design for long-running application development (Anthropic Engineering)](https://www.anthropic.com/engineering/harness-design-long-running-apps)
 - [Effective harnesses for long-running agents (Anthropic Engineering)](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
 - [Harness Engineering (Martin Fowler)](https://martinfowler.com/articles/exploring-gen-ai/harness-engineering.html)

@@ -213,7 +213,7 @@ DESIGN.md는 그 진실 소스를 텍스트 표준으로 명시한다. Claude De
 
 내 fos-blog 경험으로는 1인 코드 위주 프로젝트는 Claude Design + ADR + plan/phase 조합이 더 자연스러웠고, DESIGN.md는 보류했다. 다른 컨텍스트(디자이너가 따로 있는 팀, 여러 코딩 에이전트를 동시에 쓰는 환경)라면 결정이 달라질 것이다.
 
-[Claude Code 사용기 2탄](./claude-code-usage-reflection-2.md)에서 정리했듯이 운용 시스템은 사고 한 번에 룰 한 줄씩 박혀 진화한다. 이 글의 비교 결과도 그 진화의 한 시점이다 — 6개월 뒤 다시 보면 어느 쪽이 표준으로 굳었는지 명확해질 것이다.
+[Claude Code 사용기 2탄](../claude-code/claude-code-usage-reflection-2.md)에서 정리했듯이 운용 시스템은 사고 한 번에 룰 한 줄씩 박혀 진화한다. 이 글의 비교 결과도 그 진화의 한 시점이다 — 6개월 뒤 다시 보면 어느 쪽이 표준으로 굳었는지 명확해질 것이다.
 
 ---
 
@@ -225,4 +225,4 @@ DESIGN.md는 그 진실 소스를 텍스트 표준으로 명시한다. Claude De
 - [Introducing Claude Design](https://www.anthropic.com/news/claude-design-anthropic-labs) — 2026-04-17 출시
 - [getdesign.md](https://getdesign.md/), [designmd.app](https://designmd.app/en/) — 추가 DESIGN.md 컬렉션
 - [AGENTS.md 포맷](./agents-md-format.md) — 같은 결의 코딩 에이전트 지침서 컨벤션
-- [Claude Code 사용기 2탄](./claude-code-usage-reflection-2.md) — 운용 시스템 진화 회고
+- [Claude Code 사용기 2탄](../claude-code/claude-code-usage-reflection-2.md) — 운용 시스템 진화 회고
