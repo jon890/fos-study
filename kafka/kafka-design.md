@@ -7,6 +7,7 @@ tags: [study]
 ## 이 문서의 범위
 
 Kafka를 운영하려면 파티션 수, 컨슈머 장애, 메시지 순서와 유실 허용 범위를 함께 결정해야 한다. 설정값 하나보다 각 선택이 처리량과 복구 방식에 미치는 영향을 이해하는 것이 중요하다.
+버전에 따라 달라지는 설명과 로컬 실습은 Apache Kafka 4.3을 기준으로 한다.
 
 이 문서는 Kafka의 내부 동작을 설계 관점에서 다시 읽는다. 파티션 수 결정, 컨슈머 그룹 병렬성 모델, 전달 보장 방식, 재시도·DLQ 패턴과 순서 보장 트레이드오프를 Java와 Spring Kafka 예제로 정리한다.
 
@@ -24,13 +25,15 @@ Kafka를 운영하려면 파티션 수, 컨슈머 장애, 메시지 순서와 �
 
 큐가 메시지를 꺼내는 순간 사라지는 모델이라면, Kafka는 **읽어도 사라지지 않는다**. 같은 메시지를 다른 컨슈머 그룹이 다시 읽을 수 있고, 오프셋을 되감아 재처리할 수도 있다.
 
-### 왜 브로커는 보통 3대인가
+### 데이터 복제와 메타데이터 quorum의 분리
 
-운영 환경에서 브로커를 최소 3대로 구성하는 이유는 **가용성**과 **데이터 유실 방지**의 균형 때문이다.
+Kafka 4.x에서는 데이터 파티션 복제와 KRaft 메타데이터 합의를 구분해야 한다.
 
-- **고가용성**: 1대면 SPOF, 2대면 한 대 장애 시 대안이 없어 `min.insync.replicas=2` 설정을 못 쓴다. 3대면 한 대가 내려가도 나머지 2대로 복제와 서비스를 동시에 유지한다.
-- **과반수 투표**: Kafka는 컨트롤러 선출·메타데이터 합의에서 과반수 원칙을 쓴다. 3대 중 2대가 살아있으면 과반수가 살아있다고 판단해 새 리더를 뽑을 수 있다. 일반화하면 `2n+1`(홀수) 형태가 장애 내성 효율이 가장 좋다.
-- **`min.insync.replicas`와의 관계**: 가장 흔한 운영 설정이 `RF=3, min.insync.replicas=2`다. 브로커 3대가 있어야 한 대가 내려가도 복제본 2개가 보장되어 메시지를 계속 쓸 수 있다.
+- **데이터 파티션**: replication factor와 `min.insync.replicas`가 쓰기를 승인할 복제본 조건을 정한다. 예를 들어 `RF=3`, `min.insync.replicas=2`와 `acks=all`을 함께 사용하면 복제본 하나가 중단돼도 두 ISR이 남아 있는 동안 쓰기를 계속할 수 있다.
+- **클러스터 메타데이터**: KRaft controller quorum이 브로커 등록, 토픽과 파티션 배치, 리더 변경의 순서를 합의한다. 컨트롤러는 보통 홀수로 구성하며 세 대면 한 대의 장애를 허용한다.
+
+브로커와 컨트롤러 역할은 같은 프로세스에 함께 둘 수도 있고 운영 규모에 따라 분리할 수도 있다.
+따라서 "Kafka는 무조건 브로커 세 대"보다 필요한 데이터 복제본 수와 controller quorum의 장애 허용 범위를 각각 계산해야 한다.
 
 이후 섹션의 파티션 설계·전달 보장·순서 보장 같은 결정은 모두 이 분산 커밋 로그 구조 위에서 의미를 가진다.
 
@@ -42,7 +45,7 @@ Kafka를 운영하려면 파티션 수, 컨슈머 장애, 메시지 순서와 �
 
 Kafka에서 파티션은 **병렬성의 단위**이자 **순서 보장의 경계**다. 하나의 파티션 내 메시지는 오프셋 순서대로 저장되고 그 순서대로 소비된다. 서로 다른 파티션 간에는 순서 보장이 없다.
 
-- 프로듀서는 메시지를 파티션에 쓴다. 같은 키를 가진 메시지는 항상 같은 파티션으로 라우팅된다 (기본 파티셔너 기준).
+- 프로듀서는 메시지를 파티션에 쓴다. 기본 파티셔너에서 같은 키는 파티션 수와 파티셔너가 바뀌지 않는 동안 같은 파티션으로 라우팅된다.
 - 컨슈머 그룹 내 한 파티션은 최대 하나의 컨슈머 인스턴스가 소비한다. 컨슈머 인스턴스 수가 파티션 수를 초과하면 초과된 인스턴스는 놀게 된다.
 
 ```
@@ -61,21 +64,27 @@ Kafka에서 파티션은 **병렬성의 단위**이자 **순서 보장의 경계
 목표 처리량 / 단일 파티션 최대 처리량 = 최소 파티션 수
 ```
 
-예를 들어 초당 10만 건을 처리해야 하고, 컨슈머 1개가 파티션 1개에서 초당 2만 건 처리가 가능하다면 최소 5개 파티션이 필요하다. 실제로는 여유분을 두어 8~10개로 잡는다.
+예를 들어 초당 10만 건을 처리해야 하고, 같은 크기와 처리 로직으로 검증한 단일 파티션 처리량이 초당 2만 건이라면 계산상 최소 다섯 개가 필요하다.
+실제 파티션 수는 장애 시 리더 재배치, 피크 트래픽과 향후 consumer 확장 여유를 더해 부하 시험으로 결정한다.
 
 **컨슈머 확장성 기반**
 
-미래에 컨슈머를 몇 개까지 수평 확장할 것인지 먼저 결정한다. 그 수보다 파티션 수가 많아야 의미가 있다. 파티션 수는 나중에 늘릴 수 있지만 줄일 수 없으므로, 예상 최대치를 기준으로 처음부터 넉넉하게 잡는다.
+미래에 컨슈머를 몇 개까지 수평 확장할 것인지 먼저 결정한다.
+한 consumer group의 병렬 처리 상한은 파티션 수이지만,
+파티션이 늘면 브로커 메타데이터, 파일, 복제와 리더 선출 비용도 증가한다.
+예상 최대치만 보고 크게 잡지 않고 부하 시험과 운영 비용을 함께 본다.
 
 **순서 보장 요구사항 기반**
 
-"같은 사용자 이벤트는 반드시 순서대로 처리해야 한다"는 요구가 있다면, `userId`를 파티션 키로 쓴다. 이 경우 파티션 수가 많을수록 특정 파티션에 특정 사용자 이벤트가 집중될 가능성이 줄어들어 부하가 고르게 분산된다.
+"같은 사용자 이벤트는 반드시 순서대로 처리해야 한다"는 요구가 있다면 `userId`를 파티션 키 후보로 검토한다.
+파티션 수가 많아도 활동량이 큰 키 하나의 레코드는 한 파티션에 모이므로,
+키별 트래픽 분포와 단일 키의 최대 처리량을 따로 확인해야 한다.
 
 ### 파티션 키 전략
 
 | 전략 | 방식 | 적합한 상황 |
 |------|------|-------------|
-| 키 없음 (Round-robin) | 파티션에 순서대로 분산 | 순서 무관, 처리량 최대화 |
+| 키 없음 | batch를 효율적으로 만들 수 있는 파티션에 분산 | 개체별 순서가 필요 없는 이벤트 |
 | `userId` 키 | 동일 유저 이벤트 → 동일 파티션 | 유저별 이벤트 순서 보장 |
 | `orderId` 키 | 동일 주문 이벤트 → 동일 파티션 | 주문 상태 전이 순서 보장 |
 | 복합 키 | `tenantId`와 `entityId` 조합 | 멀티테넌트 환경에서 격리와 순서를 동시에 |
@@ -108,7 +117,10 @@ Topic: order-events (파티션 4개)
 - 컨슈머 인스턴스 제거 또는 장애
 - `session.timeout.ms` 내에 heartbeat 미수신 → 그룹 코디네이터가 해당 인스턴스를 탈퇴 처리
 
-리밸런싱 중에는 해당 그룹의 전체 소비가 잠시 멈춘다 (**Stop-The-World Rebalance**). Kafka 2.4+부터 도입된 **Incremental Cooperative Rebalancing**은 전체 파티션을 한 번에 재할당하지 않고 점진적으로 이전해 중단 시간을 최소화한다.
+classic protocol에서 eager assignor를 사용하면 기존 파티션을 모두 반납하고 다시 할당하므로 group 전체 처리가 잠시 멈출 수 있다.
+`CooperativeStickyAssignor`는 이동이 필요한 파티션을 점진적으로 넘겨 중단 범위를 줄인다.
+Kafka 4.x의 새 consumer rebalance protocol은 broker가 할당을 계산하고 증분 방식으로 파티션 소유권을 조정하지만,
+클라이언트 호환성을 확인하고 `group.protocol=consumer`를 명시해야 한다.
 
 ```java
 // Spring Kafka에서 Cooperative Sticky 할당 전략 설정
@@ -128,26 +140,18 @@ public ConsumerFactory<String, String> consumerFactory() {
 
 ### 오프셋 커밋 전략
 
-오프셋을 언제 커밋하느냐가 전달 보장 방식을 결정한다.
+처리와 오프셋 커밋의 순서가 소비 측 전달 보장을 결정한다.
 
-**자동 커밋**(`enable.auto.commit=true`): 주기마다 자동으로 커밋. 처리 전에 커밋되면 메시지가 유실될 수 있다. `at-most-once` 에 가깝다.
+**자동 커밋**(`enable.auto.commit=true`): `poll()`로 반환된 레코드의 위치를 주기적으로 커밋한다. 애플리케이션 처리가 완료됐는지 알지 못하므로 처리 중 장애가 발생하면 누락 또는 중복이 생길 수 있다.
 
-**처리 후 수동 커밋**: 비즈니스 로직이 완료된 뒤 명시적으로 커밋. Spring Kafka에서 `AckMode.MANUAL_IMMEDIATE`를 사용한다.
+**컨테이너 관리 커밋**: Spring Kafka는 `enable.auto.commit=false`에서 리스너가 정상 반환된 뒤 `AckMode` 규칙에 따라 커밋할 수 있다. 대부분은 `BATCH`나 `RECORD`로 처리 완료와 커밋 순서를 맞추고, 직접 ack가 필요한 특수한 경우에만 manual mode를 사용한다.
 
 ```java
 @KafkaListener(topics = "order-events", groupId = "order-consumer-group")
-public void consume(ConsumerRecord<String, String> record, Acknowledgment ack) {
-    try {
-        orderService.process(record.value());
-        ack.acknowledge(); // 처리 성공 후에만 오프셋 커밋
-    } catch (RecoverableException e) {
-        // 재시도 가능한 오류 → 커밋 안 함, 재소비됨
-        throw e;
-    } catch (NonRecoverableException e) {
-        // 재시도 불가 → DLQ로 보내고 커밋
-        dlqSender.send(record);
-        ack.acknowledge();
-    }
+public void consume(ConsumerRecord<String, String> record) {
+    orderService.process(record.value());
+    // 정상 반환 뒤 컨테이너가 AckMode에 따라 커밋한다.
+    // 실패는 error handler가 재시도 또는 DLT 정책으로 처리한다.
 }
 ```
 
@@ -155,7 +159,10 @@ public void consume(ConsumerRecord<String, String> record, Acknowledgment ack) {
 
 ## 메시지 전달 보장 방식
 
-Kafka는 설정에 따라 세 가지 전달 보장 수준 중 하나를 선택한다. 어떤 수준을 쓸 것인지는 도메인의 유실 허용 여부와 중복 처리 가능 여부로 결정한다.
+전달 보장은 producer의 기록 승인 조건,
+consumer의 처리와 offset commit 순서,
+출력 대상이 Kafka인지 외부 DB인지에 따라 달라진다.
+이 세 경계를 합치지 않고 나눠서 판단해야 한다.
 
 ### At-Most-Once (최대 한 번)
 
@@ -176,31 +183,31 @@ spring:
 
 ### At-Least-Once (최소 한 번)
 
-메시지가 절대 유실되지 않지만 중복 소비가 발생할 수 있는 방식이다. Kafka의 기본 동작 방향이다.
+정상적인 재시도와 복제 조건 안에서 유실을 피하는 대신 중복 처리를 허용하는 방식이다.
 
 - 프로듀서는 `acks=all`로 브로커 응답을 받을 때까지 재시도한다.
-- 컨슈머는 처리 완료 후 수동으로 오프셋을 커밋한다.
-- 브로커가 메시지를 저장했지만 네트워크 오류로 프로듀서에 응답을 못 보내면, 프로듀서는 재전송한다 → 중복 발생.
+- 컨슈머는 처리 완료 후 컨테이너 관리 또는 수동 방식으로 오프셋을 커밋한다.
+- 브로커가 메시지를 저장했지만 producer가 응답을 받지 못하면 재시도할 수 있다. 멱등성이 꺼져 있으면 같은 레코드가 중복 기록될 수 있다.
 
 이 방식을 쓸 때는 **컨슈머 로직에 멱등성**을 반드시 구현해야 한다. 같은 메시지를 두 번 처리해도 결과가 동일해야 한다.
 
 ```java
-// 멱등성 구현 예: DB에서 중복 체크 후 처리
+// 개념 예시: DB의 unique 제약으로 동시 중복도 차단한다.
 @Transactional
-public void processOrder(String orderId, String eventJson) {
-    if (processedEventRepository.existsByOrderId(orderId)) {
-        log.info("이미 처리된 이벤트. orderId={}", orderId);
-        return; // 중복 처리 방지
+public void processOrder(String eventId, String eventJson) {
+    int inserted = processedEventRepository.insertIfAbsent(eventId);
+    if (inserted == 0) {
+        return;
     }
-    // 실제 비즈니스 로직
     orderService.handle(eventJson);
-    processedEventRepository.save(new ProcessedEvent(orderId));
 }
 ```
 
 ### Exactly-Once (정확히 한 번)
 
-메시지가 유실되지도, 중복되지도 않는 방식이다. Kafka 0.11+부터 **Idempotent Producer**와 **Transaction API**로 구현 가능하다.
+Kafka의 exactly-once는 **범위가 정해진 보장**이다.
+Idempotent Producer는 한 producer session의 재시도로 같은 레코드가 중복 기록되는 문제를 막고,
+Transaction API는 Kafka 안에서 여러 write와 consumer offset commit을 원자적으로 묶는다.
 
 **Idempotent Producer**: 프로듀서가 메시지마다 고유한 Sequence Number를 부여한다. 브로커가 중복 번호를 받으면 기록하지 않고 버린다.
 
@@ -223,13 +230,15 @@ template.executeInTransaction(t -> {
 });
 ```
 
-| 방식 | 유실 가능성 | 중복 가능성 | 난이도 | 주요 설정 |
-|------|------------|------------|--------|-----------|
-| At-most-once | 있음 | 없음 | 낮음 | `acks=0`, `enable.auto.commit=true` |
-| At-least-once | 없음 | 있음 | 보통 | `acks=all`, `retries>0`, 수동 커밋 |
-| Exactly-once | 없음 | 없음 | 높음 | `enable.idempotence=true`, `isolation.level=read_committed` |
+| 방식 | 장애 시 결과 | 적용 범위 | 주요 조건 |
+|------|------------|----------|-----------|
+| At-most-once | 처리되지 않은 레코드가 생길 수 있음 | consumer 처리 | 처리 전에 위치를 확정 |
+| At-least-once | 같은 레코드를 다시 처리할 수 있음 | consumer 처리 | 처리 완료 뒤 위치를 확정하고 멱등성 적용 |
+| Exactly-once | 중단된 transaction의 출력이 보이지 않음 | Kafka의 read-process-write | transaction과 `read_committed` consumer |
 
-실무에서는 대부분 **at-least-once와 컨슈머 멱등성** 조합을 쓴다. Exactly-once는 트랜잭션 오버헤드가 크고 운영 복잡도가 높아, 결제나 금융 처리처럼 정확성이 특히 중요한 경우에 선택한다.
+외부 DB나 API는 Kafka transaction에 포함되지 않는다.
+Kafka 밖에 부수 효과가 있으면 at-least-once와 멱등한 consumer를 기본으로 검토한다.
+구체적인 실패 구간은 [Spring Kafka 컨슈머 오프셋 커밋과 트랜잭션 정렬](./spring-kafka-listener-offset-commit-transaction.md)에서 다룬다.
 
 ---
 
@@ -327,7 +336,7 @@ Kafka는 **파티션 내에서만 순서를 보장**한다. 이것을 이해하�
 // 잘못된 예: 키 없이 발행 → 파티션 분산, 순서 비보장
 kafkaTemplate.send("order-events", orderEventJson);
 
-// 올바른 예: orderId를 키로 → 같은 주문의 이벤트는 항상 같은 파티션
+// 파티션 수와 파티셔너가 같다면 같은 주문의 이벤트는 같은 파티션
 kafkaTemplate.send("order-events", order.getId().toString(), orderEventJson);
 ```
 
@@ -356,11 +365,12 @@ public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerCont
 
 **3. 비순서 허용 도메인에는 키를 쓰지 않는다**
 
-조회 이벤트, 로그, 통계 이벤트처럼 순서가 의미 없는 도메인에는 Round-robin 방식을 써서 처리량을 최대화한다.
+조회 이벤트, 로그와 통계 이벤트처럼 개체별 순서가 의미 없는 경우에는 키 없이 보내 batch 효율과 분산을 활용할 수 있다.
 
 ### 프로듀서 재시도와 순서 역전
 
-`acks=all`, `retries > 0` 설정에서 재시도가 발생하면 메시지 순서가 바뀔 수 있다. 예를 들어 메시지 A 전송 실패 → 메시지 B 전송 성공 → 메시지 A 재전송 성공 순으로 되면 브로커에는 B, A 순서로 저장된다.
+멱등성이 꺼져 있고 `max.in.flight.requests.per.connection`이 1보다 큰 상태에서 재시도가 발생하면 레코드 순서가 바뀔 수 있다.
+Kafka 4.3 producer는 충돌하는 설정이 없으면 idempotence가 기본으로 활성화된다.
 
 이를 방지하려면 `max.in.flight.requests.per.connection=1`로 설정하거나, 멱등성 프로듀서를 활성화해야 한다.
 
@@ -375,43 +385,19 @@ props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
 
 ## 로컬 실습 환경 구성 (Docker Compose)
 
-### docker-compose.yml
+### Docker Compose
 
 ```yaml
-version: '3.8'
-
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
-
   kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    depends_on:
-      - zookeeper
+    image: apache/kafka:4.3.1
+    container_name: kafka
     ports:
       - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    depends_on:
-      - kafka
-    ports:
-      - "8080:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
 ```
+
+공식 이미지는 환경 변수를 따로 주지 않으면 단일 노드 combined KRaft 개발 설정으로 실행된다.
+복제 계수 1이므로 장애 허용 구성을 검증하는 용도가 아니라 API와 처리 흐름을 익히는 용도다.
 
 ### 토픽 및 실습 CLI 명령어
 
@@ -420,24 +406,25 @@ services:
 docker compose up -d
 
 # 토픽 생성 (파티션 3개, 복제 계수 1개)
-docker exec -it <kafka-container-id> \
-  kafka-topics --create \
+docker exec -it kafka \
+  /opt/kafka/bin/kafka-topics.sh --create \
   --bootstrap-server localhost:9092 \
   --topic order-events \
   --partitions 3 \
   --replication-factor 1
 
 # 토픽 목록 확인
-docker exec -it <kafka-container-id> \
-  kafka-topics --list --bootstrap-server localhost:9092
+docker exec -it kafka \
+  /opt/kafka/bin/kafka-topics.sh --list --bootstrap-server localhost:9092
 
 # 파티션 정보 확인
-docker exec -it <kafka-container-id> \
-  kafka-topics --describe --topic order-events --bootstrap-server localhost:9092
+docker exec -it kafka \
+  /opt/kafka/bin/kafka-topics.sh --describe \
+  --topic order-events --bootstrap-server localhost:9092
 
 # 키 있는 메시지 발행 (키|값 형식)
-docker exec -it <kafka-container-id> \
-  kafka-console-producer \
+docker exec -it kafka \
+  /opt/kafka/bin/kafka-console-producer.sh \
   --bootstrap-server localhost:9092 \
   --topic order-events \
   --property "parse.key=true" \
@@ -446,8 +433,8 @@ docker exec -it <kafka-container-id> \
 # 입력: order-1001|{"status":"PAID","amount":50000}
 
 # 컨슈머 그룹으로 소비 (파티션 정보 함께 출력)
-docker exec -it <kafka-container-id> \
-  kafka-console-consumer \
+docker exec -it kafka \
+  /opt/kafka/bin/kafka-console-consumer.sh \
   --bootstrap-server localhost:9092 \
   --topic order-events \
   --group test-group \
@@ -456,8 +443,8 @@ docker exec -it <kafka-container-id> \
   --property print.partition=true
 
 # 컨슈머 그룹 lag 확인 (중요: 적체량 모니터링)
-docker exec -it <kafka-container-id> \
-  kafka-consumer-groups \
+docker exec -it kafka \
+  /opt/kafka/bin/kafka-consumer-groups.sh \
   --bootstrap-server localhost:9092 \
   --describe \
   --group test-group
@@ -472,7 +459,9 @@ test-group      order-events   1          8               8               0
 test-group      order-events   2          3               3               0
 ```
 
-파티션 0의 lag가 5라는 것은 컨슈머가 5개 메시지를 아직 처리하지 못했다는 의미다. lag가 지속적으로 증가하면 컨슈머 처리 속도가 프로듀서 발행 속도를 따라가지 못하는 것이므로, 파티션 수와 컨슈머 수를 늘려야 한다.
+파티션 0의 lag가 5라는 것은 consumer group의 committed offset이 log end offset보다 다섯 뒤에 있다는 의미다.
+처리가 진행됐지만 commit되지 않은 레코드도 포함될 수 있으므로 미처리 건수와 항상 같지는 않다.
+lag가 계속 증가하면 파티션별 유입률, 처리 시간, 외부 의존성, 오류 재시도와 rebalance를 확인한 뒤 병목에 맞는 조치를 고른다.
 
 ### Spring Boot 의존성 (build.gradle)
 
@@ -562,7 +551,7 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "order-consumer-group");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);  // 수동 커밋
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);  // container가 commit 관리
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300_000); // 5분
@@ -578,7 +567,7 @@ public class KafkaConsumerConfig {
             new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.setConcurrency(3);
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
         return factory;
     }
 }
@@ -589,33 +578,18 @@ public class KafkaConsumerConfig {
 public class OrderEventConsumer {
 
     private final OrderService orderService;
-    private final KafkaTemplate<String, String> kafkaTemplate;
-
     @KafkaListener(
         topics = "order-events",
         groupId = "order-consumer-group",
         containerFactory = "kafkaListenerContainerFactory"
     )
-    public void consume(
-        ConsumerRecord<String, String> record,
-        Acknowledgment ack
-    ) {
+    public void consume(ConsumerRecord<String, String> record) {
         log.info("수신. partition={}, offset={}, key={}",
             record.partition(), record.offset(), record.key());
 
-        try {
-            orderService.handleEvent(record.value());
-            ack.acknowledge(); // 처리 성공 후 커밋
-        } catch (TransientException e) {
-            // 일시 오류: 커밋 안 함 → 재소비 (Spring RetryTopic이 처리)
-            log.warn("일시 오류 발생. key={}", record.key(), e);
-            throw e;
-        } catch (Exception e) {
-            // 비복구 오류: DLQ로 보내고 커밋 (파티션 차단 방지)
-            log.error("처리 불가 이벤트. key={}", record.key(), e);
-            kafkaTemplate.send("order-events-dlq", record.key(), record.value());
-            ack.acknowledge();
-        }
+        orderService.handleEvent(record.value());
+        // 정상 반환 뒤 container가 RECORD 단위로 commit한다.
+        // 예외는 container의 error handler와 DLT 정책에 맡긴다.
     }
 }
 ```
@@ -648,13 +622,12 @@ spring:
       auto-commit-interval: 5000
 ```
 
-처리 중 애플리케이션이 죽으면 오프셋은 이미 커밋되어 해당 메시지는 영원히 유실된다.
+자동 commit이 애플리케이션 처리보다 먼저 완료된 뒤 프로세스가 중단되면 해당 record는 다시 전달되지 않는다.
 
 ```java
-// GOOD: 수동 커밋, 처리 완료 후 acknowledge()
-public void consume(ConsumerRecord<String, String> record, Acknowledgment ack) {
+// GOOD: 리스너가 정상 반환된 뒤 container가 offset을 commit한다.
+public void consume(ConsumerRecord<String, String> record) {
     orderService.process(record.value());
-    ack.acknowledge(); // 성공 후에만 커밋
 }
 ```
 
@@ -716,20 +689,20 @@ props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);
 
 ### 설계 시 확인 사항
 
-- [ ] 파티션 수 ≥ 예상 최대 컨슈머 인스턴스 수
+- [ ] 목표 처리량과 consumer 병렬성 및 broker 비용을 함께 측정해 파티션 수 결정
 - [ ] 순서 보장이 필요한 이벤트에 파티션 키 설정
 - [ ] 키의 카디널리티가 충분히 높아 핫 파티션 위험이 낮음
-- [ ] 복제 계수 3, `min.insync.replicas` 2로 데이터 안전성 확보
+- [ ] 장애 허용 목표에 맞춰 replication factor, `min.insync.replicas`와 `acks` 조합 결정
 - [ ] 멱등성 프로듀서(`enable.idempotence=true`) 활성화
 - [ ] 도메인별 전달 보장 수준(at-most-once / at-least-once / exactly-once) 명시적 결정
 
 ### 컨슈머 구현 체크리스트
 
-- [ ] `enable.auto.commit=false`, 처리 완료 후 `ack.acknowledge()` 호출
+- [ ] `enable.auto.commit=false`에서 처리 완료 뒤 container가 offset을 commit하도록 AckMode 결정
 - [ ] 오류 유형별 처리 분기 (일시 오류 → 재시도, 비복구 오류 → DLQ)
 - [ ] 컨슈머 로직에 멱등성 보장 (중복 소비 시 결과 동일)
 - [ ] DLQ 메시지 모니터링 및 알람 연동
-- [ ] Cooperative Sticky Assignor 설정으로 리밸런싱 영향 최소화
+- [ ] client와 broker 호환성에 맞춰 classic cooperative 또는 새 consumer protocol 결정
 - [ ] `max.poll.interval.ms` > 실제 처리 시간 × 배치 크기
 
 ### 운영 체크리스트
@@ -743,5 +716,14 @@ props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);
 
 > **관련 문서**
 > - [Kafka 기본 개념](./basic.md)
+> - [Kafka를 로그로 이해하기](./log-as-unifying-abstraction.md)
 > - [Spring Kafka 컨슈머 오프셋 커밋과 트랜잭션 정렬](./spring-kafka-listener-offset-commit-transaction.md)
 > - [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md)
+
+## 참고 자료
+
+- [Apache Kafka 4.3 — Design](https://kafka.apache.org/43/design/design/)
+- [Apache Kafka 4.3 — Producer Configuration](https://kafka.apache.org/43/configuration/producer-configs/)
+- [Apache Kafka 4.3 — Consumer Rebalance Protocol](https://kafka.apache.org/43/operations/consumer-rebalance-protocol/)
+- [Apache Kafka 4.3 — Docker](https://kafka.apache.org/43/getting-started/docker/)
+- [Spring for Apache Kafka Reference Documentation](https://docs.spring.io/spring-kafka/reference/)

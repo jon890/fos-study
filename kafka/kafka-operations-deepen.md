@@ -1,11 +1,11 @@
 ---
 categories: [devops]
-tags: [학습중, 카카오뱅크, 금융도메인, Kafka, 파티션, 리밸런스, 컨슈머지연, 장애복구, study]
+tags: [Kafka, 파티션, 리밸런스, 컨슈머지연, 장애복구, study]
 ---
 
-# [학습중] Kafka 파티션·리밸런스·컨슈머 지연 운영
+# Kafka 파티션·리밸런스·컨슈머 지연 운영
 
-이 문서는 Kafka를 사용했다는 수준에서 벗어나 파티션 키, 리밸런스, 컨슈머 지연을 운영 판단으로 설명하기 위해 만들었다.
+이 문서는 Apache Kafka 4.3을 기준으로 파티션 키, 리밸런스와 consumer lag를 운영 판단으로 설명한다.
 학습 목표는 순서·처리량·복구 시간의 관계를 이해하고, 장애를 재현해 지표와 로그로 원인을 구분하는 것이다.
 완료 기준은 로컬 클러스터에서 파티션 쏠림, 느린 컨슈머, 리밸런스를 각각 재현하고 대응 전후를 측정하는 것이다.
 
@@ -243,7 +243,7 @@ kafka-topics.sh \
 
 ## 참고 자료
 
-- [Apache Kafka — Consumer Rebalance Protocol](https://kafka.apache.org/42/operations/consumer-rebalance-protocol/)
-- [Apache Kafka — Consumer Configuration](https://kafka.apache.org/documentation/#consumerconfigs)
-- [Apache Kafka — Design](https://kafka.apache.org/documentation/#design)
+- [Apache Kafka 4.3 — Consumer Rebalance Protocol](https://kafka.apache.org/43/operations/consumer-rebalance-protocol/)
+- [Apache Kafka 4.3 — Consumer Configuration](https://kafka.apache.org/43/configuration/consumer-configs/)
+- [Apache Kafka 4.3 — Design](https://kafka.apache.org/43/design/design/)
 - [Spring for Apache Kafka Reference Documentation](https://docs.spring.io/spring-kafka/reference/)

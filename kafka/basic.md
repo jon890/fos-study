@@ -4,7 +4,7 @@ tags: [study]
 
 # Kafka 기본 개념: 토픽, 파티션, 오프셋과 복제
 
-Kafka 글을 여러 편 정리하다 보니 "기본 개념을 한 번 모아서 짚는 문서"가 빠져 있었다. 이 글은 토픽·파티션·오프셋·복제(Leader/Follower/ISR)에 한해서 입문 수준으로만 정리한다. 파티션 키 전략, 컨슈머 그룹 리밸런싱, 메시지 전달 보장(at-least-once 등) 같은 운영·설계 영역은 별도 문서에서 다룬다.
+Kafka 글을 여러 편 정리하다 보니 "기본 개념을 한 번 모아서 짚는 문서"가 빠져 있었다. 이 글은 Apache Kafka 4.3을 기준으로 토픽, 파티션, 오프셋과 복제를 입문 수준에서 정리한다. 파티션 키 전략, consumer group rebalance와 메시지 전달 보장 같은 운영·설계 영역은 별도 문서에서 다룬다.
 
 - 파티션 수 결정 / 컨슈머 그룹 / 재시도·DLQ 같은 실전 설계 → [Kafka 실전 설계](./kafka-design.md)
 - At-most-once, At-least-once와 Exactly-once → [Kafka 실전 설계](./kafka-design.md)
@@ -54,17 +54,29 @@ Kafka 글을 여러 편 정리하다 보니 "기본 개념을 한 번 모아서 
 
 Kafka 가 다른 메시지 큐와 가장 다른 점이 여기서 드러난다.
 
-> **브로커는 컨슈머가 어디까지 읽었는지 추적하지 않는다. 컨슈머가 자기 오프셋을 직접 관리한다.**
+> **레코드는 소비 여부와 무관하게 보존되고, consumer가 자신의 읽기 위치를 정한다.**
 
-전통적인 큐(예: 일부 RabbitMQ 패턴)는 브로커가 "이 메시지는 컨슈머 A 가 읽었음" 같은 상태를 들고 있다. Kafka 는 그렇지 않다. 컨슈머는 자기가 어디까지 처리했는지 오프셋으로 기록하고, 이 오프셋을 `__consumer_offsets` 라는 내부 토픽에 커밋한다. 그래서 같은 토픽을 컨슈머 그룹 A 와 B 가 각자 다른 속도로 읽는 게 자연스럽고, 컨슈머가 죽었다 살아나면 마지막 커밋된 오프셋부터 다시 읽으면 된다.
+전통적인 작업 큐는 처리 확인에 따라 메시지를 제거할 수 있다.
+Kafka는 consumer가 읽었다는 이유로 record를 제거하지 않고 retention policy에 따라 보존한다.
+Consumer group은 어디까지 처리했는지를 offset으로 기록하고,
+group coordinator는 이 offset을 `__consumer_offsets`라는 internal topic에 commit한다.
+그래서 같은 topic을 consumer group A와 B가 각자 다른 속도로 읽을 수 있고,
+consumer가 재시작하면 마지막 committed offset부터 이어서 읽을 수 있다.
 
 오프셋 커밋 전략(자동 커밋 vs 수동 커밋, 처리 전 커밋 vs 처리 후 커밋) 은 메시지 전달 보장과 직결된다. 이건 [Kafka 실전 설계 — 오프셋 커밋 전략](./kafka-design.md#오프셋-커밋-전략)에서 자세히 다룬다.
 
-## 브로커 (Broker) 와 클러스터
+## 브로커와 KRaft 컨트롤러
 
-브로커는 Kafka 프로세스를 띄운 **한 대의 서버**다. 여러 브로커가 모여 클러스터를 이루고, 토픽의 파티션들은 클러스터 내 브로커에 분산되어 저장된다.
+브로커는 Kafka 데이터 요청을 처리하는 **서버 노드**다. 여러 브로커가 클러스터를 이루고, 토픽의 파티션은 브로커들에 분산되어 저장된다.
 
-브로커가 보통 3대 이상으로 구성되는 이유는 단순하다. 복제본 3개를 두면 1대가 죽어도 다수결(과반) 을 유지할 수 있고, 컨트롤러 선출이나 ISR 유지에서 분리 뇌 (split-brain) 가 일어날 가능성이 줄어들기 때문이다. 이 부분은 [Kafka 실전 설계의 브로커 구성](./kafka-design.md#왜-브로커는-보통-3대인가)에 더 짧게 정리되어 있다.
+Kafka 4.x에서는 KRaft 컨트롤러가 브로커 등록, 토픽과 파티션 배치, 리더 변경 같은 클러스터 메타데이터를 관리한다.
+운영 환경에서는 컨트롤러를 보통 홀수로 구성해 과반수 합의를 유지한다.
+브로커와 컨트롤러는 한 프로세스에 함께 둘 수도 있지만,
+규모가 큰 운영 클러스터에서는 역할을 분리할 수 있다.
+
+브로커 수와 컨트롤러 수는 같은 기준으로 결정하지 않는다.
+브로커 수는 데이터 용량, 처리량과 파티션 복제본 배치가 정하고,
+컨트롤러 수는 메타데이터 quorum의 장애 허용 범위가 정한다.
 
 ## 복제 구성: Leader, Follower와 ISR
 
@@ -80,10 +92,10 @@ Kafka 가 다른 메시지 큐와 가장 다른 점이 여기서 드러난다.
 
 같은 파티션의 N 개 복제본 중 정확히 하나가 **리더**(leader) 가 된다. 나머지는 **팔로워**(follower) 다. 둘의 역할은 분명히 다르다.
 
-- **리더**: 그 파티션에 대한 **모든 읽기와 쓰기** 를 처리한다. 프로듀서도 리더에게 발행하고, 컨슈머도 리더에서 읽는다 ([설명에서는 리더에 대한 단일 진입점이 명시되어 있다](https://docs.confluent.io/kafka/design/replication.html)).
-- **팔로워**: 리더로부터 메시지를 **컨슈머처럼** 가져와 자기 로그에 추가한다. 클라이언트는 팔로워를 직접 보지 않는다.
+- **리더**: partition write와 복제 순서를 관리한다. Producer는 leader에 record를 보낸다.
+- **팔로워**: leader에서 record를 가져와 같은 offset에 추가한다. 기본 consumer fetch는 leader를 사용하지만 rack-aware replica selector를 구성하면 가까운 follower에서 읽을 수도 있다.
 
-리더 하나에 모든 트래픽이 몰린다는 사실은 처음 들으면 어색하다. 파티션이 충분히 많으면 리더들이 클러스터 전체에 고르게 분산되므로 결과적으로 트래픽도 분산된다.
+각 partition에는 leader가 하나지만 topic의 partition leader를 여러 broker에 분산하면 write traffic도 분산된다.
 
 ### ISR (In-Sync Replicas)
 
@@ -93,22 +105,25 @@ Kafka 는 이걸 다루기 위해 **ISR**(In-Sync Replicas) 이라는 개념을 
 
 > ISR = 현재 리더의 로그를 충분히 따라잡고 있는 복제본들의 집합. 리더 자기 자신도 ISR 의 멤버다.
 
-"충분히 따라잡고 있다" 의 기준은 `replica.lag.time.max.ms` (기본 30초) 다. 한 팔로워가 이 시간 안에 리더에게 fetch 요청을 보내고 리더의 가장 최근 메시지까지 가져왔다면 ISR 에 포함되고, 이 시간을 넘기면 ISR 에서 제거된다.
+"충분히 따라잡고 있다"의 기준에는 `replica.lag.time.max.ms`가 사용된다.
+팔로워가 이 시간보다 오래 리더의 log end offset을 따라잡지 못하면 ISR에서 제거될 수 있다.
+단순히 fetch 요청만 보냈다고 ISR이 유지되는 것은 아니다.
 
 이 값이 가지는 트레이드오프가 운영에서 가장 자주 부딪히는 지점이다.
 
-- **너무 짧게 잡으면**: GC 한 번에도 팔로워가 ISR 에서 빠졌다 들어왔다 한다 (ISR flapping). 리더 재선출이 불필요하게 자주 일어나 클러스터가 불안정해진다.
-- **너무 길게 잡으면**: 진짜로 죽은 팔로워가 한참 동안 ISR 에 남아 있는 것처럼 보인다. 일관성이 약해진다.
+- **너무 짧게 잡으면**: 일시적인 GC, 디스크와 네트워크 지연에도 팔로워가 ISR에서 자주 빠질 수 있다.
+- **너무 길게 잡으면**: 느린 팔로워를 기다리는 시간이 길어져 `acks=all` 쓰기의 지연이나 실패 감지가 늦어질 수 있다.
 
-기본값 30초는 대부분의 운영 환경에서 적절히 보수적인 값이라 그대로 두는 경우가 많다.
+기본값을 그대로 사용할지 여부는 복제 지연, 쓰기 지연과 장애 감지 목표를 함께 측정해 결정한다.
 
 ### 커밋된 메시지 (Committed Message)
 
-ISR 이 왜 중요한가는 "**커밋된 메시지**" 의 정의에서 드러난다. Confluent 공식 문서의 표현을 그대로 빌리면:
+ISR이 왜 중요한지는 high watermark에서 드러난다.
+Kafka는 ISR 복제 상태를 바탕으로 복제가 완료된 범위를 계산하고,
+일반 consumer fetch는 high watermark를 넘어 아직 복제가 완료되지 않은 레코드를 반환하지 않는다.
 
-> "a committed message means that all in-sync replicas for a partition have applied the message"
-
-즉 메시지가 커밋되었다 = ISR 의 모든 복제본이 그 메시지를 적용했다. 컨슈머는 커밋된 메시지만 읽을 수 있다 (high watermark 이후만 노출). 이건 컨슈머 입장에서 "한 번 보였던 메시지가 리더 장애로 사라지는 일은 없다" 는 보장의 근거가 된다.
+여기서 복제 관점의 commit과 Kafka transaction의 commit은 다른 개념이다.
+`isolation.level=read_committed`인 consumer는 high watermark 범위 안에서도 완료되지 않았거나 중단된 transaction의 레코드를 제외한다.
 
 ### 리더 장애 시 무슨 일이 일어나는가
 
@@ -116,22 +131,23 @@ ISR 이 왜 중요한가는 "**커밋된 메시지**" 의 정의에서 드러난
 
 이 정책에 따라오는 트레이드오프가 두 가지 있다.
 
-1. **ISR 이 다 죽으면 가용성이 멈춘다.** 모든 ISR 멤버가 한 번에 죽으면 새 리더로 뽑을 후보가 없다. 이 경우 옵션은 두 개다 — (a) ISR 복구를 기다린다(consistency 우선, 기본값), (b) `unclean.leader.election.enable=true` 를 켜고 ISR 외부 복제본도 리더로 승격시킨다(availability 우선, 데이터 유실 가능). 기본값이 (a) 인 이유는 명확하다 — 메시지 큐로 쓰이는 시스템에서 침묵의 데이터 유실은 디버깅이 거의 불가능하기 때문이다.
+1. **ISR이 모두 중단되면 파티션을 사용할 수 없을 수 있다.** ISR 복구를 기다리면 데이터 보존을 우선할 수 있다. `unclean.leader.election.enable=true`로 ISR 밖의 복제본을 리더 후보로 허용하면 가용성을 높일 수 있지만 데이터가 유실될 수 있다.
 2. **`acks=all`과 `min.insync.replicas`는 ISR 정의 위에서 동작한다.** 프로듀서가 `acks=all`로 발행하면 리더는 ISR의 모든 멤버가 메시지를 적용한 뒤에야 응답한다. `min.insync.replicas`는 쓰기를 허용할 최소 ISR 수다. 둘이 같이 쓰여야 의미가 산다. 자세한 옵션 조합은 [Kafka 실전 설계](./kafka-design.md)에서 다룬다.
 
 ## 한 장 정리
 
 ```
 Cluster
-  └── Broker (서버 노드, 보통 3대 이상)
-        └── Topic (논리적 카테고리, append-only, 다중 구독자)
-              └── Partition (분할된 로그, 순서 보장의 단위)
-                    ├── Leader Replica  (모든 R/W 처리)
-                    ├── Follower Replica × (RF-1)  (리더에서 fetch)
-                    │     └── ISR 멤버십 = replica.lag.time.max.ms 안에 따라잡았는가
-                    └── Segment (디스크 저장 단위, retention 단위)
-                          └── Message
-                                └── Offset (파티션 내부 위치)
+  ├── KRaft Controller Quorum (클러스터 메타데이터 합의)
+  ├── Broker들 (데이터 요청 처리와 replica 저장)
+  └── Topic (논리적 카테고리, append-only, 다중 구독자)
+        └── Partition (분할된 로그, 순서 보장의 단위)
+              ├── Leader Replica  (write와 복제 순서 관리)
+              ├── Follower Replica × (RF-1)  (leader에서 fetch)
+              │     └── ISR 멤버십 = leader의 log end offset을 제한 시간 안에 따라잡았는가
+              └── Segment (디스크 저장 단위, retention 단위)
+                    └── Record
+                          └── Offset (partition 내부 위치)
 ```
 
 이 그림이 머리에 잡히면 그 다음 단계인 파티션 키 설계, 컨슈머 그룹 리밸런싱, 메시지 전달 보장이 자연스럽게 읽힌다. 모두 이 기본 구조 위에서 트레이드오프를 더하는 이야기이기 때문이다.
@@ -139,13 +155,13 @@ Cluster
 ## 다음 읽을거리
 
 - [Kafka 실전 설계 — 파티션 / 컨슈머 그룹 / 재시도 / 순서 보장](./kafka-design.md)
-- [Kafka 실전 설계](./kafka-design.md) — 전달 보장, 멱등성 프로듀서와 복제 설정
+- [Kafka를 로그로 이해하기](./log-as-unifying-abstraction.md) — 복제, 재처리, 상태와 데이터 통합을 연결하는 원리
 - [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md) — Kafka 발행 원자성 보장
 
 ---
 
 ## 참고 자료
 
-- [Apache Kafka — Documentation: Introduction & Key Concepts](https://kafka.apache.org/documentation/#intro_concepts_and_terms)
-- [Confluent Documentation — Kafka Replication](https://docs.confluent.io/kafka/design/replication.html)
-- [Confluent Community — replica.lag.time.max.ms 적정값](https://forum.confluent.io/t/kafka-what-is-a-right-value-for-replica-lag-time-max-ms/4194)
+- [Apache Kafka 4.3 — Introduction](https://kafka.apache.org/43/getting-started/introduction/)
+- [Apache Kafka 4.3 — Design](https://kafka.apache.org/43/design/design/)
+- [Apache Kafka 4.3 — KRaft](https://kafka.apache.org/43/operations/kraft/)

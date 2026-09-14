@@ -116,8 +116,13 @@ public void consume(OrderCreatedEvent event, Acknowledgment ack) {
 }
 ```
 
-`MANUAL_IMMEDIATE`에서 특히 치명적이다. ack가 즉시 커밋되므로, 그 뒤 실패한 작업은 재전송으로 복구되지 않는다.
-ack는 **모든 부수 효과(특히 DB 커밋)가 끝난 뒤** 호출해야 한다.
+`MANUAL_IMMEDIATE`에서 특히 치명적이다.
+consumer thread에서 ack가 즉시 처리되면 그 뒤 실패한 작업은 재전송으로 복구되지 않는다.
+
+리스너 메서드에 `@Transactional`을 붙였다는 이유만으로 안전해지지도 않는다.
+DB transaction은 메서드가 반환된 뒤 interceptor에서 commit되므로,
+메서드 안의 `ack.acknowledge()`는 DB commit보다 먼저 실행된다.
+DB 작업이 핵심 부수 효과라면 리스너가 정상 반환된 뒤 container가 offset을 처리하는 `RECORD`나 `BATCH`가 더 단순하다.
 
 ### ack를 빠뜨림
 
@@ -131,12 +136,14 @@ ack는 **모든 부수 효과(특히 DB 커밋)가 끝난 뒤** 호출해야 한
 
 ### manual ack를 쓸 가치가 있을 때
 
-대부분은 `RECORD` 또는 `BATCH`로 충분하다. manual ack는 다음처럼 **커밋 단위를 비즈니스 단위로 직접 통제**해야 할 때만 쓴다.
+대부분은 `RECORD` 또는 `BATCH`로 충분하다.
+manual ack는 커밋 단위를 직접 통제해야 하고 DB transaction 경계를 별도로 증명할 수 있을 때만 쓴다.
 
 - 배치 안에서 일부만 처리하고 나머지는 의도적으로 나중에 처리(seek)할 때
-- 외부 시스템 응답을 받은 뒤에만 커밋해야 하는 비동기 파이프라인
+- container가 지원하는 비동기 반환과 out-of-order commit 동작을 이해한 상태에서 비동기 처리를 사용할 때
 
-이 경우에도 "성공 부수 효과 완료 → ack" 순서를 기계적으로 지킨다.
+manual ack는 호출 위치만 보고 안전성을 판단하지 않는다.
+ack가 실제 offset commit으로 반영되는 시점과 DB transaction commit 시점을 실패 시나리오로 검증한다.
 
 ## Kafka 트랜잭션과 DB 트랜잭션의 원자성 한계
 
@@ -147,7 +154,7 @@ ack는 **모든 부수 효과(특히 DB 커밋)가 끝난 뒤** 호출해야 한
 
 Kafka 트랜잭션(`producer.beginTransaction()` / `sendOffsetsToTransaction()` / `commitTransaction()`)은
 **consume-process-produce** 패턴에서 입력 오프셋 커밋과 출력 메시지 발행을 원자적으로 묶는다.
-즉 Kafka 안에서 읽고-처리하고-다시 Kafka로 쓰는 경로는 exactly-once가 된다.
+Kafka 안에서 읽고, 처리하고, 다시 Kafka로 쓰는 경로는 transaction을 지원하는 producer와 `read_committed` consumer를 함께 사용할 때 exactly-once 범위를 구성할 수 있다.
 
 ```java
 // 개념 예시: 입력 오프셋과 출력 발행을 하나의 Kafka 트랜잭션으로
@@ -165,7 +172,7 @@ Spring Kafka에는 과거 `ChainedKafkaTransactionManager`로 DB 트랜잭션 �
 하지만 이건 진짜 2단계 커밋(2PC)이 아니라 **커밋을 순서대로 호출하는 동기화**일 뿐이다.
 
 - 안쪽(예: DB)이 먼저 커밋되고, 그 다음 바깥(Kafka)이 커밋된다.
-- DB 커밋은 성공했는데 그 직후 Kafka 커밋이 실패하면 — 두 자원의 상태가 어긋난다.
+- DB commit은 성공했는데 그 직후 Kafka commit이 실패하면 두 자원의 상태가 어긋난다.
 - 즉 **커밋과 커밋 사이의 실패 창**은 여전히 남는다. 원자성이 아니다.
 
 `ChainedKafkaTransactionManager`는 Spring Kafka 2.7부터 deprecated이며 이후 제거 방향이다.
@@ -173,10 +180,11 @@ Spring Kafka에는 과거 `ChainedKafkaTransactionManager`로 DB 트랜잭션 �
 
 ### 그래서 현실적인 선택지
 
-진짜 분산 트랜잭션(XA/2PC)은 운영 비용과 성능 부담이 커서 대부분 피한다. 대신 DB나 Kafka 중 하나를 기준 데이터로 택한다.
+분산 transaction인 XA와 2PC는 운영 비용과 성능 부담이 크다.
+대신 DB나 Kafka 중 하나를 기준 데이터로 택하고 다른 저장소의 복구 절차를 설계한다.
 
-- **DB를 진실원으로** → Outbox 패턴. 비즈니스 데이터와 발행할 메시지를 같은 DB 트랜잭션에 INSERT하고, 별도 워커가 Kafka로 발행. (발행 측 정렬)
-- **Kafka를 진실원으로** → idempotent consumer. at-least-once로 받고, DB 쪽에서 중복을 흡수. (소비 측 정렬, 이 글의 주제)
+- **DB가 기준 데이터인 경우**: 비즈니스 데이터와 발행할 메시지를 같은 DB transaction에 INSERT하고 별도 worker가 Kafka로 발행하는 Outbox 패턴을 사용한다.
+- **Kafka가 기준 데이터인 경우**: at-least-once로 소비하고 DB unique constraint와 멱등한 상태 전이로 중복을 흡수한다.
 
 ## idempotent consumer와 `processed_event` 테이블
 
@@ -202,36 +210,37 @@ CREATE TABLE processed_event (
 @KafkaListener(topics = "order-created", groupId = "order-projection")
 @Transactional
 public void consume(OrderCreatedEvent event) {
-    try {
-        processedEventRepository.saveAndFlush(
-            new ProcessedEvent(event.eventId(), "order-projection"));
-    } catch (DataIntegrityViolationException e) {
-        // unique 제약 위반 = 이미 처리한 이벤트 → 비즈니스 로직 건너뜀
-        log.info("중복 이벤트 스킵: {}", event.eventId());
+    int inserted = processedEventRepository.insertIfAbsent(
+        event.eventId(), "order-projection");
+
+    if (inserted == 0) {
         return;
     }
-    // 여기까지 왔다는 건 이 이벤트를 처음 본다는 뜻
+
     orderRepository.save(OrderProjection.from(event));
 }
 ```
 
 `processed_event` INSERT와 `OrderProjection` 저장이 **하나의 DB 트랜잭션**이라, 둘 다 커밋되거나 둘 다 롤백된다.
-재전송된 중복은 INSERT 단계에서 unique 위반으로 걸러지고, 비즈니스 로직은 실행되지 않는다.
+`insertIfAbsent`는 DB에 맞는 충돌 무시 INSERT를 실행하고 영향받은 행 수를 반환한다.
+재전송된 중복이면 0을 반환하므로 비즈니스 로직을 실행하지 않는다.
 
 ### unique violation 처리에서 자주 틀리는 지점
 
-unique 제약 위반을 catch할 때 주의할 함정이 둘 있다.
+애플리케이션에서 unique constraint exception을 잡는 방식에는 두 문제가 있다.
 
-- **트랜잭션 오염**: 일부 DB(특히 PostgreSQL)는 제약 위반이 발생하면 현재 트랜잭션을 abort 상태로 만든다. 위반을 catch한 뒤 같은 트랜잭션에서 다른 쿼리를 이어가면 실패한다. 그래서 dedup INSERT는 **트랜잭션의 가장 앞**에 두고, 위반이면 곧장 `return`해 트랜잭션을 깨끗하게 종료시킨다.
-- **`saveAndFlush`로 즉시 반영**: JPA에서 그냥 `save`만 하면 flush가 커밋 시점까지 지연돼 위반을 그 자리에서 못 잡는다. `saveAndFlush`로 INSERT를 즉시 DB에 보내 위반을 리스너 본문에서 catch한다.
+- PostgreSQL은 constraint violation 뒤 현재 transaction을 abort 상태로 만든다.
+- JPA provider나 transaction interceptor가 transaction을 rollback-only로 표시할 수 있어 exception을 catch하고 반환해도 commit에 실패할 수 있다.
 
-DB 종류에 따라 `INSERT ... ON CONFLICT DO NOTHING`(PostgreSQL)이나 `INSERT IGNORE`(MySQL)로 처리한 뒤
-영향받은 행 수(0이면 중복)로 분기하는 방식도 깔끔하다. 트랜잭션 오염 문제를 피할 수 있어 선호되기도 한다.
+PostgreSQL의 `INSERT ... ON CONFLICT DO NOTHING`이나 MySQL의 `INSERT IGNORE`처럼
+constraint violation을 exception으로 만들지 않는 SQL을 사용하고 영향받은 행 수로 분기하면 이 문제를 피할 수 있다.
 
 ### Redis 1차 필터(선택)
 
-매번 DB를 때리는 비용이 부담이면, DB 트랜잭션 진입 전에 Redis `SETNX`로 1차 필터링한 뒤 DB unique 제약을 최종 방어선으로 둔다.
-Redis는 캐시일 뿐이라 정합성의 최종 책임은 DB 제약에 있어야 한다.
+DB transaction 전에 Redis `SETNX`를 사용해 중복 후보를 줄일 수는 있다.
+하지만 Redis 기록 뒤 DB commit 전에 consumer가 중단되면 재전송된 이벤트를 Redis가 처리 완료로 오인할 수 있다.
+Redis 결과만 보고 처리를 건너뛰지 말고 DB의 처리 완료 기록을 다시 확인해야 한다.
+정확성이 중요하면 추가 복잡도와 실제 중복률을 비교해 Redis 필터를 생략하는 편이 낫다.
 
 ## at-least-once와 멱등으로 만드는 effectively-once
 
@@ -241,7 +250,7 @@ Redis는 캐시일 뿐이라 정합성의 최종 책임은 DB 제약에 있어�
 2. 리스너는 `@Transactional` 안에서 `processed_event` INSERT(dedup)와 비즈니스 로직을 묶어 실행.
 3. 메서드 반환 시점에 **DB 커밋**.
 4. 컨테이너가 그 뒤 **오프셋 커밋**.
-5. 3과 4 사이에서 죽으면 메시지 재전송 → 2의 dedup INSERT가 unique 위반으로 걸러냄 → 비즈니스 로직 미실행.
+5. 3과 4 사이에서 중단되면 메시지를 다시 읽는다. 2의 `insertIfAbsent`가 0을 반환하므로 비즈니스 로직을 다시 실행하지 않는다.
 
 이 구조에서 정확히 한 번 "전달"은 보장하지 못해도, **정확히 한 번 "처리"한 것과 같은 효과**(effectively-once)를 얻는다.
 이것이 실무에서 Kafka 정합성을 다루는 기본 접근이다. Exactly-once delivery를 좇기보다 at-least-once와 멱등 설계로 간다.
@@ -250,12 +259,12 @@ Redis는 캐시일 뿐이라 정합성의 최종 책임은 DB 제약에 있어�
 
 - [ ] 리스너에 DB 작업이 있을 때 `DB 커밋 → 오프셋 커밋` 순서가 보장되는가 (`enable.auto.commit=false` 확인)
 - [ ] AckMode가 의도와 맞는가 (기본 `BATCH`의 배치 단위 재전송 영향을 이해했는가)
-- [ ] manual ack를 쓴다면 모든 부수 효과 완료 후에만 `acknowledge()`를 호출하는가
+- [ ] `@Transactional` 리스너 안의 manual ack가 DB commit보다 먼저 실행될 수 있음을 검증했는가
 - [ ] 분기 경로마다 ack가 빠짐없이 호출되는가 (오프셋 정체로 무한 재처리되지 않는가)
 - [ ] ack를 컨슈머 스레드 안에서만 호출하는가 (`@Async`/별도 스레드에서 호출하지 않는가)
 - [ ] 컨슈머가 멱등한가 (`processed_event` 또는 동등한 dedup이 있는가)
 - [ ] dedup 키가 재전송에도 동일한 비즈니스 레벨 ID인가 (offset 의존이 아닌가)
-- [ ] unique 위반 catch가 트랜잭션을 오염시키지 않는가 (dedup INSERT를 앞단에 두거나 ON CONFLICT 사용)
+- [ ] 중복 INSERT가 exception으로 transaction을 rollback-only 상태로 만들지 않는가
 - [ ] dedup INSERT와 비즈니스 로직이 같은 DB 트랜잭션에 묶여 있는가
 - [ ] Kafka 트랜잭션과 DB 트랜잭션을 진짜 원자적으로 묶었다고 오해하고 있지 않은가
 
@@ -266,7 +275,7 @@ Redis는 캐시일 뿐이라 정합성의 최종 책임은 DB 제약에 있어�
 - [Kafka 실전 설계](./kafka-design.md) — 파티션, 컨슈머 그룹, 전달 보장과 복제 설정
 - [Spring 트랜잭션 전파·격리수준·AFTER_COMMIT 실전](../java/spring/transaction-propagation-isolation-after-commit.md) — DB 커밋 이후 Kafka로 **발행하는 쪽**의 정렬
 - [TransactionSynchronization 실전](../java/spring/transaction-synchronization.md) — afterCommit 훅 커스터마이징
-- [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md) — DB를 진실원으로 하는 발행 원자성
+- [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md) — DB를 기준 데이터로 삼는 발행 원자성
 
 ## 참고 공식 문서
 
