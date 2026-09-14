@@ -716,6 +716,7 @@ props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);
 
 > **관련 문서**
 > - [Kafka 기본 개념](./basic.md)
+> - [Kafka 클러스터 아키텍처](./architecture.md)
 > - [Kafka를 로그로 이해하기](./log-as-unifying-abstraction.md)
 > - [Spring Kafka 컨슈머 오프셋 커밋과 트랜잭션 정렬](./spring-kafka-listener-offset-commit-transaction.md)
 > - [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md)

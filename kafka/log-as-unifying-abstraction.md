@@ -20,11 +20,11 @@ Kafka의 중심에는 **변경 사실을 순서대로 보존하고 여러 시스
 여기서 로그는 애플리케이션이 남기는 오류 문장이 아니다.
 프로그램이 읽을 수 있는 레코드를 뒤에만 추가하는 **append-only sequence**다.
 
-```text
-offset       40              41              42
-record   OrderCreated -> PaymentApproved -> OrderShipped
-time      더 오래됨                              더 최근임
-```
+| Offset | Record | 시간 |
+| ---: | --- | --- |
+| 40 | `OrderCreated` | 더 오래됨 |
+| 41 | `PaymentApproved` |  |
+| 42 | `OrderShipped` | 더 최근임 |
 
 로그에는 세 가지 중요한 성질이 있다.
 
@@ -62,12 +62,10 @@ flowchart LR
 로그가 분산 시스템의 공통 원리가 되는 이유는 상태 머신 복제에서 드러난다.
 같은 초기 상태에서 시작한 결정적 프로그램 두 개가 같은 입력을 같은 순서로 처리하면 같은 최종 상태에 도달한다.
 
-```text
-초기 잔액 10,000원
-
-로그 A: +5,000 -> ×2 = 30,000원
-로그 B: ×2 -> +5,000 = 25,000원
-```
+| 적용 순서 | 계산 결과 |
+| --- | --- |
+| 초기 잔액 10,000원 → `+5,000` → `×2` | 30,000원 |
+| 초기 잔액 10,000원 → `×2` → `+5,000` | 25,000원 |
 
 입력 값이 같아도 순서가 달라지면 상태가 달라진다.
 복제본이 같아지려면 변경 내용뿐 아니라 적용 순서에도 합의해야 한다.
@@ -131,15 +129,10 @@ RDBMS와 검색 엔진은 현재 상태를 목적에 맞게 조회하는 데 강
 Kafka의 기본 consumer group 모델에서는 레코드를 보존하고,
 소비자가 파티션별로 다음에 읽을 위치를 관리한다.
 
-```text
-Partition 0: 0 1 2 3 4 5 6 7 8 9
-                        ^
-                        group A의 다음 위치
-
-Partition 0: 0 1 2 3 4 5 6 7 8 9
-                ^
-                group B의 다음 위치
-```
+| Consumer Group | 읽는 Partition | 다음에 읽을 Offset |
+| --- | --- | ---: |
+| group A | Partition 0 | 6 |
+| group B | Partition 0 | 4 |
 
 소비 상태는 파티션마다 정수 하나로 작다.
 Kafka는 consumer group의 커밋 오프셋을 compacted internal topic인 `__consumer_offsets`에 저장한다.
@@ -216,9 +209,10 @@ OrderState state = events.stream()
 반대 방향도 가능하다.
 테이블의 insert, update와 delete를 CDC로 읽으면 다시 변경 스트림을 만들 수 있다.
 
-```text
-변경 로그 --적용--> 현재 상태
-현재 상태 --CDC---> 변경 로그
+```mermaid
+flowchart LR
+    log["변경 로그"] -->|"적용"| table["현재 상태"]
+    table -->|"CDC"| log
 ```
 
 Kafka Streams의 state store도 같은 원리를 사용한다.
@@ -239,17 +233,12 @@ changelog는 장애 후 같은 상태를 다시 만드는 근거가 된다.
 
 **Log compaction**(로그 압축)은 같은 키의 여러 레코드 중 최신 값을 남기는 보존 방식이다.
 
-```text
-압축 전
-10: order-1=CREATED
-11: order-2=CREATED
-12: order-1=PAID
-13: order-1=SHIPPED
-
-압축 후의 논리적 결과
-11: order-2=CREATED
-13: order-1=SHIPPED
-```
+| Offset | 압축 전 | 압축 후의 논리적 결과 |
+| ---: | --- | --- |
+| 10 | `order-1=CREATED` | 제거됨 |
+| 11 | `order-2=CREATED` | `order-2=CREATED` |
+| 12 | `order-1=PAID` | 제거됨 |
+| 13 | `order-1=SHIPPED` | `order-1=SHIPPED` |
 
 압축 후에도 남은 레코드의 오프셋은 바뀌지 않는다.
 삭제된 오프셋에는 빈 구간이 생길 수 있다.
@@ -442,7 +431,8 @@ Kafka의 개념은 로그 한 가지에서 이어진다.
 
 ## 관련 글
 
-- [Kafka 기본 개념: 토픽, 파티션, 오프셋과 복제](./basic.md)
+- [Kafka 기본 개념: Topic, Partition, Offset과 Segment](./basic.md)
+- [Kafka 클러스터 아키텍처: Broker, KRaft Controller와 복제](./architecture.md)
 - [Kafka 실전 설계: 파티션 전략, 컨슈머 그룹, 전달 보장, 재시도, 순서 보장 트레이드오프](./kafka-design.md)
 - [Kafka 파티션·리밸런스·컨슈머 지연 운영](./kafka-operations-deepen.md)
 - [Spring Kafka 컨슈머 오프셋 커밋과 트랜잭션 정렬: AckMode, manual ack, 멱등 처리](./spring-kafka-listener-offset-commit-transaction.md)
