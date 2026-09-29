@@ -59,3 +59,4 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 
 - [사람용 CLI와 AI 에이전트용 CLI 설계](./practice/agent-friendly-cli-design.md) — 구조화 출력, 미리보기, 비대화형 모드, 안전한 기본값
 - [AI 에이전트와 함께 MVP 만들기 (dooray-cli 사례)](./practice/mvp-with-ai-agent.md)
+- [AI 코딩 에이전트의 코드 컨벤션은 규칙 문서와 결정적 검사로 지킨다](./practice/coding-agent-code-convention-with-checks.md) — 규칙 문서, Spotless·Checkstyle·ArchUnit 세 층 검사와 ArchUnit 기초
