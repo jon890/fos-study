@@ -3,7 +3,7 @@ thumbnail: ./images/servlet-async-dispatch-thumbnail.jpg
 tags: [study]
 ---
 
-# DispatcherType과 서블릿 async 재디스패치 — Interceptor의 preHandle이 두 번 도는 이유
+# DispatcherType과 서블릿 async 재디스패치로 Interceptor의 preHandle이 두 번 도는 이유
 
 컨트롤러가 `Mono`를 반환하면 `DispatcherServlet.doDispatch()`가 **한 요청에 두 번** 실행된다.
 그래서 `HandlerInterceptor.preHandle()`도 두 번 돈다.
@@ -15,7 +15,7 @@ tags: [study]
 - `Mono`를 반환했을 뿐인데 왜 디스패치가 두 번 도는가
 - 그 전제를 모르고 짠 코드는 어디서 깨지는가
 
-> 요청 파이프라인에서 Filter, Interceptor, AOP를 어디에 둘지가 먼저 궁금하면 [Filter, Interceptor, AOP](./filter-interceptor-aop.md)를 먼저 읽으면 좋다. 이 글은 그중 Interceptor가 **몇 번 실행되는지**만 파고든다.
+> 요청 파이프라인에서 Filter, Interceptor, AOP를 어디에 둘지가 먼저 궁금하면 [Filter, Interceptor, AOP](./filter-interceptor-aop.md)를 먼저 읽으면 좋다. 이 글은 그중 Interceptor가 **몇 번 실행되는지**만 다룬다.
 
 확인에 쓴 버전은 Spring Framework 6.1.8, Spring Boot 3.3, Jakarta Servlet 6.0이다.
 아래 인용한 소스 줄번호는 모두 그 버전 기준이고, 실행 결과는 직접 돌려서 얻었다.
@@ -31,12 +31,12 @@ tags: [study]
 | `FORWARD` | `RequestDispatcher.forward()`로 다른 서블릿에 넘길 때 |
 | `INCLUDE` | `RequestDispatcher.include()`로 다른 서블릿 출력을 끼워 넣을 때 |
 | `ERROR` | 에러 페이지 매핑으로 넘어갈 때 |
-| `ASYNC` | `AsyncContext.dispatch()`로 비동기 처리 결과를 들고 다시 들어올 때 |
+| `ASYNC` | `AsyncContext.dispatch()`로 비동기 처리 결과가 나온 뒤 다시 들어올 때 |
 
 여기서 중요한 건 **다시 들어올 때도 같은 `HttpServletRequest` 객체를 쓴다**는 점이다.
-`forward`한 서블릿에서 `request.getAttribute()`로 앞 서블릿이 심은 값을 읽을 수 있는 것과 같은 이유다.
+`forward`한 서블릿에서 `request.getAttribute()`로 앞 서블릿이 넣어 둔 값을 읽을 수 있는 것과 같은 이유다.
 
-`DispatcherType`이 왜 enum으로까지 노출돼 있냐면, **필터 매핑 단위가 이것**이기 때문이다.
+`DispatcherType`이 enum으로 노출된 이유는 **필터 매핑 단위가 이것**이기 때문이다.
 `web.xml`의 `<dispatcher>`나 `FilterRegistrationBean.setDispatcherTypes()`로 "이 필터는 어느 경로의 진입에서 돌 것인가"를 지정한다.
 Spring Boot의 기본값은 이렇게 정해진다.
 
@@ -65,20 +65,20 @@ protected boolean shouldNotFilterAsyncDispatch() {
 }
 ```
 
-즉 **필터는 기본 설정에서 async 재진입 때 안 돈다.** 경로가 다르다.
-이게 뒤에 나올 대비의 절반이다.
+즉 **필터는 기본 설정에서 async 재진입 때 실행되지 않는다.**
+인터셉터는 재진입 때도 다시 실행된다. 이 차이는 뒤에서 다룬다.
 
 ## 동기 요청은 service()가 한 번 돈다
 
 먼저 평범한 요청을 보자.
 
-톰캣이 스레드를 하나 잡아 `service()`를 호출하고, `DispatcherServlet.doDispatch()`가 핸들러를 찾고 인터셉터를 돌리고 컨트롤러를 부른다.
+톰캣이 스레드를 하나 잡아 `service()`를 호출하고, `DispatcherServlet.doDispatch()`가 핸들러를 찾고 인터셉터를 실행하고 컨트롤러를 부른다.
 반환값으로 응답을 쓰고 스레드를 반납한다.
 요청 하나에 `service()` 한 번, `doDispatch()` 한 번이다.
 
 `DispatcherType`은 `REQUEST` 하나만 등장하고 끝난다.
 
-## Mono를 반환하면 흐름이 갈린다
+## Mono를 반환하면 흐름이 둘로 나뉜다
 
 컨트롤러가 `Mono`를 반환하는 순간 사정이 달라진다.
 반환 시점에는 아직 결과가 없다. 모델 서버 응답을 기다려야 한다면 몇 초 뒤에 나온다.
@@ -103,9 +103,9 @@ this.asyncContext.dispatch();
 ```
 
 `AsyncContext.dispatch()`가 하는 일이 이 글의 핵심이다.
-이건 "결과를 알려 줄게"가 아니다.
+이 호출은 결과를 알려 주는 통지가 아니다.
 
-> `dispatch()`는 이 요청을 서블릿 파이프라인에 **처음부터 다시 태워 달라**는 요청이다.
+> `dispatch()`는 이 요청을 서블릿 파이프라인에서 **처음부터 다시 처리해 달라**는 요청이다.
 
 컨테이너는 스레드를 새로 잡아 `service()`를 다시 호출한다. 이번 진입의 `DispatcherType`이 `ASYNC`다.
 그래서 `doDispatch()`도 다시 돈다.
@@ -116,8 +116,8 @@ this.asyncContext.dispatch();
 
 ## doDispatch는 DispatcherType을 보지 않는다
 
-여기까지가 "왜 다시 들어오는가"다. 그럼 다시 들어왔을 때 인터셉터가 왜 또 도는가.
-`doDispatch()` 코드를 보면 답이 바로 나온다.
+여기까지가 요청이 다시 들어오는 이유다.
+다시 들어왔을 때 인터셉터가 또 실행되는 이유는 `doDispatch()` 코드에 있다.
 
 ```java
 // DispatcherServlet.java:1049 부터, 요지만 발췌
@@ -165,7 +165,7 @@ if (asyncManager.isConcurrentHandlingStarted()) {
 `HandlerInterceptor`만 구현했다면 이 인터페이스가 없으니 아무 일도 일어나지 않는다.
 결과적으로 **첫 진입에서는 `preHandle`만 돌고 끝난다.**
 
-정리하면 한 요청에서 인터셉터 콜백은 이렇게 갈린다.
+정리하면 한 요청에서 인터셉터 콜백은 이렇게 나뉜다.
 
 | 콜백 | 첫 진입 (`REQUEST`) | 재진입 (`ASYNC`) |
 |---|---|---|
@@ -192,7 +192,7 @@ invocableMethod.invokeAndHandle(webRequest, mavContainer);
 ```
 
 재진입 시점에는 `WebAsyncManager`에 결과가 이미 들어 있다.
-그러면 컨트롤러 메서드 대신 **그 결과를 감싼 가짜 핸들러**로 바꿔치기한다.
+그러면 컨트롤러 메서드 대신 **그 결과를 돌려주기만 하는 핸들러**로 교체한다.
 이후 `invokeAndHandle()`은 결과 변환과 응답 쓰기만 수행한다.
 
 이 비대칭이 이 구조에서 가장 헷갈리는 지점이다.
@@ -201,9 +201,9 @@ invocableMethod.invokeAndHandle(webRequest, mavContainer);
 - `applyPreHandle` — 두 번 돈다
 - 컨트롤러 메서드 — 한 번만 돈다
 
-## 직접 세어봤다
+## 직접 세어 본 결과
 
-소스만 읽고 넘어가면 남지 않을 것 같아 카운터를 붙여봤다.
+소스만 읽고 넘어가면 기억에 남지 않을 것 같아 호출 횟수를 직접 세어 봤다.
 `MockMvc`로 `Mono`를 반환하는 컨트롤러를 호출하고, 인터셉터의 `preHandle`이 몇 번 불리는지와 그때의 `DispatcherType`을 찍었다.
 
 ```java
@@ -217,8 +217,8 @@ MvcResult result = mvc.perform(get("/probe")).andReturn();
 mvc.perform(asyncDispatch(result)).andReturn();
 ```
 
-`MockMvcRequestBuilders.asyncDispatch()`라는 API가 존재하는 것 자체가 이미 답이다.
-테스트에서 두 번째 디스패치를 명시적으로 태워야 한다는 뜻이다.
+`MockMvcRequestBuilders.asyncDispatch()`라는 API가 있다는 사실이 디스패치가 두 번이라는 근거다.
+테스트에서 두 번째 디스패치를 직접 실행해야 한다는 뜻이다.
 
 출력은 이랬다.
 
@@ -266,7 +266,7 @@ sequenceDiagram
     T2->>C: 응답 전송
 ```
 
-## spring-boot-starter-web과 webflux를 같이 넣으면 어느 쪽이 뜨나
+## spring-boot-starter-web과 webflux를 같이 넣었을 때 뜨는 스택
 
 여기서 한 가지를 짚어야 한다.
 `Mono`를 반환한다고 WebFlux 애플리케이션이 되는 게 아니다.
@@ -282,19 +282,19 @@ WebFlux는 `WebClient`를 쓰려고 넣은 의존성일 뿐이고, 톰캣과 Spr
 - 예외 핸들러가 `HttpServletRequest`를 파라미터로 받는가 → 서블릿
 - 설정 클래스가 `WebMvcConfigurer`인가 `WebFluxConfigurer`인가
 - 인터셉터가 `HandlerInterceptor`인가 `WebFilter`인가
-- `spring.mvc.async.request-timeout` 설정이 실제로 먹는가 → 서블릿 async를 쓰고 있다는 뜻
+- `spring.mvc.async.request-timeout` 설정이 실제로 적용되는가 → 서블릿 async를 쓰고 있다는 뜻
 
-세 계층이 한 요청 안에 섞인다는 그림을 갖고 있어야 한다.
+한 요청 안에서 세 구간이 이어진다는 점을 알고 있어야 한다.
 
-| 구간 | 무엇이 도나 | 스레드 |
+| 구간 | 실행 주체 | 스레드 |
 |---|---|---|
 | 요청 수신부터 컨트롤러 진입까지 | 서블릿, Spring MVC | 컨테이너 스레드 |
 | 컨트롤러가 반환한 `Mono` 체인 | reactor | reactor 스레드 |
 | 결과 확정 후 응답 작성 | 서블릿 재디스패치 | 컨테이너 스레드 (다시 잡음) |
 
-## 이 전제를 모르고 짠 코드는 어디서 깨지나
+## 이 전제를 모르고 짠 코드가 깨지는 유형
 
-`preHandle`이 두 번 돈다는 걸 모르면, 인터셉터에 넣은 코드가 조용히 두 번 실행된다.
+`preHandle`이 두 번 돈다는 걸 모르면, 인터셉터에 넣은 코드가 오류 없이 두 번 실행된다.
 깨지는 유형은 크게 셋이다.
 
 - **부수효과가 두 번 일어난다** — 이력 저장, 카운터 증가, 외부 호출을 `preHandle`에 넣으면 중복 실행된다.
@@ -314,9 +314,9 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 }
 ```
 
-## 실제로 밟은 사례 — 요청 ID가 갈라졌다
+## 요청 ID가 둘로 나뉜 사례
 
-내가 이걸 파게 된 계기는 운영 로그였다.
+내가 이 동작을 조사하게 된 계기는 운영 로그였다.
 이미지 분석 요청을 모델 서버로 넘기는 API 서버에서, **같은 요청이 남긴 에러 로그 두 줄이 서로 다른 요청 ID를 갖고 있었다.**
 
 로그가 두 줄인 이유는 찍는 지점이 두 군데였기 때문이다.
@@ -344,25 +344,25 @@ MDC.put(REQUEST_ID, requestId != null ? requestId : UUID.randomUUID().toString()
 여기서 인과를 한 번 잘못 짚었던 것도 적어 둔다.
 나는 처음에 "스레드가 바뀌어 MDC가 비었고 그래서 새로 만들어졌다"고 생각했다.
 그런데 `MockMvc`는 단일 스레드로 도는데도 UUID가 두 개 나왔다. 위 실험 출력이 그것이다.
-`MDC.put()`이 기존 값 유무를 보지 않고 덮어쓰기 때문에, **스레드가 같아도 갈라진다.**
-스레드 전환은 재실행이 필요해진 이유이지 갈라짐의 원인이 아니었다.
+`MDC.put()`이 기존 값 유무를 보지 않고 덮어쓰기 때문에, **스레드가 같아도 ID가 달라진다.**
+스레드 전환은 재실행이 필요해진 이유이지 ID가 달라진 원인이 아니었다.
 
 ### 운영에서 드러난 대가
 
 한 주 에러 로그를 분류하다 이 현상을 만났다. 로그 387건 중 288건이 같은 실패를 두 번 찍은 것이었고, 실제 사건은 243건이었다.
 
-요청 ID로 이을 수 없으니 보정을 우회로 해야 했다.
+요청 ID로 두 로그를 연결할 수 없으니 다른 방법으로 짝을 맞춰야 했다.
 두 로그 집합을 pod와 분 단위로 묶어 개수를 비교했고, 48개 버킷이 전부 일치해서 겨우 1:1 짝임을 확정했다.
 `requestId` 한 필드로 `GROUP BY` 하면 끝날 일이었다.
 
-더 아픈 건 추적이 끊기는 쪽이다.
+더 큰 문제는 추적이 끊긴다는 점이다.
 공통 sender는 첫 번째 ID를 `X-Request-Id` 헤더로 모델 서버에 넘기고 있었다.
 모델 서버 로그에는 첫 번째 ID가 남는데 우리 에러 로그에는 두 번째 ID가 남는다.
 고객 문의를 받고 에러 로그에서 출발하면 모델 서버 로그로 넘어갈 방법이 없다.
 
 ### 고친 방향
 
-두 디스패치가 공유하는 것은 `HttpServletRequest` 객체다. 여기에 담으면 스레드가 갈려도 이어진다.
+두 디스패치가 공유하는 것은 `HttpServletRequest` 객체다. 여기에 담으면 스레드가 바뀌어도 값이 이어진다.
 
 ```java
 private String resolveRequestId(HttpServletRequest request) {
@@ -395,16 +395,16 @@ attribute 키를 MDC 키와 분리한 것도 의도가 있다.
 내가 이 일에서 남긴 체크리스트는 셋이다.
 
 - **인터셉터에 코드를 넣을 때 "이게 두 번 실행돼도 괜찮은가"를 먼저 묻는다.** 컨트롤러가 `Mono`나 `DeferredResult`를 반환하는 프로젝트라면 두 번 실행이 기본이다.
-- **디스패치를 넘겨야 할 값은 `ThreadLocal`이 아니라 request attribute에 둔다.** 스레드는 갈리지만 request 객체는 같다. 반대로 스레드 안에서만 유효한 값은 MDC에 둔다.
+- **디스패치를 넘겨야 할 값은 `ThreadLocal`이 아니라 request attribute에 둔다.** 스레드는 바뀌지만 request 객체는 같다. 반대로 스레드 안에서만 유효한 값은 MDC에 둔다.
 - **`DispatcherType` 가드를 붙이기 전에 "재실행이 왜 필요했는가"를 확인한다.** 가드가 다른 기능의 전제를 깨뜨릴 수 있다. 이번 경우 가드는 감사 로그를 깨뜨렸고, 필요한 건 값의 멱등성이었다.
 
-## 언제 이 구조를 피하는 편이 나은가
+## 이 구조를 피하는 편이 나은 경우
 
-Spring MVC에 `Mono`를 얹는 구성 자체가 나쁜 건 아니다. 외부 호출이 오래 걸릴 때 컨테이너 스레드를 붙잡지 않는 이점이 실재한다.
+Spring MVC에서 `Mono`를 반환하는 구성 자체가 나쁜 건 아니다. 외부 호출이 오래 걸릴 때 컨테이너 스레드를 붙잡지 않는 이점이 분명히 있다.
 다만 다음 상황이면 다시 생각해볼 만하다.
 
-- **가상 스레드를 이미 켰다면** 이점이 크게 줄어든다. 컨테이너 스레드가 싸지므로 블로킹으로 기다려도 손해가 작다. 대신 이중 디스패치라는 복잡도는 그대로 남는다. 가상 스레드 자체는 [Virtual Thread와 Project Loom](../virtual-thread.md)에 정리해 뒀다.
-- **인터셉터에 부수효과가 많은 레거시라면** 이중 실행 전제를 모든 인터셉터에 다시 검토해야 한다. 하나만 놓쳐도 조용히 두 번 실행된다.
+- **가상 스레드를 이미 켰다면** 이점이 크게 줄어든다. 스레드 하나를 쓰는 비용이 작아지므로 블로킹으로 기다려도 손해가 작다. 대신 이중 디스패치라는 복잡도는 그대로 남는다. 가상 스레드 자체는 [Virtual Thread와 Project Loom](../virtual-thread.md)에 정리해 뒀다.
+- **인터셉터에 부수효과가 많은 레거시라면** 이중 실행 전제를 모든 인터셉터에 다시 검토해야 한다. 하나만 놓쳐도 오류 없이 두 번 실행된다.
 - **처음부터 리액티브로 갈 수 있다면** 진짜 WebFlux로 가는 편이 낫다. 서블릿 async 재디스패치라는 층이 아예 없어진다.
 
 반대로 이 구성을 유지할 이유도 분명하다. 서블릿 생태계의 필터, 인터셉터, `HttpServletRequest` 기반 도구를 그대로 쓸 수 있다.
@@ -416,11 +416,11 @@ Spring MVC에 `Mono`를 얹는 구성 자체가 나쁜 건 아니다. 외부 호
 그런데 깨진 시점에 아무 신호도 나지 않았다.
 
 기존 테스트도 이 전제를 검증하지 않았다.
-요청 ID 관련 테스트가 헤더 채택, UUID 대체, 문자열 정리, MDC 정리까지 덮고 있었는데 **디스패치를 두 번 태우는 경우가 없었다.**
+요청 ID 관련 테스트가 헤더 채택, UUID 대체, 문자열 정리, MDC 정리까지 검증하고 있었는데 **디스패치를 두 번 실행하는 경우가 없었다.**
 단위 테스트가 실행 횟수 전제를 검증하지 않으면, 프레임워크가 몇 번 부르는지는 테스트 밖의 일이 된다.
 
-로그를 남기는 코드는 스스로 깨져도 조용하다는 것도 배운 점이다.
-요청 ID가 갈라져도 응답은 정상이고 알람도 안 울린다.
+로그를 남기는 코드는 잘못돼도 오류가 드러나지 않는다는 것도 배운 점이다.
+요청 ID가 달라져도 응답은 정상이고 알람도 안 울린다.
 운영 로그를 사람이 직접 분류하다 발견했다. 관측 수단 자체를 관측하는 장치는 따로 두지 않았다는 게 회고 지점이다.
 
 ## 관련 문서
