@@ -3,21 +3,23 @@ thumbnail: ./images/servlet-async-dispatch-thumbnail.jpg
 tags: [study]
 ---
 
-# DispatcherType과 서블릿 async 재디스패치로 Interceptor의 preHandle이 두 번 도는 이유
+# 서블릿 async 재디스패치에서 preHandle이 두 번 돌고 응답 객체가 바뀌는 이유
 
 컨트롤러가 `Mono`를 반환하면 `DispatcherServlet.doDispatch()`가 **한 요청에 두 번** 실행된다.
 그래서 `HandlerInterceptor.preHandle()`도 두 번 돈다.
 나는 이걸 모르고 요청 ID를 인터셉터에서 발급하는 코드를 봤다가, 같은 요청의 로그 두 줄이 서로 다른 ID를 갖는 현상을 추적하게 됐다.
+두 번째 실행에서는 인터셉터가 받는 응답 객체도 달라진다. 필터에서 감싼 응답 래퍼를 인터셉터에서 `instanceof`로 확인하던 코드가 그래서 동작하지 않았다.
 
-이 글은 세 질문에 답한다.
+이 글은 네 질문에 답한다.
 
 - `DispatcherType`은 무엇이고 왜 있는가
 - `Mono`를 반환했을 뿐인데 왜 디스패치가 두 번 도는가
 - 그 전제를 모르고 짠 코드는 어디서 깨지는가
+- 재디스패치에서 인터셉터가 받는 응답 객체는 왜 필터가 넘긴 것과 다른가
 
-> 요청 파이프라인에서 Filter, Interceptor, AOP를 어디에 둘지가 먼저 궁금하면 [Filter, Interceptor, AOP](./filter-interceptor-aop.md)를 먼저 읽으면 좋다. 이 글은 그중 Interceptor가 **몇 번 실행되는지**만 다룬다.
+> 요청 파이프라인에서 Filter, Interceptor, AOP를 어디에 둘지가 먼저 궁금하면 [Filter, Interceptor, AOP](./filter-interceptor-aop.md)를 먼저 읽으면 좋다. 이 글은 그중 Interceptor가 **몇 번 실행되고 어떤 응답 객체를 받는지**를 다룬다.
 
-확인에 쓴 버전은 Spring Framework 6.1.8, Spring Boot 3.3, Jakarta Servlet 6.0이다.
+확인에 쓴 버전은 Spring Framework 6.1.8, Spring Boot 3.3.0, Tomcat 10.1.24, Jakarta Servlet 6.0이다.
 아래 인용한 소스 줄번호는 모두 그 버전 기준이고, 실행 결과는 직접 돌려서 얻었다.
 
 ## DispatcherType은 요청이 서블릿에 들어온 경로를 말한다
@@ -33,8 +35,10 @@ tags: [study]
 | `ERROR` | 에러 페이지 매핑으로 넘어갈 때 |
 | `ASYNC` | `AsyncContext.dispatch()`로 비동기 처리 결과가 나온 뒤 다시 들어올 때 |
 
-여기서 중요한 건 **다시 들어올 때도 같은 `HttpServletRequest` 객체를 쓴다**는 점이다.
+여기서 중요한 건 **다시 들어올 때도 같은 요청을 이어서 쓴다**는 점이다.
+컨테이너가 요청 객체를 한 겹 감싸서 넘길 수는 있어도 request attribute는 그대로 남는다.
 `forward`한 서블릿에서 `request.getAttribute()`로 앞 서블릿이 넣어 둔 값을 읽을 수 있는 것과 같은 이유다.
+응답 객체는 사정이 다른데, 그 내용은 뒤의 「재디스패치에서는 응답 객체가 한 겹 더 감싸진다」 절에서 다룬다.
 
 `DispatcherType`이 enum으로 노출된 이유는 **필터 매핑 단위가 이것**이기 때문이다.
 `web.xml`의 `<dispatcher>`나 `FilterRegistrationBean.setDispatcherTypes()`로 "이 필터는 어느 경로의 진입에서 돌 것인가"를 지정한다.
@@ -66,7 +70,7 @@ protected boolean shouldNotFilterAsyncDispatch() {
 ```
 
 즉 **필터는 기본 설정에서 async 재진입 때 실행되지 않는다.**
-인터셉터는 재진입 때도 다시 실행된다. 이 차이는 뒤에서 다룬다.
+인터셉터는 재진입 때도 다시 실행된다. 이 차이가 뒤에서 `preHandle` 중복 실행과 응답 래퍼 문제로 이어진다.
 
 ## 동기 요청은 service()가 한 번 돈다
 
@@ -111,7 +115,7 @@ this.asyncContext.dispatch();
 그래서 `doDispatch()`도 다시 돈다.
 
 `forward`와 같은 계열로 이해하면 쉽다.
-`forward`하면 같은 request 객체로 서블릿이 한 번 더 실행되는데, async 재디스패치도 똑같이 같은 request 객체로 다시 실행된다.
+`forward`하면 같은 요청으로 서블릿이 한 번 더 실행되는데, async 재디스패치도 똑같이 같은 요청으로 다시 실행된다.
 구분은 `DispatcherType` 값뿐이다.
 
 ## doDispatch는 DispatcherType을 보지 않는다
@@ -241,6 +245,7 @@ preHandle 총 호출 횟수 = 2
 한 가지 한계는 밝혀 둔다. `MockMvc`는 두 디스패치를 같은 스레드에서 순차 실행한다.
 그래서 이 실험이 보여주는 건 **디스패치가 두 번 돈다**는 사실까지다.
 실제 톰캣에서는 재디스패치가 보통 다른 스레드에서 일어나는데, 그건 이 테스트로 증명되지 않는다.
+스레드가 바뀌는 것은 뒤의 응답 객체 실험에서 실제 톰캣으로 확인했다.
 
 ## 전체 흐름
 
@@ -362,7 +367,7 @@ MDC.put(REQUEST_ID, requestId != null ? requestId : UUID.randomUUID().toString()
 
 ### 고친 방향
 
-두 디스패치가 공유하는 것은 `HttpServletRequest` 객체다. 여기에 담으면 스레드가 바뀌어도 값이 이어진다.
+두 디스패치가 공유하는 것은 request attribute다. 여기에 담으면 스레드가 바뀌어도 값이 이어진다.
 
 ```java
 private String resolveRequestId(HttpServletRequest request) {
@@ -390,13 +395,169 @@ private String resolveRequestId(HttpServletRequest request) {
 attribute 키를 MDC 키와 분리한 것도 의도가 있다.
 `"requestId"`는 흔한 이름이라 다른 라이브러리가 같은 이름의 attribute를 쓸 여지가 있어서, 클래스명을 접두어로 붙였다.
 
+## 재디스패치에서는 응답 객체가 한 겹 더 감싸진다
+
+요청 ID 문제는 request attribute로 풀렸다. 요청 쪽은 디스패치를 넘어 값이 이어지기 때문이다.
+응답에는 그런 수단이 없고, 객체도 그대로 넘어오지 않는다.
+재디스패치에서 인터셉터가 받는 응답은 필터가 넘긴 객체가 아니라, Spring이 그 객체를 한 번 더 감싼 래퍼다.
+
+이 절의 실행 결과는 Spring Boot 3.3.0에 내장된 톰캣 10.1.24를 실제 포트로 띄워 얻었다.
+같은 구성을 `MockMvc`로 돌려도 래퍼가 겹치는 순서는 같았다.
+
+### 응답을 감싸는 위치
+
+아래는 Spring Framework 6.1.8 소스에서 읽은 것이다.
+핸들러 어댑터는 디스패치마다 async 요청 객체를 새로 만들고, 그 생성자가 응답을 감싼다.
+
+```java
+// RequestMappingHandlerAdapter.invokeHandlerMethod():880
+AsyncWebRequest asyncWebRequest = WebAsyncUtils.createAsyncWebRequest(request, response);
+
+// StandardServletAsyncWebRequest 생성자:90
+super(request, new LifecycleHttpServletResponse(response));
+
+// StandardServletAsyncWebRequest.startAsync():158
+this.asyncContext = getRequest().startAsync(getRequest(), getResponse());
+```
+
+`LifecycleHttpServletResponse`는 `StandardServletAsyncWebRequest` 안에 선언된 `private static final` 클래스이고 `HttpServletResponseWrapper`를 상속한다.
+async 요청이 끝났거나 컨테이너가 오류를 알린 뒤에는 응답 스트림에 쓰지 못하게 막는 역할이다.
+응답 스트림을 감싸 수명이 끝난 뒤의 사용을 막는다는 방침은 Spring 이슈 [#32340](https://github.com/spring-projects/spring-framework/issues/32340)에 적혀 있고, 그 이슈의 마일스톤은 6.1.5다. 소스의 javadoc에는 `@since 5.3.33`으로 적혀 있다.
+
+158행이 중요하다. `startAsync()`에 **감싼 응답을 넘긴다.**
+서블릿 명세에서 `AsyncContext.dispatch()`는 `startAsync()`에 넘긴 요청과 응답으로 서블릿을 다시 호출한다.
+그래서 ASYNC 디스패치의 `DispatcherServlet`은 필터가 넘긴 응답이 아니라 `LifecycleHttpServletResponse`를 받는다.
+
+여기에 글 앞부분에서 본 필터 등록 기본값이 겹친다.
+`Filter`를 직접 구현한 필터는 `REQUEST`에만 등록되므로, 재디스패치에서는 필터가 실행되지 않고 응답을 다시 감싸지도 않는다.
+
+### 지점별로 받는 응답
+
+응답 본문을 복사하는 래퍼로 응답을 감싸는 필터를 두고, 각 지점이 받는 응답의 래퍼 체인을 출력했다.
+아래 표는 그 출력이다. `ResponseFacade`는 톰캣이 넘기는 원본 응답이다.
+
+| 지점 | 디스패치 | 받는 응답 (바깥에서 안쪽 순) |
+|---|---|---|
+| 필터 | `REQUEST` | `ResponseFacade` |
+| `preHandle` | `REQUEST` | 복사 래퍼 → `ResponseFacade` |
+| `preHandle` | `ASYNC` | `LifecycleHttpServletResponse` → 복사 래퍼 → `ResponseFacade` |
+| 본문을 쓰는 메시지 컨버터 | `ASYNC` | `LifecycleHttpServletResponse` → `LifecycleHttpServletResponse` → 복사 래퍼 → `ResponseFacade` |
+| `afterCompletion` | `ASYNC` | `LifecycleHttpServletResponse` → 복사 래퍼 → `ResponseFacade` |
+
+본문을 쓰는 쪽에 `LifecycleHttpServletResponse`가 두 겹인 이유는 핸들러 어댑터가 ASYNC 디스패치에서도 880행을 다시 실행하기 때문이다.
+`afterCompletion`은 `doDispatch()`가 받은 응답을 그대로 받으므로 그보다 한 겹 안쪽이다.
+
+같은 실험에서 요청 쪽도 확인했다.
+톰캣은 ASYNC 디스패치에서 요청을 `ApplicationHttpRequest`로 한 번 감싸서 넘겼고, 그 안쪽은 첫 진입과 같은 `RequestFacade`였다.
+첫 진입에서 넣은 attribute는 재디스패치에서 그대로 읽혔다.
+요청과 응답 모두 가장 바깥 객체는 디스패치마다 달라질 수 있다. 요청은 attribute로 값을 이어받고, 응답은 래퍼 체인을 안쪽으로 풀어서 찾아야 한다.
+
+재디스패치가 다른 스레드에서 실행되는 것도 여기서 확인됐다.
+첫 진입은 `http-nio-auto-1-exec-2`, 재디스패치는 `http-nio-auto-1-exec-3`에서 실행됐다.
+
+### instanceof 검사가 false가 되는 요청
+
+이 구조에서 실제로 겪은 문제는 감사 로그였다.
+응답 본문을 감사 로그에 남기려고 필터에서 응답을 본문 복사 래퍼로 감쌌고, 감사 인터셉터의 `afterCompletion`이 그 래퍼에서 본문을 꺼냈다.
+아래 코드는 그 구조를 실험용으로 다시 쓴 것이고, 클래스 이름은 실험에서 붙인 이름이다.
+
+```java
+// 필터
+chain.doFilter(request, new BodyCopyResponseWrapper((HttpServletResponse) response));
+
+// 인터셉터의 afterCompletion
+String body = "";
+if (response instanceof BodyCopyResponseWrapper wrapper) {
+    body = wrapper.copiedBody();
+}
+```
+
+컨트롤러가 `Mono`를 반환하는 API에서는 `afterCompletion`이 ASYNC 디스패치에서 실행된다.
+그때 받는 응답의 가장 바깥은 `LifecycleHttpServletResponse`라서 `instanceof`가 false다.
+예외는 나지 않고 본문만 빈 문자열로 기록된다.
+
+요청 종류별 실행 결과는 이랬다.
+
+| 요청 | `afterCompletion`의 디스패치 | `instanceof` | 꺼낸 본문 |
+|---|---|---|---|
+| 동기 반환 | `REQUEST` | true | `sync-body` |
+| `Mono` 반환 | `ASYNC` | **false** | 꺼내지 못함 |
+| 뒤 순서 인터셉터가 `preHandle`에서 거절 | `REQUEST` | true | `rejected` |
+| 컨트롤러가 async 시작 전에 예외를 던지고 `@ExceptionHandler`가 처리 | `REQUEST` | true | `handled-body` |
+
+async가 시작되기 전에 끝난 요청은 `REQUEST` 디스패치에서 `afterCompletion`까지 실행되므로 필터가 넘긴 래퍼를 그대로 받는다.
+그래서 **일부 요청에서는 본문이 정상으로 남는다.**
+거절된 요청과 예외 핸들러가 처리한 요청의 본문은 기록되고 정상 처리된 요청의 본문만 비어 있어서, 기능이 통째로 동작하지 않는 것처럼 보이지 않았다.
+응답 자체는 정상이고 오류 로그도 없어 한동안 알아채지 못했다.
+
+예외를 아무도 처리하지 않아 톰캣의 `ERROR` 디스패치로 넘어간 경우도 돌려 봤다.
+`ERROR` 디스패치의 `afterCompletion`은 래퍼가 없는 `ResponseFacade`를 받았다. 필터가 `ERROR`에 등록돼 있지 않기 때문이다.
+이 경우 오류 응답 본문은 복사 래퍼를 거치지 않으므로 어떤 방법으로도 꺼낼 수 없다.
+
+### 래퍼 체인에서 찾는 방법
+
+`instanceof` 대신 `WebUtils.getNativeResponse()`를 쓰면 된다.
+
+```java
+BodyCopyResponseWrapper wrapper = WebUtils.getNativeResponse(response, BodyCopyResponseWrapper.class);
+String body = (wrapper != null) ? wrapper.copiedBody() : "";
+```
+
+이 메서드는 응답이 원하는 타입이면 그대로 돌려주고, 아니면 `ServletResponseWrapper.getResponse()`를 따라 안쪽으로 들어가며 찾는다. 끝까지 없으면 `null`이다.
+
+```java
+// WebUtils.getNativeResponse():481
+if (requiredType.isInstance(response)) {
+    return (T) response;
+}
+else if (response instanceof ServletResponseWrapper wrapper) {
+    return getNativeResponse(wrapper.getResponse(), requiredType);
+}
+```
+
+실험에서 이 방법은 위 표의 네 요청 모두에서 래퍼를 찾았고, `Mono` 반환 요청에서도 `mono-body`를 꺼냈다.
+Spring도 같은 방식을 쓴다. `ShallowEtagHeaderFilter`는 자기가 감싼 `ConditionalContentCachingResponseWrapper`를 `getNativeResponse()`로 다시 찾는다. 이 클래스는 `ContentCachingResponseWrapper`를 상속한다.
+
+같은 프로젝트의 이력 저장 인터셉터는 이 문제를 리플렉션으로 우회하고 있었다.
+`response.getOutputStream()`이 돌려주는 `LifecycleServletOutputStream`에서 `delegate` 필드를 꺼내 안쪽 스트림에 접근하는 방식이다.
+두 방법을 비교하면 이렇다.
+
+| 기준 | `WebUtils.getNativeResponse()` | 리플렉션으로 `delegate` 꺼내기 |
+|---|---|---|
+| 의존하는 것 | 공개 API와 `ServletResponseWrapper` 규약 | `private` 클래스의 필드 이름 |
+| ASYNC 디스패치 | 래퍼를 찾음 | 안쪽 스트림을 꺼냄 |
+| REQUEST 디스패치 | 래퍼를 찾음 | `NoSuchFieldException`. 스트림이 Spring 래퍼가 아니라서 분기가 따로 필요함 |
+| 래퍼가 더 겹칠 때 | 체인을 끝까지 따라감 | 한 겹만 벗김 |
+
+표의 ASYNC와 REQUEST 행은 실행으로 확인했다.
+첫 행은 소스에서 읽은 것이다. 마지막 행의 리플렉션 쪽은 코드 구조에서 추론한 것이고 실행하지 않았다.
+
+리플렉션 우회는 Spring이 필드 이름을 바꾸면 깨진다.
+그리고 한 인터셉터만 고쳐져 있었다는 점이 더 큰 문제였다.
+같은 원인에 대한 우회가 이력 저장 인터셉터에만 들어가 있었고, 감사 인터셉터는 `instanceof` 검사를 그대로 갖고 있었다.
+
+### 필터를 ASYNC에도 등록한 경우
+
+필터를 `REQUEST`와 `ASYNC` 양쪽에 등록하면 `instanceof`가 다시 true가 된다.
+실행해 보니 ASYNC 디스패치에서 필터가 한 번 더 실행됐고, `afterCompletion`이 받은 체인은 이랬다.
+
+```text
+복사 래퍼(2) → LifecycleHttpServletResponse → 복사 래퍼(1) → ResponseFacade
+```
+
+바깥 래퍼에서 `mono-body`가 꺼내졌다.
+다만 한 요청에 복사 래퍼가 둘이 된다.
+본문이 바깥 래퍼를 지나 안쪽 래퍼로 내려가므로 같은 본문이 두 번 복사될 것으로 보인다. 안쪽 래퍼의 복사본은 직접 출력해 확인하지 않았다.
+`instanceof`를 살리려고 필터 등록을 바꾸는 것보다 `getNativeResponse()`로 찾는 편이 낫다.
+
 ## 가져갈 판단 기준
 
-내가 이 일에서 남긴 체크리스트는 셋이다.
+내가 이 일에서 남긴 체크리스트는 넷이다.
 
 - **인터셉터에 코드를 넣을 때 "이게 두 번 실행돼도 괜찮은가"를 먼저 묻는다.** 컨트롤러가 `Mono`나 `DeferredResult`를 반환하는 프로젝트라면 두 번 실행이 기본이다.
-- **디스패치를 넘겨야 할 값은 `ThreadLocal`이 아니라 request attribute에 둔다.** 스레드는 바뀌지만 request 객체는 같다. 반대로 스레드 안에서만 유효한 값은 MDC에 둔다.
+- **디스패치를 넘겨야 할 값은 `ThreadLocal`이 아니라 request attribute에 둔다.** 스레드는 바뀌지만 request attribute는 이어진다. 반대로 스레드 안에서만 유효한 값은 MDC에 둔다.
 - **`DispatcherType` 가드를 붙이기 전에 "재실행이 왜 필요했는가"를 확인한다.** 가드가 다른 기능의 전제를 깨뜨릴 수 있다. 이번 경우 가드는 감사 로그를 깨뜨렸고, 필요한 건 값의 멱등성이었다.
+- **필터에서 감싼 응답을 인터셉터에서 꺼낼 때는 `instanceof`가 아니라 `WebUtils.getNativeResponse()`로 찾는다.** 필터가 감싼 래퍼는 재디스패치에서도 체인 안쪽에 남아 있지만, 가장 바깥에는 Spring의 래퍼가 온다.
 
 ## 이 구조를 피하는 편이 나은 경우
 
@@ -435,4 +596,5 @@ Spring MVC에서 `Mono`를 반환하는 구성 자체가 나쁜 건 아니다. �
 - [Jakarta Servlet API — AsyncContext.dispatch()](https://jakarta.ee/specifications/platform/9/apidocs/jakarta/servlet/asynccontext#dispatch())
 - [Spring Framework Reference — Asynchronous Requests](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-async.html)
 - [Spring Framework Reference — Handler Interceptors](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-servlet/handlermapping-interceptor.html)
-- Spring Framework 6.1.8 소스 — `DispatcherServlet`, `HandlerExecutionChain`, `RequestMappingHandlerAdapter`, `WebAsyncManager`, `OncePerRequestFilter`
+- [Spring Framework 이슈 #32340 — Better protect against concurrent error handling for async requests](https://github.com/spring-projects/spring-framework/issues/32340)
+- Spring Framework 6.1.8 소스 — `DispatcherServlet`, `HandlerExecutionChain`, `RequestMappingHandlerAdapter`, `WebAsyncManager`, `OncePerRequestFilter`, `StandardServletAsyncWebRequest`, `WebUtils`, `ShallowEtagHeaderFilter`
