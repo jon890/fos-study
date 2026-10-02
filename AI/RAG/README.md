@@ -17,6 +17,7 @@ RAG 파이프라인 구성 요소 학습 기록. 임베딩·벡터 검색·알�
 
 ## 평가·설계
 
+- [RAG 시스템 설계는 사용 흐름, 추론 경로, 입력 품질 세 축으로 나눠 진단한다](./rag-architecture-three-axes.md) — Workflow, Logic, Data Quality 사례 비교와 측정 순서
 - [RAG를 평가에서 역설계하기](./evaluation-driven-context-provider.md) — 컨텍스트 제공자의 목표, 컴포넌트별 평가, 평가 기준에서 검색 구성을 선택하는 방법
 - [문서 파싱 품질을 재는 방법의 스펙트럼](./document-parsing-quality-evaluation.md) — 회귀, golden, NED, TEDS, LLM 판정의 역할과 조합
 - [Neo4j GraphRAG로 에이전트 컨텍스트 제공자 만들기](./neo4j-graphrag/README.md) — 온톨로지 모델링부터 관계 탐색, 원문 근거, 평가, 운영까지 이어지는 학습 시리즈
