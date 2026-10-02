@@ -4,11 +4,11 @@ tags: [study]
 
 # 커넥션 풀 크기는 얼마나 조정해야 할까?
 
-## 결론부터 — "작게"
+## 결론부터: 풀은 작게
 
 직관과 반대다. 동시 사용자가 많아지면 풀을 키워야 할 것 같지만, 실제로는 **작게 유지하는 쪽이 더 빠르다**. 커넥션은 결국 DB 측 자원(워커 프로세스/스레드, 디스크 I/O)을 점유하는데, 그 자원의 수가 한정되어 있기 때문이다.
 
-> 다른 변경 없이 커넥션 풀 크기만 줄였더니 애플리케이션 응답 시간이 약 100ms에서 약 2ms로, 50배 이상 단축됐다 — HikariCP 공식 글 사례.
+> 다른 변경 없이 커넥션 풀 크기만 줄였더니 애플리케이션 응답 시간이 약 100ms에서 약 2ms로, 50배 이상 단축됐다. HikariCP 공식 글의 사례다.
 
 풀 사이징을 넘어 saturation 진단, Tomcat worker 연쇄 포화, bulkhead/backpressure 설계까지 이어지는 운영 레이어는 [DB Connection Pool Saturation과 Thread Pool 격리](./connection-pool-saturation-thread-pool-isolation.md)를 함께 보면 좋다.
 
@@ -18,7 +18,7 @@ CPU 코어가 하나뿐인 컴퓨터도 수십·수백 개 스레드를 "동시�
 
 DB 쪽도 똑같다. 풀 크기를 1만으로 잡으면 1만 개의 커넥션이 DB 워커를 분점하는 셈이고, DB는 컨텍스트 스위칭에 시간을 쓰느라 실제 작업 시간이 줄어든다. 단일 CPU에서 A·B를 순차 실행하는 것이 타임 슬라이싱으로 "동시에" 실행하는 것보다 항상 빠르다는 건 컴퓨팅의 기본 법칙이다.
 
-이 현상에는 이름이 있다 — **USL**(Universal Scalability Law, 보편적 확장성 법칙). 동시 처리 단위를 늘릴수록 처리량이 선형으로 늘지 않고 어느 지점부터 평탄화하거나 오히려 떨어진다. 원인이 셋이다.
+이 현상에는 이름이 있다. **USL**(Universal Scalability Law, 보편적 확장성 법칙). 동시 처리 단위를 늘릴수록 처리량이 선형으로 늘지 않고 어느 지점부터 평탄화하거나 오히려 떨어진다. 원인이 셋이다.
 
 - 컨텍스트 스위칭 — 코어보다 많은 스레드는 교체에만 시간을 쓰고 CPU 캐시를 무효화한다.
 - 락 경쟁 — 같은 행을 노리는 커넥션이 많을수록 락 대기 시간이 길어진다.
@@ -26,18 +26,20 @@ DB 쪽도 똑같다. 풀 크기를 1만으로 잡으면 1만 개의 커넥션이
 
 처리량이 더 늘지 않는 지점이 시스템의 한계점(saturation point)이다. 이 원리는 DB 풀만이 아니라 스레드 풀·HTTP 클라이언트 풀 등 모든 풀에 똑같이 적용된다.
 
-## PostgreSQL 공식 — 출발점
+## PostgreSQL 공식, 출발점
 
 ```text
 Connection Pool Size = (코어 수 × 2) + I/O를 동시에 처리할 수 있는 디스크 수
 ```
 
-- 4코어 + HDD 1대 → `(4 × 2) + 1 = 9`
-- 8코어 + SSD 1대 → `(8 × 2) + 1 = 17`
+- 4코어와 HDD 1대: `(4 × 2) + 1 = 9`
+- 8코어와 SSD 1대: `(8 × 2) + 1 = 17`
 
 PostgreSQL 발 공식이지만 MySQL을 비롯한 대부분 DB에 출발점으로 통한다. SSD/NVMe·Aurora·RDS Proxy 같은 환경에서는 그대로 따르지 말고 **부하 테스트로 sweet spot을 찾는 것이 정석**이다.
 
 > 사용자가 1만 명이라고 풀을 1만 개로 잡는 건 말이 안 된다. 1,000개도 과하고 100개 조차 과하다. 풀은 수십 개 수준으로 두고, 나머지 애플리케이션 스레드는 풀에서 연결을 기다리도록 둔다.
+
+공식의 마지막 항은 스핀들(디스크 회전축) 수다. PostgreSQL 위키는 실효 스핀들 수를 활성 데이터가 전부 메모리에 캐시되어 있으면 0, 캐시 적중률이 떨어질수록 실제 스핀들 수에 가까워지는 값으로 설명한다. 랜덤 I/O 때문에 디스크 헤드가 여기저기 움직이는 비용이 커넥션을 늘릴수록 커지기 때문이다. 그래서 데이터가 대부분 캐시에 올라가는 SSD·NVMe 환경에서는 이 항을 0으로 두고 사실상 `물리 코어 × 2`에서 출발하는 경우가 많다. 위 예시의 `+ 1`은 디스크 한 대를 센 값이고, 같은 위키가 SSD에서 이 공식이 얼마나 잘 맞는지는 분석된 바 없다고 적는 만큼 어느 쪽이든 출발점으로만 쓴다.
 
 공식에서 코어 수는 **물리 코어만** 센다. 하이퍼스레딩으로 생긴 논리 코어는 빼는데, DB 작업은 메모리 접근과 캐시 미스가 잦아 하이퍼스레딩 효과가 작고 두 논리 스레드가 같은 캐시를 두고 경쟁하면 오히려 느려지기 때문이다. 8코어 16스레드 CPU라면 8을 대입한다.
 
@@ -88,20 +90,37 @@ SHOW VARIABLES LIKE 'interactive_timeout';    -- 인터랙티브 세션 유휴 �
 
 `max-lifetime` < `wait_timeout`이 되도록 잡는 게 핵심이다. 풀이 먼저 자르고 서버가 그 다음에 자르도록 순서를 맞춰야 위에서 말한 "끊긴 커넥션을 풀이 들고 있는" 문제가 안 난다.
 
-## WAS가 여러 대일 때 — 풀을 곱하지 마라
+## WAS가 여러 대일 때 풀을 곱하지 마라
 
 공식으로 푼 풀 사이즈는 **DB 한 대 기준**이다. WAS 를 여러 대 띄우면서 각 WAS 에 같은 값을 넣으면 DB 가 받는 커넥션은 그 값에 인스턴스 수를 곱한 만큼이 된다. 8코어 DB 의 적정 풀이 16인데 WAS 4대에 각각 16을 넣으면 DB 는 64를 받아 용량의 네 배가 된다.
 
-분배가 맞다 — `(코어 × 2) / WAS 수`. 8코어에 WAS 4대면 WAS 당 4다. 단 정확히 나누면 한 대가 죽었을 때 나머지가 부담을 못 견딘다. 그래서 무엇을 우선하느냐로 가른다.
+분배가 맞다. `(코어 × 2) / WAS 수`. 8코어에 WAS 4대면 WAS 당 4다. 단 정확히 나누면 한 대가 죽었을 때 나머지가 부담을 못 견딘다. 그래서 무엇을 우선할지 정해야 한다.
 
 - DB 보호 우선 — 정확히 나눠 합계를 `코어 × 2` 이내로 둔다.
 - 가용성 우선 — WAS 당 5~6으로 약간 여유를 둬 한 대 장애를 견디게 한다.
+
+전체 WAS 풀 합계는 DB의 `max_connections`보다 충분히 작아야 한다. 영상에서는 합계를 `max_connections × 0.8` 미만으로 두라고 소개한다. 나머지는 운영 도구와 관리자 접속 몫이다.
 
 오토스케일링으로 WAS 수가 수시로 바뀌면 매번 풀을 조정하기 어려우니 PgBouncer 같은 외부 풀러를 둔다.
 
 ## 한 요청이 커넥션을 여러 개 잡는다면
 
 한 스레드가 트랜잭션 안에서 커넥션을 둘 이상 동시에 점유하는 코드(중첩 트랜잭션 등)가 있으면 데드락이 날 수 있다. 모든 스레드가 첫 커넥션을 쥔 채 두 번째를 기다리면 풀이 영원히 안 풀린다. HikariCP 위키의 데드락 회피 최소 공식은 `풀 = 스레드 수 × (스레드당 동시 커넥션 − 1) + 1`이다. 단 대부분의 앱은 스레드당 1커넥션이라 이 값이 의미가 없고, 데드락이 실제로 났을 때 진단용으로 쓴다. 풀을 키우기보다 트랜잭션을 분리해 동시 점유를 없애는 것이 우선이다.
+
+## 커넥션 누수를 잡는 설정
+
+빌린 커넥션을 반납하지 않는 코드가 있으면 풀이 서서히 마르고, 결국 위에서 본 `pending` 증가와 같은 증상으로 나타난다. 원인이 트랜잭션 길이인지 반납 누락인지는 겉으로 구분되지 않는다.
+
+HikariCP의 `leakDetectionThreshold`는 커넥션이 풀 밖에 이 시간 넘게 머물면 누수 가능성을 로그로 남긴다. 기본값 0은 비활성이고, 켤 수 있는 최솟값은 2000ms다. 정상 트랜잭션의 최대 점유 시간보다 충분히 크게 잡아야 느린 정상 요청을 누수로 오인하지 않는다.
+
+```yaml
+spring:
+  datasource:
+    hikari:
+      leak-detection-threshold: 60000   # 60초 넘게 반납되지 않으면 경고 로그 (ms)
+```
+
+60초는 예시값이다. 이 설정은 누수를 막지 않고 알려 줄 뿐이므로, 경고 로그의 스택 트레이스에서 반납하지 않는 코드를 찾아 고친다.
 
 ## 운영에서 봐야 할 메트릭
 
@@ -122,7 +141,7 @@ SHOW VARIABLES LIKE 'interactive_timeout';    -- 인터랙티브 세션 유휴 �
 - PostgreSQL 공식 `(코어 × 2) + 디스크`를 출발점으로, **부하 테스트로 sweet spot 확인**. 코어는 물리 코어만 센다.
 - WAS 가 여러 대면 풀을 곱하지 말고 `(코어 × 2) / WAS 수`로 분배 — DB 보호와 가용성 사이에서 선택.
 - HikariCP는 `maximum = minimum`(고정 크기), `max-lifetime < wait_timeout` 순서를 지킬 것.
-- MySQL `max_connections`는 (풀 × 인스턴스) + 여유분 이상으로 충분히 잡을 것.
+- MySQL `max_connections`는 (풀 × 인스턴스)에 여유분을 더한 값 이상으로 충분히 잡을 것.
 - `hikaricp.connections.pending`을 모니터링 — 의미 있게 쌓이면 풀이 아니라 **트랜잭션 길이**부터 점검.
 
 ## 관련 / 참고
@@ -130,8 +149,9 @@ SHOW VARIABLES LIKE 'interactive_timeout';    -- 인터랙티브 세션 유휴 �
 - [Aurora Serverless 커넥션 풀과 트랜잭션 예산](./mysql/aurora-serverless-connection-pool-transaction-budget.md) — 서버리스 환경에서의 풀·재시도·외부 IO 분리
 - [HTTP Connection Pool](../http/connection-pool.md) — 다른 레이어의 같은 풀 패턴 (TCP/TLS 재사용)
 - [HikariCP — About Pool Sizing](https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing)
+- [HikariCP README — leakDetectionThreshold](https://github.com/brettwooldridge/HikariCP#frequently-used)
 - [HikariCP — MySQL Configuration](https://github.com/brettwooldridge/HikariCP/wiki/MySQL-Configuration)
 - [PostgreSQL Wiki — Number Of Database Connections](https://wiki.postgresql.org/wiki/Number_Of_Database_Connections)
 - [DB Connection Pool Saturation과 Thread Pool 격리](./connection-pool-saturation-thread-pool-isolation.md) — saturation 진단·bulkhead·timeout 계층
 
-> 참고: 이 글의 보강분(USL·하이퍼스레딩 제외·WAS 분배·Oracle RWP·데드락 공식)은 유튜버 코딩하는기술사(@codingpe) 영상에서 학습한 내용을 PostgreSQL 위키·HikariCP 문서 등 공개 출처로 재구성한 것이다.
+> 참고: 이 글의 보강분(USL·하이퍼스레딩 제외·WAS 분배·Oracle RWP·데드락 공식)은 유튜버 코딩하는기술사(@codingpe) 영상에서 학습한 내용을 PostgreSQL 위키·HikariCP 문서 등 공개 출처로 재구성한 것이다. 스핀들 항 설명과 `leakDetectionThreshold`는 PostgreSQL 위키와 HikariCP README를 확인해 더했고, `max_connections × 0.8` 기준은 영상 요약에서 가져왔다. 영상은 코딩하는기술사 채널의 「DB 커넥션 풀 사이징」(2026-06-15, 멤버십 영상)이다: <https://www.youtube.com/watch?v=uhMhv8yGAyM>
