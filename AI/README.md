@@ -50,6 +50,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 - [AI 가 만든 결과는 전부 읽지 않고 검증 레이어로 신뢰한다](./harness/ai-verification-layer.md) — 이진 검사, 정량 지표, 정성 루브릭과 build-time, run-time 검증
 - [끝에 계속 쌓이는 문서의 머지 충돌은 항목마다 파일을 나눠 없앤다](./harness/append-only-doc-file-per-item.md) — 파일 per 항목과 INDEX, merge=union 재현
 - [에이전트가 배운 회피 패턴은 조건을 통과한 것만 파일로 쌓고 주기적으로 지운다](./harness/pitfalls-wiki-accumulation-rules.md) — INDEX 라우터, 쌓는 조건 네 가지, prune 과 automate
+- [하네스 회고는 새 문서로 쌓지 않고 종류에 맞는 기존 단일 소스에 환원한다](./harness/retrospective-to-single-source.md) — 평가자 역할별 환원 위치, 개입 횟수 지표, 소비처 없는 기록의 제거
 
 ## Claude Code (claude-code/)
 
