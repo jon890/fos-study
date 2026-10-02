@@ -60,6 +60,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 - [Claude Code 11일 사용 회고](./claude-code/claude-code-usage-reflection.md) — 1탄: 데이터로 본 사용 패턴
 - [Claude Code 5주 더 쓴 결과](./claude-code/claude-code-usage-reflection-2.md) — 2탄: 스킬·CLAUDE.md를 키워가는 방식
 - [스킬 문서는 반복 실행을 스크립트로 내리고 같은 지시를 한 곳에서만 소유하게 쓴다](./claude-code/skill-document-script-and-ownership.md) — scripts 분리, 단일 소유권 판정 기준, 옮길 때 유실되는 지시
+- [여러 저장소가 쓰는 스킬은 도메인 중립 코어와 저장소별 오버레이로 나눈다](./claude-code/shared-skill-core-overlay.md) — 오버레이 탐색 순서, 스킬 우선순위 함정, 코어 이관 주의
 
 ## 에이전트와 함께 개발하기 (practice/)
 
