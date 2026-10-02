@@ -131,6 +131,11 @@ flowchart TD
 | 평가 | [GraphRAG 평가와 벡터 RAG 제거 실험](./07-evaluation-and-ablation.md) | 그래프 구축·검색·컨텍스트·답변 품질을 따로 측정한다 |
 | 운영 | [권한·최신성·성능을 포함한 Neo4j 운영 설계](./08-production-security-operations.md) | 학습용 구성과 사내 운영 구성을 구분한다 |
 
+시리즈 순서와 별개로 함께 읽을 보충 글이 있다.
+
+- [Beam search로 GraphRAG 경로 폭발을 제한하기](./path-retrieval-beam-search.md)
+  - 3홉 이상 탐색에서 후보 경로가 자릿수로 늘어나는 문제와 홉별 후보 제한, 경로 점수화를 설명한다.
+
 각 글은 앞 글의 산출물을 다음 글의 입력으로 사용한다.
 중간 글만 골라 읽을 수는 있지만,
 실습은 위 순서대로 진행해야 평가 기준이 흔들리지 않는다.
