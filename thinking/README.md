@@ -5,3 +5,4 @@
 ## 문서 목록
 
 - [좋은 일을 넘어 중요한 일을 하는 법](./you-and-your-research.md) — Richard Hamming의 강연을 백엔드·AI 엔지니어의 문제 선택과 성장 관점에서 다시 읽는다
+- [자기주도 학습: 질문에서 시작해 글로 검증하기](./self-directed-learning.md) — 읽기, 토론, 글쓰기와 피드백으로 이해를 점검하는 학습 루프와 AI 시대의 적용
