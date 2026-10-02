@@ -19,3 +19,7 @@ GPU·CUDA·모델 서빙 운영은 [mlops](../mlops/README.md) 카테고리로 �
 - [Python 서버의 RSS가 줄지 않는 이유: CPython, gc.collect(), malloc_trim](./python-rss-leak-glibc-malloc-trim.md)
 
   CPython 객체 수명과 메모리 할당 계층을 구분하고, `gc.collect()`와 glibc `malloc_trim()`의 역할을 정리한다.
+
+## 라이브러리 선택
+
+- [외부 패키지 버그 우회: 상속 wrapper 와 라이브러리 교체](./vendor-bug-wrapper-vs-library-replacement.md) — 버그를 감싸서 우회할지 교체할지 PoC 로 정하는 기준
