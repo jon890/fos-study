@@ -64,3 +64,4 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 - [GitHub Actions 로 PR 마다 AI 코드 리뷰를 자동으로 돌리는 워크플로 설계](./practice/github-actions-ai-code-review.md) — 트리거와 중복 제어, 프롬프트 분리, 리뷰 게시와 자주 실패하는 곳
 - [리뷰 봇이 제안한 명령과 정규식은 실제 데이터에 먼저 돌려 본다](./practice/review-bot-suggestion-verify.md) — 항상 빈 결과를 내는 검사와 틀린 전제
 - [AI 코딩 에이전트의 코드 컨벤션은 규칙 문서와 결정적 검사로 지킨다](./practice/coding-agent-code-convention-with-checks.md) — 규칙 문서, Spotless·Checkstyle·ArchUnit 세 층 검사와 ArchUnit 기초
+- [AI 가 만든 코드는 동작해도 설명할 수 없으면 채택하지 않는다](./practice/ai-generated-code-acceptance-criteria.md) — 거절 신호 다섯 가지, 리뷰 질문 다섯 가지, 자동 검증과 사람 판단의 역할
