@@ -47,6 +47,9 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 - [AGENTS.md 포맷](./harness/agents-md-format.md) — AI coding agent 동작 지침서
 - [Claude Code 메모리 규칙](./harness/claude-code-memory-rules.md) — CLAUDE.md와 .claude/rules를 규칙으로 쓰는 법
 - [DESIGN.md, Google Stitch, Claude Design](./harness/design-md-and-ai-design-tools.md) — AI 에이전트와 디자인의 새 컨벤션, fos-blog 6주 도입 회고
+- [AI 가 만든 결과는 전부 읽지 않고 검증 레이어로 신뢰한다](./harness/ai-verification-layer.md) — 이진 검사, 정량 지표, 정성 루브릭과 build-time, run-time 검증
+- [끝에 계속 쌓이는 문서의 머지 충돌은 항목마다 파일을 나눠 없앤다](./harness/append-only-doc-file-per-item.md) — 파일 per 항목과 INDEX, merge=union 재현
+- [SkillOpt: 스킬 문서 한 장을 신경망 가중치처럼 학습시키는 방법](./harness/skillopt-trainable-skill-document.md) — Rollout, Reflect, Edit, Gate 루프와 안정화 장치
 
 ## Claude Code (claude-code/)
 
@@ -57,6 +60,8 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 
 ## 에이전트와 함께 개발하기 (practice/)
 
-- [사람용 CLI와 AI 에이전트용 CLI 설계](./practice/agent-friendly-cli-design.md) — 구조화 출력, 미리보기, 비대화형 모드, 안전한 기본값
+- [사람용 CLI와 AI 에이전트용 CLI 설계](./practice/agent-friendly-cli-design.md) — 구조화 출력, 미리보기, 비대화형 모드, 안전한 기본값, stdout 과 stderr 분리, 종료 코드, TTL 캐시
 - [AI 에이전트와 함께 MVP 만들기 (dooray-cli 사례)](./practice/mvp-with-ai-agent.md)
+- [GitHub Actions 로 PR 마다 AI 코드 리뷰를 자동으로 돌리는 워크플로 설계](./practice/github-actions-ai-code-review.md) — 트리거와 중복 제어, 프롬프트 분리, 리뷰 게시와 자주 실패하는 곳
+- [리뷰 봇이 제안한 명령과 정규식은 실제 데이터에 먼저 돌려 본다](./practice/review-bot-suggestion-verify.md) — 항상 빈 결과를 내는 검사와 틀린 전제
 - [AI 코딩 에이전트의 코드 컨벤션은 규칙 문서와 결정적 검사로 지킨다](./practice/coding-agent-code-convention-with-checks.md) — 규칙 문서, Spotless·Checkstyle·ArchUnit 세 층 검사와 ArchUnit 기초
