@@ -49,7 +49,6 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 - [DESIGN.md, Google Stitch, Claude Design](./harness/design-md-and-ai-design-tools.md) — AI 에이전트와 디자인의 새 컨벤션, fos-blog 6주 도입 회고
 - [AI 가 만든 결과는 전부 읽지 않고 검증 레이어로 신뢰한다](./harness/ai-verification-layer.md) — 이진 검사, 정량 지표, 정성 루브릭과 build-time, run-time 검증
 - [끝에 계속 쌓이는 문서의 머지 충돌은 항목마다 파일을 나눠 없앤다](./harness/append-only-doc-file-per-item.md) — 파일 per 항목과 INDEX, merge=union 재현
-- [SkillOpt: 스킬 문서 한 장을 신경망 가중치처럼 학습시키는 방법](./harness/skillopt-trainable-skill-document.md) — Rollout, Reflect, Edit, Gate 루프와 안정화 장치
 
 ## Claude Code (claude-code/)
 
