@@ -22,18 +22,74 @@ tags: [study]
 확인에 쓴 버전은 Spring Framework 6.1.8, Spring Boot 3.3.0, Tomcat 10.1.24, Jakarta Servlet 6.0이다.
 아래 인용한 소스 줄번호는 모두 그 버전 기준이고, 실행 결과는 직접 돌려서 얻었다.
 
-## DispatcherType은 요청이 서블릿에 들어온 경로를 말한다
+## 톰캣이 서블릿을 호출하고, 서블릿이 컨트롤러로 연결한다
+
+평소에는 `@RestController`와 `@GetMapping`만 작성해도 HTTP 요청을 받을 수 있다.
+하지만 컨트롤러가 직접 네트워크 연결을 받고 HTTP 메시지를 읽는 것은 아니다.
+그 앞에서 톰캣과 Spring MVC가 요청을 Java 메서드 호출로 연결한다.
+
+**서블릿은 요청을 받아 응답을 만드는 Java 컴포넌트**다.
+Servlet API의 `service(request, response)`가 요청 처리 진입점이다.
+HTTP용 기본 클래스인 `HttpServlet`은 HTTP 메서드에 따라 `doGet()`, `doPost()` 등으로 연결한다.
+
+**서블릿 컨테이너는 서블릿을 실행하고 관리하는 환경**이다.
+서블릿의 생성과 초기화, URL 매핑, 요청·응답 객체 제공과 `service()` 호출을 담당한다.
+톰캣이 이 역할을 한다.
+여기서 컨테이너는 Docker 컨테이너를 뜻하지 않는다.
+Spring의 Bean을 관리하는 Spring 컨테이너와도 역할이 다르다.
+이 구분은 [Jakarta Servlet 6.0 명세의 개요](https://jakarta.ee/specifications/servlet/6.0/jakarta-servlet-spec-6.0#overview)를 기준으로 한다.
+
+Spring MVC에서는 Spring이 제공하는 **`DispatcherServlet`이 서블릿 역할**을 맡는다.
+이 서블릿이 요청에 맞는 컨트롤러 메서드를 찾아 실행하도록 연결한다.
+우리가 작성한 `@RestController` 자체가 서블릿인 것은 아니다.
+Spring 공식 문서도 이 구조를 [DispatcherServlet을 중심으로 한 요청 처리](https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-servlet.html)로 설명한다.
+
+이 글의 내장 톰캣 기반 Spring Boot 애플리케이션에서 `GET /orders`를 받는 흐름은 다음과 같다.
+
+1. 톰캣이 네트워크로 HTTP 요청을 받는다.
+2. 톰캣은 `HttpServletRequest`와 `HttpServletResponse`를 제공하고, URL에 매핑된 서블릿과 적용할 필터를 찾는다.
+3. 필터 체인을 거쳐 `DispatcherServlet.service()`가 호출된다.
+4. `DispatcherServlet` 내부의 `doDispatch()`에서 인터셉터와 컨트롤러 호출이 이어진다.
+5. 컨트롤러 반환값을 Spring MVC가 응답 본문으로 쓰고, 톰캣이 클라이언트로 전송한다.
+
+톰캣의 서블릿 URL 매핑과 Spring MVC의 `@GetMapping`은 서로 다른 단계다.
+톰캣은 어느 서블릿에 넘길지 정하고, `DispatcherServlet`은 어느 컨트롤러 메서드로 연결할지 정한다.
+Spring Boot가 내장 톰캣 구동과 서블릿 등록을 자동으로 처리해 주므로, 컨트롤러만 작성할 때는 앞 단계가 잘 드러나지 않는다.
+
+## 한 HTTP 요청 안에서도 서블릿을 다시 호출할 수 있다
+
+서블릿 호출이 끝나는 시점과 HTTP 요청 처리가 끝나는 시점이 항상 같지는 않다.
+처리 중 다른 서버 내부 자원에 작업을 넘기거나, 비동기 결과를 기다렸다가 처리를 이어갈 수도 있다.
+이처럼 **컨테이너가 요청을 처리할 자원으로 넘기는 동작**을 디스패치라고 부른다.
+
+예를 들어 서블릿에서 인증을 확인한 뒤 `RequestDispatcher.forward()`로 JSP에 화면 생성을 맡길 수 있다.
+JSP도 컨테이너에서는 서블릿으로 변환되어 실행된다.
+브라우저가 HTTP 요청을 새로 보내는 대신, 컨테이너가 진행 중인 요청과 응답을 대상에 넘긴다.
+반면 `sendRedirect()`는 클라이언트에 새 주소로 요청하도록 응답하므로, 클라이언트가 따라가면 별도의 HTTP 요청이 생긴다.
+이 차이는 [Servlet 명세의 요청 디스패치](https://jakarta.ee/specifications/servlet/6.0/jakarta-servlet-spec-6.0#dispatching-requests)에 따른다.
+
+이 글에서 다루는 비동기 처리도 요청을 이어가는 경우다.
+첫 번째 `DispatcherServlet` 호출에서는 비동기 처리를 시작하고 반환한다.
+나중에 결과가 준비되면 Spring이 `AsyncContext.dispatch()`를 호출하고, 톰캣이 같은 요청으로 `DispatcherServlet`을 다시 호출한다.
+클라이언트는 요청을 한 번 보냈지만, 서버 안에서는 서블릿에 두 번 진입하는 것이다.
+자세한 실행 순서는 뒤의 「Mono를 반환하면 흐름이 둘로 나뉜다」 절에서 다룬다.
+
+## DispatcherType은 서블릿에 진입한 유형을 나타낸다
 
 서블릿 컨테이너는 하나의 요청을 서블릿에 **여러 번** 넘길 수 있다.
-`DispatcherType`은 지금 이 진입이 그중 어떤 경로인지를 나타내는 enum이다.
+`DispatcherType`은 지금 진입이 최초 요청인지, forward인지, 비동기 재디스패치인지를 나타내는 enum이다.
+여기서 말하는 유형은 요청 URL이나 HTTP 메서드와 별개다.
 
 | 값 | 언제 |
 |---|---|
 | `REQUEST` | 클라이언트가 보낸 최초 진입 |
-| `FORWARD` | `RequestDispatcher.forward()`로 다른 서블릿에 넘길 때 |
-| `INCLUDE` | `RequestDispatcher.include()`로 다른 서블릿 출력을 끼워 넣을 때 |
+| `FORWARD` | `RequestDispatcher.forward()`로 대상 자원에 처리를 넘길 때 |
+| `INCLUDE` | `RequestDispatcher.include()`로 대상 자원의 출력을 현재 응답에 끼워 넣을 때 |
 | `ERROR` | 에러 페이지 매핑으로 넘어갈 때 |
-| `ASYNC` | `AsyncContext.dispatch()`로 비동기 처리 결과가 나온 뒤 다시 들어올 때 |
+| `ASYNC` | 비동기 처리 중 `AsyncContext.dispatch()`로 다시 들어올 때 |
+
+`ASYNC`는 컨테이너가 결과의 완성을 판정했다는 뜻은 아니다.
+이 글의 Spring MVC 흐름에서는 결과가 준비되면 Spring이 `dispatch()`를 호출하기 때문에, 결과 확정 뒤에 `ASYNC` 진입이 생긴다.
 
 여기서 중요한 건 **다시 들어올 때도 같은 요청을 이어서 쓴다**는 점이다.
 컨테이너가 요청 객체를 한 겹 감싸서 넘길 수는 있어도 request attribute는 그대로 남는다.
