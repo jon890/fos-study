@@ -5,6 +5,7 @@
 ## 스토어별
 
 - [MySQL](./mysql/README.md) — InnoDB, 인덱스, 트랜잭션, 락
+- [PostgreSQL](./postgresql/README.md) — 병렬 쿼리, 공유 메모리, 컨테이너 운영
 - [Redis](./redis/README.md) — 캐시, 분산 락, Pub/Sub, 세션, 랭킹
 - [OpenSearch](./opensearch/README.md) — 매핑, 샤딩, RAG 검색
 - [Milvus](./milvus/README.md) — 벡터 DB 아키텍처·동작·실무 규모 성능
