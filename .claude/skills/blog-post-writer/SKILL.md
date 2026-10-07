@@ -55,9 +55,44 @@ description: 업무 경험이나 기술 학습 내용을 fos-study의 공개 블
 
 로컬 파일 작성은 곧바로 진행할 수 있다. 블로그 반영을 위한 commit과 push까지 요청받았다면 다음 순서를 지킨다.
 
-1. `scripts/render_preview.mjs <글.md> <preview.html>`로 저장소 밖 `/private/tmp/`에 HTML을 만든다.
-2. `content-preview` 스킬로 변경된 게시 글과 렌더링 결과를 사용자에게 보여준다.
-3. 미리보기를 보여준 턴에는 push하지 않는다.
-4. 사용자가 확인한 다음 관심사별 원자적 커밋을 만들고 push한다.
+1. `scripts/render_preview.mjs`로 저장소 밖 `/private/tmp/`에 HTML을 만든다.
+2. `content-preview` 스킬의 `show-preview.sh`로 그 HTML을 Orca 탭에 띄운다.
+3. 같은 탭에서 `browser-driver`로 Mermaid 렌더링을 확인한다.
+4. 미리보기를 보여준 턴에는 push하지 않는다.
+5. 사용자가 확인한 다음 관심사별 원자적 커밋을 만들고 push한다.
 
 삭제만 한 변경에는 본문 미리보기가 필요하지 않다. 새로 작성하거나 의미 있게 고친 공개 글은 미리보기 대상이다.
+
+### 미리보기를 띄우고 확인하는 명령
+
+글을 쓴 워크트리 루트에서 실행한다.
+`show-preview.sh`는 현재 저장소 루트를 사용자가 보는 워크트리로 보고 그곳에 탭을 연다.
+
+```bash
+POST=database/postgresql/example.md   # 미리볼 글
+HTML=/private/tmp/fos-study-preview/$(basename "$POST" .md).html
+mkdir -p "$(dirname "$HTML")"
+node ~/.claude/skills/blog-post-writer/scripts/render_preview.mjs "$POST" "$HTML"
+
+SHOW=$(ls ~/.claude/plugins/cache/*/nhn-dev/*/skills/content-preview/scripts/show-preview.sh | sort -V | tail -1)
+bash "$SHOW" "$HTML"
+```
+
+`show-preview.sh`는 설정 파일의 `previewDriver`(`orca`)로 탭을 열고, 탭 id를 `$HTML.tabid`에 남긴다.
+같은 HTML을 다시 만들어 실행하면 새 탭을 만들지 않고 그 탭을 갱신한다.
+
+Mermaid가 있는 글은 같은 탭에서 렌더링 결과를 확인한다.
+
+```bash
+B=~/.claude/scripts/browser-driver
+PAGE=$(cat "$HTML.tabid")
+BROWSER_DRIVER=orca $B waitjs "$PAGE" "document.querySelectorAll('.mermaid svg').length === document.querySelectorAll('.mermaid').length" 10000
+BROWSER_DRIVER=orca $B js "$PAGE" "JSON.stringify([...document.querySelectorAll('.mermaid')].map(m => ({svg: !!m.querySelector('svg'), syntaxError: /Syntax error/.test(m.textContent)})))"
+BROWSER_DRIVER=orca $B shot "$PAGE" /private/tmp/fos-study-preview/mermaid-check.png
+```
+
+모든 항목이 `svg: true`, `syntaxError: false`이면 통과다.
+스크린숏을 열어 노드 잘림과 연결선이 겹친 곳이 없는지 본다.
+
+Playwright와 로컬 HTTP 서버는 쓰지 않는다.
+Playwright는 `file://` 주소를 막아 서버를 따로 띄워야 하고, 그렇게 연 브라우저는 사용자가 보는 Orca 화면에 나타나지 않는다.
