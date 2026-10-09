@@ -5,6 +5,9 @@ categories: [linux, devops]
 
 # Alpine 이미지의 Java 에서 링크 바꿔치기(TOCTOU)를 막지 못하는 이유
 
+**TOCTOU** 는 **Time Of Check to Time Of Use** 의 약자로, 확인한 시점과 사용하는 시점 사이의 틈에서 생기는 경쟁 조건이다.
+파일이 링크가 아닌지 확인한 뒤 열기 전에 다른 프로세스가 링크로 바꿔치기하면, 확인한 파일과 실제로 여는 파일이 달라질 수 있다.
+
 Alpine 이미지에서 도는 JDK 21 은 `Files.newDirectoryStream` 이 `SecureDirectoryStream` 을 돌려주지 않는다.
 그래서 "디렉터리 핸들을 기준으로, 링크를 따라가지 않고 파일을 연다" 는 방어를 Java 표준 API 로 쓸 수 없다.
 원인은 커널이 아니라 libc 다.
@@ -69,7 +72,7 @@ try (InputStream in = Files.newInputStream(target)) {   // 여기서 다시 경�
 
 `Files.isSymbolicLink(target)` 와 `Files.newInputStream(target)` 은 각각 따로 경로를 해석한다.
 검사할 때 본 파일과 열 때 여는 파일이 같다는 보장이 없다.
-이런 결함을 **TOCTOU**(Time Of Check to Time Of Use, 검사 시점과 사용 시점의 불일치)라고 부른다.
+앞에서 설명한 TOCTOU 가 이 틈에서 발생한다.
 
 Java 개발자에게 익숙한 모양으로 바꾸면 락 없는 check-then-act 다.
 
