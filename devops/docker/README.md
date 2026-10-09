@@ -10,3 +10,4 @@ Docker 기본기와 운영 주제 학습 기록.
 ## 관련
 
 - [Docker의 PostgreSQL 병렬 쿼리가 디스크가 남아도 No space left on device로 실패하는 이유](../../database/postgresql/docker-parallel-query-dev-shm.md) — 컨테이너 `/dev/shm` 기본 64MB와 PostgreSQL 병렬 쿼리
+- [Alpine 이미지의 Java 에서 링크 바꿔치기(TOCTOU)를 막지 못하는 이유](../../java/alpine-securedirectorystream-toctou.md) — Alpine(musl) 베이스 이미지에서 `SecureDirectoryStream` 이 꺼지는 이유

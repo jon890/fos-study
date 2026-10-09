@@ -20,6 +20,10 @@ Java 언어·JVM·생태계 학습 기록. 하위 폴더는 주제별 세부 정
 - [Java StampedLock](./stamped-lock.md) — 읽기 폭주에도 쓰기가 밀리지 않는 락
 - [Java 동시성 락 정리 — 커머스 메뉴/프로모션 정책 캐시 갱신 관점](./java-concurrency-locks-commerce-cache.md)
 
+## 파일 시스템과 보안
+
+- [Alpine 이미지의 Java 에서 링크 바꿔치기(TOCTOU)를 막지 못하는 이유](./alpine-securedirectorystream-toctou.md) — `SecureDirectoryStream` 과 musl 의 `openat64`
+
 ## 관찰성 / 로깅
 
 - [로그에 traceId 남기기](./MDC.md) — MDC 부터 OpenTelemetry 까지
