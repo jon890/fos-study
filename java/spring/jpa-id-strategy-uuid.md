@@ -86,8 +86,9 @@ Hibernate는 영속성 컨텍스트에 엔티티를 ID로 등록해야 하므로
 그래서 Hibernate 사용자 가이드는 IDENTITY 생성기가 INSERT의 JDBC batch를 끈다고 명시한다.
 이 제약을 DB의 다중 행 INSERT 자체가 불가능하다는 뜻으로 읽으면 안 된다.
 
-더 읽을 글: [Spring Data JPA 트랜잭션 흔한 실수들](./jpa-transaction.md)의 「save() 시점」 절.
-`save()`가 SQL을 바로 보내지 않고 flush까지 모아 두는 기본 동작과, IDENTITY만 예외로 INSERT가 바로 나가는 이유를 예제로 보여 준다.
+> [!TIP]
+> **더 읽을 글**: [Spring Data JPA 트랜잭션 흔한 실수들](./jpa-transaction.md)의 「save() 시점」 절.
+> `save()`가 SQL을 바로 보내지 않고 flush까지 모아 두는 기본 동작과, IDENTITY만 예외로 INSERT가 바로 나가는 이유를 예제로 보여 준다.
 
 표의 ‘가능’은 생성 전략이 배치를 막지 않는다는 뜻이다.
 `hibernate.jdbc.batch_size` 설정, SQL 형태와 flush 경계 등 실제 배치 조건도 맞아야 한다.
@@ -156,12 +157,13 @@ flowchart TB
 순차 키도 페이지 분할을 없애지는 않으며, 높은 동시성에서는 끝부분의 경합이 생길 수 있다.
 따라서 UUID v7을 쓰면 모든 삽입이 빨라진다고 단정하지 않고, 실제 인덱스 구성과 부하로 비교한다.
 
-더 읽을 글:
-
-- [MySQL / InnoDB 인덱스 허브](../../database/mysql/b-tree-index.md)의 「PK 선택의 3원칙」 절
-  - 기본키를 단조 증가하고, 바뀌지 않고, 짧게 두라는 원칙을 정리했다. 이 절의 결론을 세 줄로 요약한 것에 가깝다.
-- [InnoDB 스토리지 엔진 아키텍처](../../database/mysql/innodb-storage-architecture.md)의 「InnoDB 버퍼 풀」 절
-  - LRU 리스트와 플러시 리스트로 페이지를 관리하는 방식을 다룬다. 랜덤 삽입이 왜 캐시에 불리한지 이해하는 바탕이다.
+> [!TIP]
+> **더 읽을 글**
+>
+> - [MySQL / InnoDB 인덱스 허브](../../database/mysql/b-tree-index.md)의 「PK 선택의 3원칙」 절
+>   - 기본키를 단조 증가하고, 바뀌지 않고, 짧게 두라는 원칙을 정리했다. 이 절의 결론을 세 줄로 요약한 것에 가깝다.
+> - [InnoDB 스토리지 엔진 아키텍처](../../database/mysql/innodb-storage-architecture.md)의 「InnoDB 버퍼 풀」 절
+>   - LRU 리스트와 플러시 리스트로 페이지를 관리하는 방식을 다룬다. 랜덤 삽입이 왜 캐시에 불리한지 이해하는 바탕이다.
 
 ### 보조 인덱스에도 붙는 기본키
 
@@ -179,9 +181,10 @@ flowchart LR
 기본키가 커지면 기본키 인덱스뿐 아니라 여러 보조 인덱스의 공간과 캐시 사용량에도 영향을 준다.
 보조 인덱스가 다섯 개인 테이블이라면 기본키 크기 차이가 다섯 번 더 반영된다.
 
-더 읽을 글: [MySQL 복합 인덱스 완전 정복](../../database/mysql/composite-index.md)의 「커버링 인덱스」 절.
-보조 인덱스 리프에 PK가 들어 있어서, 필요한 컬럼이 모두 인덱스에 있으면 클러스터드 인덱스를 다시 읽지 않는 원리를 설명한다.
-위 그림의 두 번째 화살표를 없애는 방법이다.
+> [!TIP]
+> **더 읽을 글**: [MySQL 복합 인덱스 완전 정복](../../database/mysql/composite-index.md)의 「커버링 인덱스」 절.
+> 보조 인덱스 리프에 PK가 들어 있어서, 필요한 컬럼이 모두 인덱스에 있으면 클러스터드 인덱스를 다시 읽지 않는 원리를 설명한다.
+> 위 그림의 두 번째 화살표를 없애는 방법이다.
 
 | 저장 형식 | 값의 크기 기준 | 주의점 |
 | --- | --- | --- |
@@ -420,8 +423,9 @@ IDENTITY의 JDBC batch 제약은 남는다.
 대량 저장이 핵심인 경로라면 별도 JDBC 삽입, 다른 저장 모델이나 생성 전략을 검토하고 실제 부하로 판단해야 한다.
 UUID 컬럼을 추가한다고 IDENTITY의 배치 제약이 해결되지는 않는다.
 
-더 읽을 글: [JPA 벌크 변경과 트랜잭션 정합성](./jpa-bulk-update-isolation-and-consistency.md)의 「JDBC batch가 적합한 경우」 절.
-Hibernate batch를 쓸 수 없을 때 JDBC batch와 bulk update 가운데 무엇을 고를지, flush와 clear를 어떤 단위로 할지 다룬다.
+> [!TIP]
+> **더 읽을 글**: [JPA 벌크 변경과 트랜잭션 정합성](./jpa-bulk-update-isolation-and-consistency.md)의 「JDBC batch가 적합한 경우」 절.
+> Hibernate batch를 쓸 수 없을 때 JDBC batch와 bulk update 가운데 무엇을 고를지, flush와 clear를 어떤 단위로 할지 다룬다.
 
 예외는 값 자체가 업무 키인 사전·통계 테이블과 고정된 한 행을 표현하는 테이블로 한정한다.
 사전은 불변 코드, 통계는 날짜와 분류의 조합처럼 의미가 분명한 키를 사용할 수 있다.
@@ -435,9 +439,10 @@ Hibernate batch를 쓸 수 없을 때 JDBC batch와 bulk update 가운데 무엇
 ArchUnit으로 `@Entity`를 수집하고 사용자 정의 `ArchCondition`으로 식별자 규칙을 검사하면 CI에서 위반을 찾을 수 있다.
 Java 개발자에게 익숙한 비유로는, 코드 리뷰 체크리스트를 JUnit 테스트로 바꿔 빌드 때마다 돌리는 것이다.
 
-더 읽을 글: [AI 코딩 에이전트의 코드 컨벤션은 규칙 문서와 결정적 검사로 지킨다](../../AI/practice/coding-agent-code-convention-with-checks.md)의 「ArchUnit 기초」 절.
-`that`과 `should` 문법, 사용자 조건, 빈 대상 설정(`allowEmptyShould`)과 기존 위반 동결을 같은 ArchUnit 1.4.1 기준으로 정리했다.
-이 절의 예제가 쓰는 `ArchCondition`이 낯설면 먼저 읽는다.
+> [!TIP]
+> **더 읽을 글**: [AI 코딩 에이전트의 코드 컨벤션은 규칙 문서와 결정적 검사로 지킨다](../../AI/practice/coding-agent-code-convention-with-checks.md)의 「ArchUnit 기초」 절.
+> `that`과 `should` 문법, 사용자 조건, 빈 대상 설정(`allowEmptyShould`)과 기존 위반 동결을 같은 ArchUnit 1.4.1 기준으로 정리했다.
+> 이 절의 예제가 쓰는 `ArchCondition`이 낯설면 먼저 읽는다.
 
 아래 그림은 다음 예제의 `check()` 메서드가 엔티티 하나를 판정하는 순서다.
 
