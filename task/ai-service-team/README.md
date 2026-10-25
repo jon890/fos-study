@@ -15,7 +15,7 @@ AI 기능 개발부터 AI에 넣을 문서의 품질, 결과 평가와 운영 �
 | OCR API | 이미지의 글자를 인식하는 기능을 API로 제공 | 호출·접속 안정성, 배포 전환과 오류 관측·개선 |
 | RAG 데이터 파이프라인 | 문서를 검색해 답변의 근거로 쓸 수 있도록 검색 데이터 준비 | 문서 수집·변환·벡터 색인과 재시작 가능한 배치 설계·구현 |
 
-주요 기술은 Java·Spring Boot·Spring Batch, Python·FastAPI·docling, OpenSearch, Next.js·React와 Gemini API다.
+주요 기술은 Java·Spring Boot·Spring Batch, Python·FastAPI·docling, OpenSearch, Next.js·React다.
 프로덕트별 기록에서는 기능 구현과 검증, 운영에서 확인한 문제를 함께 다룬다.
 
 ## AI 돌봄 분석·평가
