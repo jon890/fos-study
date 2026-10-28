@@ -1,6 +1,6 @@
 ---
 series: "PostgreSQL 실행 계획 읽기"
-seriesOrder: 1
+seriesOrder: 2
 tags: [study]
 ---
 
@@ -12,6 +12,10 @@ PostgreSQL 실행 계획에서 같은 인덱스를 탔는데도 느린 이유는
 
 MySQL 실행 계획은 읽을 수 있지만 PostgreSQL과 TimescaleDB는 낯선 Java 백엔드 개발자를 독자로 잡았다.
 B-Tree와 복합 인덱스의 일반 원리는 다시 설명하지 않는다.
+
+> [!TIP]
+> **먼저 읽을 글**: [PostgreSQL 실행 계획 기초: 쿼리가 실행되는 순서부터 스캔, 조인, 통계까지](./execution-plan-basics.md).
+> 페이지와 heap, 스캔과 조인 방법, `cost`와 `rows`, 통계 같은 기초 용어를 이 시리즈의 첫 편에서 설명한다. 이 글의 출력이 낯설면 첫 편을 먼저 읽는다.
 
 > [!TIP]
 > **더 읽을 글**: [MySQL 복합 인덱스 완전 정복](../mysql/composite-index.md)의 「좌측 접두사 규칙」과 「커버링 인덱스」 절.
@@ -515,6 +519,7 @@ DB 담당자의 성능 검토 회신에 자주 나오는 유형의 문장을 이
 
 ## 관련 문서
 
+- [PostgreSQL 실행 계획 기초: 쿼리가 실행되는 순서부터 스캔, 조인, 통계까지](./execution-plan-basics.md)
 - [MySQL EXPLAIN / EXPLAIN ANALYZE 완전 정복](../mysql/explain-plan.md)
 - [MySQL 복합 인덱스 완전 정복](../mysql/composite-index.md)
 - [MySQL / InnoDB 인덱스 허브](../mysql/b-tree-index.md)

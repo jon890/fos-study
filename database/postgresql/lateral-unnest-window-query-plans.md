@@ -1,6 +1,6 @@
 ---
 series: "PostgreSQL 실행 계획 읽기"
-seriesOrder: 2
+seriesOrder: 3
 tags: [study]
 ---
 
@@ -12,6 +12,10 @@ tags: [study]
 
 [앞 글](./explain-index-cond-generic-plan-chunks.md)의 예제 테이블과 개념을 이어서 쓴다.
 `Index Cond`와 `Filter`, heap 접근, generic plan과 TimescaleDB 청크 제외는 앞 글에서 설명했다.
+
+> [!TIP]
+> **먼저 읽을 글**: [PostgreSQL 실행 계획 기초: 쿼리가 실행되는 순서부터 스캔, 조인, 통계까지](./execution-plan-basics.md).
+> 페이지와 heap, 스캔과 조인 방법, `cost`와 `rows`, 통계 같은 기초 용어를 이 시리즈의 첫 편에서 설명한다. 이 글의 출력이 낯설면 첫 편을 먼저 읽는다.
 
 ## 적용 버전과 근거의 구분
 
@@ -409,5 +413,6 @@ DB 담당자의 성능 검토 회신에 자주 나오는 유형의 문장을 이
 
 ## 관련 문서
 
+- [PostgreSQL 실행 계획 기초: 쿼리가 실행되는 순서부터 스캔, 조인, 통계까지](./execution-plan-basics.md)
 - [PostgreSQL 실행 계획 읽기: Index Cond와 Filter, heap 접근, generic plan과 TimescaleDB 청크 제외](./explain-index-cond-generic-plan-chunks.md)
 - [MySQL EXPLAIN / EXPLAIN ANALYZE 완전 정복](../mysql/explain-plan.md)
