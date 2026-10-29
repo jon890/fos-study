@@ -61,6 +61,7 @@ AI 에이전트·LLM·RAG·하네스 엔지니어링 학습 기록. 이론편과
 - [Claude Code 5주 더 쓴 결과](./claude-code/claude-code-usage-reflection-2.md) — 2탄: 스킬·CLAUDE.md를 키워가는 방식
 - [스킬 문서는 반복 실행을 스크립트로 내리고 같은 지시를 한 곳에서만 소유하게 쓴다](./claude-code/skill-document-script-and-ownership.md) — scripts 분리, 단일 소유권 판정 기준, 옮길 때 유실되는 지시, 기계축과 판단축 채점
 - [여러 저장소가 쓰는 스킬은 도메인 중립 코어와 저장소별 오버레이로 나눈다](./claude-code/shared-skill-core-overlay.md) — 오버레이 탐색 순서, 스킬 우선순위 함정, 코어 이관 주의
+- [Orca 로 나만의 멀티 에이전트 오케스트레이션을 만들어 개발 생산성 끌어올리기](./claude-code/orca-multi-agent-orchestration.md) — worker 여럿을 코디네이터 스킬로 굴리는 구조, 완료 검증과 머지 큐, `/board` 창
 
 ## 에이전트와 함께 개발하기 (practice/)
 
