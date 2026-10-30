@@ -257,6 +257,10 @@ MySQL에는 배열 타입이 없어 같은 일을 여러 행 `VALUES`나 `JSON_T
 
 ## 창 함수로 연속 구간 찾기
 
+> [!TIP]
+> **먼저 읽을 글**: [gaps and islands: SQL 창 함수로 이어진 구간 찾기](../gaps-and-islands-window-functions.md).
+> `OVER`와 프레임 기초부터 풀이 세 가지를 단계별 표로 설명한다. 이 절은 그중 `lag()` 풀이의 실행 계획을 다룬다.
+
 ### 무엇인가
 
 **gaps and islands**는 정렬된 행에서 끊김 없이 이어진 구간(island)과 그 사이의 빈 곳(gap)을 찾는 문제다.
