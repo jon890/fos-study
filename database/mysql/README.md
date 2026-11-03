@@ -29,6 +29,7 @@ MySQL과 InnoDB 스토리지 엔진 학습 기록. 아키텍처, 인덱스, 트�
 - [Isolation 수준과 MVCC 심화](./isolation-mvcc-deepen.md) — 격리 수준별 MVCC 동작 심화
 - [Gap Lock & Next-Key Lock 심층 분석](./innodb-gap-next-key-lock.md) — 구간 락 의미론, RR에서의 함정
 - [Deadlock Analysis](./deadlock-analysis.md) — 데드락 로그 해석, 재시도 전략
+- [InnoDB 실행 계획이 바꾸는 잠금 순서](./innodb-plan-dependent-lock-order-deadlock.md) — 기본키와 보조 인덱스를 반대 순서로 잠그는 교착, EXPLAIN 으로 보는 계획 전환, 순서 맞추기
 
 ## 운영
 

@@ -124,6 +124,10 @@ of table `oy`.`notification_dispatch` trx id 4821994 lock_mode X waiting
 5. **희생자 선택**: InnoDB는 `undo log` 크기, 즉 **롤백 비용이 더 작은 트랜잭션**을 희생자로 고른다. 큰 벌크 UPDATE는 살아남고, 짧은 UPDATE가 죽는 경향이 있다.
 6. 위 예제의 본질: 트랜잭션 1은 PK → 보조 인덱스 순서로 락을, 트랜잭션 2는 보조 인덱스 → PK 순서로 락을 잡는다. **락 획득 순서가 역순**이다. 전형적인 데드락.
 
+> [!TIP]
+> **더 읽을 글**: [InnoDB 실행 계획이 바꾸는 잠금 순서](./innodb-plan-dependent-lock-order-deadlock.md)
+> 이 기본키와 보조 인덱스 역순 패턴을 MySQL 8.4 에서 직접 재현한 로그로 읽고, 옵티마이저의 인덱스 선택에 따라 교착이 가끔만 나는 이유와 순서를 맞추는 방법을 다룬다.
+
 ## 전형적인 데드락 패턴
 
 ### 패턴 1. 역순 락 획득
@@ -468,3 +472,4 @@ UPDATE stock SET qty = qty - :n
 - [Gap Lock & Next-Key Lock 심층 분석](./innodb-gap-next-key-lock.md) — 구간 락 의미론, `SELECT FOR UPDATE` 데드락 패턴
 - [InnoDB 트랜잭션과 잠금](./transaction-lock.md) — MVCC/Lock 전체 개관
 - [InnoDB MVCC 완전 분석](./innodb-mvcc.md) — Read View와 버전 체인
+- [InnoDB 실행 계획이 바꾸는 잠금 순서](./innodb-plan-dependent-lock-order-deadlock.md) — 기본키와 보조 인덱스 역순 잠금 교착 재현
