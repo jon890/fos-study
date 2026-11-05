@@ -1,6 +1,6 @@
 ---
 name: docs-audit
-description: fos-study 저장소에서 깨진 내부 링크, 고아 Markdown 문서와 폴더 README 누락을 검사한다. 문서의 의미 품질이나 삭제 판단은 docs-check가 담당한다.
+description: fos-study 저장소에서 깨진 내부 링크, 고아 Markdown 문서와 폴더 README 누락을 검사한다. 문서의 의미 품질이나 삭제 판단은 플러그인 fos-skills:docs-audit가 담당한다.
 ---
 
 # fos-study 문서 구조 점검
@@ -23,7 +23,7 @@ python3 .claude/skills/docs-audit/scripts/docs_score.py --json
 - 다른 문서에서 링크되지 않은 문서
 - 같은 폴더의 `README.md`에 등재되지 않은 문서
 
-문체와 한국어 표현은 프로젝트 지침에 적힌 공용 검사기가 소유한다. 문서의 부패, 중복, 관심사 혼합과 삭제 후보 판단은 `.claude/docs-check-overlay.md`를 읽고 `docs-check`로 처리한다.
+문체와 한국어 표현은 프로젝트 지침에 적힌 공용 검사기가 소유한다. 문서의 부패, 중복, 관심사 혼합과 삭제 후보 판단은 `.claude/docs-audit-overlay.md`를 읽고 `fos-skills:docs-audit`로 처리한다.
 
 ## 수정 경계
 
