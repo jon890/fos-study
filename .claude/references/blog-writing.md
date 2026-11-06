@@ -69,6 +69,6 @@
 문서를 고친 뒤 다음 검사를 실행한다.
 
 ```bash
-python3 ~/.claude/scripts/korean-style-check.py <파일.md>
-python3 ~/.claude/scripts/check-readability.py <파일.md>
+node /Users/nhn/personal/fos-skills/export-only-skills/korean-check/scripts/korean-style-check.ts <파일.md>
+node /Users/nhn/personal/fos-skills/export-only-skills/korean-check/scripts/check-readability.ts <파일.md>
 ```
