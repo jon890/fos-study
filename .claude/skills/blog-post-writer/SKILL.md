@@ -75,7 +75,7 @@ description: 업무 경험이나 기술 학습 내용을 fos-study의 공개 블
 
 ```bash
 POST=database/postgresql/docker-parallel-query-dev-shm.md   # 검사할 글
-bash ~/personal/fos-skills/korean-check/scripts/check.sh "$POST"
+node /Users/nhn/personal/fos-skills/export-only-skills/korean-check/scripts/check.ts "$POST"
 ```
 
 - 내부 링크는 대상 파일이 존재하는지 확인한다.
