@@ -19,6 +19,12 @@ CUDA 버전 생태계, GPU 컨테이너 최적화, 모델 서빙 워커 풀, 추
 - [Multi-process GPU 워커 풀](./java-to-python-multiprocess-gpu-worker-pool.md) — ThreadPool 사용자가 만나는 프로세스 모델 차이
 - [ML 서비스 성능 분석 워크플로](./ml-service-perf-analysis-workflow.md) — 자바 백엔드 트러블슈팅과 다른 점
 
+## LLM 서빙
+
+- [GPU로 LLM을 서빙한다는 것](./llm-serving/gpu-llm-serving-basics.md) — prefill 과 decode, 메모리 대역폭 병목, KV cache
+- [배칭과 GPU 활용률](./llm-serving/continuous-batching-gpu-utilization.md) — batch 1이 GPU를 놀리는 이유부터 continuous batching까지
+- [추측 디코딩과 vLLM 적응형 검증](./llm-serving/speculative-decoding-adaptive-verification.md) — 초안을 몇 개까지 검증할지와 CUDA graph 오류 사례
+
 ## Model Router (시리즈)
 
 모델 호출이 지나는 한 지점에서 어느 모델과 어느 인스턴스로 보낼지 정하는 계층을 정리한 스터디 시리즈. 관리형 라우터로 충분한 구간과 자체 구축으로 넘어가는 조건을 가르기 위한 기록이다.
