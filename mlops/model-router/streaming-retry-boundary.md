@@ -8,8 +8,6 @@ seriesOrder: 16
 
 **이전 글** [캐시를 보고 인스턴스를 고른다](./cache-aware-routing.md) · **다음 글** [LiteLLM 로 라우팅 정책을 설정하는 방법](./litellm-routing-strategies.md) · [시리즈 목차](../README.md)
 
-> Model Router 시리즈 5번이다.
-> 앞 글 [캐시를 보고 인스턴스를 고른다](./cache-aware-routing.md)에서 아래 계층의 인스턴스 선택을 다뤘다.
 > 이 글은 그 선택이 이미 끝난 뒤, 응답을 흘려보내는 중에 장애가 났을 때를 다룬다.
 
 라우터의 fallback 은 "실패하면 다른 모델로 넘긴다" 로 요약된다.
@@ -180,13 +178,6 @@ OpenAI 나 Anthropic 이 이 재개를 API 차원에서 제공하는지는 확�
 - mid-stream timeout 이 성공으로 집계되는 문제가 실제로 보고돼 있다. 실패를 성공으로 세면 그 지표로 정책을 판단할 수 없다.
 - SSE 중간 오류에 공식 스키마가 없다. HTTP 상태 코드는 200 이므로 본문의 마지막 청크를 봐야 성공 여부를 안다.
 - SSE 의 `Last-Event-ID` 로 이어받는 것은 표준에 있지만 서버 구현이 따로 필요하다. 확인한 사례는 모두 라우터나 미들웨어에서 직접 만든 것이다.
-
-## 다음 편
-
-다음 글에서는 여기까지 정한 것을 실제 설정으로 옮긴다.
-LiteLLM proxy 의 `routing_strategy` 다섯, 오류 종류로 나뉜 fallback 세 키, cooldown 과 오류 유형별 임계치, 예산 계층이 주제다.
-
-[LiteLLM 로 라우팅 정책을 설정하는 방법](./litellm-routing-strategies.md)으로 이어진다.
 
 ## 참고 링크
 

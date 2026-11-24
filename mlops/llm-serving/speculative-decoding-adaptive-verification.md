@@ -8,8 +8,6 @@ seriesOrder: 11
 
 **이전 글** [vLLM prefix cache를 살리는 프롬프트 배치](./vllm-prefix-cache-prompt-layout.md) · **다음 글** [Model Router 란 무엇인가](../model-router/what-is-model-router.md) · [시리즈 목차](../README.md)
 
-> [GPU로 LLM을 서빙한다는 것](./gpu-llm-serving-basics.md)과 [배칭과 GPU 활용률](./continuous-batching-gpu-utilization.md)을 먼저 읽으면 쉽다. 「decode 는 메모리 대역폭이 병목이라 연산이 남는다」 는 결론을 전제로 쓴다.
-
 추측 디코딩은 작은 모델이 토큰 여러 개를 먼저 쓰고, 큰 모델이 그것을 한 번에 검사해 맞은 데까지만 받아들이는 기법이다.
 남는 연산으로 토큰을 여러 개 미리 계산해 응답을 빠르게 한다.
 그런데 동시 요청이 몰려 연산이 남지 않게 되면 같은 기법이 처리량을 깎는다.
