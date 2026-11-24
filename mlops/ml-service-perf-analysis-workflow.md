@@ -1,10 +1,12 @@
 ---
 tags: [study]
-series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
-seriesOrder: 11
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 21
 ---
 
 # ML 서비스 성능 분석 워크플로 — 자바 백엔드 트러블슈팅과 다른 점
+
+**이전 글** [Kubernetes GPU 노드에서 /run tmpfs가 꽉 차서 Pod가 안 뜰 때](./gpu-node-run-tmpfs-full.md) · [시리즈 목차](README.md)
 
 이 시리즈의 마무리 글이다. 앞선 글들에서 다음 주제를 자바 백엔드 비교 관점으로 정리했다.
 

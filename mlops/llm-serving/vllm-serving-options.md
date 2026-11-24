@@ -1,8 +1,12 @@
 ---
 tags: ["LLM 서빙", "vLLM", "구조화 출력", study]
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 8
 ---
 
 # vLLM 서버 옵션 지도: 요청 흐름으로 읽는 기동 옵션
+
+**이전 글** [배칭과 GPU 활용률](./continuous-batching-gpu-utilization.md) · **다음 글** [vLLM의 스케줄러 루프가 CPU에 묶이면 왜 GPU가 쉬는가](./vllm-cpu-bound-scheduler.md) · [시리즈 목차](../README.md)
 
 `vllm serve` 의 기동 옵션은 백 개가 넘는다. 하나씩 외우기보다 요청 하나가 서버 안에서 지나가는 길을 먼저 그려 두면, 각 옵션이 그 길의 어느 지점을 조이는지 보인다. 이 글은 요청 흐름을 먼저 설명하고, 옵션을 흐름의 위치별로 묶어 설명한다. 옵션마다 처음 보는 사람을 위한 설명, 값을 바꿨을 때 생기는 일, 기본값, 그리고 우리 서버에서 고른 값과 그 이유를 적었다.
 

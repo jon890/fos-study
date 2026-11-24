@@ -1,10 +1,12 @@
 ---
 tags: [study]
-series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
-seriesOrder: 6
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 20
 ---
 
 # Kubernetes GPU 노드에서 /run tmpfs가 꽉 차서 Pod가 안 뜰 때
+
+**이전 글** [같은 문제를 회사마다 다른 층에서 푼다](model-router/industry-cases.md) · **다음 글** [ML 서비스 성능 분석 워크플로](./ml-service-perf-analysis-workflow.md) · [시리즈 목차](README.md)
 
 NHN Cloud OCR 리얼 배포 중 ArgoCD sync가 Degraded로 떨어졌다.
 pod sandbox 생성 단계에서 `no space left on device` 에러가 반복 발생했고, 원인은 GPU 노드의 `/run` tmpfs 포화였다.

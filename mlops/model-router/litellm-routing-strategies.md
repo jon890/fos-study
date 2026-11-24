@@ -1,10 +1,12 @@
 ---
 tags: ["Model Router", "LiteLLM", "LLM 서빙", study]
-series: "Model Router"
-seriesOrder: 6
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 17
 ---
 
 # LiteLLM 로 라우팅 정책을 설정하는 방법
+
+**이전 글** [첫 토큰이 나간 뒤에는 재시도할 수 없다](./streaming-retry-boundary.md) · **다음 글** [vLLM 지표를 라우팅 판단에 쓰는 방법](./vllm-metrics-for-routing.md) · [시리즈 목차](../README.md)
 
 > Model Router 시리즈 6번이다.
 > 앞 글 [첫 토큰이 나간 뒤에는 재시도할 수 없다](./streaming-retry-boundary.md)에서 streaming 중 장애의 경계를 다뤘다.

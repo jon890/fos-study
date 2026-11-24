@@ -1,8 +1,12 @@
 ---
 tags: [study, vLLM, GPU]
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 10
 ---
 
 # vLLM prefix cache를 살리는 프롬프트 배치
+
+**이전 글** [vLLM의 스케줄러 루프가 CPU에 묶이면 왜 GPU가 쉬는가](./vllm-cpu-bound-scheduler.md) · **다음 글** [추측 디코딩과 vLLM 적응형 검증](./speculative-decoding-adaptive-verification.md) · [시리즈 목차](../README.md)
 
 에이전트가 탐색을 마치고 결과를 쓸 때, 작성 지시를 system 메시지 끝에 한 줄 추가하면 뒤에 붙은 도구 정의와 탐색 기록까지 다시 계산할 수 있다. vLLM은 요청 JSON의 필드가 아니라, 모델에 들어갈 토큰 열의 앞부분을 비교한다. 이 글은 vLLM v0.23.0을 기준으로 토큰이 갈라지는 위치를 찾고 공통 입력을 재사용하는 방법을 다룬다.
 

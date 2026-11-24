@@ -1,10 +1,12 @@
 ---
 tags: ["Model Router", "LLM 서빙", "KV cache", study]
-series: "Model Router"
-seriesOrder: 4
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 15
 ---
 
 # 캐시를 보고 인스턴스를 고른다
+
+**이전 글** [모델을 골라주는 계층이 대신 가져오는 제약](./router-constraints.md) · **다음 글** [첫 토큰이 나간 뒤에는 재시도할 수 없다](./streaming-retry-boundary.md) · [시리즈 목차](../README.md)
 
 > Model Router 시리즈 4번이다.
 > 앞 글 [모델을 골라주는 계층이 대신 가져오는 제약](./router-constraints.md)에서 위 계층의 캐시와 라우팅이 충돌하는 구간을 다뤘다.

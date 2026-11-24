@@ -1,8 +1,12 @@
 ---
 tags: [study, vLLM, GPU]
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 9
 ---
 
 # vLLM의 스케줄러 루프가 CPU에 묶이면 왜 GPU가 쉬는가
+
+**이전 글** [vLLM 서버 옵션 지도](./vllm-serving-options.md) · **다음 글** [vLLM prefix cache를 살리는 프롬프트 배치](./vllm-prefix-cache-prompt-layout.md) · [시리즈 목차](../README.md)
 
 GPU에서 다음 토큰을 계산할 준비가 됐어도 CPU가 배치 구성이나 문법 마스크를 늦게 넘기면 계산 사이에 빈 시간이 생긴다. 같은 반복을 기다리는 자유 텍스트 요청도 다음 토큰을 늦게 받는다. 이 글은 vLLM v0.23.0의 V1 엔진을 기준으로 그 지연이 어디에서 생기는지 살펴본다.
 

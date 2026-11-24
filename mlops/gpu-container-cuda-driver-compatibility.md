@@ -1,10 +1,12 @@
 ---
 tags: [study]
-series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
-seriesOrder: 2
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 3
 ---
 
 # GPU 컨테이너의 CUDA 버전 호환성 — nvidia-smi부터 이미지 다이어트까지
+
+**이전 글** [Python CUDA 버전 생태계](./cuda-version-ecosystem.md) · **다음 글** [한 GPU를 여러 프로세스가 나눠 쓰기](./multi-process-gpu-mps.md) · [시리즈 목차](README.md)
 
 GPU로 모델을 추론하는 문서 파싱 서비스의 컨테이너 이미지가 압축 기준 10GB, 디스크에 풀면 30GB까지 부푼 걸 마주했다.
 줄여보려고 들여다보다가, 정작 내가 GPU 컨테이너의 버전 체계를 제대로 모른다는 걸 알았다.

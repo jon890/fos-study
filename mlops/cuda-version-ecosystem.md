@@ -1,10 +1,12 @@
 ---
 tags: [study]
-series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
-seriesOrder: 1
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 2
 ---
 
 # Python CUDA 버전 생태계 — nvidia-smi, nvcc, pip, conda가 다 다른 버전을 말하는 이유
+
+**이전 글** [GPU·CUDA·MPS 기초](./java-to-python-gpu-cuda-mps.md) · **다음 글** [GPU 컨테이너의 CUDA 버전 호환성](./gpu-container-cuda-driver-compatibility.md) · [시리즈 목차](README.md)
 
 PyTorch를 `pip install`로 깔았는데 시스템에 CUDA Toolkit을 따로 안 깔아도 GPU가 돌았다.
 그러다 `nvidia-smi`는 CUDA 12.2라고 하고, `nvcc --version`은 아예 명령이 없다고 하고, `python -c "import torch; print(torch.version.cuda)"`는 12.6이라고 한다.

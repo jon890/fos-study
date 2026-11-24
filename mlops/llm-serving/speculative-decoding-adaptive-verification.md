@@ -1,8 +1,12 @@
 ---
 tags: ["LLM 서빙", "추론 최적화", "추측 디코딩", "vLLM", study]
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 11
 ---
 
 # 추측 디코딩과 vLLM 적응형 검증
+
+**이전 글** [vLLM prefix cache를 살리는 프롬프트 배치](./vllm-prefix-cache-prompt-layout.md) · **다음 글** [Model Router 란 무엇인가](../model-router/what-is-model-router.md) · [시리즈 목차](../README.md)
 
 > [GPU로 LLM을 서빙한다는 것](./gpu-llm-serving-basics.md)과 [배칭과 GPU 활용률](./continuous-batching-gpu-utilization.md)을 먼저 읽으면 쉽다. 「decode 는 메모리 대역폭이 병목이라 연산이 남는다」 는 결론을 전제로 쓴다.
 

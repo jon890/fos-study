@@ -1,10 +1,12 @@
 ---
 tags: ["Model Router", "LLM 서빙", "streaming", study]
-series: "Model Router"
-seriesOrder: 5
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 16
 ---
 
 # 첫 토큰이 나간 뒤에는 재시도할 수 없다
+
+**이전 글** [캐시를 보고 인스턴스를 고른다](./cache-aware-routing.md) · **다음 글** [LiteLLM 로 라우팅 정책을 설정하는 방법](./litellm-routing-strategies.md) · [시리즈 목차](../README.md)
 
 > Model Router 시리즈 5번이다.
 > 앞 글 [캐시를 보고 인스턴스를 고른다](./cache-aware-routing.md)에서 아래 계층의 인스턴스 선택을 다뤘다.

@@ -1,10 +1,12 @@
 ---
 tags: ["Model Router", "LLM 서빙", "사례", study, insights]
-series: "Model Router"
-seriesOrder: 8
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 19
 ---
 
 # 같은 문제를 회사마다 다른 층에서 푼다
+
+**이전 글** [vLLM 지표를 라우팅 판단에 쓰는 방법](./vllm-metrics-for-routing.md) · **다음 글** [Kubernetes GPU 노드에서 /run tmpfs가 꽉 차서 Pod가 안 뜰 때](../gpu-node-run-tmpfs-full.md) · [시리즈 목차](../README.md)
 
 > Model Router 시리즈 8번이고 마지막 글이다.
 > 앞 글 [vLLM 지표를 라우팅 판단에 쓰는 방법](./vllm-metrics-for-routing.md)까지 계층과 판단 방식과 설정을 다뤘다.

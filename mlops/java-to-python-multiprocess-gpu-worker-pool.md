@@ -1,10 +1,12 @@
 ---
 tags: [study]
-series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
+series: "GPU 로 LLM 서빙하기"
 seriesOrder: 5
 ---
 
 # Multi-process GPU 워크로드 — 자바 ThreadPool 사용자가 만나는 모델 차이
+
+**이전 글** [한 GPU를 여러 프로세스가 나눠 쓰기](./multi-process-gpu-mps.md) · **다음 글** [GPU로 LLM을 서빙한다는 것](llm-serving/gpu-llm-serving-basics.md) · [시리즈 목차](README.md)
 
 자바 백엔드에서 `ThreadPoolExecutor` 는 거의 만능이었다. CPU bound 든 I/O bound 든 스레드 풀 크기만 잘 잡으면 동시성을 챙길 수 있었다. JVM 안에서 메모리를 공유하니 작업 간 데이터 전달도 가볍다.
 

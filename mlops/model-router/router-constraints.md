@@ -1,10 +1,12 @@
 ---
 tags: ["Model Router", "LLM 서빙", "운영", study]
-series: "Model Router"
-seriesOrder: 3
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 14
 ---
 
 # 모델을 골라주는 계층이 대신 가져오는 제약
+
+**이전 글** [어느 모델로 보낼지 무엇으로 정하는가](./routing-criteria-and-cost.md) · **다음 글** [캐시를 보고 인스턴스를 고른다](./cache-aware-routing.md) · [시리즈 목차](../README.md)
 
 > Model Router 시리즈 3번이다.
 > 앞 글 [어느 모델로 보낼지 무엇으로 정하는가](./routing-criteria-and-cost.md)에서 판단 방식 넷과 그 판단에 드는 시간을 다뤘다.

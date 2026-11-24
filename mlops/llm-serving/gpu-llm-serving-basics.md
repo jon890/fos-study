@@ -1,8 +1,12 @@
 ---
 tags: ["LLM 서빙", "GPU", "추론 최적화", study]
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 6
 ---
 
 # GPU로 LLM을 서빙한다는 것 — 백엔드 개발자를 위한 추론 서빙의 원리
+
+**이전 글** [Multi-process GPU 워크로드](../java-to-python-multiprocess-gpu-worker-pool.md) · **다음 글** [배칭과 GPU 활용률](./continuous-batching-gpu-utilization.md) · [시리즈 목차](../README.md)
 
 > [GPU·CUDA·MPS 기초 — 자바 백엔드 개발자가 처음 만나는 그림](../java-to-python-gpu-cuda-mps.md)을 먼저 읽으면 GPU 자체의 그림이 잡힌다. 이 글은 그 위에서 "LLM을 서빙하면 왜 어렵고, 그 어려움이 어디서 오는가"를 다룬다.
 

@@ -1,10 +1,12 @@
 ---
 tags: ["Model Router", "LLM 서빙", "라우팅", study]
-series: "Model Router"
-seriesOrder: 2
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 13
 ---
 
 # 어느 모델로 보낼지 무엇으로 정하는가
+
+**이전 글** [Model Router 란 무엇인가](./what-is-model-router.md) · **다음 글** [모델을 골라주는 계층이 대신 가져오는 제약](./router-constraints.md) · [시리즈 목차](../README.md)
 
 > Model Router 시리즈 2번이다.
 > 앞 글 [Model Router 란 무엇인가](./what-is-model-router.md)에서 결정 계층과 Gateway 계층을 갈랐다.

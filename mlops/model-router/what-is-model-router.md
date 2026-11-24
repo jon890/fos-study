@@ -1,10 +1,12 @@
 ---
 tags: ["Model Router", "LLM 서빙", "입문", study]
-series: "Model Router"
-seriesOrder: 1
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 12
 ---
 
 # Model Router 란 무엇인가
+
+**이전 글** [추측 디코딩과 vLLM 적응형 검증](../llm-serving/speculative-decoding-adaptive-verification.md) · **다음 글** [어느 모델로 보낼지 무엇으로 정하는가](./routing-criteria-and-cost.md) · [시리즈 목차](../README.md)
 
 > [GPU로 LLM을 서빙한다는 것](../llm-serving/gpu-llm-serving-basics.md)이 모델 한 대를 어떻게 굴리는지를 다뤘다면, 이 글은 그 위 계층을 다룬다.
 > 모델이 여러 개가 되고 제공자가 섞이는 순간 생기는 문제다.

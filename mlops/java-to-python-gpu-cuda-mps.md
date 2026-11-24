@@ -1,10 +1,12 @@
 ---
 tags: [study]
-series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
-seriesOrder: 3
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 1
 ---
 
 # GPU·CUDA·MPS 기초 — 자바 백엔드 개발자가 처음 만나는 그림
+
+**다음 글** [Python CUDA 버전 생태계](./cuda-version-ecosystem.md) · [시리즈 목차](README.md)
 
 자바로 백엔드만 짤 때는 컴퓨팅 자원이 단순했다. CPU 코어 수, JVM heap (`-Xmx`), 시스템 RAM. 워크로드가 커지면 인스턴스를 늘리거나 스레드를 늘리는 게 답이었다.
 

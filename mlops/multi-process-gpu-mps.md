@@ -1,10 +1,12 @@
 ---
 tags: [study]
-series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
+series: "GPU 로 LLM 서빙하기"
 seriesOrder: 4
 ---
 
 # 한 GPU 를 여러 프로세스가 나눠 쓰기 — Time-Slicing 과 MPS
+
+**이전 글** [GPU 컨테이너의 CUDA 버전 호환성](./gpu-container-cuda-driver-compatibility.md) · **다음 글** [Multi-process GPU 워크로드](./java-to-python-multiprocess-gpu-worker-pool.md) · [시리즈 목차](README.md)
 
 [GPU·CUDA·MPS 기초](./java-to-python-gpu-cuda-mps.md) 에서 MPS 라는 약어가 NVIDIA 와 Apple 두 가지를 가리킨다는 것까지 정리했다. 그 글 끝에 "multi-process GPU 패턴은 다음 글에서" 라고 미뤄둔 부분을 이어 쓴다.
 

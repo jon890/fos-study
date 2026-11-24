@@ -1,10 +1,12 @@
 ---
 tags: ["Model Router", "vLLM", "관측", study]
-series: "Model Router"
-seriesOrder: 7
+series: "GPU 로 LLM 서빙하기"
+seriesOrder: 18
 ---
 
 # vLLM 지표를 라우팅 판단에 쓰는 방법
+
+**이전 글** [LiteLLM 로 라우팅 정책을 설정하는 방법](./litellm-routing-strategies.md) · **다음 글** [같은 문제를 회사마다 다른 층에서 푼다](./industry-cases.md) · [시리즈 목차](../README.md)
 
 > Model Router 시리즈 7번이다.
 > 앞 글 [LiteLLM 로 라우팅 정책을 설정하는 방법](./litellm-routing-strategies.md)에서 위 계층의 설정을 다뤘다.
