@@ -24,7 +24,7 @@ CUDA 버전 생태계, GPU 컨테이너 최적화, 모델 서빙 워커 풀, 추
 - [GPU로 LLM을 서빙한다는 것](./llm-serving/gpu-llm-serving-basics.md) — prefill 과 decode, 메모리 대역폭 병목, KV cache
 - [배칭과 GPU 활용률](./llm-serving/continuous-batching-gpu-utilization.md) — batch 1이 GPU를 놀리는 이유부터 continuous batching까지
 - [추측 디코딩과 vLLM 적응형 검증](./llm-serving/speculative-decoding-adaptive-verification.md) — 초안을 몇 개까지 검증할지와 CUDA graph 오류 사례
-- [vLLM에서 JSON 형식과 동시 처리량을 조절하는 법](./llm-serving/vllm-serving-options.md) — XGrammar, 동시 처리와 출력 상한
+- [vLLM 서버 옵션 지도](./llm-serving/vllm-serving-options.md) — 요청 흐름으로 묶은 기동 옵션, 동시 처리 상한, 구조화 출력과 XGrammar
 
 ## Model Router (시리즈)
 
