@@ -64,6 +64,7 @@ function render(markdownText) {
   let codeLang = null;
   let codeLines = [];
   let listItems = [];
+  let orderedStart = null;
   let paragraphLines = [];
 
   function flushParagraph() {
@@ -74,8 +75,11 @@ function render(markdownText) {
 
   function flushList() {
     if (!listItems.length) return;
-    html.push(`<ul>${listItems.map((item) => `<li>${renderInline(item)}</li>`).join("")}</ul>`);
+    const tag = orderedStart === null ? "ul" : "ol";
+    const start = orderedStart !== null && orderedStart !== 1 ? ` start="${orderedStart}"` : "";
+    html.push(`<${tag}${start}>${listItems.map((item) => `<li>${renderInline(item)}</li>`).join("")}</${tag}>`);
     listItems = [];
+    orderedStart = null;
   }
 
   while (index < lines.length) {
@@ -136,10 +140,13 @@ function render(markdownText) {
       continue;
     }
 
-    const listItem = line.match(/^[-*]\s+(.+)$/);
+    const listItem = line.match(/^(?:[-*]|(\d{1,9})\.)\s+(.+)$/);
     if (listItem) {
       flushParagraph();
-      listItems.push(listItem[1]);
+      const start = listItem[1] === undefined ? null : Number(listItem[1]);
+      if ((orderedStart === null) !== (start === null)) flushList();
+      if (!listItems.length) orderedStart = start;
+      listItems.push(listItem[2]);
       index += 1;
       continue;
     }
@@ -152,6 +159,7 @@ function render(markdownText) {
       continue;
     }
 
+    if (orderedStart !== null) flushList();
     paragraphLines.push(line.trim());
     index += 1;
   }
@@ -255,8 +263,8 @@ const html = `<!doctype html>
       border-top: 1px solid var(--border);
       letter-spacing: 0;
     }
-    p, ul, table, pre, blockquote, figure { margin-top: 16px; margin-bottom: 16px; }
-    ul { padding-left: 24px; }
+    p, ul, ol, table, pre, blockquote, figure { margin-top: 16px; margin-bottom: 16px; }
+    ul, ol { padding-left: 24px; }
     li + li { margin-top: 6px; }
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
