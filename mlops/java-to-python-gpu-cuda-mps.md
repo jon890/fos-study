@@ -165,7 +165,7 @@ Mac M-series 에서 PyTorch 가 자동으로 Apple GPU 를 활용한다. 우리�
 
 > CPU + 시스템 RAM 만 있던 그림에 GPU + VRAM 이라는 별도 컴퓨팅 평면이 추가된다. nvidia-smi 가 jstat 자리, `.to("cuda")` 가 데이터 전송, `clear_cuda_memory()` 가 수동 GC.
 
-이걸 머릿속에 두면 다음 글들 — PyTorch 모델 로딩 비용, multi-process GPU 워커 패턴 — 이 자연스럽게 이어진다.
+이걸 머릿속에 두면 PyTorch 모델 로딩 비용을 다룬 [PyTorch 기초](../python/java-to-python-pytorch-tensor-model-loading.md)와 multi-process GPU 워커 패턴을 다룬 [Multi-process GPU 워크로드](./java-to-python-multiprocess-gpu-worker-pool.md)가 자연스럽게 이어진다.
 
 ## 참고
 

@@ -147,14 +147,14 @@ GPU 검증은 운영 카나리로 미루는 게 자연스럽다. 자바라면 st
 
 아래 주제는 Python 서비스 코드를 읽고 실행 구조를 익힐 때 도움이 된다.
 
-- Python 문법 핵심 (Post 1) + OOP·데코레이터 심화 (Post 2) — 코드를 읽기 위한 전제
-- 의존성 관리 (Post 3) — venv, uv, pyproject.toml
-- FastAPI 기초 (Post 4) — Spring Boot 사용자가 빠르게 익히는 법
-- async/await + blocking I/O (Post 5) — CompletableFuture·Reactor 와 다른 점
-- GPU·CUDA·MPS (Post 6) — 새로운 컴퓨팅 평면
-- PyTorch 텐서·모델 로딩 (Post 7) — 워커 spawn 이 무거운 이유
-- Multi-process worker pool (Post 8) — ThreadPool 모델과 다른 점
-- OCR 동작 원리 (Post 9) — Layout · Text · Post-process 파이프라인
+- [Java 개발자를 위한 Python 문법 핵심](../python/java-to-python-syntax.md)과 [Python 심화: OOP·데코레이터·컨텍스트 매니저](../python/java-to-python-oop-decorator.md): 코드를 읽기 위한 전제
+- [Python 의존성 관리](../python/java-to-python-dependency-management.md): venv, uv, pyproject.toml
+- [FastAPI 기초](../python/java-to-python-fastapi-basics.md): Spring Boot 사용자가 빠르게 익히는 법
+- [Python async/await](../python/java-to-python-async-blocking-io.md): CompletableFuture·Reactor 와 다른 점과 blocking I/O 함정
+- [GPU·CUDA·MPS 기초](./java-to-python-gpu-cuda-mps.md): 새로운 컴퓨팅 평면
+- [PyTorch 기초](../python/java-to-python-pytorch-tensor-model-loading.md): 워커 spawn 이 무거운 이유
+- [Multi-process GPU 워크로드](./java-to-python-multiprocess-gpu-worker-pool.md): ThreadPool 모델과 다른 점
+- [OCR 동작 원리](../python/ocr-pipeline-basics.md): Layout · Text · Post-process 파이프라인
 - ML 서비스 성능 분석 워크플로 (이 글)
 
 자바 백엔드 개발자가 ML 서비스를 두려워하지 않고 분석·개선할 수 있는 도구는 충분히 갖춰져 있다. 핵심은 **JVM 안에서만 보던 그림을 멀티 프로세스, GPU, 외부 API 까지 확장하는 시각**이다. 그 위에 자바에서 익힌 트러블슈팅 감각을 그대로 옮기면 된다.

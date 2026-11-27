@@ -66,7 +66,7 @@ future = executor.submit(process_document, "/tmp/file.pdf")
 result = future.result(timeout=1200)
 ```
 
-`initializer` 는 자바 `ThreadFactory` 에서 `beforeExecute` 자리. **각 워커 프로세스가 시작될 때 한 번 호출**되어 무거운 모델을 미리 로드한다. 우리 코드의 `init_worker_process` 함수가 이 자리에서 PaddleOCR + Docling converter 를 워커마다 캐싱한다.
+`initializer` 는 자바로 치면 `ThreadFactory.newThread` 에서 스레드를 만들며 초기화하는 자리에 해당한다. `ThreadPoolExecutor.beforeExecute` 는 작업마다 불리는 hook 이라 이 자리와 다르다. `initializer` 는 **각 워커 프로세스가 시작될 때 한 번 호출**되어 무거운 모델을 미리 로드한다. 우리 코드의 `init_worker_process` 함수가 이 자리에서 PaddleOCR + Docling converter 를 워커마다 캐싱한다.
 
 `max_tasks_per_child` 는 자바에 없는 옵션이다. 워커 한 명이 N 개 task 를 처리하면 자동으로 죽고 새 워커가 spawn 된다. 메모리 누수 방어용으로 도입된 패턴인데, 우리 분석에서는 이 값이 너무 작게 (`3`) 설정되어 throughput 손해가 큰 것으로 드러났다.
 
@@ -155,7 +155,7 @@ def worker_death_monitor():
 
 > Python ML 워크로드는 GIL 때문에 thread 가 아닌 process 단위로 격리한다. process 는 비싸므로 worker 라이프사이클 (spawn, initialize, recycle) 이 핵심 비용이고, 모든 운영 문제 (503 폭풍, 메모리 누수, 워밍업 누적) 가 그 라이프사이클의 변형으로 환원된다.
 
-다음 글은 이 위에서 OCR 파이프라인이 어떻게 동작하는지 (layout detection → text recognition → post-processing) 정리한다. ML 모델 추론의 실제 흐름을 보여주는 단계.
+이 워커 위에서 OCR 파이프라인이 어떻게 동작하는지 (layout detection → text recognition → post-processing) 는 [OCR 동작 원리](../python/ocr-pipeline-basics.md)에서 다룬다. ML 모델 추론의 실제 흐름을 보여 주는 글이다.
 
 ## 참고
 
