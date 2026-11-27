@@ -41,7 +41,7 @@ Spring Framework는 다음 계층으로 구성된다.
 Spring Boot는 Spring Framework를 대체하지 않는다. Boot의 내부를 까보면 결국 `AnnotationConfigApplicationContext`를 만들고 `@Configuration` 클래스를 등록하는 동일한 Spring Framework 코드가 돈다. Boot가 추가한 것은 다음 네 가지 축이다.
 
 1. **Auto-configuration**: `spring.factories` / `AutoConfiguration.imports`에 등록된 `@Configuration` 클래스들을 조건부로 활성화
-2. **Starter Dependencies**: 의존성 버전 매트릭스를 Bill of Materials(BOM)로 관리
+2. **Starter Dependencies**: 의존성 버전 호환 표를 Bill of Materials(BOM)로 관리
 3. **Embedded Server**: `Tomcat`, `Jetty`, `Undertow`를 Jar 안에 포함하여 `java -jar`로 실행
 4. **Production-ready Features**: Actuator, Metrics, Health Check
 

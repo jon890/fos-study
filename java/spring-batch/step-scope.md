@@ -38,7 +38,7 @@ public ConfluencePageItemReader confluencePageItemReader(
 
 Reader, Processor 같은 Step 컴포넌트는 내부 상태를 가지는 경우가 많다. 예를 들어 페이지네이션 커서, 읽은 데이터 버퍼 같은 것들이다.
 
-싱글톤이면 두 번째 Job 실행 시 이전 실행의 상태가 남아있을 수 있다. `@StepScope`로 Step마다 새 인스턴스를 만들면 이런 상태 누수를 원천 차단한다.
+싱글톤이면 두 번째 Job 실행 시 이전 실행의 상태가 남아있을 수 있다. `@StepScope`로 Step마다 새 인스턴스를 만들면 이런 상태 누수를 근본적으로 막는다.
 
 ### 여러 Job이 동시에 실행될 때 격리하기 위해
 

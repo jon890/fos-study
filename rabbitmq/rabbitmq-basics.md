@@ -299,7 +299,7 @@ public class EmailConsumer {
 > Consumer가 아직 ack하지 않은 메시지를 얼마나 미리 받아올지 제한하는 값입니다. 기본값이 무제한이라 놔두면 한 Consumer가 수천 건을 메모리에 안고 있다가 OOM이 나거나, 불균등 분배가 심해집니다. 처리 시간이 긴 작업은 낮게(1\~5), 짧은 작업은 높게(50\~) 잡아 분배를 평탄하게 만듭니다.
 
 **Q. 같은 메시지가 여러 번 처리되는 문제를 어떻게 다루나요?**
-> RabbitMQ는 기본이 at-least-once이기 때문에 중복은 언제든 발생할 수 있다고 전제합니다. 그래서 Consumer 측에서 메시지 ID를 기준으로 **idempotent** 하게 처리하도록 만듭니다. 예를 들어 주문 이벤트 처리 전에 `processed_message(message_id)` 테이블을 확인하거나, 결제 호출에 `idempotency_key`를 실어 보내는 식입니다.
+> RabbitMQ는 기본이 at-least-once이기 때문에 중복은 언제든 발생할 수 있다고 전제합니다. 그래서 Consumer 측에서 메시지 ID를 기준으로 **idempotent** 하게 처리하도록 만듭니다. 예를 들어 주문 이벤트 처리 전에 `processed_message(message_id)` 테이블을 확인하거나, 결제 호출에 `idempotency_key`를 넣어 보내는 식입니다.
 
 **Q. Exchange 타입 중 어떤 걸 가장 많이 썼나요?**
 > Topic Exchange를 기본으로 썼습니다. `도메인.액션.리전` 같은 라우팅 키로 설계해두면, 새로운 Consumer가 특정 패턴만 구독해서 붙기가 쉽고, 초기 설계를 크게 바꾸지 않고 확장할 수 있었습니다.
