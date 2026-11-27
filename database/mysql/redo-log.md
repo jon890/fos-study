@@ -52,7 +52,7 @@ Undo Log는 변경 **이전** 상태를 보관한다. 목적은 두 가지다.
 | 커밋 후 즉시 삭제 가능? | ✅ (다른 트랜잭션이 이 버전을 볼 이유가 없음) | ❌ (참조 Read View가 있으면 남아야 함) |
 | 비대화 위험 | 낮음 | **높음 — 장기 트랜잭션 + UPDATE 폭풍이 전형** |
 
-**Undo Log 비대화(Undo Bloat)는 거의 항상 Update Undo 문제다.** 장기 실행 SELECT 트랜잭션이 Read View를 붙잡고 있는 동안 다른 세션의 수많은 UPDATE가 이전 버전을 Purge하지 못한 채 쌓이면 Undo Tablespace가 폭증한다. 자세한 진단은 [innodb-mvcc.md 섹션 3](./innodb-mvcc.md#3-undo-log--버전-체인의-저장소) 참고.
+**Undo Log 비대화(Undo Bloat)는 거의 항상 Update Undo 문제다.** 장기 실행 SELECT 트랜잭션이 Read View를 붙잡고 있는 동안 다른 세션의 수많은 UPDATE가 이전 버전을 Purge하지 못한 채 쌓이면 Undo Tablespace가 폭증한다. 자세한 진단은 [innodb-mvcc.md의 Undo Log 절](./innodb-mvcc.md#undo-log--버전-체인의-저장소) 참고.
 
 ---
 
@@ -126,7 +126,7 @@ Checkpoint Age = 현재 LSN - 마지막 checkpoint LSN
 
 LSN(Log Sequence Number)은 Redo Log 위치를 나타내는 단조증가 숫자다.
 
-Checkpoint Age가 Redo Log 전체 크기의 약 75~80%에 도달하면 **Async checkpoint**, 90% 이상이면 **Sharp checkpoint**가 강제 발생한다. 이 시점에 대량의 dirty page flush가 일어나 I/O 스파이크와 쿼리 지연이 생긴다.
+Checkpoint Age가 Redo Log 전체 크기의 약 75~80%에 도달하면 **Async checkpoint**, 90% 이상이면 **Sharp checkpoint**가 강제 발생한다. 이 시점에 대량의 dirty page flush가 일어나 I/O 급증과 쿼리 지연이 생긴다.
 
 ```
 Redo Log 크기가 너무 작으면:
@@ -180,7 +180,7 @@ ORDER BY trx_started ASC;
 
 Undo Bloat는 "디스크가 커진다" 문제로 끝나지 않는다. 버전 체인이 길어지면 **일관 읽기마다 체인을 더 오래 거슬러 올라가야 해서 SELECT 성능도 함께 떨어진다.** 실무에서는 이것이 "어제까지 멀쩡했던 조회가 오늘 갑자기 느려짐"의 원인이 되곤 한다.
 
-세부 내부 동작(버전 체인, Read View 가시성 알고리즘, 격리 수준별 차이)은 [innodb-mvcc.md 섹션 3–6](./innodb-mvcc.md#3-undo-log--버전-체인의-저장소) 참고.
+세부 내부 동작(버전 체인, Read View 가시성 알고리즘, 격리 수준별 차이)은 [innodb-mvcc.md의 Undo Log부터 격리 수준까지의 절](./innodb-mvcc.md#undo-log--버전-체인의-저장소) 참고.
 
 ---
 
@@ -263,7 +263,7 @@ Roll-Forward 단계에서 Redo Log는 **모든 변경(커밋 여부 불문)을 �
 
 하나의 트랜잭션에서 수십만 건을 처리하면 Redo Log와 Undo Log가 동시에 빠르게 차오른다.
 
-- **Redo 쪽**: Checkpoint Age가 임계치에 달하면 강제 checkpoint로 I/O 스파이크 발생.
+- **Redo 쪽**: Checkpoint Age가 임계치에 달하면 강제 checkpoint로 I/O 급증 발생.
 - **Undo 쪽**: 트랜잭션이 커밋될 때까지 Undo 레코드가 정리되지 않는다. 롤백이 필요해지면 전부 역재생해야 한다.
 
 ```java
@@ -397,7 +397,7 @@ mysql_global_status_innodb_buffer_pool_pages_dirty
 
 ### Q4. 장기 트랜잭션이 시스템에 미치는 영향을 로그 관점에서 설명해주세요.
 
-> Redo 관점에서는 직접적 비대화는 아니지만, 커밋이 늦어지는 동안 대용량 변경이 축적되면 롤백 시 Undo를 대량 역재생하면서 Redo Log 쪽 I/O 스파이크를 만듭니다. Undo 관점의 영향이 더 치명적입니다. 장기 트랜잭션은 Read View를 오래 유지하기 때문에 Purge Thread가 Update Undo를 정리하지 못합니다. Undo Tablespace가 비대해지고 버전 체인이 길어져 SELECT의 일관 읽기 성능까지 함께 떨어집니다. `information_schema.INNODB_TRX`와 `SHOW ENGINE INNODB STATUS`의 History List Length로 모니터링하고, 애플리케이션에서는 트랜잭션 경계를 짧게 유지하고 외부 I/O를 트랜잭션 밖으로 빼는 설계가 필수입니다.
+> Redo 관점에서는 직접적 비대화는 아니지만, 커밋이 늦어지는 동안 대용량 변경이 축적되면 롤백 시 Undo를 대량 역재생하면서 Redo Log 쪽 I/O 급증을 만듭니다. Undo 관점의 영향이 더 치명적입니다. 장기 트랜잭션은 Read View를 오래 유지하기 때문에 Purge Thread가 Update Undo를 정리하지 못합니다. Undo Tablespace가 비대해지고 버전 체인이 길어져 SELECT의 일관 읽기 성능까지 함께 떨어집니다. `information_schema.INNODB_TRX`와 `SHOW ENGINE INNODB STATUS`의 History List Length로 모니터링하고, 애플리케이션에서는 트랜잭션 경계를 짧게 유지하고 외부 I/O를 트랜잭션 밖으로 빼는 설계가 필수입니다.
 
 ---
 

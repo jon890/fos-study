@@ -109,7 +109,7 @@ flowchart TB
 - OpenSearch — `nori` (nori_tokenizer + nori_part_of_speech 필터)
 - Milvus — `lindera` + ko-dic(MeCab 한국어 사전) + korean_stop_tags 필터
 
-같은 품사 태그 체계를 쓰기 때문에 설정이 거의 1:1 로 대응한다. 직접 같은 문장을 양쪽에 넣어보면, 조사·어미를 걸러낸 의미 토큰은 사실상 같았다. 오히려 복합명사는 lindera 쪽이 덜 쪼갰다("데이터베이스"를 통째로 vs nori 는 "데이터/베이스").
+같은 품사 태그 체계를 쓰기 때문에 설정이 거의 1:1 로 대응한다. 직접 같은 문장을 양쪽에 넣어보면, 조사·어미를 제외한 의미 토큰은 사실상 같았다. 오히려 복합명사는 lindera 쪽이 덜 쪼갰다("데이터베이스"를 통째로 vs nori 는 "데이터/베이스").
 
 두 분석기의 기능 동등성·튜닝 옵션·버전별 차이는 [한국어 형태소 분석기 Nori vs Lindera](../nori-vs-lindera-korean-tokenizer.md)에서 자세히 다룬다.
 
@@ -171,7 +171,7 @@ OpenSearch 는 이미 쓰던 팀이라면 학습 비용이 거의 없다는 게 
 - 한국어도 nori ↔ lindera ko-dic 으로 거의 1:1 대응한다.
 - 메모리는 OpenSearch 의 data node, Milvus 의 QueryNode 가 담당한다 — master/coordinator 가 아니다.
 - 진짜 차이는 **아키텍처 철학(결합 vs 분리)과 기능의 폭(학습형 sparse·multi-vector·GPU)**이다.
-- 수천만 규모에선 성능이 아니라 **기능·운영·생태계가 선택을 가른다.**
+- 수천만 규모에선 성능이 아니라 **기능·운영·생태계가 선택을 결정한다.**
 
 벡터 DB 일반론과 다른 후보까지 보려면 [벡터 DB 선택 가이드](../vectordb-comparison.md)를, Milvus 내부 동작이 궁금하면 [Milvus 아키텍처 글](./milvus-architecture-and-performance.md)을 참고.
 

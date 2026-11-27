@@ -60,7 +60,7 @@ shard_num = hash(_routing) mod num_primary_shards
 
 다만 **공짜가 아니다.** 쓰기는 프라이머리에 먼저 기록된 뒤 모든 레플리카에도 복제돼야 끝난다. 레플리카가 늘수록 쓰기 한 번의 복제 비용이 늘어난다 — 그래서 레플리카 수는 "읽기 처리량"과 "쓰기 비용·저장 공간" 사이의 트레이드오프다.
 
-**여기서 샤드 수와 정확히 대조되는 지점이 나온다.** 프라이머리 샤드 수(`number_of_shards`)는 인덱스 생성 후 고정되는 static 설정이지만, 레플리카 수(`number_of_replicas`)는 언제든 API 호출 한 번으로 바꿀 수 있는 **dynamic 설정**이다([Update Settings API](https://docs.opensearch.org/latest/api-reference/index-apis/update-settings/)). 검색 트래픽이 늘면 레플리카만 늘려서 대응할 수 있지만, 데이터 자체가 늘어서 샤드를 더 쪼개야 하는 상황이라면 앞서 본 Split API나 Reindex 로 가야 한다 — "무엇이 늘었는가(트래픽 vs 데이터 크기)"가 레플리카를 늘릴지 샤드를 늘릴지를 가른다.
+**여기서 샤드 수와 정확히 대조되는 지점이 나온다.** 프라이머리 샤드 수(`number_of_shards`)는 인덱스 생성 후 고정되는 static 설정이지만, 레플리카 수(`number_of_replicas`)는 언제든 API 호출 한 번으로 바꿀 수 있는 **dynamic 설정**이다([Update Settings API](https://docs.opensearch.org/latest/api-reference/index-apis/update-settings/)). 검색 트래픽이 늘면 레플리카만 늘려서 대응할 수 있지만, 데이터 자체가 늘어서 샤드를 더 쪼개야 하는 상황이라면 앞서 본 Split API나 Reindex 로 가야 한다 — "무엇이 늘었는가(트래픽 vs 데이터 크기)"가 레플리카를 늘릴지 샤드를 늘릴지를 결정한다.
 
 ## 왜 프라이머리 샤드 개수를 나중에 못 바꿀까
 

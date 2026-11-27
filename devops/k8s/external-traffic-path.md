@@ -51,7 +51,7 @@ spec:
 
 ## 사설 LB와 공인 LB — annotation 한 줄의 차이
 
-여기서 한 단계 더 들어간다. 같은 LoadBalancer 타입이라도, 받는 IP가 **사설**(내부망 전용)일 수도 있고 **공인**(인터넷에서 닿는)일 수도 있다. 이걸 가르는 건 annotation 한 줄이다.
+여기서 한 단계 더 들어간다. 같은 LoadBalancer 타입이라도, 받는 IP가 **사설**(내부망 전용)일 수도 있고 **공인**(인터넷에서 닿는)일 수도 있다. 이걸 정하는 건 annotation 한 줄이다.
 
 ```yaml
 metadata:
@@ -115,7 +115,7 @@ flowchart TB
 
 > 외부로 열 건 외부로 열 것만. 내부 도구를 외부 진입점에 같이 태우면, "노출 사고"와 "자기 발 묶기"가 동시에 온다.
 
-## 해결책: Controller를 둘로 나누고 IngressClass로 가른다
+## 해결책: Controller를 둘로 나누고 IngressClass로 구분한다
 
 정석은 **Ingress Controller를 용도별로 둘 두는 것**이다.
 
@@ -167,7 +167,7 @@ spec:
 - 애플리케이션 Service는 보통 ClusterIP라 그 자체로는 외부에서 못 닿는다.
 - 외부 진입점은 LoadBalancer 타입 Service가 만들고, annotation 한 줄로 사설/공인이 갈린다.
 - Ingress Controller도 Pod라서 그 앞에 LB가 필요하고, 라우팅 규칙은 Ingress가 담당한다.
-- 내부 도구와 외부 공개 서비스는 Controller를 분리하고 IngressClass로 갈라야 안전하다.
+- 내부 도구와 외부 공개 서비스는 Controller를 분리하고 IngressClass로 구분해야 안전하다.
 
 쿠버네티스가 네트워킹을 여러 층으로 쪼개 둔 게 처음엔 과하다고 느꼈는데, 막상 "내부는 사설, 외부는 공인"처럼 층마다 다른 정책을 걸어야 하는 상황이 오니 그 분리가 왜 필요한지 납득이 됐다.
 

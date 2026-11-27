@@ -5,7 +5,7 @@ description: fos-study 저장소에서 깨진 내부 링크, 고아 Markdown 문
 
 # fos-study 문서 구조 점검
 
-이 스킬은 저장소 구조에서 기계적으로 판정할 수 있는 문제만 찾는다.
+이 스킬은 저장소 구조에서 스크립트로 판정할 수 있는 문제만 찾는다.
 
 ## 실행
 
@@ -22,6 +22,8 @@ python3 .claude/skills/docs-audit/scripts/docs_score.py --json
 - 존재하지 않는 내부 Markdown 링크
 - 다른 문서에서 링크되지 않은 문서
 - 같은 폴더의 `README.md`에 등재되지 않은 문서
+
+git이 무시하는 파일(`.orch/` 같은 작업 폴더)은 검사하지 않는다. 커밋하지 않은 새 문서는 검사한다.
 
 문체와 한국어 표현은 프로젝트 지침에 적힌 공용 검사기가 소유한다. 문서의 부패, 중복, 관심사 혼합과 삭제 후보 판단은 `.claude/docs-audit-overlay.md`를 읽고 `fos-skills:docs-audit`로 처리한다.
 

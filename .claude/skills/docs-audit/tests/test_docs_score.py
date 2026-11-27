@@ -58,6 +58,21 @@ class DocsScoreStructureTest(unittest.TestCase):
 
             self.assertEqual(1, result["counts"]["readme_missing"])
 
+    def test_git_ignored_markdown_is_not_scanned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            (root / ".gitignore").write_text(".orch/\n", encoding="utf-8")
+            (root / "README.md").write_text("# 문서\n", encoding="utf-8")
+            (root / ".orch").mkdir()
+            (root / ".orch" / "state.md").write_text("# 작업 상태\n", encoding="utf-8")
+            (root / "draft.md").write_text("# 커밋 전 초안\n", encoding="utf-8")
+
+            result = DOCS_SCORE.measure(root)
+
+            orphans = [item["file"] for item in result["details"]["orphan_doc"]]
+            self.assertEqual(["draft.md"], orphans)
+
     def test_cli_exit_code_matches_findings(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

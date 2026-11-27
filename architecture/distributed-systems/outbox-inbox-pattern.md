@@ -103,7 +103,7 @@ public class OrderService {
 }
 ```
 
-여기서 의도적으로 `kafkaTemplate.send`를 호출하지 않는다. publish는 별도 워커가 책임진다. 트랜잭션 동기화 콜백(`TransactionSynchronization.afterCommit`) 안에서 직접 publish 하는 변형도 있지만, 프로세스가 afterCommit 직후 죽으면 메시지가 유실되므로 outbox 테이블을 진실의 원천으로 유지하는 편이 안전하다.
+여기서 의도적으로 `kafkaTemplate.send`를 호출하지 않는다. publish는 별도 워커가 책임진다. 트랜잭션 동기화 콜백(`TransactionSynchronization.afterCommit`) 안에서 직접 publish 하는 변형도 있지만, 프로세스가 afterCommit 직후 죽으면 메시지가 유실되므로 outbox 테이블을 source of truth로 유지하는 편이 안전하다.
 
 ## 발행 전략 — Polling Publisher vs Transaction Log Tailing
 
@@ -175,7 +175,7 @@ kafkaTemplate.send("order-events", event.aggregateId(), event.payload());
 
 ## Replay — 운영의 마지막 안전망
 
-outbox를 진실의 원천으로 유지하면, 운영 사고 발생 시 특정 기간의 이벤트를 다시 발행할 수 있다.
+outbox를 source of truth로 유지하면, 운영 사고 발생 시 특정 기간의 이벤트를 다시 발행할 수 있다.
 
 ```sql
 UPDATE outbox_event

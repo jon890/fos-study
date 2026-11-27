@@ -8,7 +8,7 @@ seriesOrder: 20
 
 **이전 글** [같은 문제를 회사마다 다른 층에서 푼다](model-router/industry-cases.md) · **다음 글** [ML 서비스 성능 분석 워크플로](./ml-service-perf-analysis-workflow.md) · [시리즈 목차](README.md)
 
-NHN Cloud OCR 리얼 배포 중 ArgoCD sync가 Degraded로 떨어졌다.
+OCR 서비스를 운영 환경에 배포하던 중 ArgoCD sync가 Degraded로 떨어졌다.
 pod sandbox 생성 단계에서 `no space left on device` 에러가 반복 발생했고, 원인은 GPU 노드의 `/run` tmpfs 포화였다.
 
 루트 디스크는 16%밖에 안 쓰고 있는데 pod가 안 뜨는 상황이라 처음엔 혼란스러웠다.
@@ -16,7 +16,7 @@ pod sandbox 생성 단계에서 `no space left on device` 에러가 반복 발�
 
 ## 증상
 
-ArgoCD에서 ocr-api와 ocr-console이 Degraded 상태로 전환됐다.
+ArgoCD에서 API 서버(`api-server`)와 관리 콘솔(`admin-console`)이 Degraded 상태로 전환됐다.
 kubectl로 이벤트를 조회하니 **pod sandbox** 생성 단계에서 에러가 반복되고 있었다.
 
 pod sandbox란 pod 안의 모든 컨테이너가 공유하는 격리 환경(network namespace, IPC namespace 등)을 만드는 첫 단계다.
@@ -212,7 +212,7 @@ overlay on .../rootfs type overlay (
 ```
 lowerdir가 1개다.
 
-ocr-llm 컨테이너:
+LLM 모델 서버(`llm-server`) 컨테이너:
 ```
 overlay on .../rootfs type overlay (
   lowerdir=1645/fs:1644/fs:1643/fs:...:403/fs,
@@ -227,19 +227,19 @@ LLM 모델 서버 이미지는 Ubuntu 기반에 CUDA 툴킷, cuDNN, Python, 모�
 ### 컨테이너 수
 
 GPU 노드에서 실행 중인 active task는 29개였다.
-ocr-llm 외에도 calico, csi-cinder, neuvector, argo-redis, nvidia-device-plugin, metrics-server 등 시스템 pod가 여럿 올라가 있었다.
+`llm-server` 외에도 calico, csi-cinder, neuvector, argo-redis, nvidia-device-plugin, metrics-server 등 시스템 pod가 여럿 올라가 있었다.
 각각이 shim task 디렉터리와 overlay 마운트 포인트를 `/run`에 만든다.
 
 application 노드는 이미지 레이어가 적고(Java JAR 기반으로 3\~7개), tmpfs 크기 대비 여유가 충분했다.
-GPU 노드는 50레이어짜리 LLM 이미지 + 29개 task 조합이 8.9G를 전부 소진한 것이다.
+GPU 노드는 50레이어짜리 LLM 이미지와 29개 task가 겹쳐 8.9G를 전부 소진한 것이다.
 
 ## 진단 과정
 
 ### 어떤 노드인지 특정
 
 ```bash
-kubectl describe pod ocr-api-deployment-xxx -n ocr
-# Node: ocr-real-gpu-llm-f2038b41-node-0
+kubectl describe pod api-server-xxx -n app
+# Node: gpu-node-xxx
 ```
 
 ### 노드 디스크 vs tmpfs 분리 확인
@@ -299,7 +299,7 @@ $ df -h /run
 tmpfs  16G  8.9G  7.2G  56%  /run
 ```
 
-확장 후 ContainerCreating으로 멈춰있던 pod들(metrics-server, argo-redis-ha-haproxy)이 자동으로 정상 기동됐고, ocr-api pod도 GPU 노드에서 정상 생성되었다.
+확장 후 ContainerCreating으로 멈춰있던 pod들(metrics-server, argo-redis-ha-haproxy)이 자동으로 정상 기동됐고, `api-server` pod도 GPU 노드에서 정상 생성되었다.
 
 GPU 노드 2대 모두 동일한 증상이었고, 양쪽 다 같은 조치로 해결했다.
 
@@ -318,7 +318,7 @@ tmpfs는 "최대 허용량"이지 "즉시 할당"이 아니다.
 ### nodeAffinity 이슈
 
 진단 과정에서 하나 더 발견한 것이 있다.
-ocr-api deployment의 `nodeAffinity`에 `application`과 `gpu-llm` 모두 포함되어 있었다.
+`api-server` deployment의 `nodeAffinity`에 `application`과 `gpu-llm` 모두 포함되어 있었다.
 
 ```yaml
 nodeAffinity:
@@ -350,7 +350,7 @@ exec liveness/readiness probe를 실행할 때 nvidia-container-runtime이 과�
 | 근본 원인 | GPU 노드의 `/run` tmpfs(8.9G)가 containerd runtime 메타데이터로 포화 |
 | 왜 GPU만 | LLM 이미지의 overlay 레이어 약 50개 + 29개 active task → 커널 메타데이터 누적 |
 | 해결 | `mount -o remount,size=16G /run` |
-| 영구 적용 | `/etc/fstab` 또는 NKS 노드 설정 변경 필요 |
+| 영구 적용 | `/etc/fstab` 또는 관리형 Kubernetes 서비스의 노드 설정 변경 필요 |
 
 이번 이슈에서 배운 건 `df -h`로 루트 디스크만 보면 안 된다는 것이다.
 `/run` 같은 tmpfs는 별도 파일시스템이라 루트와 독립적으로 꽉 찰 수 있고, `du`도 `-x` 옵션 없이 쓰면 overlay 마운트를 따라가면서 엉뚱한 숫자를 보여준다.

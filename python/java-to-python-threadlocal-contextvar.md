@@ -134,7 +134,7 @@ handler.addFilter(RequestIdFilter())
 ## 적용 사례 — gRPC 모델 추론 서버의 분산 추적
 
 최근 내가 다루는 gRPC OCR 모델 추론 서버에 분산 추적을 붙이는 설계를 했다.
-상위 API 서버가 자기 `requestId` 를 `X-Request-Id` 헤더로 실어 모델 서버를 호출하면, 모델 서버는 그 값을 자기 로그의 `requestId` 로 채워 양쪽 로그를 한 id 로 묶는 그림이다.
+상위 API 서버가 자기 `requestId` 를 `X-Request-Id` 헤더에 넣어 모델 서버를 호출하면, 모델 서버는 그 값을 자기 로그의 `requestId` 로 채워 양쪽 로그를 한 id 로 묶는 그림이다.
 
 전파 방식으로 두 안을 놓고 고민했다.
 

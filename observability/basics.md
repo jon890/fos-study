@@ -37,7 +37,7 @@ flowchart LR
 
 ## Structured Logging: JSON, Correlation ID, MDC
 
-Plain text 로그는 기계가 읽기 어렵다. 프로덕션 로그는 **구조화된 JSON**이어야 한다.
+Plain text 로그는 프로그램이 읽기 어렵다. 프로덕션 로그는 **구조화된 JSON**이어야 한다.
 
 나쁜 예:
 ```
@@ -64,7 +64,7 @@ Plain text 로그는 기계가 읽기 어렵다. 프로덕션 로그는 **구조
 
 JSON 로그는 Elasticsearch나 Loki에 인덱싱해 `errorCode=PAYMENT_TIMEOUT AND env=prod` 같은 구조적 질의가 가능하다.
 
-**Correlation ID**는 하나의 요청(또는 작업)에 부여되는 고유 식별자로, 여러 서비스와 로그 라인을 가로지르는 실을 만든다. Spring에서는 **MDC**(Mapped Diagnostic Context)에 주입해 모든 로그 라인에 자동 포함되게 한다.
+**Correlation ID**는 하나의 요청(또는 작업)에 부여되는 고유 식별자로, 여러 서비스와 로그 라인을 하나로 묶어 준다. Spring에서는 **MDC**(Mapped Diagnostic Context)에 주입해 모든 로그 라인에 자동 포함되게 한다.
 
 ```java
 @Component
@@ -515,7 +515,7 @@ public class OrdersController {
 
 ## 체크리스트
 
-- [ ] 로그가 JSON 구조화되어 있고 `traceId`, `spanId`, `userId`가 모든 라인에 실려 있다.
+- [ ] 로그가 JSON 구조화되어 있고 `traceId`, `spanId`, `userId`가 모든 라인에 들어 있다.
 - [ ] MDC가 `@Async`와 `ExecutorService`에서도 전파된다(`TaskDecorator` 확인).
 - [ ] 메트릭 라벨에 userId/raw path/IP 같은 high-cardinality 값이 없다.
 - [ ] API 서비스는 RED, 리소스는 USE로 대시보드를 나눈다.

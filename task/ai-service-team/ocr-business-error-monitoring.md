@@ -27,7 +27,7 @@ Content-Type: application/json
 }
 ```
 
-이 구조에서는 `http_server_requests_seconds_count{status="200"}`만으로 비즈니스 성공 여부를 가를 수 없다. HTTP 요청은 정상적으로 처리됐지만 OCR 결과는 실패일 수 있기 때문이다.
+이 구조에서는 `http_server_requests_seconds_count{status="200"}`만으로 비즈니스 성공 여부를 구분할 수 없다. HTTP 요청은 정상적으로 처리됐지만 OCR 결과는 실패일 수 있기 때문이다.
 
 응답 규약을 바로 바꾸면 기존 클라이언트와의 호환성 문제가 생긴다. 공통 예외 처리기가 오류 코드를 확정하는 시점에 별도 Counter를 증가시키는 방법을 선택했다.
 

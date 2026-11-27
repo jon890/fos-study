@@ -321,7 +321,7 @@ logging:
 
 ## 실습 시나리오
 
-다음 순서로 손으로 직접 재현해 보면 개념이 체화된다.
+다음 순서로 직접 재현해 보면 개념이 체화된다.
 
 1. `OrderService.placeOrder` 안에서 같은 클래스의 `@Transactional` 메서드를 `this.method()`로 호출 → 트랜잭션이 시작되지 않는 로그 확인.
 2. 그 메서드를 별도 `PaymentApplier` 빈으로 옮기고 다시 호출 → REQUIRED로 합류하는 로그 확인.

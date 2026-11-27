@@ -85,7 +85,7 @@ public void runDailySettlement() {
 
 - 잡이 트리거되면 ShedLock이 먼저 공유 저장소(JDBC/Redis/Mongo/ZooKeeper 등)에 락 행을 `INSERT` 또는 조건부 `UPDATE`로 잡으려 한다.
 - 성공한 인스턴스만 잡을 실행한다. 나머지는 락 획득 실패로 조용히 스킵한다.
-- 저장소가 **단일 진실의 원천**이 되어 인스턴스 간 조율을 대신한다.
+- 저장소가 **단일 소스**이 되어 인스턴스 간 조율을 대신한다.
 
 JDBC 락 저장소 예시 스키마:
 

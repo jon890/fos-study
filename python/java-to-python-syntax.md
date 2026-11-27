@@ -272,7 +272,7 @@ if name:            # None, "", 0 모두 False
     greet(name)
 ```
 
-자바 코드를 옮길 때 `if not None and not empty` 검사를 Pythonic 하게 `if x:` 한 줄로 쓰는 경우가 흔하다. 다만 **0 과 빈 문자열도 False** 라는 점은 주의. 진짜로 `None` 만 거르고 싶다면 `if x is not None:` 으로 명시한다.
+자바 코드를 옮길 때 `if not None and not empty` 검사를 Pythonic 하게 `if x:` 한 줄로 쓰는 경우가 흔하다. 다만 **0 과 빈 문자열도 False** 라는 점은 주의. 진짜로 `None` 만 제외하고 싶다면 `if x is not None:` 으로 명시한다.
 
 ## 마무리 — 다음 글로 넘기는 것들
 

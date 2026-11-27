@@ -16,7 +16,7 @@ Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸�
 - 분산 락으로 보호한다고 믿었던 재고 차감 → GC stall + 락 만료 + oversell이 연쇄로 발생한다.
 - Redis 단독 구성을 Cluster로 옮긴 뒤 → 기존 Lua/MULTI가 `CROSSSLOT` 에러로 한 번에 깨진다.
 
-이런 문제들은 한 문서로는 설명되지 않는다. `cache-aside`, `distributed-lock`, `lua-script`, `operations`가 **함께** 읽혀야 판단이 선다. 이 허브는 그 연결 지점을 정리한다.
+이런 문제들은 한 문서로는 설명되지 않는다. `cache-aside`, `distributed-lock`, `lua-script`, `operations`가 **함께** 읽혀야 판단할 수 있다. 이 허브는 그 연결 지점을 정리한다.
 
 ---
 
@@ -66,7 +66,7 @@ Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸�
 관련 상세:
 - [Redis Lua 스크립트](./lua-script.md) — Hash + Lua로 잭팟 누적/당첨을 atomic하게 처리한 실제 사례
 - [분산 락](./distributed-lock.md) — SET NX EX, Redisson Watchdog, Redlock의 한계
-- [Cache-Aside](./cache-aside.md#장애-2--hot-key-집중-hot-spot) — L1(Caffeine) + L2(Redis) 계층화
+- [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1--다중-서버-로컬-캐시-무효화) — L1(Caffeine) + L2(Redis) 계층화
 
 ---
 
@@ -76,11 +76,11 @@ Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸�
 
 | 상황 | 해법 | 참조 |
 |------|------|------|
-| 인기 키 1~2개, 트래픽 예측 가능 | 사전 워밍 (스케줄러) | [Cache-Aside 사전 섹션 워밍](./cache-aside.md#해결책-3--사전-워밍-pre-warming) |
-| 인기 키 N개, 순간 폭주 | 분산 락 기반 단일 재계산 | [Cache-Aside 분산 섹션 락](./cache-aside.md#해결책-1--분산-락-mutex-lock), [분산 락](./distributed-lock.md) |
-| 레이턴시 스파이크 허용 불가 | Probabilistic Early Expiration (XFetch) | [Cache-Aside PER 섹션](./cache-aside.md#해결책-2--확률적-조기-갱신-probabilistic-early-expiration) |
-| 동시 만료 자체를 분산 | TTL 지터 (모든 경우 기본 적용) | [Cache-Aside TTL 섹션 분산](./cache-aside.md#ttl-분산-동시-만료-방지) |
-| Hot key 자체 부하 | L1 로컬 캐시로 Redis 조회 흡수 | [Cache-Aside Hot 섹션 Key](./cache-aside.md#장애-2--hot-key-집중-hot-spot) |
+| 인기 키 1~2개, 트래픽 예측 가능 | 사전 워밍 (스케줄러) | [캐시 설계 전략: Cold Start](../../architecture/distributed-systems/cache-strategies.md#1-cold-start-캐시-워밍-필요) |
+| 인기 키 N개, 순간 폭주 | 분산 락 기반 단일 재계산 | [Cache-Aside: 싱글 플라이트 예제](./cache-aside.md#improved-싱글-플라이트--약간의-조기-갱신), [분산 락](./distributed-lock.md) |
+| 레이턴시 스파이크 허용 불가 | Probabilistic Early Expiration (XFetch) | [캐시 설계 전략: 확률적 조기 갱신](../../architecture/distributed-systems/cache-strategies.md#b-probabilistic-early-expiration-확률적-조기-갱신) |
+| 동시 만료 자체를 분산 | TTL 지터 (모든 경우 기본 적용) | [Cache-Aside: TTL 설계](./cache-aside.md#ttl-설계) |
+| Hot key 자체 부하 | L1 로컬 캐시로 Redis 조회 흡수 | [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1--다중-서버-로컬-캐시-무효화) |
 
 **판단 기준:** 지터는 '무조건 적용'. 나머지는 인기 키 수와 비즈니스 레이턴시 허용치로 고른다. 실무에서는 보통 **지터 + L1 + 분산 락** 3종 세트로 시작하고, 부족하면 PER를 얹는다.
 
@@ -144,7 +144,7 @@ MSET {user:1}:name Alice {user:1}:email alice@x.com
 | MSET/MGET | 같은 slot만 가능 | 개별 SET/GET + 파이프라인 |
 | Pub/Sub | Cluster-wide 동작 | 영향 없음 |
 
-관련: [Redis 기본 Redis 섹션 Cluster](./basic.md#redis-cluster), [Redis Lua 스크립트](./lua-script.md), [Redis 영속성과 클러스터](./backup.md)
+관련: [Redis 기본: Redis Cluster](./basic.md#redis-cluster), [Redis Lua 스크립트](./lua-script.md), [Redis 영속성과 클러스터](./backup.md)
 
 ---
 
@@ -154,19 +154,19 @@ MSET {user:1}:name Alice {user:1}:email alice@x.com
 
 ### Hot Key (단일 키 트래픽 집중)
 
-**증상:** 해당 슬롯의 CPU 100%, P99 지연 스파이크. 전체 서버는 한가한데 특정 노드만 과부하.
+**증상:** 해당 슬롯의 CPU 100%, P99 지연 급증. 전체 서버는 한가한데 특정 노드만 과부하.
 
 **대응 계층:**
 
 ```
 [L0 앱 내 캐시]   Caffeine 1~5초 TTL → Redis 호출 자체를 흡수
-[L1 로컬 로컬]    JVM 여러 대라면 Pub/Sub 무효화 신호
+[L1 로컬 캐시]    JVM 여러 대라면 Pub/Sub 무효화 신호
 [L2 Redis]        Read replica에 읽기 분산 (쓰기는 master)
 [L3 샤딩]         counter:page:123 → counter:page:123:{0..9} 10개로 분산
                    읽을 때 SUM, 정확도 소폭 희생
 ```
 
-→ [Cache-Aside Hot 섹션 Key](./cache-aside.md#장애-2--hot-key-집중-hot-spot) 에 코드 예시가 있다.
+→ L1 로컬 캐시를 Pub/Sub으로 무효화하는 코드 예시는 [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1--다중-서버-로컬-캐시-무효화)에 있다.
 
 ### Big Key (단일 키 용량 비대)
 
@@ -185,7 +185,7 @@ UNLINK chat:room:1                     # 비동기 삭제 (Redis 4.0+)
 - 오래된 데이터는 `ZREMRANGEBYRANK`, `LTRIM`으로 주기적 삭제.
 - 삭제는 `DEL` 대신 **`UNLINK`** (Redis 4.0+).
 
-→ [Redis 기본 주의사항 섹션](./basic.md#주의사항), [운영 가이드 운영 섹션 금지 명령어](./operations.md#운영-금지-명령어)
+→ [Redis 기본: 주의사항](./basic.md#주의사항), [운영 가이드: 운영 금지 명령어](./operations.md#운영-금지-명령어)
 
 ---
 
@@ -212,7 +212,7 @@ try {
 
 **주의:** Redis 다운 → DB로 트래픽 전부 쏠림 → DB도 다운 (연쇄 장애)이 실제로 가장 자주 발생한다. DB 쪽 보호(커넥션 풀 상한, 쿼리 타임아웃, 비상 rate limit)가 준비되지 않으면 Redis 다운보다 더 큰 장애가 난다.
 
-→ [Cache-Aside 장애 섹션 1 Redis 완전 다운](./cache-aside.md#장애-1--redis-완전-다운), [Resilience 패턴](../../architecture/distributed-systems/resilience-patterns.md)
+→ [Cache-Aside](./cache-aside.md), [Resilience 패턴](../../architecture/distributed-systems/resilience-patterns.md)
 
 ---
 
@@ -222,15 +222,15 @@ try {
 
 | 증상 | 1차 문서 | 2차 문서 |
 |------|---------|---------|
-| DB CPU 폭주 + Redis 히트율 급락 | [Cache-Aside 스탬피드 섹션](./cache-aside.md#cache-stampede-캐시-스탬피드) | [operations 장애 섹션 5](./operations.md#5-cache-stampede-캐시-폭풍) |
-| 특정 슬롯 CPU 100% | 본 문서 Hot 섹션 Key | [basic Redis 섹션 Cluster](./basic.md#redis-cluster) |
-| DEL 한 번에 서버 블로킹 | 본 문서 Big 섹션 Key | [operations 운영 섹션 금지 명령어](./operations.md#운영-금지-명령어) |
-| 분산 락에도 oversell 발생 | [distributed-lock Redlock 섹션](./distributed-lock.md#redlock-클러스터-환경의-분산-락) | [lua-script Lua 섹션 원자성 한계](./lua-script.md#lua-스크립트의-원자성-한계) |
-| Cluster 이전 후 CROSSSLOT 에러 | 본 문서 Cluster 섹션 제약 | [lua-script](./lua-script.md) |
-| 메모리 파편화 / evicted_keys 증가 | [operations 메모리 섹션](./operations.md#메모리--얼마가-적절하고-몇--이상이면-위험한가) | [basic 메모리 섹션 파편화](./basic.md#메모리-파편화) |
-| 세션이 간헐적으로 사라짐 | [session](./session.md) | [operations 장애 섹션 2 서버 재시작](./operations.md#2-서버-다운--재시작) |
-| Redis 다운 → 서비스 전체 다운 | 본 문서 Graceful 섹션 Degradation | [cache-aside 장애 섹션 1](./cache-aside.md#장애-1--redis-완전-다운) |
-| 메시지가 조용히 사라짐 | [pub-sub Pub/Sub 섹션 한계](./pub-sub.md#한계-중요) | [pub-sub Stream 섹션](./pub-sub.md#redis-stream) |
+| DB CPU 폭주 + Redis 히트율 급락 | [Cache-Aside: 단순 Cache Stampede](./cache-aside.md#bad-단순-cache-stampede) | [operations: Cache Stampede](./operations.md#cache-stampede-캐시-폭풍) |
+| 특정 슬롯 CPU 100% | 본 문서의 Hot Key 절 | [basic: Redis Cluster](./basic.md#redis-cluster) |
+| DEL 한 번에 서버 블로킹 | 본 문서의 Big Key 절 | [operations: 운영 금지 명령어](./operations.md#운영-금지-명령어) |
+| 분산 락에도 oversell 발생 | [distributed-lock: Redlock](./distributed-lock.md#redlock-클러스터-환경의-분산-락) | [lua-script: Lua 원자성 한계](./lua-script.md#lua-스크립트의-원자성-한계) |
+| Cluster 이전 후 CROSSSLOT 에러 | 본 문서의 Cluster 제약 절 | [lua-script](./lua-script.md) |
+| 메모리 파편화 / evicted_keys 증가 | [operations: 메모리](./operations.md#메모리--얼마가-적절하고-몇--이상이면-위험한가) | [basic: 메모리 파편화](./basic.md#메모리-파편화) |
+| 세션이 간헐적으로 사라짐 | [session](./session.md) | [operations: 서버 다운 / 재시작](./operations.md#서버-다운--재시작) |
+| Redis 다운 → 서비스 전체 다운 | 본 문서의 Graceful Degradation 절 | [cache-aside](./cache-aside.md) |
+| 메시지가 조용히 사라짐 | [pub-sub: Pub/Sub 한계](./pub-sub.md#한계-중요) | [pub-sub: Stream](./pub-sub.md#redis-stream) |
 
 ---
 
@@ -254,13 +254,13 @@ try {
 
 > 가장 자주 터지는 건 CROSSSLOT입니다. Lua, MULTI/EXEC, MSET이 같은 슬롯의 키만 지원하기 때문에, 같이 atomic하게 다뤄야 하는 키들은 해시 태그로 묶어야 합니다. 단, 태그를 남발하면 특정 슬롯에 트래픽이 집중되는 hot slot이 생기기 때문에, 해시 태그 설계는 데이터 모델 설계 단계에서 결정해야 합니다.
 
-(링크: [basic Cluster 섹션](./basic.md#redis-cluster))
+(링크: [basic: Redis Cluster](./basic.md#redis-cluster))
 
 ### Q. "Redis가 다운되면 서비스는요?"
 
 > 캐시 계층 장애를 서비스 전체 장애로 번지지 않게 하는 것이 원칙입니다. 모든 Redis 호출은 50~500ms 타임아웃으로 감싸고 Circuit Breaker로 감지합니다. 단 DB 폴백을 준비하는 것으로 끝이 아니고, Redis 트래픽이 DB로 쏠릴 때 DB가 죽지 않도록 커넥션 풀 상한과 비상 rate limit이 같이 설계돼 있어야 합니다.
 
-(링크: [cache-aside 장애 섹션 1](./cache-aside.md#장애-1--redis-완전-다운), [resilience-patterns](../../architecture/distributed-systems/resilience-patterns.md))
+(링크: [cache-aside](./cache-aside.md), [resilience-patterns](../../architecture/distributed-systems/resilience-patterns.md))
 
 ---
 
@@ -280,7 +280,7 @@ try {
 - [ ] DB 폴백 시 커넥션 풀/비상 rate limit으로 DB가 연쇄 장애를 피하는가
 - [ ] 메시지 유실 허용 여부로 Pub/Sub vs Stream vs Kafka가 구분돼 있는가
 - [ ] `KEYS *`, `FLUSHALL`, 대형 컬렉션 전수 조회 같은 금지 명령이 운영에서 차단되는가
-- [ ] 장애 유형별 런북이 있어 "어느 문서를 볼지"를 즉시 안다 (7 섹션 매핑 참조)
+- [ ] 장애 유형별 런북이 있어 "어느 문서를 볼지"를 즉시 안다 (7절 「장애 유형 → 펼칠 문서 매핑」 참조)
 
 ---
 

@@ -538,7 +538,7 @@ class CsvUserParserTest {
 }
 ```
 
-이 작은 예제만 직접 손으로 쳐 봐도, "흐름은 final, 단계는 abstract, 변동성은 hook" 감각이 잡힌다.
+이 작은 예제만 직접 타이핑해 봐도, "흐름은 final, 단계는 abstract, 변동성은 hook" 감각이 잡힌다.
 
 ## 면접 답변 프레이밍
 

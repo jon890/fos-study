@@ -324,7 +324,7 @@ DB 커밋 이전에 발행하면 다른 인스턴스가 *commit 직전 상태*�
 
 ### 메시지 페이로드를 크게 만들지 않기
 
-Pub/Sub은 인메모리 fanout이라 페이로드 크기가 곧 인스턴스 수 만큼 곱해진다. *키만 보내고 본문은 Redis 또는 DB에서 다시 읽는다*가 기본 패턴. 본문을 직접 실으면 hot key fanout 시 네트워크 폭주가 된다.
+Pub/Sub은 인메모리 fanout이라 페이로드 크기가 곧 인스턴스 수 만큼 곱해진다. *키만 보내고 본문은 Redis 또는 DB에서 다시 읽는다*가 기본 패턴. 본문을 직접 넣으면 hot key fanout 시 네트워크 폭주가 된다.
 
 ### 메시지를 동기 처리하지 않기
 
@@ -410,7 +410,7 @@ for i in $(seq 1 10000); do redis-cli PUBLISH flood "msg-$i" > /dev/null; done
 
 - [ ] Pub/Sub은 *at-most-once*고 구독자가 없으면 그 자리에서 drop 된다는 사실을 명확히 말할 수 있다
 - [ ] 발행은 `@TransactionalEventListener(AFTER_COMMIT)` 안에서 한다
-- [ ] 메시지 페이로드에 본문 전체를 싣지 않고 *키만* 보낸다
+- [ ] 메시지 페이로드에 본문 전체를 넣지 않고 *키만* 보낸다
 - [ ] 리스너 안에서 직접 무거운 I/O를 하지 않고 별도 워커로 dispatch 한다
 - [ ] 권위 있는 진실은 Redis Set/Hash 또는 DB이고 Pub/Sub은 *빠른 전파* 역할이다
 - [ ] L1 TTL을 최악의 stale window로 잡았고 그 값이 비즈니스 허용치 안에 있다

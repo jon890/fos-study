@@ -225,7 +225,7 @@ Agent 비용은 모델 단가보다 다음 네 가지에 더 크게 흔들린다
 - 실패 루프와 retry
 
 OpenAI cost optimization 문서는 Batch API로 비동기 작업을 묶어 처리하는 경로를 제공하고, prompt caching과 compaction은 context 비용을 낮추는 도구다.
-하지만 실무에서 먼저 해야 할 일은 "이 요청이 Agent일 필요가 있는가"를 가르는 것이다.
+하지만 실무에서 먼저 해야 할 일은 "이 요청이 Agent일 필요가 있는가"를 판단하는 것이다.
 
 | 요청 유형 | 싸고 안정적인 처리 |
 | --- | --- |

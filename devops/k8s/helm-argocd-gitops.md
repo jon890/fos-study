@@ -11,7 +11,7 @@ tags: [study]
 
 ## 왜 이런 도구들이 필요한가
 
-순수하게 하면, 쿠버네티스에 뭘 배포하려면 YAML(Deployment, Service, Ingress...)을 손으로 쓰고 `kubectl apply` 하면 된다. 그런데 실무에서 이 방식은 금방 무너진다.
+순수하게 하면, 쿠버네티스에 뭘 배포하려면 YAML(Deployment, Service, Ingress...)을 직접 쓰고 `kubectl apply` 하면 된다. 그런데 실무에서 이 방식은 금방 무너진다.
 
 - 환경(테스트/스테이징/운영)마다 값만 다르고 구조는 똑같은 YAML을 **중복**해서 관리해야 한다.
 - 누가 언제 뭘 바꿨는지 **추적**이 안 된다. 누군가 `kubectl edit`으로 클러스터를 직접 고치면 기록이 안 남는다.
@@ -21,7 +21,7 @@ tags: [study]
 
 ## Helm — 쿠버네티스 YAML의 템플릿 엔진
 
-Helm은 **템플릿에 값을 채워 최종 YAML**을 만들어주는 도구다. 매번 YAML을 손으로 쓰는 대신, 빈칸(`{{ }}`)이 뚫린 템플릿을 만들어두고 값만 갈아끼운다.
+Helm은 **템플릿에 값을 채워 최종 YAML**을 만들어주는 도구다. 매번 YAML을 직접 쓰는 대신, 빈칸(`{{ }}`)이 뚫린 템플릿을 만들어두고 값만 갈아끼운다.
 
 이 패키지 단위를 **Chart**라고 부른다. 차트 디렉터리 구조는 대략 이렇게 생겼다.
 
@@ -97,11 +97,11 @@ argocd/templates/
 
 이걸 **app of apps**라고 부른다. Application들을 만들어내는 상위 Application이다. 그래서 새 컴포넌트를 추가할 때는 여기에 Application 하나를 더 얹으면 된다.
 
-처음엔 누가 영리하게 짜둔 우리 레포만의 구조인 줄 알았는데, 알고 보니 ArgoCD 공식 문서에 [Cluster Bootstrapping](https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping/)이라는 이름으로 실려 있는 표준 패턴이었다.
+처음엔 누가 영리하게 짜둔 우리 레포만의 구조인 줄 알았는데, 알고 보니 ArgoCD 공식 문서에 [Cluster Bootstrapping](https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping/)이라는 이름으로 소개된 표준 패턴이었다.
 
-존재 이유는 닭과 달걀 문제다. ArgoCD로 뭘 배포하려면 Application이 있어야 하는데, **그 Application 자체는 누가 만드나.** 손으로 `kubectl apply`하면 클러스터를 직접 건드리는 것이라 GitOps 원칙이 깨지고 기록도 안 남는다. 컴포넌트가 열 개면 열 번 반복해야 하고, 새 클러스터를 만들 때마다 또 반복이다.
+존재 이유는 닭과 달걀 문제다. ArgoCD로 뭘 배포하려면 Application이 있어야 하는데, **그 Application 자체는 누가 만드나.** 수동으로 `kubectl apply`하면 클러스터를 직접 건드리는 것이라 GitOps 원칙이 깨지고 기록도 안 남는다. 컴포넌트가 열 개면 열 번 반복해야 하고, 새 클러스터를 만들 때마다 또 반복이다.
 
-그래서 **Application 만드는 일까지 ArgoCD에게 시킨다.** 손으로 만드는 건 최상위 하나뿐이고, 나머지는 git에 파일을 추가하면 생긴다.
+그래서 **Application 만드는 일까지 ArgoCD에게 시킨다.** 직접 만드는 건 최상위 하나뿐이고, 나머지는 git에 파일을 추가하면 생긴다.
 
 #### 대가 — 2단계 sync
 
