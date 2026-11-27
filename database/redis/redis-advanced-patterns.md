@@ -66,7 +66,7 @@ Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸�
 관련 상세:
 - [Redis Lua 스크립트](./lua-script.md) — Hash + Lua로 잭팟 누적/당첨을 atomic하게 처리한 실제 사례
 - [분산 락](./distributed-lock.md) — SET NX EX, Redisson Watchdog, Redlock의 한계
-- [Cache-Aside](./cache-aside.md#장애-2--hot-key-집중-hot-spot) — L1(Caffeine) + L2(Redis) 계층화
+- [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1--다중-서버-로컬-캐시-무효화) — L1(Caffeine) + L2(Redis) 계층화
 
 ---
 
@@ -76,11 +76,11 @@ Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸�
 
 | 상황 | 해법 | 참조 |
 |------|------|------|
-| 인기 키 1~2개, 트래픽 예측 가능 | 사전 워밍 (스케줄러) | [Cache-Aside 사전 섹션 워밍](./cache-aside.md#해결책-3--사전-워밍-pre-warming) |
-| 인기 키 N개, 순간 폭주 | 분산 락 기반 단일 재계산 | [Cache-Aside 분산 섹션 락](./cache-aside.md#해결책-1--분산-락-mutex-lock), [분산 락](./distributed-lock.md) |
-| 레이턴시 스파이크 허용 불가 | Probabilistic Early Expiration (XFetch) | [Cache-Aside PER 섹션](./cache-aside.md#해결책-2--확률적-조기-갱신-probabilistic-early-expiration) |
-| 동시 만료 자체를 분산 | TTL 지터 (모든 경우 기본 적용) | [Cache-Aside TTL 섹션 분산](./cache-aside.md#ttl-분산-동시-만료-방지) |
-| Hot key 자체 부하 | L1 로컬 캐시로 Redis 조회 흡수 | [Cache-Aside Hot 섹션 Key](./cache-aside.md#장애-2--hot-key-집중-hot-spot) |
+| 인기 키 1~2개, 트래픽 예측 가능 | 사전 워밍 (스케줄러) | [캐시 설계 전략: Cold Start](../../architecture/distributed-systems/cache-strategies.md#1-cold-start-캐시-워밍-필요) |
+| 인기 키 N개, 순간 폭주 | 분산 락 기반 단일 재계산 | [Cache-Aside: 싱글 플라이트 예제](./cache-aside.md#improved-싱글-플라이트--약간의-조기-갱신), [분산 락](./distributed-lock.md) |
+| 레이턴시 스파이크 허용 불가 | Probabilistic Early Expiration (XFetch) | [캐시 설계 전략: 확률적 조기 갱신](../../architecture/distributed-systems/cache-strategies.md#b-probabilistic-early-expiration-확률적-조기-갱신) |
+| 동시 만료 자체를 분산 | TTL 지터 (모든 경우 기본 적용) | [Cache-Aside: TTL 설계](./cache-aside.md#ttl-설계) |
+| Hot key 자체 부하 | L1 로컬 캐시로 Redis 조회 흡수 | [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1--다중-서버-로컬-캐시-무효화) |
 
 **판단 기준:** 지터는 '무조건 적용'. 나머지는 인기 키 수와 비즈니스 레이턴시 허용치로 고른다. 실무에서는 보통 **지터 + L1 + 분산 락** 3종 세트로 시작하고, 부족하면 PER를 얹는다.
 
@@ -166,7 +166,7 @@ MSET {user:1}:name Alice {user:1}:email alice@x.com
                    읽을 때 SUM, 정확도 소폭 희생
 ```
 
-→ [Cache-Aside Hot 섹션 Key](./cache-aside.md#장애-2--hot-key-집중-hot-spot) 에 코드 예시가 있다.
+→ L1 로컬 캐시를 Pub/Sub으로 무효화하는 코드 예시는 [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1--다중-서버-로컬-캐시-무효화)에 있다.
 
 ### Big Key (단일 키 용량 비대)
 
@@ -212,7 +212,7 @@ try {
 
 **주의:** Redis 다운 → DB로 트래픽 전부 쏠림 → DB도 다운 (연쇄 장애)이 실제로 가장 자주 발생한다. DB 쪽 보호(커넥션 풀 상한, 쿼리 타임아웃, 비상 rate limit)가 준비되지 않으면 Redis 다운보다 더 큰 장애가 난다.
 
-→ [Cache-Aside 장애 섹션 1 Redis 완전 다운](./cache-aside.md#장애-1--redis-완전-다운), [Resilience 패턴](../../architecture/distributed-systems/resilience-patterns.md)
+→ [Cache-Aside](./cache-aside.md), [Resilience 패턴](../../architecture/distributed-systems/resilience-patterns.md)
 
 ---
 
@@ -222,14 +222,14 @@ try {
 
 | 증상 | 1차 문서 | 2차 문서 |
 |------|---------|---------|
-| DB CPU 폭주 + Redis 히트율 급락 | [Cache-Aside 스탬피드 섹션](./cache-aside.md#cache-stampede-캐시-스탬피드) | [operations 장애 섹션 5](./operations.md#5-cache-stampede-캐시-폭풍) |
+| DB CPU 폭주 + Redis 히트율 급락 | [Cache-Aside: 단순 Cache Stampede](./cache-aside.md#bad-단순-cache-stampede) | [operations: Cache Stampede](./operations.md#cache-stampede-캐시-폭풍) |
 | 특정 슬롯 CPU 100% | 본 문서 Hot 섹션 Key | [basic Redis 섹션 Cluster](./basic.md#redis-cluster) |
 | DEL 한 번에 서버 블로킹 | 본 문서 Big 섹션 Key | [operations 운영 섹션 금지 명령어](./operations.md#운영-금지-명령어) |
 | 분산 락에도 oversell 발생 | [distributed-lock Redlock 섹션](./distributed-lock.md#redlock-클러스터-환경의-분산-락) | [lua-script Lua 섹션 원자성 한계](./lua-script.md#lua-스크립트의-원자성-한계) |
 | Cluster 이전 후 CROSSSLOT 에러 | 본 문서 Cluster 섹션 제약 | [lua-script](./lua-script.md) |
 | 메모리 파편화 / evicted_keys 증가 | [operations 메모리 섹션](./operations.md#메모리--얼마가-적절하고-몇--이상이면-위험한가) | [basic 메모리 섹션 파편화](./basic.md#메모리-파편화) |
-| 세션이 간헐적으로 사라짐 | [session](./session.md) | [operations 장애 섹션 2 서버 재시작](./operations.md#2-서버-다운--재시작) |
-| Redis 다운 → 서비스 전체 다운 | 본 문서 Graceful 섹션 Degradation | [cache-aside 장애 섹션 1](./cache-aside.md#장애-1--redis-완전-다운) |
+| 세션이 간헐적으로 사라짐 | [session](./session.md) | [operations: 서버 다운 / 재시작](./operations.md#서버-다운--재시작) |
+| Redis 다운 → 서비스 전체 다운 | 본 문서 Graceful 섹션 Degradation | [cache-aside](./cache-aside.md) |
 | 메시지가 조용히 사라짐 | [pub-sub Pub/Sub 섹션 한계](./pub-sub.md#한계-중요) | [pub-sub Stream 섹션](./pub-sub.md#redis-stream) |
 
 ---
@@ -260,7 +260,7 @@ try {
 
 > 캐시 계층 장애를 서비스 전체 장애로 번지지 않게 하는 것이 원칙입니다. 모든 Redis 호출은 50~500ms 타임아웃으로 감싸고 Circuit Breaker로 감지합니다. 단 DB 폴백을 준비하는 것으로 끝이 아니고, Redis 트래픽이 DB로 쏠릴 때 DB가 죽지 않도록 커넥션 풀 상한과 비상 rate limit이 같이 설계돼 있어야 합니다.
 
-(링크: [cache-aside 장애 섹션 1](./cache-aside.md#장애-1--redis-완전-다운), [resilience-patterns](../../architecture/distributed-systems/resilience-patterns.md))
+(링크: [cache-aside](./cache-aside.md), [resilience-patterns](../../architecture/distributed-systems/resilience-patterns.md))
 
 ---
 

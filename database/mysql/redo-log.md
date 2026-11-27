@@ -52,7 +52,7 @@ Undo Log는 변경 **이전** 상태를 보관한다. 목적은 두 가지다.
 | 커밋 후 즉시 삭제 가능? | ✅ (다른 트랜잭션이 이 버전을 볼 이유가 없음) | ❌ (참조 Read View가 있으면 남아야 함) |
 | 비대화 위험 | 낮음 | **높음 — 장기 트랜잭션 + UPDATE 폭풍이 전형** |
 
-**Undo Log 비대화(Undo Bloat)는 거의 항상 Update Undo 문제다.** 장기 실행 SELECT 트랜잭션이 Read View를 붙잡고 있는 동안 다른 세션의 수많은 UPDATE가 이전 버전을 Purge하지 못한 채 쌓이면 Undo Tablespace가 폭증한다. 자세한 진단은 [innodb-mvcc.md 섹션 3](./innodb-mvcc.md#3-undo-log--버전-체인의-저장소) 참고.
+**Undo Log 비대화(Undo Bloat)는 거의 항상 Update Undo 문제다.** 장기 실행 SELECT 트랜잭션이 Read View를 붙잡고 있는 동안 다른 세션의 수많은 UPDATE가 이전 버전을 Purge하지 못한 채 쌓이면 Undo Tablespace가 폭증한다. 자세한 진단은 [innodb-mvcc.md의 Undo Log 절](./innodb-mvcc.md#undo-log--버전-체인의-저장소) 참고.
 
 ---
 
@@ -180,7 +180,7 @@ ORDER BY trx_started ASC;
 
 Undo Bloat는 "디스크가 커진다" 문제로 끝나지 않는다. 버전 체인이 길어지면 **일관 읽기마다 체인을 더 오래 거슬러 올라가야 해서 SELECT 성능도 함께 떨어진다.** 실무에서는 이것이 "어제까지 멀쩡했던 조회가 오늘 갑자기 느려짐"의 원인이 되곤 한다.
 
-세부 내부 동작(버전 체인, Read View 가시성 알고리즘, 격리 수준별 차이)은 [innodb-mvcc.md 섹션 3–6](./innodb-mvcc.md#3-undo-log--버전-체인의-저장소) 참고.
+세부 내부 동작(버전 체인, Read View 가시성 알고리즘, 격리 수준별 차이)은 [innodb-mvcc.md의 Undo Log부터 격리 수준까지의 절](./innodb-mvcc.md#undo-log--버전-체인의-저장소) 참고.
 
 ---
 
