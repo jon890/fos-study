@@ -4,11 +4,11 @@
 
 ## 글
 
-- [Vespa 아키텍처 입문 — 왜 강력한데 학습 곡선이 가파른가](./vespa-architecture-and-performance.md) — container/content/config 클러스터, 2-phase 랭킹·ONNX 인라인 실행, 텐서 1급 지원, bucket 기반 자동 분산, 설치 난이도
+- [Vespa 아키텍처 입문: 왜 강력한데 학습 곡선이 가파른가](./vespa-architecture-and-performance.md) — container/content/config 클러스터, 2-phase 랭킹·ONNX 인라인 실행, 텐서 1급 지원, bucket 기반 자동 분산, 설치 난이도
 
 ## 관련
 
 - [벡터 DB 선택 가이드](../vectordb-comparison.md) — 5제품 비교와 조건별 선택
-- [Milvus — 벡터 DB 아키텍처](../milvus/README.md)
-- [Qdrant — 벡터 DB 아키텍처](../qdrant/README.md)
+- [Milvus: 벡터 DB 아키텍처](../milvus/README.md)
+- [Qdrant: 벡터 DB 아키텍처](../qdrant/README.md)
 - [RAG / 임베딩](../../AI/RAG/README.md)

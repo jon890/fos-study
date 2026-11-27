@@ -3,7 +3,7 @@ categories: [AI]
 tags: [study]
 ---
 
-# 벡터 DB 어떻게 고를까 — OpenSearch · Milvus · Qdrant · Vespa · pgvector 비교
+# 벡터 DB 어떻게 고를까: OpenSearch · Milvus · Qdrant · Vespa · pgvector 비교
 
 RAG 를 만들면 임베딩한 벡터를 어딘가에 저장하고 검색해야 한다.
 처음엔 쓰던 검색엔진(OpenSearch)에 벡터 기능을 얹어 시작했는데, 전용 벡터 DB 로 옮길지 고민이 생기면서 후보들을 제대로 비교해 봤다.
@@ -17,12 +17,12 @@ RAG 를 만들면 임베딩한 벡터를 어딘가에 저장하고 검색해야 
 
 메모리 사용량은 **벡터 수 × 차원 × 4byte** 로 정해진다(float32 기준). 1,600만 벡터에 1024차원이면 raw 약 68GB다. 그런데 이건 그래프 구조를 뺀 순수 벡터 크기일 뿐이고, 실제 필요 메모리는 이보다 크다.
 
-**RDB 감각으로 이 규모를 보면 안 된다.** RDB는 row 하나가 수백 byte에 불과하고, B-Tree 인덱스는 자주 쓰는 페이지만 캐시해도 충분하다 — 콜드 데이터를 디스크에서 읽어도 순차 접근이라 지연이 크지 않다. 반면 벡터는 row 자체가 크다(1024차원 float32 하나가 이미 4KB). 게다가 HNSW 그래프 탐색은 링크를 따라 이리저리 점프하는 **무작위 접근**이라, B-Tree처럼 "일부만 캐시"하는 전략이 잘 안 통한다 — 낮은 지연을 유지하려면 거의 다 메모리에 있어야 한다. 그래서 "레코드 수천만 건"이라는 같은 숫자가 RDB에서는 가벼운 사이징이지만 벡터 DB에서는 128GB, 256GB급 인스턴스나 다중 노드 샤딩을 요구하는 무거운 사이징이 된다. Pinecone·Milvus·Weaviate 같은 서비스의 수천만~수억 벡터 배포 가이드가 대용량 메모리 노드 여러 대로 샤딩하는 걸 기본값으로 두는 이유도 여기에 있다.
+**RDB 감각으로 이 규모를 보면 안 된다.** RDB는 row 하나가 수백 byte에 불과하고, B-Tree 인덱스는 자주 쓰는 페이지만 캐시해도 충분하다. 콜드 데이터를 디스크에서 읽어도 순차 접근이라 지연이 크지 않다. 반면 벡터는 row 자체가 크다(1024차원 float32 하나가 이미 4KB). 게다가 HNSW 그래프 탐색은 링크를 따라 이리저리 점프하는 **무작위 접근**이라, B-Tree처럼 "일부만 캐시"하는 전략이 잘 안 통한다. 낮은 지연을 유지하려면 거의 다 메모리에 있어야 한다. 그래서 "레코드 수천만 건"이라는 같은 숫자가 RDB에서는 가벼운 사이징이지만 벡터 DB에서는 128GB, 256GB급 인스턴스나 다중 노드 샤딩을 요구하는 무거운 사이징이 된다. Pinecone·Milvus·Weaviate 같은 서비스의 수천만~수억 벡터 배포 가이드가 대용량 메모리 노드 여러 대로 샤딩하는 걸 기본값으로 두는 이유도 여기에 있다.
 
-OpenSearch 공식 HNSW 메모리 공식은 `1.1 × (4 × 차원 + 8 × M) × 벡터수`다(M은 기본 16). 위 조건을 대입하면 약 72GB — raw 보다 이미 커진다. 여기에 circuit breaker(기본값: `(전체 메모리 − JVM heap) × 50%` 만 k-NN에 허용)와 레플리카(있으면 필요 메모리가 그대로 배수)까지 고려하면, "raw 68GB 니까 128GB 인스턴스 하나면 충분하다"는 계산은 틀리기 쉽다. 128GB 인스턴스에 JVM heap 32GB를 배정했다면 k-NN이 실제 쓸 수 있는 메모리는 `(128−32) × 0.5 = 48GB`뿐이라, 레플리카 없이도 이미 모자란다.
+OpenSearch 공식 HNSW 메모리 공식은 `1.1 × (4 × 차원 + 8 × M) × 벡터수`다(M은 기본 16). 위 조건을 대입하면 약 72GB로, raw 보다 이미 커진다. 여기에 circuit breaker(기본값: `(전체 메모리 − JVM heap) × 50%` 만 k-NN에 허용)와 레플리카(있으면 필요 메모리가 그대로 배수)까지 고려하면, "raw 68GB 니까 128GB 인스턴스 하나면 충분하다"는 계산은 틀리기 쉽다. 128GB 인스턴스에 JVM heap 32GB를 배정했다면 k-NN이 실제 쓸 수 있는 메모리는 `(128−32) × 0.5 = 48GB`뿐이라, 레플리카 없이도 이미 모자란다.
 그래서 이 규모부터는 단일 장비를 키우기보다 **샤딩으로 벡터를 여러 노드에 나누는 게** 현실적인 선택이 된다. 차원이 크거나(예: 1536) 노드당 감당할 벡터 수를 넘기면 그때 양자화나 DiskANN(온디스크)을 검토한다. 아래 비교표의 "온디스크 인덱싱"·"양자화" 행이 바로 이 문제에 대한 제품별 답이다.
 
-*OpenSearch 공식 문서 기준([k-NN memory estimation](https://docs.opensearch.org/latest/search-plugins/knn/knn-index/), [circuit breaker settings](https://docs.opensearch.org/latest/search-plugins/knn/settings/)). 다른 제품(Milvus·Qdrant·Vespa)의 메모리 공식은 이 글에서 별도로 검증하지 않았다 — 확인 필요.*
+*OpenSearch 공식 문서 기준([k-NN memory estimation](https://docs.opensearch.org/latest/search-plugins/knn/knn-index/), [circuit breaker settings](https://docs.opensearch.org/latest/search-plugins/knn/settings/)). 다른 제품(Milvus·Qdrant·Vespa)의 메모리 공식은 이 글에서 별도로 검증하지 않았다(확인 필요).*
 
 ---
 
@@ -38,7 +38,7 @@ OpenSearch 공식 HNSW 메모리 공식은 `1.1 × (4 × 차원 + 8 × M) × 벡
 
 "전용이라 무조건 낫다"는 건 마케팅 수사다. 범용 엔진도 벡터 검색을 충분히 하고, billion-scale 도 가능하다. 전용 DB 의 진짜 차이는 **기능의 폭**(학습형 sparse, multi-vector, GPU 인덱스, DiskANN)이다.
 
-pgvector 는 이 넷과 출발점 자체가 다르다 — 별도 DB 가 아니라 "이미 쓰던 PostgreSQL 에 벡터 컬럼 하나 추가하는" 접근이다. `CREATE EXTENSION vector;` 한 줄로 끝나고, 3대 클라우드(AWS Aurora/RDS, GCP Cloud SQL/AlloyDB, Azure)가 매니지드로 지원한다([pgvector Installation](https://github.com/pgvector/pgvector#installation)). 뒤에 나올 표에서 "미지원"이 많은 이유도 여기 있다 — 전용 벡터 DB 의 고급 기능 대부분을 처음부터 포기하고 단순함을 택한 제품이다.
+pgvector 는 이 넷과 출발점 자체가 다르다. 별도 DB 가 아니라 "이미 쓰던 PostgreSQL 에 벡터 컬럼 하나 추가하는" 접근이다. `CREATE EXTENSION vector;` 한 줄로 끝나고, 3대 클라우드(AWS Aurora/RDS, GCP Cloud SQL/AlloyDB, Azure)가 매니지드로 지원한다([pgvector Installation](https://github.com/pgvector/pgvector#installation)). 뒤에 나올 표에서 "미지원"이 많은 이유도 여기 있다. 전용 벡터 DB 의 고급 기능 대부분을 처음부터 포기하고 단순함을 택한 제품이다.
 
 ---
 
@@ -58,9 +58,9 @@ pgvector 는 이 넷과 출발점 자체가 다르다 — 별도 DB 가 아니�
 | GPU 인덱스 | ✗ | ◎ | ✗ | ✗ | ✗ |
 | 양자화 | ○ | ○ | ◎ | ○ | ○(halfvec·binary, v0.7.0~) |
 
-Qdrant는 IVF를 지원하지 않는다 — 공식 문서가 명시하는 밀집 벡터 인덱스는 HNSW 하나뿐이다([Qdrant Indexing](https://qdrant.tech/documentation/concepts/indexing/)). OpenSearch는 Microsoft의 DiskANN 알고리즘 자체를 채택하지 않았고, binary/scalar quantization 기반 `on_disk` 모드(GA)로 유사한 메모리 절감 효과를 낸다([Disk-based vector search](https://docs.opensearch.org/latest/vector-search/optimizing-storage/disk-based-vector-search/)).
+Qdrant는 IVF를 지원하지 않는다. 공식 문서가 명시하는 밀집 벡터 인덱스는 HNSW 하나뿐이다([Qdrant Indexing](https://qdrant.tech/documentation/concepts/indexing/)). OpenSearch는 Microsoft의 DiskANN 알고리즘 자체를 채택하지 않았고, binary/scalar quantization 기반 `on_disk` 모드(GA)로 유사한 메모리 절감 효과를 낸다([Disk-based vector search](https://docs.opensearch.org/latest/vector-search/optimizing-storage/disk-based-vector-search/)).
 
-Qdrant의 `mmap`은 Milvus의 DiskANN(Vamana 그래프를 SSD 접근에 최적화해 설계)과는 접근 자체가 다르다. Qdrant는 벡터 파일과 HNSW 그래프를 OS의 가상 주소 공간에 매핑해 두고, 실제 로딩은 OS 페이지 캐시에 맡긴다 — 자주 쓰는 페이지는 캐시에 남아 인메모리와 비슷한 속도를 내지만, 캐시에 없는 페이지는 그때 디스크를 읽는다. 별도 자료구조를 새로 설계한 게 아니라 **OS가 이미 하는 일(페이지 캐싱)을 벡터 저장소에 그대로 위임한 것**이라 구현은 단순하지만, HNSW 그래프 탐색처럼 접근 패턴이 무작위(random access)에 가까우면 캐시 미스가 잦아져 순수 온디스크 전용 구조(DiskANN)보다 지연이 더 크게 튈 수 있다([Qdrant Storage](https://qdrant.tech/documentation/concepts/storage/)).
+Qdrant의 `mmap`은 Milvus의 DiskANN(Vamana 그래프를 SSD 접근에 최적화해 설계)과는 접근 자체가 다르다. Qdrant는 벡터 파일과 HNSW 그래프를 OS의 가상 주소 공간에 매핑해 두고, 실제 로딩은 OS 페이지 캐시에 맡긴다. 자주 쓰는 페이지는 캐시에 남아 인메모리와 비슷한 속도를 내지만, 캐시에 없는 페이지는 그때 디스크를 읽는다. 별도 자료구조를 새로 설계한 게 아니라 **OS가 이미 하는 일(페이지 캐싱)을 벡터 저장소에 그대로 위임한 것**이라 구현은 단순하지만, HNSW 그래프 탐색처럼 접근 패턴이 무작위(random access)에 가까우면 캐시 미스가 잦아져 순수 온디스크 전용 구조(DiskANN)보다 지연이 더 크게 튈 수 있다([Qdrant Storage](https://qdrant.tech/documentation/concepts/storage/)).
 
 pgvector 는 **core 확장과 pgvectorscale(Timescale 이 별도로 만든 확장)을 구분해야 한다.** HNSW·IVFFlat·halfvec·binary quantization 은 core 기능이지만, DiskANN(StreamingDiskANN)은 pgvectorscale 을 따로 설치해야 나온다([pgvectorscale StreamingDiskANN](https://github.com/timescale/pgvectorscale#streamingdiskann)). "pgvector 를 쓴다"고 해서 DiskANN 까지 자동으로 따라오지 않는다.
 
@@ -146,7 +146,7 @@ flowchart TD
 - 빠르게 정리하면: 가볍게 = Qdrant, 쓰던 거 유지 = OpenSearch, 기능·확장 = Milvus, 대규모 서빙·ML 랭킹 = Vespa, PostgreSQL 이미 씀 = pgvector.
 - 그리고 무엇을 고르든 **필터링 성능만큼은 자기 데이터로 직접 측정해 본다.**
 
-이 글은 "뭘 고를까"에 초점을 맞춘 표면 비교다. 왜 제품마다 메모리·분산·인덱싱 방식이 이렇게 다른지 내부 구조까지 파고들고 싶다면 [벡터 DB 5종, 아키텍처는 어떻게 다른가](./vectordb-architecture-deep-dive.md)를 다음으로 읽으면 된다. Milvus 개별 아키텍처는 [Milvus 아키텍처 글](./milvus/milvus-architecture-and-performance.md)에, HNSW 같은 검색 알고리즘 자체는 [벡터 검색 알고리즘 — kNN에서 HNSW까지](../AI/RAG/vector-search-algorithms.md)에 더 정리해 두었다.
+이 글은 "뭘 고를까"에 초점을 맞춘 표면 비교다. 왜 제품마다 메모리·분산·인덱싱 방식이 이렇게 다른지 내부 구조까지 파고들고 싶다면 [벡터 DB 5종, 아키텍처는 어떻게 다른가](./vectordb-architecture-deep-dive.md)를 다음으로 읽으면 된다. Milvus 개별 아키텍처는 [Milvus 아키텍처 글](./milvus/milvus-architecture-and-performance.md)에, HNSW 같은 검색 알고리즘 자체는 [벡터 검색 알고리즘: kNN에서 HNSW까지](../AI/RAG/vector-search-algorithms.md)에 더 정리해 두었다.
 
 ---
 

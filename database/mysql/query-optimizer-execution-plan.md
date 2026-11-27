@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# MySQL 옵티마이저와 실행 계획 생성 — 비용 모델·통계·optimizer_trace 실전 가이드
+# MySQL 옵티마이저와 실행 계획 생성: 비용 모델·통계·optimizer_trace 실전 가이드
 
 ## 왜 알아야 하는가
 
@@ -46,7 +46,7 @@ EXPLAIN은 4\~5단계 결과를 보여주는 스냅샷이고, optimizer_trace는
 
 ---
 
-## 비용 기반 옵티마이저(CBO) — 무엇을 비교하나
+## 비용 기반 옵티마이저(CBO): 무엇을 비교하나
 
 ### 비용의 정의
 
@@ -87,7 +87,7 @@ WHERE schema_name = 'shopdb';
 
 ---
 
-## optimizer_trace — 옵티마이저의 결정을 그대로 들여다보기
+## optimizer_trace: 옵티마이저의 결정을 그대로 들여다보기
 
 `EXPLAIN`은 "어떤 계획을 선택했나"만 보여준다. `optimizer_trace`는 **왜 다른 계획을 버렸는가**까지 보여준다.
 
@@ -123,7 +123,7 @@ SET optimizer_trace = "enabled=off";
 
 ---
 
-## 조인 순서 결정 — 옵티마이저의 가장 중요한 작업
+## 조인 순서 결정: 옵티마이저의 가장 중요한 작업
 
 ### 왜 조인 순서가 핵심인가
 
@@ -160,7 +160,7 @@ GROUP BY p.id;
 
 ---
 
-## 조인 알고리즘 — Nested Loop, BNL, Hash Join
+## 조인 알고리즘: Nested Loop, BNL, Hash Join
 
 ### Nested Loop Join (NLJ)
 
@@ -230,7 +230,7 @@ trace에서 `transformations_to_nested_joins`를 보면 변환 결과를 확인�
 
 ---
 
-## ICP / MRR — 인덱스를 더 똑똑하게 쓰는 보조 기법
+## ICP / MRR: 인덱스를 더 똑똑하게 쓰는 보조 기법
 
 ### ICP (Index Condition Pushdown)
 
@@ -251,7 +251,7 @@ range 스캔 결과를 PK 순서로 정렬한 뒤 테이블 본문을 읽어 랜
 
 ---
 
-## 나쁜 예 vs 개선 예 — 옵티마이저가 잘 못 푸는 패턴
+## 나쁜 예 vs 개선 예: 옵티마이저가 잘 못 푸는 패턴
 
 ### 함수로 sargability 깨기
 

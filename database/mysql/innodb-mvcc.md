@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# InnoDB MVCC 완전 분석 — Undo Log, Read View, 잠금, 그리고 Crash Recovery까지
+# InnoDB MVCC 완전 분석: Undo Log, Read View, 잠금, 그리고 Crash Recovery까지
 
 ---
 
@@ -45,7 +45,7 @@ price = 20000          price = 15000          price = 10000
 
 ---
 
-## Undo Log — 버전 체인의 저장소
+## Undo Log: 버전 체인의 저장소
 
 ### Insert Undo Log
 
@@ -98,7 +98,7 @@ ORDER BY trx_started ASC;
 
 ---
 
-## Read View — 스냅샷의 실체
+## Read View: 스냅샷의 실체
 
 ### Read View 구조
 

@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# Redis 고급 패턴 허브 — 여러 문서를 꿰어 읽는 법
+# Redis 고급 패턴 허브: 여러 문서를 꿰어 읽는 법
 
 > 이 문서는 redis 폴더 안의 개별 심화 문서들을 **하나의 맥락으로 묶어주는 허브**다. 개념 설명이나 명령어 레퍼런스를 반복하지 않고, '어느 패턴을 언제 쓰는가', '어떤 장애 시나리오에서 어느 문서를 꺼내 드는가', '여러 기법을 어떻게 조합하는가'에 집중한다. 상세 구현과 예제는 각 링크 문서에서 이어서 읽는다.
 
@@ -20,7 +20,7 @@ Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸�
 
 ---
 
-## 학습 경로 — 어떤 순서로 읽을 것인가
+## 학습 경로: 어떤 순서로 읽을 것인가
 
 ```
 [입문]           basic.md          ← 아키텍처, 자료구조, 싱글 스레드 전제
@@ -44,7 +44,7 @@ Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸�
 
 ---
 
-## 1. 캐시 + 분산 락 + Lua — 임계 경로 이중 방어
+## 1. 캐시 + 분산 락 + Lua: 임계 경로 이중 방어
 
 재고 차감, 쿠폰 발급, 잭팟 지급처럼 **중복 실행이 곧 돈 손실**인 경로는 하나의 기법으로는 부족하다. 세 가지 문서의 패턴을 합쳐야 한다.
 
@@ -66,11 +66,11 @@ Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸�
 관련 상세:
 - [Redis Lua 스크립트](./lua-script.md) — Hash + Lua로 잭팟 누적/당첨을 atomic하게 처리한 실제 사례
 - [분산 락](./distributed-lock.md) — SET NX EX, Redisson Watchdog, Redlock의 한계
-- [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1--다중-서버-로컬-캐시-무효화) — L1(Caffeine) + L2(Redis) 계층화
+- [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1-다중-서버-로컬-캐시-무효화) — L1(Caffeine) + L2(Redis) 계층화
 
 ---
 
-## 2. 캐시 스탬피드 — 세 가지 해법의 분기
+## 2. 캐시 스탬피드: 세 가지 해법의 분기
 
 캐시 스탬피드는 [Redis Cache-Aside 패턴](cache-aside.md)에 상세 설명이 있다. 여기서는 **어느 상황에 어느 해법을 고르는지**만 정리한다.
 
@@ -80,13 +80,13 @@ Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸�
 | 인기 키 N개, 순간 폭주 | 분산 락 기반 단일 재계산 | [Cache-Aside: 싱글 플라이트 예제](./cache-aside.md#improved-싱글-플라이트--약간의-조기-갱신), [분산 락](./distributed-lock.md) |
 | 레이턴시 스파이크 허용 불가 | Probabilistic Early Expiration (XFetch) | [캐시 설계 전략: 확률적 조기 갱신](../../architecture/distributed-systems/cache-strategies.md#b-probabilistic-early-expiration-확률적-조기-갱신) |
 | 동시 만료 자체를 분산 | TTL 지터 (모든 경우 기본 적용) | [Cache-Aside: TTL 설계](./cache-aside.md#ttl-설계) |
-| Hot key 자체 부하 | L1 로컬 캐시로 Redis 조회 흡수 | [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1--다중-서버-로컬-캐시-무효화) |
+| Hot key 자체 부하 | L1 로컬 캐시로 Redis 조회 흡수 | [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1-다중-서버-로컬-캐시-무효화) |
 
 **판단 기준:** 지터는 '무조건 적용'. 나머지는 인기 키 수와 비즈니스 레이턴시 허용치로 고른다. 실무에서는 보통 **지터 + L1 + 분산 락** 3종 세트로 시작하고, 부족하면 PER를 얹는다.
 
 ---
 
-## 3. Pub/Sub vs Stream vs Kafka — 메시징 경로 선택
+## 3. Pub/Sub vs Stream vs Kafka: 메시징 경로 선택
 
 [Redis Pub/Sub & Stream](./pub-sub.md)에 상세 비교표가 있다. 허브 관점에서는 **조직의 기존 인프라**까지 포함해 본다.
 
@@ -109,7 +109,7 @@ Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸�
 
 ---
 
-## 4. Redis Cluster의 제약 — CROSSSLOT
+## 4. Redis Cluster의 제약: CROSSSLOT
 
 단일 인스턴스에서 Cluster로 넘어갈 때 **가장 자주 터지는 함정**이지만 개별 문서에서는 깊이 다루지 않는다. 여기서 정리한다.
 
@@ -148,7 +148,7 @@ MSET {user:1}:name Alice {user:1}:email alice@x.com
 
 ---
 
-## 5. Hot Key와 Big Key — 운영의 두 지뢰
+## 5. Hot Key와 Big Key: 운영의 두 지뢰
 
 [Redis 운영 가이드](operations.md)에 진단 명령어가 있지만, **개념 정의와 대응 설계**는 여러 문서에 분산되어 있어 허브에서 통합한다.
 
@@ -166,7 +166,7 @@ MSET {user:1}:name Alice {user:1}:email alice@x.com
                    읽을 때 SUM, 정확도 소폭 희생
 ```
 
-→ L1 로컬 캐시를 Pub/Sub으로 무효화하는 코드 예시는 [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1--다중-서버-로컬-캐시-무효화)에 있다.
+→ L1 로컬 캐시를 Pub/Sub으로 무효화하는 코드 예시는 [Pub/Sub 패턴: 다중 서버 로컬 캐시 무효화](./pub-sub-patterns.md#실전-패턴-1-다중-서버-로컬-캐시-무효화)에 있다.
 
 ### Big Key (단일 키 용량 비대)
 
@@ -189,7 +189,7 @@ UNLINK chat:room:1                     # 비동기 삭제 (Redis 4.0+)
 
 ---
 
-## 6. Graceful Degradation — Redis 장애 시 서비스가 죽지 않게
+## 6. Graceful Degradation: Redis 장애 시 서비스가 죽지 않게
 
 **원칙:** Redis는 캐시 계층이다. Redis 장애가 서비스 전체 장애로 번지면 설계가 잘못된 것이다.
 
@@ -227,14 +227,14 @@ try {
 | DEL 한 번에 서버 블로킹 | 본 문서의 Big Key 절 | [operations: 운영 금지 명령어](./operations.md#운영-금지-명령어) |
 | 분산 락에도 oversell 발생 | [distributed-lock: Redlock](./distributed-lock.md#redlock-클러스터-환경의-분산-락) | [lua-script: Lua 원자성 한계](./lua-script.md#lua-스크립트의-원자성-한계) |
 | Cluster 이전 후 CROSSSLOT 에러 | 본 문서의 Cluster 제약 절 | [lua-script](./lua-script.md) |
-| 메모리 파편화 / evicted_keys 증가 | [operations: 메모리](./operations.md#메모리--얼마가-적절하고-몇--이상이면-위험한가) | [basic: 메모리 파편화](./basic.md#메모리-파편화) |
+| 메모리 파편화 / evicted_keys 증가 | [operations: 메모리](./operations.md#메모리-얼마가-적절하고-몇--이상이면-위험한가) | [basic: 메모리 파편화](./basic.md#메모리-파편화) |
 | 세션이 간헐적으로 사라짐 | [session](./session.md) | [operations: 서버 다운 / 재시작](./operations.md#서버-다운--재시작) |
 | Redis 다운 → 서비스 전체 다운 | 본 문서의 Graceful Degradation 절 | [cache-aside](./cache-aside.md) |
 | 메시지가 조용히 사라짐 | [pub-sub: Pub/Sub 한계](./pub-sub.md#한계-중요) | [pub-sub: Stream](./pub-sub.md#redis-stream) |
 
 ---
 
-## 인터뷰 답변 프레임 — 문서를 넘나드는 답
+## 인터뷰 답변 프레임: 문서를 넘나드는 답
 
 시니어 백엔드 면접에서 Redis 질문은 단일 문서 수준에서 답변하면 얕게 들린다. **여러 패턴을 연결하는 답**이 경력자처럼 들린다.
 
@@ -264,7 +264,7 @@ try {
 
 ---
 
-## 허브 체크리스트 — 설계 단계에서 확인할 것
+## 허브 체크리스트: 설계 단계에서 확인할 것
 
 - [ ] 캐시 전략이 Cache-Aside + delete-on-write + TTL 지터로 시작하는가
 - [ ] 인기 키에 대해 스탬피드 방어(지터/락/L1/PER) 중 최소 한 가지가 걸려 있는가

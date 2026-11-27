@@ -3,14 +3,14 @@ categories: [database]
 tags: [심화, study]
 ---
 
-# 벡터 DB 5종을 실제로 벤치마크했다 — 같은 recall에서 QPS는 얼마나 갈리나
+# 벡터 DB 5종을 실제로 벤치마크했다: 같은 recall에서 QPS는 얼마나 갈리나
 
 > [벡터 DB 5종 아키텍처 심층 비교](./vectordb-architecture-deep-dive.md)를 먼저 읽으면 좋다.
 > 그 글이 "구조가 어떻게 다른가"라면, 이 글은 "그 구조가 실제 숫자로 어떻게 나오나"다.
 
 벡터 DB 도입을 검토하면서 OpenSearch, Milvus, Qdrant, Vespa, pgvector 다섯을 같은 조건으로 직접 벤치마크했다.
 표만 던지는 벤치는 오해를 부르기 쉬워서, 이 글은 **어떤 데이터로, 어떤 질의로, recall을 어떻게 쟀는지**부터 남긴다.
-숫자보다 방법이 먼저다 — 방법을 모르면 숫자를 잘못 읽는다.
+숫자보다 방법이 먼저다. 방법을 모르면 숫자를 잘못 읽는다.
 
 ## 먼저 가져갈 결론
 
@@ -37,7 +37,7 @@ flowchart LR
   down -->|"다음 제품"| up
 ```
 
-측정기(VectorDBBench)는 같은 머신에서 `localhost`로 붙였다 — 네트워크 왕복 지연을 QPS와 p99에서 빼기 위해서다.
+측정기(VectorDBBench)는 같은 머신에서 `localhost`로 붙였다. 네트워크 왕복 지연을 QPS와 p99에서 빼기 위해서다.
 Vespa만 VectorDBBench가 지원하지 않아 별도 러너를 직접 작성해 쟀다.
 
 ## 질의와 recall은 어떻게 측정하나
@@ -72,7 +72,7 @@ recall과 QPS는 맞바꾸는 관계라, 제품마다 동작점(recall)이 다�
 
 ## 1M 실측 결과
 
-5종 모두 HNSW `m=16`, `ef_construction=200`으로 통일했다(공정 비교). 엔진만 다르다 — OpenSearch는 faiss, Milvus는 Knowhere(faiss 기반), 나머지는 자체 구현이다.
+5종 모두 HNSW `m=16`, `ef_construction=200`으로 통일했다(공정 비교). 엔진만 다르다: OpenSearch는 faiss, Milvus는 Knowhere(faiss 기반), 나머지는 자체 구현이다.
 
 | 제품 | recall@100 | 적재 | 인덱스 빌드 | 최대 QPS | serial p99 |
 | --- | --- | --- | --- | --- | --- |
@@ -115,7 +115,7 @@ recall이 같으므로 이건 동작점 차이가 아니라 실제 성능 격차
 | Qdrant | 0.9712 | 654 |
 | OpenSearch | 0.9318 | 274 |
 
-상대 순위가 표준셋과 일관됐다 — 제품 선택 결론이 표준셋 하나에만 기댄 게 아님을 확인했다.
+상대 순위가 표준셋과 일관됐다. 제품 선택 결론이 표준셋 하나에만 기댄 게 아님을 확인했다.
 사내 recall이 표준보다 대체로 높았는데, 구조화되고 반복되는 실데이터가 벡터 공간에서 뭉쳐 ANN이 쉬워지는 특성으로 추정한다.
 
 ## 10M으로 키워도 순위는 유지된다

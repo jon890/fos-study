@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# MyBatis와 JPA/Hibernate 트레이드오프 — 레거시 백엔드를 다루는 시니어 관점
+# MyBatis와 JPA/Hibernate 트레이드오프: 레거시 백엔드를 다루는 시니어 관점
 
 ## 왜 이 주제가 중요한가
 
@@ -41,7 +41,7 @@ JPA(Hibernate 구현)와 MyBatis는 둘 다 **자바 코드와 RDBMS 사이의 �
 3. **변경 감지와 트랜잭션 일관성**: dirty checking과 영속성 컨텍스트가 하나의 트랜잭션 안에서 객체-DB 일관성을 보장.
 4. **벤더 독립성**: Dialect 교체로 DB 이식 가능(현실에서는 거의 안 일어나지만).
 
-## XML Mapper와 resultMap — 실전 패턴
+## XML Mapper와 resultMap: 실전 패턴
 
 MyBatis 코드의 중심은 `*Mapper.xml`이다. 인터페이스 메서드와 XML의 `id`가 매핑되고, 결과는 `resultType` 또는 `resultMap`으로 객체에 매핑된다.
 
@@ -84,7 +84,7 @@ MyBatis 코드의 중심은 `*Mapper.xml`이다. 인터페이스 메서드와 XM
 - `<collection>`이 들어가면 N개의 행이 1개의 부모 객체로 접히면서 자식 컬렉션으로 펼쳐진다. 즉 `ROW → OBJECT GRAPH` 변환을 개발자가 통제한다.
 - `#{...}`는 **PreparedStatement 바인딩**, `${...}`는 **문자열 치환**이다. `${}`는 SQL Injection 위험이 있어 ORDER BY 컬럼 같은 식별자에 한정적으로만 사용한다.
 
-### 동적 SQL — 검색 조건 빌더의 본체
+### 동적 SQL: 검색 조건 빌더의 본체
 
 MyBatis의 진짜 무기는 동적 SQL이다.
 
@@ -127,7 +127,7 @@ MyBatis의 진짜 무기는 동적 SQL이다.
 
 JPA 진영에서 동일한 동적 검색을 하려면 Querydsl이나 Spring Data JPA Specification이 필요한데, 가독성은 사람마다 호불호가 갈린다. MyBatis의 동적 SQL은 결국 **출력되는 SQL 모양이 그대로 보인다**는 게 강점이다.
 
-## 페이징 — `LIMIT/OFFSET`을 직접 다루는 책임
+## 페이징: `LIMIT/OFFSET`을 직접 다루는 책임
 
 MyBatis는 페이징을 자동으로 해주지 않는다. 일반적으로 두 가지 패턴 중 하나다.
 
@@ -147,7 +147,7 @@ MyBatis는 페이징을 자동으로 해주지 않는다. 일반적으로 두 �
 - 검색 쿼리와 카운트 쿼리의 `WHERE` 조건이 어긋나면 페이지 수와 결과가 불일치한다. 동적 SQL을 `<sql>` + `<include>`로 추출해 공유하는 게 안전하다.
 - 깊은 페이징(`OFFSET 100000`)은 MySQL에서 성능이 급락한다. **Keyset 페이징**(`WHERE id < :lastId ORDER BY id DESC LIMIT 20`)으로 전환할 수 있는지 확인한다. JPA에서도 동일한 함정이 있고, 이건 MyBatis/JPA 문제가 아니라 SQL 설계 문제다.
 
-## N+1 — MyBatis에서도 똑같이 일어난다
+## N+1: MyBatis에서도 똑같이 일어난다
 
 JPA의 N+1만 유명하지, MyBatis도 부주의하면 같은 문제를 만든다.
 
@@ -171,7 +171,7 @@ JPA의 N+1만 유명하지, MyBatis도 부주의하면 같은 문제를 만든�
 
 JPA 경험자라면 "fetch join, @EntityGraph, BatchSize"의 사고방식을 그대로 들고 와서 MyBatis에서도 적용하면 된다. 도구만 다르지 문제와 해법의 본질은 같다.
 
-## 복잡한 조회 — MyBatis가 빛나는 영역
+## 복잡한 조회: MyBatis가 빛나는 영역
 
 매장별 일일 매출 요약, 멤버십 등급별 객단가, 메뉴별 시간대 판매량 같은 리포팅 쿼리는 JPA/Querydsl보다 MyBatis가 훨씬 유리하다.
 
@@ -196,7 +196,7 @@ JPA 경험자라면 "fetch join, @EntityGraph, BatchSize"의 사고방식을 그
 
 이런 쿼리를 JPQL로 옮기는 데 시간 쓰지 않고, **DBA에게 그대로 보여주고 튜닝 받을 수 있다**는 게 MyBatis의 강점이다. 인덱스 추가, 파티셔닝 검토, 실행계획 분석이 SQL 텍스트 위에서 곧바로 이뤄진다.
 
-## 트랜잭션 — 둘 다 Spring `@Transactional`을 쓴다
+## 트랜잭션: 둘 다 Spring `@Transactional`을 쓴다
 
 MyBatis는 자체 트랜잭션 매니저를 갖고 있지만, Spring 환경에서는 `DataSourceTransactionManager`(JPA가 함께면 `JpaTransactionManager`)가 동일한 커넥션 위에서 MyBatis SqlSession도 관리한다. 즉 **트랜잭션 전파, 격리 수준, 롤백 규칙은 JPA에서 쓰던 그대로**다.
 
@@ -205,7 +205,7 @@ MyBatis는 자체 트랜잭션 매니저를 갖고 있지만, Spring 환경에�
 - **flush 타이밍 문제 없음**: JPA는 `flush()` 시점에 따라 같은 트랜잭션 내 select가 변경 결과를 못 볼 수 있는데, MyBatis는 즉시 SQL이 나가므로 이 혼란이 적다.
 - **JPA + MyBatis 혼용** 프로젝트에서는 JPA 영속성 컨텍스트가 알지 못하는 변경을 MyBatis가 만들어내므로, 같은 트랜잭션 안에서 JPA 조회 결과가 stale일 수 있다. 필요한 경우 `EntityManager.clear()` / `refresh()`로 동기화한다.
 
-## 캐시 — 신중하게 끈다
+## 캐시: 신중하게 끈다
 
 MyBatis는 1차 캐시(SqlSession scope)와 2차 캐시(`<cache>`)를 제공하지만, 운영에서 2차 캐시를 그대로 켜는 경우는 드물다. 이유는 단순하다.
 
@@ -343,7 +343,7 @@ mybatis:
 6. `@Transactional` 메서드 안에서 `update` 호출 후 예외 발생시켜 롤백 확인.
 7. 같은 트랜잭션에서 MyBatis `update`로 변경한 행을 JPA `EntityManager`로 조회했을 때 stale 데이터가 보이는지 검증(혼용 시 함정).
 
-## 정리 — 자주 부딪히는 판단 지점
+## 정리: 자주 부딪히는 판단 지점
 
 두 도구를 두고 자주 부딪히는 판단 지점은 대체로 세 갈래다.
 

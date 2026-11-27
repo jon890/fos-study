@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# MySQL 격리수준과 MVCC 심화 — 표준을 벗어난 경계 케이스와 운영 선택의 기준
+# MySQL 격리수준과 MVCC 심화: 표준을 벗어난 경계 케이스와 운영 선택의 기준
 
 > 이 문서는 "Dirty Read / Non-Repeatable Read / Phantom Read" 3원소 표를 외운 다음 단계를 다룬다. MVCC 일반론은 [InnoDB MVCC](./innodb-mvcc.md), 락 의미론은 [Gap Lock & Next-Key Lock](./innodb-gap-next-key-lock.md), 데드락 분석은 [Deadlock Analysis](./deadlock-analysis.md)를 함께 본다. 여기서는 **MVCC와 락이 충돌하는 경계**, **표준 SQL과 InnoDB가 일치하지 않는 지점**, **격리수준 변경이 실제로 무엇을 바꾸는가**를 끝까지 파고든다.
 
@@ -155,7 +155,7 @@ COMMIT;
 
 ---
 
-## Lost Update — RR에서도 발생한다
+## Lost Update: RR에서도 발생한다
 
 ### Lost Update의 정의
 
@@ -252,13 +252,13 @@ WHERE id = 1 AND version = 5;
 
 ---
 
-## Write Skew — MVCC의 진짜 한계
+## Write Skew: MVCC의 진짜 한계
 
 ### 정의
 
 두 트랜잭션이 **서로 다른 행**을 읽고 갱신하는데, 각각이 본 스냅샷에서는 정합성 규칙(불변 조건)이 만족되지만 두 트랜잭션이 모두 커밋된 후의 결과에서는 불변 조건이 깨지는 현상.
 
-### 의사 예제 — 당직 인원수 보장
+### 의사 예제: 당직 인원수 보장
 
 규칙: "당직 중인 의사가 최소 1명은 있어야 한다."
 
@@ -336,7 +336,7 @@ SELECT * FROM on_call_shift WHERE shift_id = 'today' FOR UPDATE;
 
 ---
 
-## Semi-Consistent Read — RC만의 UPDATE 매칭 동작
+## Semi-Consistent Read: RC만의 UPDATE 매칭 동작
 
 ### 정의
 
@@ -553,7 +553,7 @@ CREATE TABLE outbox (
 INSERT INTO outbox (payload) VALUES ('a'),('b'),('c'),('d'),('e'),('f');
 ```
 
-### 실습 1 — Lost Update 재현
+### 실습 1: Lost Update 재현
 
 세션 A, B를 별도 터미널로 연다.
 
@@ -597,7 +597,7 @@ UPDATE account SET balance = balance - 100 WHERE id = 1;
 
 `FOR UPDATE` 또는 SQL 표현식 갱신으로 같은 시나리오를 재현하고 최종 balance가 정확히 800(1000-100-100)이 되는지 확인한다.
 
-### 실습 2 — Write Skew 재현
+### 실습 2: Write Skew 재현
 
 ```sql
 -- 세션 A
@@ -634,7 +634,7 @@ UPDATE doctor SET on_call = FALSE WHERE id = ?;
 COMMIT;
 ```
 
-### 실습 3 — Semi-Consistent Read 효과 비교
+### 실습 3: Semi-Consistent Read 효과 비교
 
 ```sql
 -- 세션 A (RR 모드)
@@ -674,7 +674,7 @@ WHERE status = 'PENDING' LIMIT 3;
 SELECT id, worker_id, status FROM outbox ORDER BY id;
 ```
 
-### 실습 4 — WITH CONSISTENT SNAPSHOT
+### 실습 4: WITH CONSISTENT SNAPSHOT
 
 ```sql
 -- 터미널 1

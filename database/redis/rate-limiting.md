@@ -46,7 +46,7 @@ if (count > 100) {  // 분당 100회 초과
 
 ---
 
-## 슬라이딩 윈도우 (Sliding Window) — Sorted Set
+## 슬라이딩 윈도우 (Sliding Window): Sorted Set
 
 현재 시각 기준으로 과거 N초 이내의 요청만 카운트한다. 경계 문제가 없다.
 

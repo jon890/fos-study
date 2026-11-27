@@ -161,8 +161,8 @@ MySQL/InnoDB 인덱스는 구조와 운영 진단을 함께 이해해야 한다.
 
 ## 관련 문서
 
-- [InnoDB 스토리지 엔진 아키텍처 — 저장 구조 · 버퍼 풀 · MVCC 허브](./innodb-storage-architecture.md)
-- [복합 인덱스 완전 정복 — 좌측 접두사 · 선택도 · 커버링 설계 심화](./composite-index.md)
-- [EXPLAIN / EXPLAIN ANALYZE — 실행 계획 읽기와 실전 진단](./explain-plan.md)
+- [InnoDB 스토리지 엔진 아키텍처: 저장 구조 · 버퍼 풀 · MVCC 허브](./innodb-storage-architecture.md)
+- [복합 인덱스 완전 정복: 좌측 접두사 · 선택도 · 커버링 설계 심화](./composite-index.md)
+- [EXPLAIN / EXPLAIN ANALYZE: 실행 계획 읽기와 실전 진단](./explain-plan.md)
 - [InnoDB 트랜잭션과 잠금 (MVCC · Lock)](./transaction-lock.md)
 - [Redo Log](./redo-log.md)

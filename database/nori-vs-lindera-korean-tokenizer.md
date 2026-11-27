@@ -3,7 +3,7 @@ categories: [database]
 tags: [심화, study]
 ---
 
-# 한국어 형태소 분석기 Nori vs Lindera — OpenSearch에서 Milvus로 갈 때 어휘 검색은 유지되나
+# 한국어 형태소 분석기 Nori vs Lindera: OpenSearch에서 Milvus로 갈 때 어휘 검색은 유지되나
 
 > [OpenSearch vs Milvus 비교](./milvus/opensearch-vs-milvus.md)의 "한국어 처리" 절을 먼저 읽으면 좋다.
 > 이 글은 그 한 문단을 형태소 분석기 수준까지 파고든 심화판이다.
@@ -11,7 +11,7 @@ tags: [심화, study]
 벡터 DB를 OpenSearch에서 Milvus로 옮기는 걸 검토하면서 계속 걸린 게 하나 있었다.
 의미 기반 dense 벡터는 임베딩 모델이 만드니 DB를 바꿔도 같다.
 그런데 하이브리드 검색의 나머지 절반, **어휘 기반 sparse 검색은 형태소 분석기가 만든다.**
-OpenSearch는 `nori`, Milvus는 `lindera`를 쓴다 — 이 둘이 한국어를 같은 수준으로 쪼개지 못하면 검색 정확도가 조용히 떨어진다.
+OpenSearch는 `nori`, Milvus는 `lindera`를 쓴다. 이 둘이 한국어를 같은 수준으로 쪼개지 못하면 검색 정확도가 조용히 떨어진다.
 
 ## 먼저 가져갈 결론
 
@@ -34,9 +34,9 @@ OpenSearch는 `nori`, Milvus는 `lindera`를 쓴다 — 이 둘이 한국어를 
 sparse가 무너지면 정확한 키워드 매칭이 약해지고, RAG가 엉뚱한 문서를 근거로 답하기 시작한다.
 그러므로 DB를 옮길 때 "형태소 분석기가 같은 토큰을 만드나"는 검색 품질 회귀를 좌우하는 문제다.
 
-## 한눈에 — sparse 토큰이 만들어지는 경로
+## 한눈에: sparse 토큰이 만들어지는 경로
 
-두 분석기 모두 같은 파이프라인을 거친다 — 형태소 tokenizer 로 자르고, 품사 필터로 조사·어미를 제외해 sparse 토큰을 남긴다.
+두 분석기 모두 같은 파이프라인을 거친다. 형태소 tokenizer 로 자르고, 품사 필터로 조사·어미를 제외해 sparse 토큰을 남긴다.
 
 ```mermaid
 flowchart LR
@@ -46,9 +46,9 @@ flowchart LR
   out --> bm["BM25 sparse 색인"]
 ```
 
-뿌리가 같아 이 경로는 거의 겹친다. 갈리는 건 이 위에 얹는 튜닝 손잡이(복합명사 모드·사용자 사전·독음)의 개수다 — 아래에서 짚는다.
+뿌리가 같아 이 경로는 거의 겹친다. 갈리는 건 이 위에 얹는 튜닝 손잡이(복합명사 모드·사용자 사전·독음)의 개수다. 아래에서 짚는다.
 
-## 뿌리는 같다 — 둘 다 mecab-ko-dic
+## 뿌리는 같다: 둘 다 mecab-ko-dic
 
 두 분석기의 계보를 보면 왜 토큰화 결과가 비슷한지 납득된다.
 
@@ -62,12 +62,12 @@ flowchart LR
 
 차이는 사전 뼈대가 아니라 **그 위에 얹는 제어 손잡이의 개수**에서 나온다.
 
-## 기능 동등성 — nori가 여는 손잡이, Milvus lindera가 여는 손잡이
+## 기능 동등성: nori가 여는 손잡이, Milvus lindera가 여는 손잡이
 
 nori가 analyzer 레벨에서 노출하는 기능과, Milvus의 lindera analyzer가 공식 문서에 드러내는 기능을 맞대면 이렇다.
 
-참고로 Milvus 텍스트 analyzer가 제공하는 필터는 공식 문서 기준 12종이다 — `lowercase`, `asciifolding`, `alphanumonly`, `cnalphanumonly`, `cncharonly`, `stop`, `length`, `stemmer`, `removepunct`, `regex`, `decompounder`, `synonym`.
-그리고 lindera tokenizer가 받는 키는 딱 3개다 — `type`, `dict_kind`, `filter`(그 안에 `korean_stop_tags` 같은 `kind`). 이 목록 밖의 기능은 지금 노출되지 않는다.
+참고로 Milvus 텍스트 analyzer가 제공하는 필터는 공식 문서 기준 12종이다: `lowercase`, `asciifolding`, `alphanumonly`, `cnalphanumonly`, `cncharonly`, `stop`, `length`, `stemmer`, `removepunct`, `regex`, `decompounder`, `synonym`.
+그리고 lindera tokenizer가 받는 키는 딱 3개다: `type`, `dict_kind`, `filter`(그 안에 `korean_stop_tags` 같은 `kind`). 이 목록 밖의 기능은 지금 노출되지 않는다.
 
 | 기능 | nori (OpenSearch) | Milvus lindera | 전환 |
 | --- | --- | --- | --- |
@@ -83,15 +83,15 @@ nori가 analyzer 레벨에서 노출하는 기능과, Milvus의 lindera analyzer
 
 핵심 그림은 이렇다.
 **의미 토큰을 만드는 핵심 경로(사전 + 품사 필터 + 동의어)는 옮겨간다.**
-반면 recall을 끌어올리는 세밀 손잡이 — 복합명사 mixed 모드, 사용자 사전, 한자 독음, 숫자 정규화 — 는 Milvus lindera에서 재현되지 않는다.
+반면 recall을 끌어올리는 세밀 손잡이(복합명사 mixed 모드, 사용자 사전, 한자 독음, 숫자 정규화)는 Milvus lindera에서 재현되지 않는다.
 이 네 가지는 아래 "전환 시 재현 못 하는 nori 튜닝"에서 각각 무엇을 잃는지 짚는다.
 
-방법론 주의 — "재현 불가" 넷 중 `user_dictionary`는 Milvus가 아직 미지원(공개 feature request)이라 근거가 강하다.
-나머지 셋(분해 모드, 독음, 숫자)은 lindera 엔진에는 능력이 있어도 **Milvus가 파라미터로 노출하지 않는** 것일 수 있다 — "엔진 미지원"이 아니라 "Milvus 미노출"이라, 대상 버전 릴리스 노트로 다시 확인하는 게 안전하다.
+방법론 주의: "재현 불가" 넷 중 `user_dictionary`는 Milvus가 아직 미지원(공개 feature request)이라 근거가 강하다.
+나머지 셋(분해 모드, 독음, 숫자)은 lindera 엔진에는 능력이 있어도 **Milvus가 파라미터로 노출하지 않는** 것일 수 있다. "엔진 미지원"이 아니라 "Milvus 미노출"이라, 대상 버전 릴리스 노트로 다시 확인하는 게 안전하다.
 
-## nori 튜닝 옵션 — 실제로 recall을 움직이는 것들
+## nori 튜닝 옵션: 실제로 recall을 움직이는 것들
 
-### decompound_mode — 복합명사 분해가 recall/precision 절충
+### decompound_mode: 복합명사 분해가 recall/precision 절충
 
 `가곡역`(고유명 복합어)을 기준으로:
 
@@ -105,11 +105,11 @@ nori가 analyzer 레벨에서 노출하는 기능과, Milvus의 lindera analyzer
 `discard`는 정밀하고 가볍지만 원형 그대로 질의하면 놓칠 수 있다.
 흔한 전략은 색인 시 `mixed`로 넓게 깔고 검색 시 `search_analyzer`를 따로 둬 과매칭을 줄이는 것인데, 이건 공식이 강제하는 조합이 아니라 커뮤니티 관행이다.
 
-### 품사 필터 — 편리하지만 함정이 있다
+### 품사 필터: 편리하지만 함정이 있다
 
 `nori_part_of_speech`의 `stoptags`로 조사·어미·부호를 제외해 명사 위주로 남긴다.
 문제는 **기본 stoptags에 접두사 `XPN`이 들어 있다**는 점이다.
-그래서 `비급여`가 기본 분석에서 `급여`만 남는다 — 부정·범위를 뒤집는 접두사(비-, 무-, 미-)가 사라져 검색 의미가 왜곡된다.
+그래서 `비급여`가 기본 분석에서 `급여`만 남는다. 부정·범위를 뒤집는 접두사(비-, 무-, 미-)가 사라져 검색 의미가 왜곡된다.
 도메인에 이런 접두사가 중요하면 stoptags에서 빼야 한다. 이건 공식 문서에 명시된 실사례라 반드시 점검할 지점이다.
 
 ### 그 밖의 필터
@@ -141,7 +141,7 @@ Milvus의 analyzer는 **토크나이저 1개 + 필터 0개 이상**으로 구성
 
 조정 축은 사전(`dict_kind`), 품사 stop 태그(`korean_stop_tags`), 문장부호 제거(`removepunct`), 길이 필터(`length`)다.
 nori와 품사 태그 체계가 같아 stop 태그 설정이 거의 그대로 옮겨간다.
-단 주의할 표기 함정이 있다 — 사전 지정 키가 문서 페이지마다 `dict_kind`와 `dict`로 엇갈린다.
+단 주의할 표기 함정이 있다. 사전 지정 키가 문서 페이지마다 `dict_kind`와 `dict`로 엇갈린다.
 lindera 전용 페이지는 `dict_kind`를 쓰니 그걸 우선하되, 실제 배포 버전 스키마로 확정하는 게 안전하다.
 
 ## 사내 현행 nori 설정을 뜯어보면
@@ -179,7 +179,7 @@ lindera 전용 페이지는 `dict_kind`를 쓰니 그걸 우선하되, 실제 �
 
 위 개선 축을 Milvus lindera에 맞대 보면, 지금 쓰는 것과 앞으로 튜닝할 것이 갈린다.
 
-**지금 실제로 쓰는데 못 옮기는 것 — `nori_readingform`.**
+**지금 실제로 쓰는데 못 옮기는 것: `nori_readingform`.**
 현행 `korean_analyzer` 필터 체인에 `nori_readingform`이 들어 있다(한자 토큰을 한글 독음으로: `鄕歌` → `향가`).
 Milvus 필터 12종에 독음 변환 계열이 없다 → 전환 시 이 기능은 사라진다.
 다만 코퍼스가 순수 한글 위주면 실제 영향은 작다. 한자·한글 혼용 문서가 얼마나 되는지로 판단하면 된다.
@@ -197,9 +197,9 @@ Milvus 필터 12종에 독음 변환 계열이 없다 → 전환 시 이 기능�
 동의어는 nori 기능이 아니라 Lucene 표준 `synonym` 필터인데, Milvus에도 `synonym` 필터가 있어 거의 손실 없이 이전된다(다중어 그래프 동의어만 검증 권장).
 품사 필터도 `korean_stop_tags`로 대응되지만, nori 태그 체계와 mecab-ko-dic 원본 태그 체계가 달라 **stoptags 문자열을 그대로 복사하면 안 되고 ko-dic 세분 태그로 재매핑**해야 한다(오히려 더 정밀한 제어가 가능해진다).
 
-정리하면 — 사내 현행에서 실제 잃는 건 `nori_readingform` 하나이고(영향은 코퍼스 의존), **앞으로 recall을 끌어올릴 핵심 손잡이인 사용자 사전과 복합명사 mixed 모드가 Milvus에서 막힌다**는 게 진짜 리스크다.
+정리하면, 사내 현행에서 실제 잃는 건 `nori_readingform` 하나이고(영향은 코퍼스 의존), **앞으로 recall을 끌어올릴 핵심 손잡이인 사용자 사전과 복합명사 mixed 모드가 Milvus에서 막힌다**는 게 진짜 리스크다.
 
-## 프로덕션 레벨 차이 — 버전이 결정한다
+## 프로덕션 레벨 차이: 버전이 결정한다
 
 기능 표만 보면 "nori가 손잡이가 더 많다" 정도지만, 운영에서 더 크게 갈리는 건 성숙도와 버전이다.
 
@@ -208,14 +208,14 @@ Milvus 필터 12종에 독음 변환 계열이 없다 → 전환 시 이 기능�
 - **Milvus 2.6+** — 모든 lindera 사전이 미리 컴파일돼 내장된다. 별도 빌드 없이 `dict_kind: ko-dic`으로 바로 쓴다.
 
 관리형 상품(예: 클라우드형 Milvus)이라면 **제공 버전이 2.5인지 2.6인지가 한국어 어휘 검색 사용 난이도를 결정한다.**
-nori는 이 문제가 없다 — OpenSearch 2.x·3.x 모두 `analysis-nori`를 정식 플러그인으로 제공하고, 관리형 서비스도 옵션 플러그인으로 지원한다.
+nori는 이 문제가 없다. OpenSearch 2.x·3.x 모두 `analysis-nori`를 정식 플러그인으로 제공하고, 관리형 서비스도 옵션 플러그인으로 지원한다.
 lindera의 한국어 지원은 상대적으로 최근이라, 프로덕션 채택 전 대상 버전에서 실제 토큰화를 찍어보는 검증이 nori보다 더 중요하다.
 
 ## 그래서 무엇을 고르나
 
 검색 정확도만 놓고 "nori가 lindera보다 정확하다"고 말할 근거는 없다.
 뿌리 사전이 같아 의미 토큰은 비슷하게 나온다.
-갈림은 다른 데 있다 — **지금 쓰는 nori 튜닝을 옮겨갈 곳에서 재현할 수 있느냐**이다.
+갈림은 다른 데 있다: **지금 쓰는 nori 튜닝을 옮겨갈 곳에서 재현할 수 있느냐**이다.
 
 전환을 검토할 때 이 순서로 점검하면 된다.
 
@@ -224,7 +224,7 @@ lindera의 한국어 지원은 상대적으로 최근이라, 프로덕션 채택
 3. **대상 버전이 2.5면 lindera-ko-dic 컴파일 포함 여부를, 2.6+면 기본 내장을 확인한다.**
 4. **같은 문장 세트를 양쪽에 넣어 토큰 스트림을 바이트 단위로 비교한다.** 도메인 용어·복합명사·접두사가 든 문장을 반드시 포함한다.
 
-핵심 한 줄 — **분석기 자체보다, 내 튜닝을 옮길 수 있느냐가 전환 리스크를 정한다.**
+핵심 한 줄: **분석기 자체보다, 내 튜닝을 옮길 수 있느냐가 전환 리스크를 정한다.**
 
 ## 아직 검증 안 된 것
 

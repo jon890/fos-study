@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# MySQL EXPLAIN / EXPLAIN ANALYZE 완전 정복 — 실행 계획 읽기부터 Aurora 인터뷰 대비까지
+# MySQL EXPLAIN / EXPLAIN ANALYZE 완전 정복: 실행 계획 읽기부터 Aurora 인터뷰 대비까지
 
 ## 왜 알아야 하는가
 
@@ -10,7 +10,7 @@ tags: [study]
 면접관이 바로 묻습니다. "EXPLAIN으로 확인해봤나요? 실행 계획이 어떻게 달라졌나요?"
 
 EXPLAIN은 MySQL 옵티마이저가 쿼리를 실제로 어떻게 처리할지 보여주는 실행 계획(Execution Plan)입니다.
-인덱스를 타는지, 풀스캔인지, 몇 행을 읽는지 — 이것을 읽을 줄 알아야 슬로우 쿼리의 원인을 진단하고 인덱스를 올바르게 설계할 수 있습니다.
+인덱스를 타는지, 풀스캔인지, 몇 행을 읽는지, 이것을 읽을 줄 알아야 슬로우 쿼리의 원인을 진단하고 인덱스를 올바르게 설계할 수 있습니다.
 
 대규모 커머스 백엔드처럼 상품·주문·사용자 데이터가 대규모로 쌓이는 환경에서는, EXPLAIN을 읽지 못하면 성능 문제가 배포 후에야 드러납니다.
 
@@ -40,7 +40,7 @@ EXPLAIN은 MySQL 옵티마이저가 쿼리를 실제로 어떻게 처리할지 �
 
 ---
 
-#### `type` — 가장 중요한 컬럼
+#### `type`: 가장 중요한 컬럼
 
 성능이 좋은 순서대로 나열합니다.
 
@@ -58,7 +58,7 @@ EXPLAIN은 MySQL 옵티마이저가 쿼리를 실제로 어떻게 처리할지 �
 
 ---
 
-#### `rows` — 예상 읽기 행 수
+#### `rows`: 예상 읽기 행 수
 
 옵티마이저가 조건 만족을 위해 읽어야 한다고 추정하는 행 수입니다.
 통계 기반 추정값이며 실제 반환 행 수가 아닙니다.
@@ -66,14 +66,14 @@ EXPLAIN은 MySQL 옵티마이저가 쿼리를 실제로 어떻게 처리할지 �
 
 ---
 
-#### `filtered` — 조건 필터링 비율 (%)
+#### `filtered`: 조건 필터링 비율 (%)
 
 `rows × (filtered ÷ 100)` = 다음 단계로 전달되는 예상 행 수입니다.
 `filtered`가 낮을수록 WHERE 조건이 인덱스 밖에서 처리되고 있다는 의미입니다.
 
 ---
 
-#### `Extra` — 추가 실행 정보
+#### `Extra`: 추가 실행 정보
 
 | Extra 값 | 의미 | 조치 |
 |----------|------|------|
@@ -251,7 +251,7 @@ LIMIT 10;
 
 ---
 
-## JPA N+1 vs JOIN FETCH — EXPLAIN 비교
+## JPA N+1 vs JOIN FETCH: EXPLAIN 비교
 
 ### N+1 발생 패턴
 
@@ -390,7 +390,7 @@ WHERE category_id = 1 AND status = 'ACTIVE' AND created_at > '2025-01-01';
 
 Aurora MySQL은 MySQL 8 호환이지만 실행 계획 해석 시 알아야 할 차이점이 있습니다.
 
-### 읽기/쓰기 분리 — readOnly 라우팅
+### 읽기/쓰기 분리: readOnly 라우팅
 
 ```java
 @Transactional(readOnly = true)

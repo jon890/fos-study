@@ -146,7 +146,7 @@ POST _aliases
 
 ## 쿼리 DSL: 꼭 알아야 할 네 가지
 
-### 1) match — 기본 풀텍스트 검색
+### 1) match: 기본 풀텍스트 검색
 
 ```json
 GET products/_search
@@ -161,7 +161,7 @@ GET products/_search
 
 `operator: and`는 토큰 전부가 포함돼야 매칭된다는 뜻. 사용자가 긴 검색어를 넣을 때 상위 정확도를 올리려면 `minimum_should_match`를 튜닝한다.
 
-### 2) term / terms — 정확 일치
+### 2) term / terms: 정확 일치
 
 ```json
 GET products/_search
@@ -180,7 +180,7 @@ GET products/_search
 
 `filter` 절은 점수 계산을 생략하고 캐시되기 때문에 카테고리/브랜드 파사드처럼 반복되는 조건은 반드시 여기로.
 
-### 3) bool — must / should / filter / must_not 조합
+### 3) bool: must / should / filter / must_not 조합
 
 ```json
 GET products/_search
@@ -201,7 +201,7 @@ GET products/_search
 
 점수에 영향을 주는 건 `must`와 `should`, 영향을 주지 않는 건 `filter`와 `must_not`. 이 구분은 성능과 랭킹 품질에 직결된다.
 
-### 4) aggregation — 파사드, 통계
+### 4) aggregation: 파사드, 통계
 
 ```json
 GET products/_search
