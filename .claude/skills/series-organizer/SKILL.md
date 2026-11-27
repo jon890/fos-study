@@ -46,4 +46,4 @@ python3 .claude/skills/series-organizer/scripts/apply_series.py --dry-run <매�
 python3 .claude/skills/series-organizer/scripts/apply_series.py <매핑.json>
 ```
 
-적용 뒤에는 변경된 글의 frontmatter와 첫 H1을 확인하고, 프로젝트 문체 검사와 `docs-audit` 구조 검사를 실행한다. 블로그 push까지 요청받았다면 [blog-post-writer](../blog-post-writer/SKILL.md)의 5단계 미리보기를 사용자에게 보인 뒤 push한다.
+적용 뒤에는 변경된 글의 frontmatter와 첫 H1을 확인하고, 프로젝트 문체 검사와 `fos-skills:docs-audit` 2단계의 링크 검사를 실행한다. 블로그 push까지 요청받았다면 [blog-post-writer](../blog-post-writer/SKILL.md)의 5단계 미리보기를 사용자에게 보인 뒤 push한다.

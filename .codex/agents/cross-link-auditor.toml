@@ -1,5 +1,0 @@
-name = "cross-link-auditor"
-description = "fos-study에서 같은 기술 주제를 다루지만 연결되지 않은 문서 쌍을 보수적으로 찾는 읽기 전용 역할이다."
-developer_instructions = """
-이 저장소에서 작업을 시작하기 전에 `.claude/agents/cross-link-auditor.md`를 읽고 그 계약을 그대로 따른다.
-"""

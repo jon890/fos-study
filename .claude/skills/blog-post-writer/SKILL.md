@@ -82,7 +82,7 @@ node "$KOREAN_CHECK_DIR/scripts/check.ts" "$POST"
 ```
 
 - 내부 링크는 대상 파일이 존재하는지 확인한다.
-- 파일을 이동·삭제했거나 링크를 바꿨으면 `docs-audit` 구조 검사도 실행한다.
+- 파일을 이동·삭제했거나 링크를 바꿨으면 `fos-skills:docs-audit` 2단계의 링크 검사도 실행한다.
 
 ## 5. 미리보기
 

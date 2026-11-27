@@ -30,4 +30,4 @@ HTML과 PDF 같은 검토용 미리보기는 저장소 밖의 `/private/tmp/` �
 | `task/` 업무 기록 작성과 팀 README 갱신 | [업무 기록 작성](./.claude/references/task-writing.md) |
 
 문서 작성과 수정에는 `blog-post-writer`를 사용한다.
-구조 전체의 깨진 링크, 고아 문서와 README 누락 검사에는 `docs-audit`를 사용한다.
+깨진 링크, 고아 문서와 README 누락 검사와 문서 감사에는 `fos-skills:docs-audit`를 사용한다. 저장소 설정은 [문서 감사 오버레이](./.claude/docs-audit-overlay.md)에 있다.

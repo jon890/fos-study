@@ -13,19 +13,21 @@
 - 문서 인덱스: 각 폴더의 `README.md`
 - 하네스 문서는 사용자가 스킬이나 지침 감사를 요청한 경우에만 포함
 
-`.git/`, `node_modules/`, `.claude/`, `.codex/`, `.agents/`는 일반 학습 문서 검사에서 제외한다.
+## 구조 검사 설정
 
-## 먼저 실행할 구조 점검
+블로그 폴더는 `README.md`를 목차로 쓰므로 두 선택 검사를 켠다.
 
-fos-study에는 별도 ADR 트리가 없으므로 공용 `static-check.sh`에 임의 경로를 넘기지 않는다.
-먼저 `docs-audit` 스킬의 저장소 전용 구조 점검을 실행한다.
+| 설정 | 값 |
+| --- | --- |
+| 고아 문서 검사 | `켜기` |
+| README 누락 검사 | `켜기` |
 
-`ok: true`와 종료 코드 0이 구조 점검 통과 조건이다.
-`broken_link`, `orphan_doc`, `readme_missing`의 세부 결과를 공용 F축 구조 무결성 리포트에 합친다.
+fos-study에는 ADR 폴더가 없다. 공용 스킬 2단계의 링크 검사는 ADR 인자 없이 돌린다.
+`ORPHAN_DOC`의 연결 위치는 `orphan-doc-auditor`, `README_MISSING`의 배치는 `readme-integrity-auditor`에 맡길 수 있다.
 
 ## 프로젝트 고유 의미 판정
 
-공용 A부터 F축에 다음 경계를 추가한다.
+공용 의미 검사 축에 다음 경계를 추가한다.
 
 ### 회사 맥락과 일반 지식 분리
 
@@ -63,17 +65,17 @@ fos-study에는 별도 ADR 트리가 없으므로 공용 `static-check.sh`에 �
 
 ## 검증 역할
 
-- 일반 A부터 E축과 AI slop: 범용 read-only `verifier`
+- 공용 의미 검사 축과 AI slop: 범용 read-only `verifier`
 - 의미 있는 교차 링크 후보: `cross-link-auditor`
-- orphan 결과의 연결 위치가 모호한 경우: `orphan-doc-auditor`
-- README 카테고리 배치 판단이 필요한 경우: `readme-integrity-auditor`
+- `ORPHAN_DOC`의 연결 위치가 모호한 경우: `orphan-doc-auditor`
+- `README_MISSING`의 카테고리 배치 판단이 필요한 경우: `readme-integrity-auditor`
 
 정적 점검이 이미 확정한 개수를 다시 세기 위해 에이전트를 호출하지 않는다.
 에이전트는 의미 판단과 배치 제안에만 사용하고, 수정은 메인이 승인 범위에서 수행한다.
 
 ## 완료 조건
 
-- `docs_score.py --json`의 `ok`가 `true`이거나 남긴 예외가 설명돼 있다.
-- 공용 A부터 F축 결과에 사실과 추정이 구분돼 있다.
+- 공용 스킬 2단계의 링크 검사가 통과했거나 남긴 발견의 이유가 설명돼 있다.
+- 의미 검사 결과에 사실과 추정이 구분돼 있다.
 - `resume/` 보존 예외와 `task/`·기술 폴더 책임이 지켜졌다.
 - 변경했다면 문체 검사와 `git diff --check`가 통과한다.
