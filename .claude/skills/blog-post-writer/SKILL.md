@@ -73,9 +73,12 @@ description: 업무 경험이나 기술 학습 내용을 fos-study의 공개 블
 [fos-blog 마크다운](./references/markdown-pitfalls.md)의 렌더링 제약을 적용한 뒤 검사기를 돌린다.
 검사기는 `korean-check` 스킬이 소유한다.
 
+`KOREAN_CHECK_DIR`은 설치된 korean-check 스킬 번들 경로다. 스킬을 열면 보이는 Base directory를 넣어도 된다.
+
 ```bash
 POST=database/postgresql/docker-parallel-query-dev-shm.md   # 검사할 글
-node /Users/nhn/personal/fos-skills/export-only-skills/korean-check/scripts/check.ts "$POST"
+KOREAN_CHECK_DIR=$(printf '%s\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/nhn-dev/*/skills/korean-check | sort -V | tail -1)
+node "$KOREAN_CHECK_DIR/scripts/check.ts" "$POST"
 ```
 
 - 내부 링크는 대상 파일이 존재하는지 확인한다.
