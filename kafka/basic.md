@@ -204,7 +204,7 @@ Committed offset은 마지막으로 처리한 record의 번호가 아니라 **�
 
 같은 Partition을 읽지만 각 Consumer Group은 자신의 처리 위치에서 계속 읽는다.
 
-오프셋 커밋 전략(자동 커밋 vs 수동 커밋, 처리 전 커밋 vs 처리 후 커밋)은 메시지 전달 보장과 직결된다. 이건 [Kafka 실전 설계 — 오프셋 커밋 전략](./kafka-design.md#오프셋-커밋-전략)에서 자세히 다룬다.
+오프셋 커밋 전략(자동 커밋 vs 수동 커밋, 처리 전 커밋 vs 처리 후 커밋)은 메시지 전달 보장과 직결된다. 이건 [Kafka 실전 설계: 오프셋 커밋 전략](./kafka-design.md#오프셋-커밋-전략)에서 자세히 다룬다.
 
 ## 세그먼트 (Segment)
 
@@ -241,7 +241,7 @@ Offset을 기준으로 Segment 범위를 찾는 index도 Segment마다 관리할
 
 - [Kafka 클러스터 아키텍처: Broker, KRaft Controller와 복제](./architecture.md)
 - [Kafka를 로그로 이해하기](./log-as-unifying-abstraction.md) — 복제, 재처리, 상태와 데이터 통합을 연결하는 원리
-- [Kafka 실전 설계 — 파티션 / 컨슈머 그룹 / 재시도 / 순서 보장](./kafka-design.md)
+- [Kafka 실전 설계: 파티션 / 컨슈머 그룹 / 재시도 / 순서 보장](./kafka-design.md)
 - [분산 트랜잭션과 Outbox 패턴](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md) — Kafka 발행 원자성 보장
 
 ---

@@ -4,7 +4,7 @@ series: "GPU 로 LLM 서빙하기"
 seriesOrder: 5
 ---
 
-# Multi-process GPU 워크로드 — 자바 ThreadPool 사용자가 만나는 모델 차이
+# Multi-process GPU 워크로드: 자바 ThreadPool 사용자가 만나는 모델 차이
 
 **이전 글** [한 GPU를 여러 프로세스가 나눠 쓰기](./multi-process-gpu-mps.md) · **다음 글** [GPU로 LLM을 서빙한다는 것](llm-serving/gpu-llm-serving-basics.md) · [시리즈 목차](README.md)
 
@@ -19,7 +19,7 @@ Python ML 서비스는 그림이 다르다. `ThreadPoolExecutor` 가 있지만 C
 - NVIDIA MPS
 - worker death monitor
 
-## 왜 thread 가 아니라 process 인가 — GIL 의 결정
+## 왜 thread 가 아니라 process 인가: GIL 의 결정
 
 이전 [async/await 글](../python/java-to-python-async-blocking-io.md) 에서 짚었듯 CPython 은 GIL (Global Interpreter Lock) 로 인터프리터에 큰 락을 박았다. 한 프로세스 안에서는 한 번에 하나의 스레드만 Python 바이트코드를 실행한다.
 
@@ -43,7 +43,7 @@ GPU 작업도 비슷한 영향을 받는다. PyTorch 가 CUDA kernel 을 호출�
 
 ## ProcessPoolExecutor 의 동작
 
-자바의 `ExecutorService` 자리에 `concurrent.futures.ProcessPoolExecutor` 가 들어간다.
+자바의 `ExecutorService` 역할은 `concurrent.futures.ProcessPoolExecutor` 가 맡는다.
 
 ```python
 from concurrent.futures import ProcessPoolExecutor
@@ -66,7 +66,7 @@ future = executor.submit(process_document, "/tmp/file.pdf")
 result = future.result(timeout=1200)
 ```
 
-`initializer` 는 자바로 치면 `ThreadFactory.newThread` 에서 스레드를 만들며 초기화하는 자리에 해당한다. `ThreadPoolExecutor.beforeExecute` 는 작업마다 불리는 hook 이라 이 자리와 다르다. `initializer` 는 **각 워커 프로세스가 시작될 때 한 번 호출**되어 무거운 모델을 미리 로드한다. 우리 코드의 `init_worker_process` 함수가 이 자리에서 PaddleOCR + Docling converter 를 워커마다 캐싱한다.
+`initializer` 는 자바로 치면 `ThreadFactory.newThread` 에서 스레드를 만들며 초기화하는 단계에 해당한다. `ThreadPoolExecutor.beforeExecute` 는 작업마다 불리는 hook 이라 이 단계와 다르다. `initializer` 는 **각 워커 프로세스가 시작될 때 한 번 호출**되어 무거운 모델을 미리 로드한다. 우리 코드의 `init_worker_process` 함수가 이 단계에서 PaddleOCR + Docling converter 를 워커마다 캐싱한다.
 
 `max_tasks_per_child` 는 자바에 없는 옵션이다. 워커 한 명이 N 개 task 를 처리하면 자동으로 죽고 새 워커가 spawn 된다. 메모리 누수 방어용으로 도입된 패턴인데, 우리 분석에서는 이 값이 너무 작게 (`3`) 설정되어 throughput 손해가 큰 것으로 드러났다.
 
@@ -96,7 +96,7 @@ Python ProcessPool 의 워커는 라이프사이클이 더 명시적이다.
 
 자바의 `Tomcat` 이 worker 스레드를 자동 재활용하지 않는 것과 대비된다. 자바는 같은 문제에 heap dump 분석과 GC tuning 으로 대응한다. Python ML 서비스는 더 국소적인 "주기적 reset" 방식을 쓴다.
 
-## NVIDIA MPS — multi-process GPU 효율화
+## NVIDIA MPS: multi-process GPU 효율화
 
 [GPU·CUDA 글](./java-to-python-gpu-cuda-mps.md) 에서 NVIDIA MPS 를 짚었다. MPS 는 multi-process GPU 워크로드의 핵심 최적화다.
 
@@ -124,7 +124,7 @@ def get_kr_executor() -> ProcessPoolExecutor:
 
 자바 `AtomicInteger` 의 `incrementAndGet()` 에 해당한다. 단 single GPU 환경에서는 `idx % 1 = 0` 으로 항상 같은 결과라 락만 잡고 효과가 없다. 우리 분석에서 이슈로 잡힌 부분이다. multi-GPU 클러스터로 확장될 가능성이 있는 코드라 일반화는 합리적이지만, GPU 가 하나면 락 없이 바로 반환하는 처리를 추가하는 게 좋다.
 
-## Worker death monitor — 자바엔 없는 패턴
+## Worker death monitor: 자바엔 없는 패턴
 
 자바 ThreadPool 의 스레드가 예외로 죽으면 풀이 새 스레드를 spawn 한다. Python ProcessPool 도 비슷하지만, **모니터링이 더 명시적**이다.
 

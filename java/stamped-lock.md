@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# Java StampedLock — 읽기 폭주에도 쓰기가 밀리지 않는 락
+# Java StampedLock: 읽기 폭주에도 쓰기가 밀리지 않는 락
 
 ---
 
@@ -84,7 +84,7 @@ public Object getFromCache(String key) {
 
 ---
 
-## 캐시 갱신에 적용 — 실제 사용 사례
+## 캐시 갱신에 적용: 실제 사용 사례
 
 > 캐시 갱신 시 유저 요청을 막고, 로컬 캐시를 갱신한다.
 > 이후 유저의 읽기 요청이 몰려들어도, 다음 갱신 요청은 막히지 않아야 한다.
@@ -170,7 +170,7 @@ RRWL로 같은 요구사항을 구현하면 읽기 트래픽이 많을수록 갱
 
 ---
 
-## tryConvertToWriteLock — 락 업그레이드
+## tryConvertToWriteLock: 락 업그레이드
 
 읽다가 쓰기가 필요해지는 경우, 읽기 락을 해제하고 다시 쓰기 락을 잡지 않아도 된다.
 

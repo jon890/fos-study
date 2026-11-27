@@ -4,7 +4,7 @@ series: "자바 백엔드 개발자를 위한 Python 입문"
 seriesOrder: 6
 ---
 
-# ThreadLocal 에서 contextvars 로 — Python 의 요청 컨텍스트 전파
+# ThreadLocal 에서 contextvars 로: Python 의 요청 컨텍스트 전파
 
 자바에서 요청 단위로 값을 들고 다니는 일은 `ThreadLocal`, 더 정확히는 그 위에 얹은 SLF4J `MDC` 의 몫이었다.
 요청이 들어오면 인터셉터에서 `requestId` 를 `MDC` 에 넣고, 로그 패턴에 `%X{requestId}` 만 박아두면 그 요청에서 찍히는 모든 로그 줄에 같은 id 가 자동으로 붙는다.
@@ -12,9 +12,9 @@ seriesOrder: 6
 
 Python 으로 같은 일을 하려다 `threading.local` 을 먼저 떠올렸는데, async 코드에서 깨진다는 걸 알게 됐다.
 정답은 `contextvars` 였다.
-이 글은 자바의 `ThreadLocal`/`MDC` 감각을 Python 으로 옮기면서 정리한 노트다 — **둘이 거의 1:1 로 대응되지만, async 를 만나는 순간 갈라진다**는 점이 요지다.
+이 글은 자바의 `ThreadLocal`/`MDC` 감각을 Python 으로 옮기면서 정리한 노트다. **둘이 거의 1:1 로 대응되지만, async 를 만나는 순간 갈라진다**는 점이 요지다.
 
-## 문제 — 요청마다 다른 값을 인자 없이 꺼내고 싶다
+## 문제: 요청마다 다른 값을 인자 없이 꺼내고 싶다
 
 서버에서 한 요청을 처리하는 동안에는 그 요청에만 해당하는 값이 있다.
 `requestId`, 호출자 IP, 인증 주체 같은 것들이다.
@@ -43,7 +43,7 @@ MDC.clear();
 전제는 "한 요청 = 한 스레드, 그리고 그 스레드가 요청 내내 유지된다"는 것이다.
 이 전제가 깨지는 순간(비동기로 다른 스레드에 넘기면) `MDC` 도 따라가지 못해서, Reactor 의 context 전파나 `ThreadLocalAccessor` 같은 장치를 따로 붙여야 한다.
 
-## Python 의 답 — contextvars
+## Python 의 답: contextvars
 
 Python 3.7 부터 표준 라이브러리에 `contextvars` 가 들어왔다.
 `ContextVar` 하나가 자바의 `ThreadLocal` 한 칸에 대응한다.
@@ -69,7 +69,7 @@ request_id_var.reset(token)
 
 ## ThreadLocal 과 무엇이 같고 다른가
 
-공식 문서가 직접 말한다 — "각 스레드는 자신의 context stack 을 가지므로, 서로 다른 스레드에서 값을 할당하면 `ContextVar` 는 `threading.local()` 과 비슷하게 동작한다."
+공식 문서가 직접 말한다: "각 스레드는 자신의 context stack 을 가지므로, 서로 다른 스레드에서 값을 할당하면 `ContextVar` 는 `threading.local()` 과 비슷하게 동작한다."
 즉 스레드 격리는 똑같다.
 차이는 async 에서 드러난다.
 
@@ -81,7 +81,7 @@ request_id_var.reset(token)
 | `await` 가로질러 값 유지 | 해당 없음 | **X** | **O** |
 | 표준 위치 | `java.lang` / SLF4J | `threading` | `contextvars` (PEP 567) |
 
-## 왜 threading.local 이 아니라 contextvar 인가 — async 에서 갈린다
+## 왜 threading.local 이 아니라 contextvar 인가: async 에서 갈린다
 
 `threading.local` 도 있는데 왜 굳이 `contextvars` 인가.
 동기 스레드 모델만 쓴다면 둘은 사실상 같다.
@@ -89,7 +89,7 @@ request_id_var.reset(token)
 
 asyncio 는 보통 **한 스레드 안에서** 여러 코루틴을 번갈아 실행한다.
 `await` 에서 실행권이 다른 코루틴으로 넘어갔다가 돌아온다.
-`threading.local` 은 "같은 스레드면 같은 값"이라, 한 스레드에서 코루틴 A·B 가 번갈아 돌면 서로의 값을 덮어쓴다 — 격리가 깨진다.
+`threading.local` 은 "같은 스레드면 같은 값"이라, 한 스레드에서 코루틴 A·B 가 번갈아 돌면 서로의 값을 덮어쓴다. 격리가 깨진다.
 
 `contextvars` 는 이걸 푼다.
 asyncio 의 각 `Task` 는 생성될 때 현재 context 를 **복사**해서 들고 시작한다.
@@ -100,11 +100,11 @@ async 와 blocking 의 경계 감각은 [async/await 와 blocking I/O 함정](./
 
 한 가지 비대칭에 주의한다.
 **Task(asyncio)는 부모 context 를 상속하지만, 스레드(threading)는 상속하지 않는다.**
-설계 의도가 다르기 때문이다 — Task 는 보통 자신을 띄운 코드와 논리적으로 묶인 짧은 작업이고, 스레드는 독립적인 장기 실행 단위로 본다.
+설계 의도가 다르기 때문이다. Task 는 보통 자신을 띄운 코드와 논리적으로 묶인 짧은 작업이고, 스레드는 독립적인 장기 실행 단위로 본다.
 그래서 `ThreadPoolExecutor` 로 작업을 넘기면 워커 스레드는 부모의 context 값을 못 받는다.
 이게 뒤에서 다룰 함정의 핵심이다.
 
-## 실전 패턴 — 로그에 자동 주입
+## 실전 패턴: 로그에 자동 주입
 
 `MDC` + `%X{requestId}` 의 Python 대응은 `contextvars` + `logging.Filter` 다.
 `Filter` 가 모든 로그 레코드를 지나가므로, 거기서 contextvar 값을 레코드에 꽂으면 모든 로그 줄에 자동으로 붙는다.
@@ -131,7 +131,7 @@ handler.addFilter(RequestIdFilter())
 요청 단위 값을 "어느 계층에서 주입할 것인가"라는 고민은 자바의 [Filter · Interceptor · AOP 관심사 분리](../java/spring/filter-interceptor-aop.md) 와 같은 질문이다.
 진입점에 한 번 꽂고 아래로는 전파에 맡긴다는 원칙은 언어와 무관하게 같다.
 
-## 적용 사례 — gRPC 모델 추론 서버의 분산 추적
+## 적용 사례: gRPC 모델 추론 서버의 분산 추적
 
 최근 내가 다루는 gRPC OCR 모델 추론 서버에 분산 추적을 붙이는 설계를 했다.
 상위 API 서버가 자기 `requestId` 를 `X-Request-Id` 헤더에 넣어 모델 서버를 호출하면, 모델 서버는 그 값을 자기 로그의 `requestId` 로 채워 양쪽 로그를 한 id 로 묶는 그림이다.

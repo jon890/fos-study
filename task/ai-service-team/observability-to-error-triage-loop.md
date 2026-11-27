@@ -142,5 +142,5 @@ OCR 서비스는 로그 한 곳에서 수집하지만, 오류 코드와 요청 �
 - [Python 서버 RSS가 줄지 않을 때 malloc_trim을 적용한 과정](./glibc-malloc-trim-python-leak.md)
 - [HTTP 200 응답 안의 OCR 오류를 운영 지표로 만들기](./ocr-business-error-monitoring.md)
 - [OCR 오토스케일 전환의 connection 에러를 양쪽에서 막기](./ocr-scale-connection-resilience.md)
-- [ThreadLocal 에서 contextvars 로 — Python 의 요청 컨텍스트 전파](../../python/java-to-python-threadlocal-contextvar.md)
-- [로그에 traceId 남기기 — MDC 부터 OpenTelemetry 까지](../../java/MDC.md)
+- [ThreadLocal 에서 contextvars 로: Python 의 요청 컨텍스트 전파](../../python/java-to-python-threadlocal-contextvar.md)
+- [로그에 traceId 남기기: MDC 부터 OpenTelemetry 까지](../../java/MDC.md)

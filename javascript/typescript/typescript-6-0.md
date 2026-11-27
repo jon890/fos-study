@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# TypeScript 6.0 — 마지막 JS 컴파일러, 그리고 Go로 가는 다리
+# TypeScript 6.0: 마지막 JS 컴파일러, 그리고 Go로 가는 다리
 
 **작성일**: 2026.05
 
@@ -26,7 +26,7 @@ TypeScript 6.0이 2026년 3월에 릴리스됐다. 이 버전을 정리하고 �
 
 ---
 
-## Breaking Changes — 기본값과 옵션 정리
+## Breaking Changes: 기본값과 옵션 정리
 
 ### 기본값이 바뀐 5개 옵션
 
@@ -113,7 +113,7 @@ Import attributes 문법이 stage 3 시절 `assert` 에서 stage 4 정식 표준
 
 ---
 
-## 새 기능 — 추론·import 편의
+## 새 기능: 추론·import 편의
 
 ### `this`-less 함수의 컨텍스트 민감도 완화
 
@@ -183,7 +183,7 @@ Temporal.Now.instant();
 
 ---
 
-## TypeScript 7.0 — Go 재작성
+## TypeScript 7.0: Go 재작성
 
 6.0 의 거의 모든 결정이 결국 7.0 을 위한 것이다. 7.0 의 핵심을 이해해야 6.0 변경이 왜 이런지 이해된다.
 
@@ -198,7 +198,7 @@ Temporal.Now.instant();
 
 C++/Rust 가 더 빠를 수도 있지만, Go 는 빌드·동시성 모델이 TS 컴파일러 구조와 잘 맞고, 마이크로소프트 내부에서 다른 도구도 Go 로 가는 추세라 선택했다.
 
-### 성능 — 10배
+### 성능: 10배
 
 마이크로소프트가 공유한 벤치마크:
 
@@ -208,7 +208,7 @@ C++/Rust 가 더 빠를 수도 있지만, Go 는 빌드·동시성 모델이 TS 
 
 이 수치는 단순한 컴파일 시간 줄어드는 게 아니라, **에디터 hover·자동완성 응답 속도** 가 즉각 빨라진다는 의미다. 대형 monorepo 에서 가장 큰 임팩트가 나올 영역이다.
 
-### 현재 상태 — Native Preview
+### 현재 상태: Native Preview
 
 ```bash
 npm install @typescript/native-preview

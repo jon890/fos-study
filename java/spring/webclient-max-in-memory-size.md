@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# WebClient가 큰 응답을 받으면 왜 죽는가 — maxInMemorySize와 DataBufferLimitException
+# WebClient가 큰 응답을 받으면 왜 죽는가: maxInMemorySize와 DataBufferLimitException
 
 > [API Gateway를 제거한 자리 채우기](../../devops/k8s/api-gateway-removal-rewrite-and-https.md)에서 겪은 요청 크기 병목 4개 중 하나를 여기서 따로 깊게 다룬다. 그 글의 맥락(20MB 이미지 처리) 없이 WebClient 버퍼 설정 자체가 궁금해서 왔어도 이 글만으로 읽힌다.
 
@@ -10,7 +10,7 @@ Spring WebFlux의 `WebClient`는 응답을 스트림으로 처리하는 리액�
 
 ## WebClient가 리액티브인데 왜 메모리 한도가 있나
 
-`WebClient`는 응답 바디를 `Flux<DataBuffer>`로 받는다. 청크 단위로 흘려보내기만 하면 되는 것 같지만, 실제로 애플리케이션 코드가 원하는 건 대부분 완성된 객체다 — `Mono<MyDto>`로 JSON을 역직렬화하거나, `Mono<byte[]>`로 바디 전체를 받거나. 이 변환을 하려면 청크들을 다시 하나로 모아야 하고, 그 순간 리액티브 스트림이 아니라 평범한 메모리 버퍼가 된다.
+`WebClient`는 응답 바디를 `Flux<DataBuffer>`로 받는다. 청크 단위로 흘려보내기만 하면 되는 것 같지만, 실제로 애플리케이션 코드가 원하는 건 대부분 완성된 객체다(`Mono<MyDto>`로 JSON을 역직렬화하거나, `Mono<byte[]>`로 바디 전체를 받거나). 이 변환을 하려면 청크들을 다시 하나로 모아야 하고, 그 순간 리액티브 스트림이 아니라 평범한 메모리 버퍼가 된다.
 
 Spring은 이 "다시 모으는" 과정에서 무한정 쌓이는 걸 막기 위해 `maxInMemorySize`라는 상한을 둔다. 기본값은 256KB로, 대부분의 JSON API 응답에는 넉넉하지만 파일이나 이미지를 다루는 순간 바로 부족해진다.
 
@@ -30,7 +30,7 @@ public WebClient webClient() {
 
 `ExchangeStrategies`가 인코더/디코더 설정을 묶는 단위이고, `defaultCodecs().maxInMemorySize(...)`가 그 안에서 버퍼 상한을 정하는 지점이다. 이 값을 넘는 응답이 들어오면 `DataBufferLimitException: Exceeded limit on max bytes to buffer`가 발생한다.
 
-## 어디서 이 한도가 걸리는지 — 나를 헷갈리게 한 지점
+## 어디서 이 한도가 걸리는지: 나를 헷갈리게 한 지점
 
 이 설정을 처음 마주쳤을 때 헷갈렸던 지점이 하나 있다. 요청 크기 제한과 응답 버퍼 제한은 완전히 별개의 설정인데, 증상만 보면 둘 다 "큰 파일에서 실패한다"로 똑같이 보인다는 점이다.
 
@@ -50,7 +50,7 @@ flowchart LR
 
 `maxInMemorySize`만 올리고 끝내면 안 되는 이유가 있다. 이 값은 딱 **한 연결이 응답을 모으는 데 쓰는 상한**일 뿐이고, 실제 프로세스 메모리 사용량은 동시에 처리 중인 요청 수만큼 곱해진다는 걸 기억해야 한다.
 
-예를 들어 30MB로 올려두고 요청이 동시에 5개 들어오면, 이론상 버퍼만으로 150MB까지 늘어날 수 있다. 여기에 JSON 역직렬화·이미지 디코딩 같은 추가 처리 메모리까지 겹치면 실제 사용량은 원본 크기의 몇 배가 된다. 컨테이너 환경에서 이 값을 올릴 때는 컨테이너 메모리 limit도 함께 계산해야 하는 이유가 여기 있다 — 버퍼 상한 하나만 넉넉하게 잡아 놓고 컨테이너 limit은 그대로 두면, 동시 요청이 몰리는 순간 OOMKilled로 이어진다.
+예를 들어 30MB로 올려두고 요청이 동시에 5개 들어오면, 이론상 버퍼만으로 150MB까지 늘어날 수 있다. 여기에 JSON 역직렬화·이미지 디코딩 같은 추가 처리 메모리까지 겹치면 실제 사용량은 원본 크기의 몇 배가 된다. 컨테이너 환경에서 이 값을 올릴 때는 컨테이너 메모리 limit도 함께 계산해야 하는 이유가 여기 있다. 버퍼 상한 하나만 넉넉하게 잡아 놓고 컨테이너 limit은 그대로 두면, 동시 요청이 몰리는 순간 OOMKilled로 이어진다.
 
 > 이 계산을 실제로 컨테이너 메모리 limit·k8s 노드 사양과 함께 어떻게 맞췄는지는 [API Gateway를 제거한 자리 채우기](../../devops/k8s/api-gateway-removal-rewrite-and-https.md)의 요청 크기 병목 부분에 있다.
 

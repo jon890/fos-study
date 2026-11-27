@@ -4,7 +4,7 @@ series: "자바 백엔드 개발자를 위한 Python 입문"
 seriesOrder: 2
 ---
 
-# Python 의존성 관리 — Java Maven/Gradle 사용자가 만나는 첫 충격
+# Python 의존성 관리: Java Maven/Gradle 사용자가 만나는 첫 충격
 
 자바 백엔드만 다뤄오다가 Python 프로젝트를 처음 받았을 때 가장 황당했던 게 의존성 관리였다. Maven 이면 `pom.xml` 한 파일, Gradle 이면 `build.gradle` 한 파일에서 의존성·빌드·플러그인이 다 처리된다. Python 프로젝트는 다음 파일이 섞여 있어 어디서부터 봐야 할지도 모르겠다.
 
@@ -17,7 +17,7 @@ seriesOrder: 2
 
 이 글은 자바 개발자가 Python 의존성 도구 풍경을 빠르게 따라잡기 위한 노트다. 2026 년 기준으로 정리하면 결론은 **uv 하나면 거의 다 된다**.
 
-## venv 가 왜 필요한가 — Java 와 결정적으로 다른 점
+## venv 가 왜 필요한가: Java 와 결정적으로 다른 점
 
 자바는 의존성이 프로젝트 단위로 격리된다. Maven 은 `~/.m2/repository` 에 모든 버전을 다 저장하고, 빌드 시점에 `pom.xml` 이 가리키는 버전만 클래스패스에 올린다. 같은 머신에 프로젝트 A 는 Spring 5, 프로젝트 B 는 Spring 6 가 있어도 충돌이 없다. JVM 이 시작될 때 정확한 jar 만 로딩하기 때문이다.
 
@@ -33,9 +33,9 @@ pip install requests         # 이제 .venv 안에 설치됨
 
 `activate` 가 PATH 를 조작해서 `python` / `pip` 명령이 `.venv/bin/` 의 바이너리를 가리키게 한다. 셸이 닫히거나 `deactivate` 를 부르면 원래 PATH 로 돌아간다.
 
-## pip 와 uv — 자바의 mvn/gradle 같은 명령들
+## pip 와 uv: 자바의 mvn/gradle 같은 명령들
 
-`pip` 는 Python 의 기본 패키지 인스톨러다. Maven 의 `mvn install` 자리에 가깝다. 단 **pip 는 가상환경 자체를 만들지는 않는다**. `venv` 모듈이 환경을 만들고, `pip` 는 그 안에 패키지를 설치한다. 둘이 분리되어 있다.
+`pip` 는 Python 의 기본 패키지 인스톨러다. Maven 의 `mvn install` 에 가깝다. 단 **pip 는 가상환경 자체를 만들지는 않는다**. `venv` 모듈이 환경을 만들고, `pip` 는 그 안에 패키지를 설치한다. 둘이 분리되어 있다.
 
 ```bash
 python -m venv .venv
@@ -60,7 +60,7 @@ uv 의 진짜 강점은 **하나의 도구가 여러 역할을 흡수**한다는
 
 `pyenv` + `venv` + `pip` + `pip-tools` 네 도구가 하던 일을 uv 한 명령이 한다. 자바 개발자가 Maven 하나로 의존성·빌드·라이프사이클을 처리하던 감각과 비슷해진다.
 
-## requirements.txt vs pyproject.toml — pom.xml 의 자리
+## requirements.txt vs pyproject.toml: pom.xml 역할을 하는 파일
 
 자바에서 `pom.xml` 은 두 역할을 한 파일에서 한다. 의존성 선언과 프로젝트 메타데이터. Python 은 둘이 분리되어 왔다.
 
@@ -99,7 +99,7 @@ lockfile = "uv.lock"
 
 자바 Maven 의 `<dependencies>` + `<properties>` + `<build><plugins>` 가 한 파일에 들어가는 그림. dev 의존성은 `optional-dependencies` 로 분리해 `uv sync --extra dev` 처럼 선택 설치.
 
-## lock 파일 — Maven `dependency:resolve` 의 자동화
+## lock 파일: Maven `dependency:resolve` 의 자동화
 
 Maven 은 빌드할 때마다 의존성 트리를 다시 푼다 (resolve). 그래서 같은 코드라도 빌드 시점에 따라 transitive dependency 가 살짝 달라질 수 있다. Maven 4 에서 lockfile 이 정식 도입되어 이 문제를 해결하기 시작했지만, Gradle 도 `dependency-locking` 을 명시적으로 켜야 동작한다.
 

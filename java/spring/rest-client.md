@@ -48,7 +48,7 @@ public class UserClient {
 }
 ```
 
-### 에러 처리 — `onStatus`
+### 에러 처리: `onStatus`
 
 `retrieve()`는 4xx·5xx에서 예외를 던진다.
 상태 코드별로 다르게 처리하려면 `onStatus`로 가로챈다.

@@ -11,7 +11,7 @@ GPU·CUDA·모델 서빙 운영은 [mlops](../mlops/README.md) 카테고리로 �
 4. [FastAPI 기초](./java-to-python-fastapi-basics.md) — Spring Boot 사용자가 빠르게 익히는 법
 5. [async/await 와 blocking I/O 함정](./java-to-python-async-blocking-io.md) — CompletableFuture·Reactor 와 다른 점
 6. [ThreadLocal 에서 contextvars 로](./java-to-python-threadlocal-contextvar.md) — 요청 컨텍스트 전파, 자바 MDC 대응
-7. [PyTorch 기초 — 텐서·모델 로딩 비용](./java-to-python-pytorch-tensor-model-loading.md) — 모델 로딩이 무거운 이유
+7. [PyTorch 기초: 텐서·모델 로딩 비용](./java-to-python-pytorch-tensor-model-loading.md) — 모델 로딩이 무거운 이유
 8. [OCR 동작 원리](./ocr-pipeline-basics.md) — Layout · Text · Post-process 3단계
 
 ## 성능 트러블슈팅

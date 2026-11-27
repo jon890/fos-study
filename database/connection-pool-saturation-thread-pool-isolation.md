@@ -15,7 +15,7 @@ tags: [study]
 
 본 문서는 이 네 개 질문에 답할 수 있는 구조로 정리한다. 단순 풀 사이즈 튜닝은 [커넥션 풀 크기는 얼마나 조정해야 할까?](./connection-pool.md), Aurora Serverless 특수성은 [Aurora Serverless 환경의 커넥션 풀과 트랜잭션 예산 설계](./mysql/aurora-serverless-connection-pool-transaction-budget.md), 트랜잭션 경계 이슈는 [Spring 트랜잭션 전파·격리수준·AFTER_COMMIT 실전 정리](../java/spring/transaction-propagation-isolation-after-commit.md)로 분리되어 있다. 여기서는 그 위의 *운영 레이어*에 집중한다.
 
-## 핵심 개념 — Saturation은 풀이 비는 게 아니라 꽉 차는 것
+## 핵심 개념: Saturation은 풀이 비는 게 아니라 꽉 차는 것
 
 용어부터 정리한다.
 
@@ -83,7 +83,7 @@ ORDER BY trx_started ASC;
 
 운영에서 saturation 알람이 떴을 때 위 두 쿼리를 1분 안에 던지는 것이 1차 대응이다. *풀 사이즈를 만지는 건 그다음*이다.
 
-## Bulkhead 패턴 — Thread Pool 격리로 폭주 차단
+## Bulkhead 패턴: Thread Pool 격리로 폭주 차단
 
 배의 격벽(bulkhead)에서 따온 패턴이다. **한 다운스트림의 장애가 전체 인스턴스를 마비시키지 않도록 자원을 분리한다.**
 
@@ -150,9 +150,9 @@ public ThreadPoolTaskExecutor notifyExecutor() {
 }
 ```
 
-큐 용량을 *항상 유한하게* 잡고 reject policy를 명시하는 것이 핵심. `LinkedBlockingQueue` 기본값(Integer.MAX_VALUE)을 쓰면 격벽이 무의미하다 — 메모리만 부풀고 결국 GC pause로 다 같이 죽는다.
+큐 용량을 *항상 유한하게* 잡고 reject policy를 명시하는 것이 핵심. `LinkedBlockingQueue` 기본값(Integer.MAX_VALUE)을 쓰면 격벽이 무의미하다. 메모리만 부풀고 결국 GC pause로 다 같이 죽는다.
 
-## Timeout 계층 — 가장 깊은 곳이 가장 짧게
+## Timeout 계층: 가장 깊은 곳이 가장 짧게
 
 Saturation을 방지하는 두 번째 축은 timeout이다. 흔한 실수는 *위로 갈수록 짧게* 잡는 것. 정답은 반대다. **가장 깊은 호출(DB)이 가장 짧고, 위로 갈수록 점점 길게.**
 
@@ -190,7 +190,7 @@ server:
       min-spare: 25
 ```
 
-## Backpressure — 받지 않을 권리
+## Backpressure: 받지 않을 권리
 
 격리·timeout만으로는 부족한 경우가 있다. 들어오는 트래픽이 처리 능력을 초과할 때 *받는 양을 줄이는* 메커니즘이 backpressure다.
 
@@ -214,7 +214,7 @@ public CircuitBreaker pgCircuitBreaker() {
 
 PG 같은 외부 의존이 죽었을 때 `failureRateThreshold` 50%를 넘으면 open 상태로 전환해 *즉시 실패*시킨다. 호출 자체를 안 하니 풀 점유가 없다. open 동안에는 Fallback(예: "결제 잠시 후 다시" 응답)으로 사용자 경험을 보존한다.
 
-## 관측성 — Prometheus / Micrometer 지표
+## 관측성: Prometheus / Micrometer 지표
 
 HikariCP는 Micrometer를 통해 다음 메트릭을 노출한다.
 
@@ -264,7 +264,7 @@ tomcat_threads_busy_threads / tomcat_threads_config_max_threads
 
 ## 커머스 주문/결제 장애 시나리오 2개
 
-### 시나리오 A — 라이브 방송 직후 풀 폭주
+### 시나리오 A: 라이브 방송 직후 풀 폭주
 
 라이브 커머스 송출이 끝난 직후 3분간 평소 5배 트래픽 유입. 주문 API 풀 20, worker 200. PG 호출은 트랜잭션 내부에서 동기 호출. 평소 PG 응답 300ms.
 
@@ -277,7 +277,7 @@ tomcat_threads_busy_threads / tomcat_threads_config_max_threads
 
 이때 trx 경계와 PG 호출의 분리는 [Outbox Pattern](../architecture/distributed-systems/distributed-transaction-outbox-pattern.md)으로 자연스럽게 연결된다.
 
-### 시나리오 B — 백오피스 통계 쿼리가 운영 풀을 잡아먹음
+### 시나리오 B: 백오피스 통계 쿼리가 운영 풀을 잡아먹음
 
 운영자가 백오피스에서 "지난 1년 매출" 리포트를 받는다. 같은 DataSource를 쓰는 단일 풀 30. 통계 쿼리 하나가 풀 25개를 60s 동안 점유.
 
@@ -289,7 +289,7 @@ tomcat_threads_busy_threads / tomcat_threads_config_max_threads
 
 ## Bad vs Improved 코드
 
-### Bad — 트랜잭션 안에서 외부 호출 + 무한 큐
+### Bad: 트랜잭션 안에서 외부 호출 + 무한 큐
 
 ```java
 @Transactional
@@ -303,7 +303,7 @@ public OrderResult placeOrder(OrderCommand cmd) {
 
 문제: PG 응답이 느려지면 트랜잭션 전체가 늘어지고 풀이 점유된다. 알림 큐는 무한이라 메모리 폭증. 트랜잭션 내부 `submit`은 *커밋 전*에 큐잉되므로 롤백 시 *고스트 알림*까지 발생.
 
-### Improved — Outbox + executor 격리 + commit 이후 발행
+### Improved: Outbox + executor 격리 + commit 이후 발행
 
 ```java
 @Transactional
@@ -343,13 +343,13 @@ k6 run --vus 50 --duration 30s load.js
 
 `/actuator/prometheus`에서 `hikaricp_connections_pending`이 즉시 5, 10, 20…으로 쌓이는 것을 관측 가능. 그 상태에서 timeout 부등호를 깨뜨려보고 어떻게 503 패턴이 바뀌는지 직접 보면 답변이 단단해진다.
 
-## 면접 답변 프레임 — 1분 / 3분
+## 면접 답변 프레임: 1분 / 3분
 
-### 1분 답변 — "DB Connection Pool Saturation 경험"
+### 1분 답변: "DB Connection Pool Saturation 경험"
 
 > 라이브 트래픽 피크 직후 풀 saturation이 발생한 적이 있습니다. 원인은 단일 풀에서 결제 쓰기 트랜잭션과 PG 외부 호출이 묶여 있었던 것이고, PG 응답이 길어지면서 풀 20이 1.2초씩 점유돼 500 RPS를 못 받았습니다. 해결은 세 축으로 했습니다. 첫째 PG 호출을 Outbox로 트랜잭션 밖으로 빼서 trx 점유 시간을 1.2초에서 80ms로 줄였고, 둘째 PG executor를 별도 풀로 격리하고 circuit breaker를 걸어 폭주를 차단했고, 셋째 timeout 계층을 DB 1초 / 풀 대기 3초 / WAS 20초 / LB 30초로 정렬해 부등호를 맞췄습니다. 사후 회고는 `hikaricp_connections_pending`과 worker thread busy 비율을 같이 본다는 알람을 추가하는 걸로 마무리했습니다.
 
-### 3분 답변 — "Thread Pool 격리 설계"
+### 3분 답변: "Thread Pool 격리 설계"
 
 bulkhead 패턴 정의 → DataSource 격리 / Executor 격리 / 라이브러리 bulkhead 3축 → 큐 용량 유한화 + reject policy 명시 이유 → backpressure(rate limiter / circuit breaker) → 관측 지표(`hikaricp_connections_pending`, `tomcat_threads_busy`, executor queue depth) → 운영 사례(시나리오 B) → trade-off(격리 풀 수가 늘수록 max_connections 총합도 늘어 DB 측 제약 검토 필요).
 

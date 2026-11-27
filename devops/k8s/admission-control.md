@@ -5,11 +5,11 @@ thumbnail: ./images/admission-control-thumbnail.jpg
 tags: [study]
 ---
 
-# 쿠버네티스 Admission 단계 — 리소스가 etcd에 저장되기 직전에 무슨 일이 일어나는가
+# 쿠버네티스 Admission 단계: 리소스가 etcd에 저장되기 직전에 무슨 일이 일어나는가
 
 `kubectl apply`를 하면 리소스가 클러스터에 "생긴다". 그런데 그 사이에 뭐가 있는지는 오래 몰랐다. 공인 LoadBalancer를 붙이면서 ingress controller를 내부용·외부용으로 나눴는데, "새 Ingress를 만들면 admission webhook이 검증한다"는 문장이 계속 나왔다. admission이 정확히 어느 단계고, 왜 하필 "저장 직전"인지 짚고 넘어가지 않으면 self-lock 같은 사고를 이해할 수 없었다.
 
-한 줄로 먼저 말하면 — **admission은 kube-apiserver가 요청받은 객체를 etcd에 저장하기 직전에 검문·변형하는 단계**다. 여기서 거부되면 객체는 etcd에 저장조차 안 되고, 그래서 controller도 그 객체를 영영 보지 못한다. 이 "저장 직전"이라는 위치가 핵심이라, 이 글은 apiserver 요청 파이프라인에서 admission이 어디 앉아 있는지부터 정리한다.
+한 줄로 먼저 말하면, **admission은 kube-apiserver가 요청받은 객체를 etcd에 저장하기 직전에 검문·변형하는 단계**다. 여기서 거부되면 객체는 etcd에 저장조차 안 되고, 그래서 controller도 그 객체를 영영 보지 못한다. 이 "저장 직전"이라는 위치가 핵심이라, 이 글은 apiserver 요청 파이프라인에서 admission이 어디 앉아 있는지부터 정리한다.
 
 ## kube-apiserver 요청 파이프라인
 
@@ -35,7 +35,7 @@ tags: [study]
 
 두 번째가 실무에서 특히 중요했다. 운영 중인 서비스에 새 Ingress를 하나 추가할 때 "기존 트래픽이 끊기나?"를 걱정했는데, admission은 신규 객체의 등록 여부만 판정할 뿐 돌고 있는 것에 손대지 않는다. 그래서 순수하게 추가만 하는 변경은 기존 경로에 영향이 없다.
 
-## Mutating vs Validating — 변형이냐 검증이냐
+## Mutating vs Validating: 변형이냐 검증이냐
 
 admission은 두 종류로 갈린다. 순서대로 mutating이 먼저, validating이 나중이다.
 
@@ -46,7 +46,7 @@ admission은 두 종류로 갈린다. 순서대로 mutating이 먼저, validatin
 
 쿠버네티스에는 이 admission을 수행하는 내장 플러그인이 여럿 있다(예: `NamespaceLifecycle`, `ResourceQuota`). 그리고 여기에 **직접 만든 검문 로직을 꽂는 확장 지점**이 admission webhook이다.
 
-## admission webhook — apiserver가 외부에 물어보는 확장점
+## admission webhook: apiserver가 외부에 물어보는 확장점
 
 내장 플러그인만으로는 "우리 팀 규칙"을 강제할 수 없다. 그래서 apiserver는 admission 단계에서 **외부 HTTP 엔드포인트에 물어보는** 기능을 연다. 이게 admission webhook이다.
 
@@ -55,7 +55,7 @@ admission은 두 종류로 갈린다. 순서대로 mutating이 먼저, validatin
 
 OPA/Gatekeeper, Kyverno, Pod Security 같은 정책 도구가 전부 이 위에서 돈다. 그리고 우리가 쓰는 ingress-nginx도 여기 하나 얹혀 있었다.
 
-## 실제로 마주친 예 — ingress-nginx의 ValidatingWebhook
+## 실제로 마주친 예: ingress-nginx의 ValidatingWebhook
 
 ingress-nginx를 설치하면 `ValidatingWebhookConfiguration`이 같이 깔린다. 하는 일은 이렇다.
 
@@ -77,13 +77,13 @@ ValidatingWebhookConfiguration: ingress-nginx-admission
 
 여기서 두 가지를 눈여겨봐야 했다. `failurePolicy: Fail`과, rules에 class 필터가 없다는 것.
 
-## 함정 — webhook은 controller와 달리 격리되지 않는다
+## 함정: webhook은 controller와 달리 격리되지 않는다
 
 controller는 IngressClass로 자기 것만 처리한다. `nginx` class controller는 `nginx` Ingress만, `nginx-external` class controller는 `nginx-external` Ingress만 본다.
 
 그런데 **webhook은 그렇지 않다.** `ValidatingWebhookConfiguration`은 cluster-scoped 리소스라, class로도 namespace로도 안 갈라지고 **클러스터 전체의 Ingress 요청을 전부 가로챈다.** 위 rules에 class 필터가 없는 게 그 증거다.
 
-여기에 `failurePolicy: Fail`이 겹치면 사고 시나리오가 나온다. controller를 내부용·외부용 둘로 나누면서 외부 controller의 webhook을 그냥 켜두면 —
+여기에 `failurePolicy: Fail`이 겹치면 사고 시나리오가 나온다. controller를 내부용·외부용 둘로 나누면서 외부 controller의 webhook을 그냥 켜두면 이렇게 된다.
 
 1. 외부 controller의 webhook Pod가 죽는다.
 2. 그런데 그 webhook은 (class 무관) 모든 Ingress 요청을 검문하도록 등록돼 있다.
@@ -91,7 +91,7 @@ controller는 IngressClass로 자기 것만 처리한다. `nginx` class controll
 4. 결과적으로 **내부 Ingress를 수정하려 해도** "webhook 응답 없음"으로 막힌다.
 5. 배포가 줄줄이 실패한다 — self-lock이다.
 
-그래서 우리는 외부 controller에는 `admissionWebhooks.enabled: false`로 webhook 자체를 안 만들었다. 검증 한 겹을 포기하는 대신(전역 검증은 기존 내부 controller의 webhook이 어차피 해준다) 새 단일 장애점을 안 만든 것이다. 이 self-lock을 실제로 어떻게 피했는지, whitelist·affinity 같은 다른 운영 디테일과 함께 다룬 글은 따로 있다 — **[ingress-nginx 운영에서 부딪힌 디테일들](./ingress-nginx-operations.md)**.
+그래서 우리는 외부 controller에는 `admissionWebhooks.enabled: false`로 webhook 자체를 안 만들었다. 검증 한 겹을 포기하는 대신(전역 검증은 기존 내부 controller의 webhook이 어차피 해준다) 새 단일 장애점을 안 만든 것이다. 이 self-lock을 실제로 어떻게 피했는지, whitelist·affinity 같은 다른 운영 디테일과 함께 다룬 글은 따로 있다: **[ingress-nginx 운영에서 부딪힌 디테일들](./ingress-nginx-operations.md)**.
 
 ## 가져갈 것
 
@@ -103,9 +103,9 @@ admission을 이해하고 나서 남은 판단 기준은 이렇다.
 
 ## 관련 글
 
-- [ingress-nginx 운영에서 부딪힌 디테일들 — webhook, whitelist, affinity, 리소스 사양](./ingress-nginx-operations.md) — 이 글의 self-lock을 실제로 어떻게 피했는지
-- [쿠버네티스 핵심 객체 4종 — Pod, Service, Ingress, Namespace의 관계](./k8s-core-objects.md)
-- [API Gateway를 제거한 자리 채우기 — path rewrite, 요청 크기 병목 4개, 그리고 HTTPS](./api-gateway-removal-rewrite-and-https.md)
+- [ingress-nginx 운영에서 부딪힌 디테일들: webhook, whitelist, affinity, 리소스 사양](./ingress-nginx-operations.md) — 이 글의 self-lock을 실제로 어떻게 피했는지
+- [쿠버네티스 핵심 객체 4종: Pod, Service, Ingress, Namespace의 관계](./k8s-core-objects.md)
+- [API Gateway를 제거한 자리 채우기: path rewrite, 요청 크기 병목 4개, 그리고 HTTPS](./api-gateway-removal-rewrite-and-https.md)
 
 ## 참고 링크
 

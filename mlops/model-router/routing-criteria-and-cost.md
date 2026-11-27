@@ -46,7 +46,7 @@ LiteLLM 은 배포에 태그를 붙이고 호출하는 쪽이 `x-litellm-tags` �
 ### 분류 모델
 
 임베딩 뒤에 분류기를 붙이는 대신, 텍스트를 바로 받아 난이도와 의도와 도메인을 예측하도록 학습한 모델을 둔다.
-BERT 계열의 작은 encoder 모델이 이 자리에 쓰인다.
+BERT 계열의 작은 encoder 모델이 이 용도로 쓰인다.
 
 KT 의 Model Orchestrator 가 이 축을 넷으로 나눈 사례다.
 요청을 Task 와 Domain 과 Level 과 Capability 로 분류해 모델을 고른다.

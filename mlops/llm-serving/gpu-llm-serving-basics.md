@@ -4,11 +4,11 @@ series: "GPU 로 LLM 서빙하기"
 seriesOrder: 6
 ---
 
-# GPU로 LLM을 서빙한다는 것 — 백엔드 개발자를 위한 추론 서빙의 원리
+# GPU로 LLM을 서빙한다는 것: 백엔드 개발자를 위한 추론 서빙의 원리
 
 **이전 글** [Multi-process GPU 워크로드](../java-to-python-multiprocess-gpu-worker-pool.md) · **다음 글** [배칭과 GPU 활용률](./continuous-batching-gpu-utilization.md) · [시리즈 목차](../README.md)
 
-> [GPU·CUDA·MPS 기초 — 자바 백엔드 개발자가 처음 만나는 그림](../java-to-python-gpu-cuda-mps.md)을 먼저 읽으면 GPU 자체의 그림이 잡힌다. 이 글은 그 위에서 "LLM을 서빙하면 왜 어렵고, 그 어려움이 어디서 오는가"를 다룬다.
+> [GPU·CUDA·MPS 기초: 자바 백엔드 개발자가 처음 만나는 그림](../java-to-python-gpu-cuda-mps.md)을 먼저 읽으면 GPU 자체의 그림이 잡힌다. 이 글은 그 위에서 "LLM을 서빙하면 왜 어렵고, 그 어려움이 어디서 오는가"를 다룬다.
 
 나는 AI 서비스 백엔드를 하지만, GPU 위에서 LLM이 실제로 어떻게 도는지는 오래 블랙박스였다. 모델 팀이 만든 걸 API로 감싸 안정적으로 굴리는 역할에 가까웠고, 그 안은 어렴풋하게만 알았다. 이 글은 그 블랙박스를 백엔드 개발자의 언어로 열어본 기록이다.
 
@@ -46,7 +46,7 @@ flowchart LR
 
 이 두 단계는 뒤에서 보듯 **부하 걸리는 자원 자체가 다르다.** prefill은 연산이 병목이고, decode는 메모리 대역폭이 병목이다. 서빙 최적화가 단계마다 갈리는 이유가 여기 있다.
 
-## 핵심: decode는 왜 느린가 — roofline으로 보는 memory-bandwidth bound
+## 핵심: decode는 왜 느린가 (roofline으로 보는 memory-bandwidth bound)
 
 여기가 이 글의 심장이다. 왜 그 비싼 GPU가 놀면서도 느린지를 수치로 유도한다.
 

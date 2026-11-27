@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# fsync — 리눅스 파일 동기화 시스템 콜
+# fsync: 리눅스 파일 동기화 시스템 콜
 
 데이터베이스가 "디스크에 썼다"고 보장하는 메커니즘을 이해하려면 fsync를 알아야 한다. MySQL `innodb_flush_log_at_trx_commit=1`의 동작도 결국 fsync 호출이다.
 
@@ -147,4 +147,4 @@ fsync를 호출해도 **디스크 컨트롤러의 쓰기 캐시**(Write Cache) �
 
 ## 관련 문서
 
-- [Redo Log — MySQL에서 fsync 활용](../database/mysql/redo-log.md)
+- [Redo Log: MySQL에서 fsync 활용](../database/mysql/redo-log.md)

@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# MyBatis 기본기 — XML Mapper, resultMap, 동적 SQL, 운영 패턴 정리
+# MyBatis 기본기: XML Mapper, resultMap, 동적 SQL, 운영 패턴 정리
 
 ## 왜 지금 다시 보는가
 
@@ -98,7 +98,7 @@ public interface MenuMapper {
 
 `Map<String, Object>` 파라미터는 동적 검색 조건처럼 키가 가변일 때만 쓰고, 정적 도메인에서는 전용 condition DTO를 만든다. Map을 쓰면 컴파일 타임에 오타가 잡히지 않는다.
 
-## 동적 SQL — if / choose / foreach / where / set
+## 동적 SQL: if / choose / foreach / where / set
 
 동적 SQL이 MyBatis가 살아남은 진짜 이유다. 문자열 concatenation 없이 조건을 합치고, 끝에서 어색한 `AND`나 `,`를 자동 정리해 준다.
 
@@ -142,7 +142,7 @@ public interface MenuMapper {
 
 여기서 `sort` 값을 `${sort}`로 직접 박지 않고 `<choose>`로 화이트리스트화하는 게 핵심이다. 정렬 컬럼을 외부 입력으로 받는 코드는 SQL 인젝션의 단골 진입점이다.
 
-## SQL Injection — 절대 흐트러지면 안 되는 규칙
+## SQL Injection: 절대 흐트러지면 안 되는 규칙
 
 - WHERE 값, IN 절 원소, LIMIT/OFFSET 숫자: 모두 `#{}`만 쓴다.
 - ORDER BY 컬럼, 테이블명, 동적 컬럼명: `${}`가 필요할 수 있다. 이때는 enum/화이트리스트 검증을 거친 값만 통과시킨다.
@@ -150,7 +150,7 @@ public interface MenuMapper {
 
 MyBatis에서 SQL 인젝션을 막는 핵심은 `#{}`/`${}` 차이와, ORDER BY 같은 자리에서 화이트리스트로 보강한다는 두 축이다.
 
-## 페이징 — LIMIT/OFFSET vs 키셋
+## 페이징: LIMIT/OFFSET vs 키셋
 
 가장 흔한 구현은 `LIMIT #{size} OFFSET #{offset}`이다. 단순하지만 OFFSET이 커질수록 "건너뛸 row를 읽고 버리는" 비용이 선형 증가한다. 메뉴/매장 목록처럼 수십만 row 이하라면 충분하다.
 
@@ -188,7 +188,7 @@ MyBatis에서 SQL 인젝션을 막는 핵심은 `#{}`/`${}` 차이와, ORDER BY 
 </select>
 ```
 
-## Batch — 대량 INSERT/UPDATE 패턴
+## Batch: 대량 INSERT/UPDATE 패턴
 
 영양/가격 일괄 갱신 같은 운영성 잡에서 쓰는 두 가지 길.
 
@@ -210,7 +210,7 @@ MyBatis에서 SQL 인젝션을 막는 핵심은 `#{}`/`${}` 차이와, ORDER BY 
 
 둘 중 무엇을 언제 쓰는가의 기준은 명확하다. 데이터 크기가 작고 명백히 한 트랜잭션이면 multi-row INSERT, 양이 크고 사용자별 row 빌드 로직이 자바 단에 있으면 BATCH executor를 쓴다.
 
-## JPA와 혼용 — 트랜잭션, 1차 캐시, flush 타이밍
+## JPA와 혼용: 트랜잭션, 1차 캐시, flush 타이밍
 
 레거시에서 JPA로 점진 이행 중인 프로젝트는 한 트랜잭션 안에서 JPA와 MyBatis가 같은 데이터를 만지는 일이 흔하다. 함정 두 가지.
 
@@ -290,7 +290,7 @@ Spring Boot 의존성: `mybatis-spring-boot-starter`, `mysql-connector-j`. `appl
 - LIMIT/OFFSET을 `${}`로 받은 코드. 숫자 검증 없이 들어오면 인젝션 가능.
 - 동적 ORDER BY를 `${sort}`로 직접 받은 코드. 화이트리스트 분기로 바꿔야 한다.
 
-## 정리 — JPA와 MyBatis를 고르는 기준
+## 정리: JPA와 MyBatis를 고르는 기준
 
 JPA와 MyBatis 중 무엇을 쓰느냐는 정답이 정해진 선택이 아니라 트레이드오프 판단이다. 다음 골격으로 정리할 수 있다.
 

@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# Strategy Pattern — 분기문을 없애는 설계, 시니어 백엔드 인터뷰 핵심 패턴
+# Strategy Pattern: 분기문을 없애는 설계, 시니어 백엔드 인터뷰 핵심 패턴
 
 ---
 
@@ -169,7 +169,7 @@ public class KakaoPayStrategy implements PaymentStrategy {
 
 각 ConcreteStrategy는 `@Component`로 Spring Bean으로 등록된다. 의존하는 게이트웨이/클라이언트는 생성자 주입으로 받아 테스트 시 mock으로 교체 가능하다.
 
-### 3단계: Context — Strategy 목록을 주입받아 위임
+### 3단계: Strategy 목록을 주입받아 위임하는 Context
 
 ```java
 @Service
@@ -318,7 +318,7 @@ public class ExcelParsingStrategy implements FileParsingStrategy {
 }
 ```
 
-### 슬롯 게임 엔진 — 게임 타입별 처리 분리
+### 슬롯 게임 엔진: 게임 타입별 처리 분리
 
 슬롯 게임 엔진처럼 **게임 타입별로 다른 처리 로직**이 필요한 경우가 있다. 각 게임 유형(클래식 슬롯, 멀티라인, 보너스 슬롯 등)이 공통 인터페이스를 구현하는 ConcreteStrategy가 된다.
 

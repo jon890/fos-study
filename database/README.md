@@ -19,9 +19,9 @@
 - [커넥션 풀 포화와 스레드 풀 격리](./connection-pool-saturation-thread-pool-isolation.md) — Saturation·Exhaustion·Starvation 구분과 격리 패턴
 - [정규화와 역정규화](./normalization-and-denormalization.md) — 무결성과 조회 비용 사이의 선택
 - [gaps and islands: SQL 창 함수로 이어진 구간 찾기](./gaps-and-islands-window-functions.md) — `OVER`와 프레임 기초, 조건 끊김·`lag()`·`row_number()` 차이 세 풀이, Java 루프 대응, MySQL 8 확인
-- [벡터 DB 비교 — OpenSearch·Milvus·Qdrant·Vespa·pgvector](./vectordb-comparison.md) — 데이터 규모·차원·하이브리드별 선택 가이드
+- [벡터 DB 비교: OpenSearch·Milvus·Qdrant·Vespa·pgvector](./vectordb-comparison.md) — 데이터 규모·차원·하이브리드별 선택 가이드
 - [벡터 DB 5종 아키텍처 심층 비교](./vectordb-architecture-deep-dive.md) — 저장-연산 분리·segment·인덱스·필터링 구조 차이 (pgvector 포함)
-- [벡터 DB 도입 사례 — LINE·Reddit·TripAdvisor](./vectordb-production-cases.md) — 전용 벡터 DB 운영 사례
+- [벡터 DB 도입 사례: LINE·Reddit·TripAdvisor](./vectordb-production-cases.md) — 전용 벡터 DB 운영 사례
 - [벡터 DB 5종 벤치마크](./vectordb-benchmark.md) — 데이터셋·질의·recall 측정법과 같은 recall에서 QPS 실측 비교
 - [한국어 형태소 분석기 Nori vs Lindera](./nori-vs-lindera-korean-tokenizer.md) — OpenSearch·Milvus 전환 시 어휘 검색 정확도와 튜닝 재현
 

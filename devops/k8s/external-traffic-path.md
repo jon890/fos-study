@@ -5,7 +5,7 @@ thumbnail: ./images/external-traffic-path-thumbnail.jpg
 tags: [study]
 ---
 
-# 외부 트래픽은 어떻게 Pod까지 닿는가 — LoadBalancer, Ingress Controller, 내부와 외부 분리
+# 외부 트래픽은 어떻게 Pod까지 닿는가: LoadBalancer, Ingress Controller, 내부와 외부 분리
 
 회사에서 "API Gateway를 제거하고, 쿠버네티스 앞에 LoadBalancer를 직접 붙여서 외부로 노출하자"는 작업을 맡게 됐다. 그런데 막상 들여다보니 나는 Ingress가 뭔지도 제대로 몰랐다. "외부 요청이 들어와서 서버가 응답한다" 정도로만 알고 있었지, 그 사이에 LoadBalancer니 Ingress Controller니 하는 것들이 몇 겹으로 끼어 있는지는 감이 없었다.
 
@@ -29,7 +29,7 @@ Service에도 종류가 있다. 외부 노출을 이해하려면 이 세 가지�
 
 내가 헷갈렸던 지점이 여기였다. 보통 애플리케이션 Service는 ClusterIP로 떠 있다. 즉 **그 자체로는 외부에서 절대 못 들어온다.** 외부 노출은 누군가 따로 길을 뚫어줘야 하고, 그 길의 시작이 LoadBalancer 타입 Service다.
 
-## LoadBalancer 타입 — 클라우드가 로드밸런서를 만들어준다
+## LoadBalancer 타입: 클라우드가 로드밸런서를 만들어준다
 
 LoadBalancer 타입으로 Service를 만들면, 쿠버네티스가 클라우드(AWS, Azure, 또는 OpenStack 기반 관리형 쿠버네티스 등)에게 "이 Service로 들어오는 로드밸런서를 하나 만들어줘"라고 요청한다. 그러면 클라우드가 실제 LB 장비를 띄우고, 거기에 IP(VIP, 가상 IP)를 붙여서 돌려준다.
 
@@ -49,7 +49,7 @@ spec:
 
 핵심은 **이 LB가 클러스터 바깥의 실제 자원**이라는 점이다. 쿠버네티스 YAML 한 줄이 클라우드 인프라를 움직인다.
 
-## 사설 LB와 공인 LB — annotation 한 줄의 차이
+## 사설 LB와 공인 LB: annotation 한 줄의 차이
 
 여기서 한 단계 더 들어간다. 같은 LoadBalancer 타입이라도, 받는 IP가 **사설**(내부망 전용)일 수도 있고 **공인**(인터넷에서 닿는)일 수도 있다. 이걸 정하는 건 annotation 한 줄이다.
 
@@ -60,7 +60,7 @@ metadata:
     service.beta.kubernetes.io/openstack-internal-load-balancer: "true"
 ```
 
-이 annotation이 붙어 있으면 LB가 사설 VIP만 받아서, 같은 VPC 안에서만 닿는다. 이걸 빼면 공인 IP를 받아 인터넷에 열린다. 클라우드 벤더마다 annotation 이름은 다르다(Azure는 `azure-load-balancer-internal` 같은 식). 개념은 같다 — **이 LB를 안쪽으로만 열까, 바깥까지 열까**를 선언으로 정한다.
+이 annotation이 붙어 있으면 LB가 사설 VIP만 받아서, 같은 VPC 안에서만 닿는다. 이걸 빼면 공인 IP를 받아 인터넷에 열린다. 클라우드 벤더마다 annotation 이름은 다르다(Azure는 `azure-load-balancer-internal` 같은 식). 개념은 같다. **이 LB를 안쪽으로만 열까, 바깥까지 열까**를 선언으로 정한다.
 
 공인 IP를 다룰 때 내가 처음에 오해했던 게 있다. "공인 IP를 먼저 발급받아서 지정해야 하는 줄" 알았는데, 실제로는 반대였다. **LB를 먼저 만들면 클라우드가 공인 IP를 자동으로 할당해준다.** 그 다음 할당된 IP를 `spec.loadBalancerIP`에 적어서 "앞으로도 이 IP를 고정해서 써라"라고 못 박는 식이다. 발급이 먼저가 아니라 생성이 먼저고, 고정은 나중이다.
 

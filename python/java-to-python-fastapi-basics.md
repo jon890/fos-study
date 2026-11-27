@@ -4,11 +4,11 @@ series: "자바 백엔드 개발자를 위한 Python 입문"
 seriesOrder: 4
 ---
 
-# FastAPI 기초 — Spring Boot 사용자가 빠르게 익히는 법
+# FastAPI 기초: Spring Boot 사용자가 빠르게 익히는 법
 
 Python ML 서비스를 분석하면서 가장 빨리 익숙해진 것이 FastAPI 였다. Spring Boot 를 써 본 사람이라면 손에 익기까지 한두 시간이면 충분하다. "어노테이션으로 라우팅 매핑하고, 클래스로 DTO 정의하고, 의존성 주입 받는다" 라는 큰 틀이 거의 그대로 옮겨온다.
 
-다만 세부에서 사고방식이 다르다. Pydantic 이 자바 Bean Validation 자리에 들어가는데 강제 수준이 훨씬 세고, 의존성 주입은 Spring 컨테이너가 아니라 함수 시그니처에서 일어난다. 자동으로 생성되는 OpenAPI 문서는 SpringDoc 보다 손이 덜 간다.
+다만 세부에서 사고방식이 다르다. Pydantic 이 자바 Bean Validation 역할을 하는데 강제 수준이 훨씬 세고, 의존성 주입은 Spring 컨테이너가 아니라 함수 시그니처에서 일어난다. 자동으로 생성되는 OpenAPI 문서는 SpringDoc 보다 손이 덜 간다.
 
 이 글은 FastAPI 의 핵심 개념을 Spring Boot 와 1:1 로 비교하며 정리한다. [데코레이터 동작 원리](./java-to-python-oop-decorator.md) 와 [Python 문법 핵심](./java-to-python-syntax.md) 을 전제로 한다.
 
@@ -32,7 +32,7 @@ Spring 진영과 짝지어 보면 이렇다.
 
 큰 차이는 두 가지: **클래스가 아니라 함수**가 핸들러의 단위라는 점, 그리고 **타입 힌트가 단순 메타데이터가 아니라 실제 검증 기준**이 된다는 점.
 
-## Hello World — 라우팅·핸들러
+## Hello World: 라우팅·핸들러
 
 자바 Spring 의 컨트롤러:
 
@@ -64,11 +64,11 @@ def hello(name: str, times: int = 1) -> Greeting:
     return Greeting(name=name, times=times)
 ```
 
-`@app.get("/hello/{name}")` 가 `@GetMapping` 자리. 차이는 **인자의 정체를 별도 어노테이션 없이 시그니처로 추론**한다는 점이다. URL path 의 `{name}` 과 매칭되는 인자는 `@PathVariable` 없이 그냥 같은 이름으로 받고, path 와 매칭 안 되는 인자는 자동으로 query parameter (`?times=3`) 로 잡힌다.
+`@app.get("/hello/{name}")` 가 `@GetMapping` 에 해당한다. 차이는 **인자의 정체를 별도 어노테이션 없이 시그니처로 추론**한다는 점이다. URL path 의 `{name}` 과 매칭되는 인자는 `@PathVariable` 없이 그냥 같은 이름으로 받고, path 와 매칭 안 되는 인자는 자동으로 query parameter (`?times=3`) 로 잡힌다.
 
 자바라면 `@PathVariable`, `@RequestParam` 을 일일이 붙여야 했던 일이 사라진다. 이는 다음에 볼 Pydantic 과 합쳐져 큰 위력을 발휘한다.
 
-## Pydantic — Bean Validation 의 강화판
+## Pydantic: Bean Validation 의 강화판
 
 자바 Bean Validation 은 `@NotNull`, `@Size(min=1, max=100)` 같은 어노테이션을 필드에 박고, 컨트롤러에서 `@Valid` 로 활성화한다.
 
@@ -103,7 +103,7 @@ def parse_url(request: ParseRequest):
 
 우리가 분석한 코드의 `URLRequest` (`app.py`) 도 거의 같은 형태였다. URL 다운로드 핸들러가 `request: URLRequest` 한 줄만 받고, 나머지 옵션 (`do_ocr`, `ja_doc`, `prior` 등) 은 다 Pydantic 이 검증.
 
-## 의존성 주입 — Spring DI 와 결이 다르다
+## 의존성 주입: Spring DI 와 결이 다르다
 
 Spring DI 는 컨테이너가 빈을 관리하고 어노테이션으로 주입한다. FastAPI 는 컨테이너가 없고, **`Depends(...)` 함수**가 의존성을 표현한다.
 
@@ -136,7 +136,7 @@ def list_items(db: Session = Depends(get_db)):
     return db.query(Item).all()
 ```
 
-`yield` 를 쓰는 의존성은 자바의 `try-with-resources` 자리. 핸들러 종료 후 자동으로 `finally` 가 호출된다. 우리가 [Post 2 에서 본 컨텍스트 매니저](./java-to-python-oop-decorator.md) 의 응용.
+`yield` 를 쓰는 의존성은 자바의 `try-with-resources` 에 해당한다. 핸들러 종료 후 자동으로 `finally` 가 호출된다. 우리가 [Post 2 에서 본 컨텍스트 매니저](./java-to-python-oop-decorator.md) 의 응용.
 
 Spring 의 `@Autowired` 는 클래스 필드/생성자에 박지만, FastAPI 는 핸들러 시그니처에 박는다. 클래스 단위가 아니라 **요청 단위**로 의존성이 새로 만들어지는 게 기본 (`Depends(use_cache=True)` 로 요청 안에서 캐시 가능).
 
@@ -158,7 +158,7 @@ async def async_handler():
 
 FastAPI 는 `def` 핸들러를 스레드 풀에서 실행해 이벤트 루프 block 을 피하지만, `async def` 안에서 `requests.get(...)` 같은 동기 호출을 하면 그대로 루프가 멈춘다. 우리 프로젝트의 `/parse/url` 가 `async def` 인데 내부에서 동기 `requests.get` 을 호출해 동시성을 깎는 문제가 분석에서 잡혔다. 이 함정은 별도 글에서 자세히 본다.
 
-## 응답 모델 — 직렬화 + 문서화
+## 응답 모델: 직렬화 + 문서화
 
 리턴 타입 힌트에 BaseModel 을 적으면 자동으로 직렬화 + OpenAPI 스키마에 반영된다.
 
@@ -173,11 +173,11 @@ def parse_url(request: ParseRequest) -> ParseResponse:
     ...
 ```
 
-`response_model=ParseResponse` 옵션은 응답을 한 번 더 필터링한다. 의도하지 않은 필드가 노출되는 것을 막는다. 자바 Jackson 의 `@JsonView` 자리.
+`response_model=ParseResponse` 옵션은 응답을 한 번 더 필터링한다. 의도하지 않은 필드가 노출되는 것을 막는다. 자바 Jackson 의 `@JsonView` 에 해당한다.
 
 ## 미들웨어와 lifespan
 
-전역 처리 (CORS, gzip, 인증 일괄 등) 는 미들웨어로 처리한다. Spring 의 `Filter` 또는 `HandlerInterceptor` 자리.
+전역 처리 (CORS, gzip, 인증 일괄 등) 는 미들웨어로 처리한다. Spring 의 `Filter` 또는 `HandlerInterceptor` 에 해당한다.
 
 ```python
 from fastapi.middleware.cors import CORSMiddleware
@@ -185,7 +185,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(CORSMiddleware, allow_origins=["*"])
 ```
 
-부팅·종료 훅은 `lifespan` 컨텍스트 매니저. Spring 의 `ApplicationListener` 또는 `@PostConstruct` / `@PreDestroy` 자리.
+부팅·종료 훅은 `lifespan` 컨텍스트 매니저. Spring 의 `ApplicationListener` 또는 `@PostConstruct` / `@PreDestroy` 에 해당한다.
 
 ```python
 from contextlib import asynccontextmanager
@@ -203,7 +203,7 @@ app = FastAPI(lifespan=lifespan)
 
 우리 프로젝트의 워커 풀 초기화·해체가 같은 패턴으로 들어가 있다. PaddleOCR·Docling converter 워밍업이 startup 단계에서 일어나고, shutdown 단계에서 워커 풀이 정리된다.
 
-## OpenAPI 자동 문서 — SpringDoc 없이도
+## OpenAPI 자동 문서: SpringDoc 없이도
 
 FastAPI 는 서버를 띄우자마자 두 개의 문서 페이지를 자동 제공한다.
 
@@ -234,8 +234,8 @@ docstring 의 마크다운이 그대로 `/docs` 에 렌더링된다. 자바에�
 FastAPI 가 만능은 아니다. Spring 진영에서 넘어올 때 부딪히는 부분들.
 
 - **컨테이너가 없다** — `@Autowired` 처럼 어디서든 빈을 꺼내 쓰는 패턴이 없다. 의존성은 핸들러 시그니처를 통해서만 들어온다. 비-요청 컨텍스트 (예: 백그라운드 작업) 에서 DB 세션을 꺼내고 싶다면 직접 객체를 만들어 넘겨야 한다.
-- **트랜잭션 자동 관리가 없다** — Spring 의 `@Transactional` 자리. SQLAlchemy 의 `Session` 을 `Depends` 로 받아 `try/commit/rollback` 을 핸들러나 서비스 함수에서 직접 짜야 한다.
-- **AOP 가 없다** — Spring `@Aspect` 자리는 데코레이터 또는 미들웨어가 일부 대신하지만 1:1 대응은 아니다.
+- **트랜잭션 자동 관리가 없다** — Spring 의 `@Transactional` 에 해당하는 기능이다. SQLAlchemy 의 `Session` 을 `Depends` 로 받아 `try/commit/rollback` 을 핸들러나 서비스 함수에서 직접 짜야 한다.
+- **AOP 가 없다** — Spring `@Aspect` 의 역할은 데코레이터 또는 미들웨어가 일부 대신하지만 1:1 대응은 아니다.
 - **async 와 sync 가 섞이면 위험** — 핸들러를 `async def` 로 쓰면서 안에서 동기 I/O 를 호출하면 동시성이 무너진다. Spring 의 `@Async` 와는 다른 함정.
 
 이 마지막 함정이 다음 글의 주제다. async/await 와 blocking I/O 함정, 그리고 자바 `CompletableFuture` / Reactor 와의 비교.

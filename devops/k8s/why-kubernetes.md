@@ -5,13 +5,13 @@ seriesOrder: 1
 thumbnail: ./images/why-kubernetes-thumbnail.jpg
 ---
 
-# 컨테이너와 쿠버네티스가 필요한 이유 — jar 를 서버에 올리던 사람의 관점에서
+# 컨테이너와 쿠버네티스가 필요한 이유: jar 를 서버에 올리던 사람의 관점에서
 
 나는 오랫동안 Spring Boot 를 jar 로 말아서 서버에 올리는 방식으로 일했다. 배포는 "서버에 접속해서 기존 프로세스를 죽이고 새 jar 를 띄운다"였고, 그걸로 충분했다. 그러다 쿠버네티스 위에서 도는 서비스를 맡게 됐는데, ArgoCD 화면은 매일 보면서도 그 안에서 무슨 일이 벌어지는지는 몰랐다. Pod 가 왜 이름이 매번 바뀌는지, 왜 서버에 SSH 로 들어갈 생각을 안 하는지.
 
-이 시리즈는 그때부터 하나씩 밟아나간 기록이다. 첫 글에서 답할 질문은 하나다 — **jar 를 서버에 올리는 방식은 정확히 어디서 무너지고, 쿠버네티스는 그중 무엇을 대신해 주는가.**
+이 시리즈는 그때부터 하나씩 밟아나간 기록이다. 첫 글에서 답할 질문은 하나다: **jar 를 서버에 올리는 방식은 정확히 어디서 무너지고, 쿠버네티스는 그중 무엇을 대신해 주는가.**
 
-## 컨테이너가 먼저 푸는 문제 — "내 로컬에선 됐는데"
+## 컨테이너가 먼저 푸는 문제: "내 로컬에선 됐는데"
 
 쿠버네티스 얘기를 하려면 컨테이너부터다. 컨테이너는 **애플리케이션을 어디서 돌리든 똑같이 돌도록 만든 격리된 실행 환경**이다.
 
@@ -39,7 +39,7 @@ VM 과 헷갈리기 쉬운데, 결정적 차이는 **OS 커널을 새로 띄우�
 
 표를 세로로 읽으면 공통점이 보인다. 왼쪽 열은 전부 **사람이 알아채고 사람이 조치하는 일**이고, 오른쪽 열은 전부 **시스템이 알아채고 시스템이 조치하는 일**이다. 쿠버네티스가 파는 것은 기능 목록이 아니라 이 전환이다.
 
-그래서 쿠버네티스를 한 문장으로 정의하면 이렇게 된다 — **컨테이너를 자동으로 배치하고, 유지하고, 스스로 복구하는 오케스트레이션 시스템.**
+그래서 쿠버네티스를 한 문장으로 정의하면 이렇게 된다: **컨테이너를 자동으로 배치하고, 유지하고, 스스로 복구하는 오케스트레이션 시스템.**
 
 ## 클러스터는 어떻게 생겼나
 
@@ -106,15 +106,15 @@ flowchart TB
 2. [선언형 API 와 reconcile loop](./declarative-api-reconcile-loop.md) — 쿠버네티스를 관통하는 단 하나의 원리
 3. [핵심 객체 4종](./k8s-core-objects.md) — Pod · Service · Ingress · Namespace 의 관계
 4. [Deployment · ReplicaSet · Pod](./deployment-pod.md) — 배포가 실제로 굴러가는 3층 구조
-5. [admission — etcd 에 저장되기 직전](./admission-control.md) — 요청이 거부되는 지점
+5. [admission: etcd 에 저장되기 직전](./admission-control.md) — 요청이 거부되는 지점
 6. [Helm](./helm.md) — YAML 을 템플릿으로 관리하기
 7. [Argo CD](./argo-cd.md) — git 을 정답으로 삼는 배포
 8. [Helm 과 ArgoCD 로 GitOps 하기](./helm-argocd-gitops.md) — 둘을 합친 실전 흐름
 
-다음 글에서는 지금까지 계속 미뤄 둔 것 — "원하는 상태를 선언하면 시스템이 맞춘다"가 내부적으로 어떤 구조인지 — 를 본다. 이 원리 하나를 잡아두면 뒤의 Deployment · admission · ArgoCD 가 전부 같은 패턴의 변주로 읽힌다.
+다음 글에서는 지금까지 계속 미뤄 둔 것, 즉 "원하는 상태를 선언하면 시스템이 맞춘다"가 내부적으로 어떤 구조인지를 본다. 이 원리 하나를 잡아두면 뒤의 Deployment · admission · ArgoCD 가 전부 같은 패턴의 변주로 읽힌다.
 
 ## 참고 링크
 
 - [Kubernetes Components — 공식 문서](https://kubernetes.io/docs/concepts/overview/components/)
 - [What is Kubernetes — 공식 문서](https://kubernetes.io/docs/concepts/overview/)
-- [컨테이너 격리 원리 — Linux 프로세스 격리](../docker/linux-process-isolation.md)
+- [컨테이너 격리 원리: Linux 프로세스 격리](../docker/linux-process-isolation.md)

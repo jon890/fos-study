@@ -4,7 +4,7 @@ series: "GPU 로 LLM 서빙하기"
 seriesOrder: 2
 ---
 
-# Python CUDA 버전 생태계 — nvidia-smi, nvcc, pip, conda가 다 다른 버전을 말하는 이유
+# Python CUDA 버전 생태계: nvidia-smi, nvcc, pip, conda가 다 다른 버전을 말하는 이유
 
 **이전 글** [GPU·CUDA·MPS 기초](./java-to-python-gpu-cuda-mps.md) · **다음 글** [GPU 컨테이너의 CUDA 버전 호환성](./gpu-container-cuda-driver-compatibility.md) · [시리즈 목차](README.md)
 

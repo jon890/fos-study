@@ -4,7 +4,7 @@ tags: [심화, study]
 thumbnail: ./images/ontology-knowledge-graph-agent-context-thumbnail.jpg
 ---
 
-# 온톨로지에서 코딩 에이전트 컨텍스트까지 — 클래스·관계 설계와 그래프 평가
+# 온톨로지에서 코딩 에이전트 컨텍스트까지: 클래스·관계 설계와 그래프 평가
 
 지식그래프를 만들어보면서 가장 어려웠던 건 노드를 저장하는 일이 아니었다.
 `API Gateway`, `게이트웨이`, `Gateway API`처럼 비슷해 보이는 표현을 언제 하나로 묶고,

@@ -4,13 +4,13 @@ series: "자바 백엔드 개발자를 위한 Python 입문"
 seriesOrder: 7
 ---
 
-# PyTorch 기초 — 텐서, 디바이스, 그리고 모델 로딩이 무거운 이유
+# PyTorch 기초: 텐서, 디바이스, 그리고 모델 로딩이 무거운 이유
 
 자바 백엔드에서 Spring Boot 가 부팅하는 시간이 5-30초 걸리는 게 일반적이다. 클래스 로딩, 컴포넌트 스캔, 의존성 주입, EntityManagerFactory 초기화 등이 누적된다. 한 번 부팅하면 그 뒤로는 요청 처리에 거의 영향이 없다.
 
 PyTorch 기반 ML 서비스는 비슷하지만 한 단계 더 무겁다. 우리 프로젝트의 KR Worker 가 실측으로 **워커 한 번 spawn 마다 5.74초** (1,565회 측정, p95 5.94s) 의 워밍업 비용을 지불한다. 자바 시각으로는 "Spring Boot 가 매번 부팅하는 비용을 요청 몇 건마다 다시 내는 셈". 이 글은 PyTorch 의 모델 로딩이 왜 그렇게 무거운지, 자바 백엔드 비교로 정리한다.
 
-## 텐서 — numpy array + GPU + autograd
+## 텐서: numpy array + GPU + autograd
 
 PyTorch 의 모든 데이터는 `torch.Tensor` 다. 겉모습은 numpy `ndarray` 와 비슷하지만 세 가지가 더 있다.
 
@@ -40,7 +40,7 @@ with torch.inference_mode():
     output = model(input_tensor)
 ```
 
-## device — 자바의 Executor 자리
+## device: 자바의 Executor 역할
 
 자바에서 `ExecutorService` 가 작업을 어디서 실행할지 결정하듯, PyTorch 에서는 텐서·모델의 `device` 가 어디서 연산이 일어날지 결정한다.
 
@@ -58,7 +58,7 @@ output = model(input)        # 같은 device 에서만 연산 가능
 
 device 가 여러 개 (multi-GPU) 인 환경에서는 `cuda:0`, `cuda:1` 처럼 인덱스를 지정한다. 우리 운영 환경은 T4 한 장이라 항상 `cuda:0`.
 
-## nn.Module — Spring `@Service` 같은 비유
+## nn.Module: Spring `@Service` 같은 비유
 
 PyTorch 모델의 단위는 `torch.nn.Module` 서브클래스다. 자바에서 `@Service` 클래스가 비즈니스 로직을 담듯, `nn.Module` 은 forward 연산을 담는다.
 
@@ -85,7 +85,7 @@ output = model(input_tensor)         # 사실은 model.forward(input_tensor)
 - 모델 호출 시 `forward` 가 아니라 객체 자체를 함수처럼 부른다 (`model(x)`). [Python 데코레이터 글](./java-to-python-oop-decorator.md) 의 `__call__` dunder 가 동작.
 - `.to("cuda")` 한 번 부르면 **모든 parameter 텐서가 GPU 로 일괄 이동**. 자바의 `@Transactional` 처럼 모듈 전체에 적용되는 동작.
 
-## 모델 로딩이 무거운 이유 — 다섯 단계 누적
+## 모델 로딩이 무거운 이유: 다섯 단계 누적
 
 자바 Spring 부팅이 한 번 끝나면 그 뒤로는 코드 로딩이 끝나지만, PyTorch 모델 로딩은 다음 다섯 단계가 모두 끝나야 첫 추론이 가능하다.
 
@@ -109,7 +109,7 @@ output = model(input_tensor)         # 사실은 model.forward(input_tensor)
 
 각 프로세스가 GPU 에 처음 접근할 때 CUDA Runtime 이 컨텍스트를 만든다. 자바의 첫 `Thread.start()` 가 OS 스레드를 만드는 비용과 비슷한 위치인데 훨씬 무겁다. 300-600MB 의 VRAM 도 소비. NVIDIA MPS 가 이 비용을 공유로 줄이려는 시도.
 
-### 5단계: JIT warmup — 첫 추론 캐싱 (3-10s)
+### 5단계: JIT warmup (첫 추론 캐싱, 3-10s)
 
 PyTorch / cuDNN 은 첫 번째 추론 시점에 최적 알고리즘을 선택하고 GPU kernel 을 컴파일해 캐싱한다. 같은 입력 shape 라면 두 번째 호출부터 매우 빠르다.
 
@@ -139,13 +139,13 @@ torch.cuda.synchronize()
 
 부팅 시점에는 모델 파일 다운로드 (HuggingFace) 까지 포함되어 16.5s 가 걸린다. 그 이후 respawn 은 디스크 캐시 덕에 5.7s 수준. 우리 분석에서 "모델 다시 로딩하는 비용이 워밍업 시간 차이를 만든다" 가 핵심 결론.
 
-## HuggingFace 캐시 — 자바 Maven local repo 자리
+## HuggingFace 캐시: 자바 Maven local repo 역할
 
-`transformers`, `docling-ibm-models` 같은 라이브러리는 모델을 처음 요청할 때 HuggingFace Hub 에서 자동 다운로드한 뒤 `~/.cache/huggingface/` 에 저장한다. 자바의 `~/.m2/repository` 와 같은 자리.
+`transformers`, `docling-ibm-models` 같은 라이브러리는 모델을 처음 요청할 때 HuggingFace Hub 에서 자동 다운로드한 뒤 `~/.cache/huggingface/` 에 저장한다. 자바의 `~/.m2/repository` 와 같은 역할이다.
 
 Docker 환경에서는 이 캐시가 컨테이너 안에 있으면 컨테이너 재시작 시 사라진다. 그래서 우리 Dockerfile 은 빌드 시점에 `huggingface-cli download` 로 모델을 미리 받아 이미지에 박는다. 자바에서 `mvn dependency:go-offline` 으로 의존성을 박는 것과 같은 패턴.
 
-## 모델 캐시 — 자바 싱글톤 빈
+## 모델 캐시: 자바 싱글톤 빈
 
 PyTorch 모델 자체는 한 번 로드하면 메모리에 떠 있다. 매 요청마다 다시 로드하면 위 다섯 단계를 매번 반복해 처리가 안 된다.
 

@@ -221,7 +221,7 @@ Spring Framework 7의 `ApiVersionResolver` 기반 버전 매핑과는 별개의 
 `API Gateway`와 캐시가 `Accept` 헤더를 캐시 키에 포함하지 않으면 다른 버전의 응답이 섞일 수 있다.
 응답의 `Vary: Accept`와 중간 캐시 설정을 함께 확인해야 한다.
 
-### 응답 진화 — 잘못된 예 vs 개선된 예
+### 응답 진화: 잘못된 예 vs 개선된 예
 
 #### 나쁜 예: 필드 의미를 조용히 바꿈
 

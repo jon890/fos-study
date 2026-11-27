@@ -24,7 +24,7 @@ Aurora Serverless는 "필요할 때만 늘어나고 줄어드는 MySQL"이라는
 
 ## 핵심 개념: Aurora Serverless의 동작 모델부터 다시
 
-### v1 vs v2 — 같은 이름, 다른 짐승
+### v1 vs v2: 같은 이름, 다른 짐승
 
 Aurora Serverless v1은 capacity unit을 **단계적으로** 점프시킨다. 2 ACU → 4 ACU → 8 ACU 같은 식으로 이동하고, 그 이동 자체가 수십 초~수 분 걸린다. 트래픽이 갑자기 들어오면 일정 시간 동안은 작은 ACU로 버텨야 하고, 활성 트랜잭션이 있으면 scale을 못 한다. 그래서 v1은 "트래픽이 평탄하지만 idle 비중이 큰 워크로드"에 맞는다.
 

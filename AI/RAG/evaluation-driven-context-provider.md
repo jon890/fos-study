@@ -4,7 +4,7 @@ tags: [심화, study]
 thumbnail: ./images/evaluation-driven-context-provider-thumbnail.jpg
 ---
 
-# RAG를 평가에서 역설계하기 — LLM을 위한 컨텍스트 제공자는 무엇을 잘해야 하는가
+# RAG를 평가에서 역설계하기: LLM을 위한 컨텍스트 제공자는 무엇을 잘해야 하는가
 
 VectorDB와 임베딩 모델을 잘 고르면 RAG 품질도 좋아질 것이라고 생각했다.
 지금도 그 생각이 틀렸다고 보지는 않는다.

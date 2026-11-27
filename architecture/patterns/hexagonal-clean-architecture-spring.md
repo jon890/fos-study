@@ -180,7 +180,7 @@ public class OrderService {
 - Controller에 `@Transactional`이 붙어 HTTP/트랜잭션 라이프사이클이 섞임.
 - 비즈니스 규칙(쿠폰 사용 가능 여부, 음수 총액 보정, 합계 계산)이 Service 절차 코드 안에 흩어져 있어 단위 테스트하려면 JPA 엔티티와 Repository를 모두 mock해야 함.
 - `paymentClient.charge()`와 `kafka.send()`가 DB 트랜잭션 안에서 일어나, 트랜잭션 롤백 시 외부 부수효과를 되돌릴 수 없음.
-- `OrderEntity`가 JPA 매핑이자 비즈니스 규칙이 들어있는 자리. 후에 검색용 Elasticsearch 모델, 채널별 응답 모델을 도입할 때 갈라치기 어려움.
+- `OrderEntity`가 JPA 매핑이면서 비즈니스 규칙도 담고 있음. 후에 검색용 Elasticsearch 모델, 채널별 응답 모델을 도입할 때 갈라치기 어려움.
 
 ### Improved: UseCase + Port + Domain
 
@@ -454,7 +454,7 @@ Spring 컨텍스트 없이 돌아간다는 사실이 핵심이다. 실행 시간
 
 > 결과 분석은 분석 템플릿(설정 템플릿)이라는 도메인 개념이 중심이고, 분석기는 그 템플릿이 정한 규칙을 적용해 한 건의 결과를 산출하는 책임이다. 외부에서 보면 '결과 분석'이라는 하나의 유스케이스이고, 안에서는 템플릿 조회와 결과 산출이라는 도메인 협력이다. 이걸 포트-어댑터로 다시 보면, Inbound Port는 `AnalyzeResultUseCase` 같은 형태가 되고, Outbound Port는 분석 템플릿 조회를 위한 `TemplateRepositoryPort`와 외부 Provider별 결과 조회를 위한 `ResultProviderPort`로 분리된다. Provider별로 응답 포맷이 다르면 전략 패턴으로 구현하는데, 그게 곧 한 Outbound Port에 대한 다중 어댑터(ProviderA Adapter / ProviderB Adapter)다. 도메인은 어느 Provider를 쓰는지 모르고, 어댑터 선택은 Application Service나 팩토리가 책임진다. 그래서 새 Provider가 붙어도 도메인과 UseCase는 변경 없이 어댑터만 추가하면 된다.
 
-이 정리에는 핵심 키워드가 자연스럽게 들어간다 — 책임 분리, Port/Adapter, 전략 패턴의 역할, OCP, 변경 영향 범위.
+이 정리에는 핵심 키워드가 자연스럽게 들어간다: 책임 분리, Port/Adapter, 전략 패턴의 역할, OCP, 변경 영향 범위.
 
 자주 이어지는 후속 질문 정리:
 - "JPA 엔티티와 도메인을 분리하는가?" → 단계 1/2 기준 그대로다. 규칙이 자라는 도메인은 분리하고, CRUD에 가까운 부분은 엔티티 재사용으로 둔다. 분리 기준은 영속성 라이프사이클이 도메인 표현력을 망치기 시작하는 시점이다.
@@ -470,7 +470,7 @@ Spring 컨텍스트 없이 돌아간다는 사실이 핵심이다. 실행 시간
 - [ ] UseCase 구현에 `@Transactional`이 있고, 외부 시스템 호출은 트랜잭션 밖 또는 AFTER_COMMIT/outbox로 미뤄져 있다
 - [ ] Web DTO와 Command 객체가 분리되어 있다
 - [ ] 도메인 단위 테스트가 Spring 컨텍스트 없이 ms 단위로 돈다
-- [ ] 같은 외부 자원에 대해 다중 구현(예: 다중 Provider)이 필요할 때, 그 자리는 하나의 포트 + 다중 어댑터로 풀린다
+- [ ] 같은 외부 자원에 대해 다중 구현(예: 다중 Provider)이 필요할 때, 그 요구는 하나의 포트 + 다중 어댑터로 풀린다
 - [ ] ArchUnit 또는 모듈 시스템으로 의존 방향이 강제된다
 - [ ] 새 유스케이스부터 점진 도입할 진입점이 정해져 있다 (모든 레거시를 한 번에 바꾸려 하지 않는다)
 - [ ] "이건 왜 이렇게 했나"를 단계 0/1/2 기준으로 trade-off까지 설명할 수 있다

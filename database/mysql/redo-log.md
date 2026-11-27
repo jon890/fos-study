@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# InnoDB Redo Log & Undo Log — WAL, Crash Recovery, Rollback 연계
+# InnoDB Redo Log & Undo Log: WAL, Crash Recovery, Rollback 연계
 
 InnoDB의 내구성(Durability)과 원자성(Atomicity)을 지탱하는 두 로그가 Redo Log와 Undo Log다. 애플리케이션 개발자 입장에서 두 로그가 어떤 목적을 가지고, 어떻게 협력해서 커밋/롤백/크래시 복구를 구현하는지 정리했다.
 
@@ -52,11 +52,11 @@ Undo Log는 변경 **이전** 상태를 보관한다. 목적은 두 가지다.
 | 커밋 후 즉시 삭제 가능? | ✅ (다른 트랜잭션이 이 버전을 볼 이유가 없음) | ❌ (참조 Read View가 있으면 남아야 함) |
 | 비대화 위험 | 낮음 | **높음 — 장기 트랜잭션 + UPDATE 폭풍이 전형** |
 
-**Undo Log 비대화(Undo Bloat)는 거의 항상 Update Undo 문제다.** 장기 실행 SELECT 트랜잭션이 Read View를 붙잡고 있는 동안 다른 세션의 수많은 UPDATE가 이전 버전을 Purge하지 못한 채 쌓이면 Undo Tablespace가 폭증한다. 자세한 진단은 [innodb-mvcc.md의 Undo Log 절](./innodb-mvcc.md#undo-log--버전-체인의-저장소) 참고.
+**Undo Log 비대화(Undo Bloat)는 거의 항상 Update Undo 문제다.** 장기 실행 SELECT 트랜잭션이 Read View를 붙잡고 있는 동안 다른 세션의 수많은 UPDATE가 이전 버전을 Purge하지 못한 채 쌓이면 Undo Tablespace가 폭증한다. 자세한 진단은 [innodb-mvcc.md의 Undo Log 절](./innodb-mvcc.md#undo-log-버전-체인의-저장소) 참고.
 
 ---
 
-## 4. 데이터 쓰기 흐름 — Redo와 Undo의 동시 기록
+## 4. 데이터 쓰기 흐름: Redo와 Undo의 동시 기록
 
 ```mermaid
 flowchart TD
@@ -180,11 +180,11 @@ ORDER BY trx_started ASC;
 
 Undo Bloat는 "디스크가 커진다" 문제로 끝나지 않는다. 버전 체인이 길어지면 **일관 읽기마다 체인을 더 오래 거슬러 올라가야 해서 SELECT 성능도 함께 떨어진다.** 실무에서는 이것이 "어제까지 멀쩡했던 조회가 오늘 갑자기 느려짐"의 원인이 되곤 한다.
 
-세부 내부 동작(버전 체인, Read View 가시성 알고리즘, 격리 수준별 차이)은 [innodb-mvcc.md의 Undo Log부터 격리 수준까지의 절](./innodb-mvcc.md#undo-log--버전-체인의-저장소) 참고.
+세부 내부 동작(버전 체인, Read View 가시성 알고리즘, 격리 수준별 차이)은 [innodb-mvcc.md의 Undo Log부터 격리 수준까지의 절](./innodb-mvcc.md#undo-log-버전-체인의-저장소) 참고.
 
 ---
 
-## 9. Crash Recovery — Redo와 Undo의 협력
+## 9. Crash Recovery: Redo와 Undo의 협력
 
 이 섹션이 이 문서의 하이라이트다. 면접에서 "MySQL이 비정상 종료된 후 어떻게 복구되나요?"라는 질문은 대부분 이 그림을 그릴 수 있는지 본다.
 
@@ -421,4 +421,4 @@ mysql_global_status_innodb_buffer_pool_pages_dirty
 - [InnoDB MVCC 완전 분석](./innodb-mvcc.md) — Undo Log 내부 구조, 버전 체인, Read View 가시성, 격리 수준, Gap/Next-Key Lock
 - [InnoDB 트랜잭션과 잠금](./transaction-lock.md)
 - [Gap Lock & Next-Key Lock 심층 분석](./innodb-gap-next-key-lock.md) — 구간 락 의미론과 실무 디버깅
-- [fsync — 리눅스 파일 동기화 시스템 콜](../../linux/fsync.md)
+- [fsync: 리눅스 파일 동기화 시스템 콜](../../linux/fsync.md)

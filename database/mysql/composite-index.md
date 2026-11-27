@@ -132,7 +132,7 @@ FROM orders
 WHERE user_id = 42 AND status = 'ACTIVE';
 ```
 
-`Extra` 컬럼에 **`Using index`** 가 나오면 커버링 인덱스다. `Using index condition`은 다르다 — 인덱스를 활용하지만 테이블 접근이 있다는 의미다.
+`Extra` 컬럼에 **`Using index`** 가 나오면 커버링 인덱스다. `Using index condition`은 다르다. 인덱스를 활용하지만 테이블 접근이 있다는 의미다.
 
 ### 커버링 인덱스 설계 예시
 

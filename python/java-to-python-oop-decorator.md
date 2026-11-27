@@ -4,15 +4,15 @@ series: "자바 백엔드 개발자를 위한 Python 입문"
 seriesOrder: 3
 ---
 
-# Java 개발자를 위한 Python 심화 — OOP·데코레이터·컨텍스트 매니저
+# Java 개발자를 위한 Python 심화: OOP·데코레이터·컨텍스트 매니저
 
 [Post 1 (Python 문법 핵심)](./java-to-python-syntax.md) 에서 클래스·데코레이터·`with`·`yield` 는 다음 글로 미뤘다. 이 글에서 마저 정리한다. 코드를 "쓰는" 단계로 넘어가려면 이 다섯을 알아야 한다.
 
 자바 record·Lombok·annotation·`AutoCloseable`·`Iterator` 와 1:1 로 비교해 가며 차이만 짚는다.
 
-## dunder method — 자바의 `equals/hashCode/toString` 자리
+## dunder method: 자바의 `equals/hashCode/toString` 역할
 
-Post 1 에서 양 옆에 언더스코어 두 개가 박힌 메서드를 dunder 라 부른다고 짚었다. 자바의 `Object` 가 가지고 있는 핵심 메서드 자리에 Python 은 dunder 가 들어간다.
+Post 1 에서 양 옆에 언더스코어 두 개가 박힌 메서드를 dunder 라 부른다고 짚었다. 자바의 `Object` 가 가지고 있는 핵심 메서드 역할을 Python 은 dunder 가 맡는다.
 
 | 자바 | Python | 호출되는 시점 |
 |---|---|---|
@@ -41,7 +41,7 @@ class Money:
 
 `__eq__` 만 구현하고 `__hash__` 빠뜨리면 `set` 에 넣을 때 자바와 비슷한 사고가 난다. 자바에서 `equals` 만 오버라이드하고 `hashCode` 안 만지면 `HashSet` 동작이 깨지는 것과 같다.
 
-## `@property` — getter/setter 자리
+## `@property`: getter/setter 역할
 
 자바는 `getName() / setName(name)` 패턴이 관용구다. Lombok 의 `@Getter/@Setter` 도 결국 같은 메서드를 만든다.
 
@@ -71,7 +71,7 @@ w.max_tasks = 100    # setter 호출. 검증 들어감.
 
 Python 에는 자바의 `private/protected/public` 같은 접근 제어자가 **없다**. 관행적으로 `_name` (한 개) 은 내부용, `__name` (두 개) 은 강한 내부용으로 본다. 강제는 아니다.
 
-## dataclass — Java record/Lombok 자리
+## dataclass: Java record/Lombok 역할
 
 자바 14+ 의 `record` 또는 Lombok `@Data` 가 하는 일을 Python 은 표준 라이브러리 `dataclasses` 가 한다.
 
@@ -98,7 +98,7 @@ class OcrOptions:
 
 자바 Lombok 의 `@Builder` 패턴이 필요하면 `dataclass` 와 `field(default_factory=...)` 조합으로 충분한 경우가 많다. Builder 까지 갖고 싶다면 `attrs` 또는 `pydantic.BaseModel` 로 넘어가는 편.
 
-## 상속과 다중상속 — MRO 한 줄
+## 상속과 다중상속: MRO 한 줄
 
 자바는 클래스 다중상속이 없고 인터페이스 다중구현만 허용한다. Python 은 **클래스 자체를 여러 개 상속할 수 있다**.
 
@@ -115,11 +115,11 @@ class C(A, B):
 C().hello()   # A — 먼저 적힌 부모 우선 (MRO)
 ```
 
-같은 메서드가 부모 양쪽에 있으면 **MRO**(Method Resolution Order) 라는 규칙으로 결정된다. `C.__mro__` 으로 순서 확인 가능. 실무에서 다중상속은 mixin (보조 기능 한정) 형태 외에는 거의 안 쓴다. Spring 의 `@Aspect` 나 자바 default method 가 채워주던 자리에 mixin 이 들어간다고 보면 비슷.
+같은 메서드가 부모 양쪽에 있으면 **MRO**(Method Resolution Order) 라는 규칙으로 결정된다. `C.__mro__` 으로 순서 확인 가능. 실무에서 다중상속은 mixin (보조 기능 한정) 형태 외에는 거의 안 쓴다. Spring 의 `@Aspect` 나 자바 default method 가 맡던 역할을 mixin 이 맡는다고 보면 비슷.
 
 `super().method()` 호출은 자바와 거의 같다. 다만 `super()` 한 번에 MRO 가 알아서 다음 클래스를 찾아준다.
 
-## 추상 클래스·Protocol — 자바 interface 자리
+## 추상 클래스·Protocol: 자바 interface 역할
 
 자바 interface 와 가장 가까운 건 `abc.ABC` 또는 `typing.Protocol`.
 
@@ -149,7 +149,7 @@ def cleanup(resource: Closeable) -> None:   # Closeable 을 상속하지 않아�
 
 자바 21 의 sealed interface 와는 결이 좀 다르다. Python 은 강제 계약이 아니라 "이 형태면 된다" 에 가깝다.
 
-## 데코레이터 — 자바 어노테이션과 다른 동작
+## 데코레이터: 자바 어노테이션과 다른 동작
 
 이 부분이 자바 개발자가 가장 헷갈리는 곳이다. **자바 어노테이션은 정적 메타데이터**고, 누군가 (런타임 프레임워크) 가 리플렉션으로 읽어야 동작한다.
 
@@ -196,7 +196,7 @@ def list_users():
 
 자주 보는 표준 데코레이터 몇 개:
 
-- `@classmethod` / `@staticmethod` — 자바의 static 메서드 자리. `cls` 또는 `self` 가 들어오는지가 차이
+- `@classmethod` / `@staticmethod` — 자바의 static 메서드에 해당한다. `cls` 또는 `self` 가 들어오는지가 차이
 - `@functools.lru_cache(maxsize=128)` — 자바의 `@Cacheable` 비슷. 결과 메모이제이션
 - `@property` — 위에서 본 getter
 - `@dataclass` — 위에서 본 record
@@ -213,7 +213,7 @@ def get_item(id: int):
 
 이 코드는 `get_item = app.get("/items/{id}")(require_auth(cache(ttl=60)(get_item)))` 와 같다. 자바 Spring 의 어노테이션 여러 개 쌓은 것과 외관은 비슷한데 **순서 의미가 명확**하다는 게 다르다.
 
-## 컨텍스트 매니저 — try-with-resources 의 일반화
+## 컨텍스트 매니저: try-with-resources 의 일반화
 
 자바의 try-with-resources 는 `AutoCloseable` 인터페이스를 구현한 객체에만 동작한다. Python 의 `with` 는 `__enter__` / `__exit__` 두 dunder 가 있으면 무엇에든 적용된다.
 
@@ -253,7 +253,7 @@ with timer():
 
 여기서 등장하는 `yield` 가 다음 절의 주제다.
 
-## 제너레이터·yield — Iterator 의 자연스러운 버전
+## 제너레이터·yield: Iterator 의 자연스러운 버전
 
 자바 `Iterator<T>` 를 직접 구현하려면 `hasNext`/`next` 메서드를 짜야 한다. Python 의 `yield` 는 함수에 한 줄 추가하는 것만으로 같은 일을 한다.
 

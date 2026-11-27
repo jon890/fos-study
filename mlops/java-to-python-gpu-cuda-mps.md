@@ -4,7 +4,7 @@ series: "GPU 로 LLM 서빙하기"
 seriesOrder: 1
 ---
 
-# GPU·CUDA·MPS 기초 — 자바 백엔드 개발자가 처음 만나는 그림
+# GPU·CUDA·MPS 기초: 자바 백엔드 개발자가 처음 만나는 그림
 
 **다음 글** [Python CUDA 버전 생태계](./cuda-version-ecosystem.md) · [시리즈 목차](README.md)
 
@@ -15,7 +15,7 @@ ML 서비스를 다루기 시작하면 그림이 한 층 더 생긴다. **GPU** 
 이 글은 자바 백엔드 개발자가 ML 서비스를 운영·분석할 때 알아둬야 할 GPU 관련 기초 개념을 정리한다. 예시는 우리 프로젝트 환경이다.
 운영 서버는 Tesla T4 GPU 1장을 쓰고, 여러 프로세스가 GPU 를 나눠 쓰게 하는 NVIDIA MPS 는 꺼 두었다.
 로컬 개발용 Mac 은 Apple GPU 가속 프레임워크(Apple MPS)로 PyTorch 를 돌린다.
-두 MPS 는 이름만 같고 전혀 다른 기능이다. 아래 「MPS: 같은 약어, 다른 두 가지 의미」 에서 나눠 설명한다.
+두 MPS 는 이름만 같고 전혀 다른 기능이다. 아래 [MPS: 같은 약어, 다른 두 가지 의미](#mps-같은-약어-다른-두-가지-의미) 에서 나눠 설명한다.
 
 ## GPU 는 CPU 와 어떻게 다른가
 
@@ -25,9 +25,9 @@ GPU 는 수천 개의 단순한 코어로 같은 연산을 데이터 다발에 �
 
 자바로 비유하면 CPU 는 "복잡한 비즈니스 로직 한 트랜잭션", GPU 는 "Hadoop/Spark 가 데이터를 일괄 처리하듯 SIMD (Single Instruction Multiple Data) 방식의 병렬 처리" 라고 보면 가깝다.
 
-## CUDA — NVIDIA GPU 의 프로그래밍 인터페이스
+## CUDA: NVIDIA GPU 의 프로그래밍 인터페이스
 
-CUDA 는 NVIDIA 가 만든 GPU 컴퓨팅 플랫폼이자 API 다. 자바의 JVM 자리에 NVIDIA 의 CUDA 런타임이 들어가고, PyTorch·TensorFlow 같은 라이브러리가 그 위에서 동작한다.
+CUDA 는 NVIDIA 가 만든 GPU 컴퓨팅 플랫폼이자 API 다. 자바의 JVM 에 해당하는 것이 NVIDIA 의 CUDA 런타임이고, PyTorch·TensorFlow 같은 라이브러리가 그 위에서 동작한다.
 
 | 자바 | CUDA |
 |---|---|
@@ -36,7 +36,17 @@ CUDA 는 NVIDIA 가 만든 GPU 컴퓨팅 플랫폼이자 API 다. 자바의 JVM 
 | 자바 라이브러리 (예: Netty) | cuDNN, cuBLAS, cuFFT |
 | 애플리케이션 (Spring Boot) | PyTorch, TensorFlow |
 
-표의 각 층 버전이 서로 호환되어야 동작한다. 우리 프로젝트의 Dockerfile 첫 줄 `FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04` 가 그 의미다.
+표의 각 층 버전이 서로 호환되어야 동작한다.
+
+GPU 서비스를 컨테이너로 배포하면 이 중 CUDA Runtime 과 cuDNN 의 버전은 베이스 이미지가 정한다.
+자바 서비스가 `FROM eclipse-temurin:17-jre` 로 JVM 버전을 고르는 것과 같은 방식이다.
+NVIDIA 가 배포하는 `nvidia/cuda` 이미지는 태그 이름에 버전을 담는다. 예를 들어 Dockerfile 이 아래처럼 시작하면,
+
+```dockerfile
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+```
+
+태그의 각 부분은 이런 뜻이다.
 
 - `cuda:11.8.0` — CUDA Runtime 버전. PyTorch 빌드가 요구하는 버전과 맞아야 한다.
 - `cudnn8` — cuDNN 버전. 딥러닝 연산 (특히 합성곱) 가속 라이브러리.
@@ -44,7 +54,7 @@ CUDA 는 NVIDIA 가 만든 GPU 컴퓨팅 플랫폼이자 API 다. 자바의 JVM 
 
 호스트의 NVIDIA driver 가 컨테이너 안의 CUDA Runtime 보다 같거나 높아야 하고, PyTorch 가 빌드된 CUDA 버전과도 맞아야 한다. 자바에서 JDK 호환 표를 신경 쓰는 것과 비슷하지만 한 단계 더 깐깐하다.
 
-## VRAM — GPU 전용 메모리
+## VRAM: GPU 전용 메모리
 
 VRAM 은 GPU 카드 위에 붙은 메모리다. **시스템 RAM 과 물리적으로 분리**된다. 우리 운영 환경의 Tesla T4 는 VRAM 이 16GB (실측 가용 15GB) 이고, 호스트의 시스템 RAM 32GB 와는 별도다.
 
@@ -79,7 +89,7 @@ def clear_cuda_memory():
 
 자바의 `System.gc()` 와 비슷한 위치인데, ML 워크로드에서는 호출 빈도가 훨씬 잦다.
 
-## nvidia-smi — GPU 의 jstat·jmap
+## nvidia-smi: GPU 의 jstat·jmap
 
 자바에서 JVM 상태를 보려고 `jstat`, `jmap`, `jstack`, JConsole 을 쓴다. GPU 는 `nvidia-smi` 한 명령으로 거의 모든 게 보인다.
 
@@ -145,7 +155,7 @@ Mac M-series 에서 PyTorch 가 자동으로 Apple GPU 를 활용한다. 우리�
 
 그래서 한 PyTorch 코드 안에서 CUDA 와 Apple MPS 를 함께 다루기도 한다. `torch.cuda.*` 를 쓸 수 없을 때 `torch.backends.mps.*` 로 분기하는 패턴을 자주 본다.
 
-## JVM heap 과의 비교 — 명시적 자원 관리
+## JVM heap 과의 비교: 명시적 자원 관리
 
 자바 백엔드를 운영할 때 가장 신경 쓰는 게 JVM heap 튜닝 (`-Xmx`, `-Xms`, GC 알고리즘 선택) 이었다. GPU 워크로드는 그와 비슷하지만 차이가 있다.
 
@@ -163,7 +173,7 @@ Mac M-series 에서 PyTorch 가 자동으로 Apple GPU 를 활용한다. 우리�
 
 자바 백엔드에서 ML 서비스로 넘어올 때 알아둘 한 줄.
 
-> CPU + 시스템 RAM 만 있던 그림에 GPU + VRAM 이라는 별도 컴퓨팅 평면이 추가된다. nvidia-smi 가 jstat 자리, `.to("cuda")` 가 데이터 전송, `clear_cuda_memory()` 가 수동 GC.
+> CPU + 시스템 RAM 만 있던 그림에 GPU + VRAM 이라는 별도 컴퓨팅 평면이 추가된다. nvidia-smi 는 jstat, `.to("cuda")` 는 데이터 전송, `clear_cuda_memory()` 는 수동 GC 에 해당한다.
 
 이걸 머릿속에 두면 PyTorch 모델 로딩 비용을 다룬 [PyTorch 기초](../python/java-to-python-pytorch-tensor-model-loading.md)와 multi-process GPU 워커 패턴을 다룬 [Multi-process GPU 워크로드](./java-to-python-multiprocess-gpu-worker-pool.md)가 자연스럽게 이어진다.
 

@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# 분산 트랜잭션과 Outbox 패턴 — 왜 2PC를 피하고 어떻게 대신할 것인가
+# 분산 트랜잭션과 Outbox 패턴: 왜 2PC를 피하고 어떻게 대신할 것인가
 
 > 관련 문서: [Outbox / Inbox Pattern 심화](./outbox-inbox-pattern.md). 이 문서는 분산 트랜잭션 맥락에서 "왜 2PC가 아닌 Outbox인가"라는 의사결정 축을, 위 문서는 Outbox·Inbox 한 짝의 동작 메커니즘과 transaction boundary, polling/CDC 변형, ordering 같은 심화 주제를 다룬다.
 
@@ -57,7 +57,7 @@ public void createOrder(OrderRequest request) {
 
 ---
 
-## Saga 패턴 — 결과적 일관성의 기반
+## Saga 패턴: 결과적 일관성의 기반
 
 2PC 대신 널리 쓰이는 패턴이 Saga다. Saga는 분산 트랜잭션을 여러 개의 로컬 트랜잭션 시퀀스로 분해하고, 각 단계 실패 시 이전 단계들을 보상 트랜잭션으로 되돌린다.
 
@@ -175,7 +175,7 @@ sequenceDiagram
 
 ---
 
-## 실전 구현 — Java + Spring + Kafka
+## 실전 구현: Java + Spring + Kafka
 
 ### Outbox 테이블 스키마
 
@@ -256,7 +256,7 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEvent, Long> 
 }
 ```
 
-### 주문 서비스 — 같은 트랜잭션에 이벤트 저장
+### 주문 서비스: 같은 트랜잭션에 이벤트 저장
 
 ```java
 @Service
@@ -335,7 +335,7 @@ CDC는 운영 구성 요소가 최소 세 개다. (1) MySQL 소스(binlog 활성
 
 면접에서 자주 꼬이는 포인트는 **CDC는 알아서 복구되니 더 안전하다**는 잘못된 일반화다. CDC는 커넥터/Connect/연결 지점에서만 자동 복구될 뿐, **binlog 리텐션을 초과하는 장기 장애에서는 오히려 폴링보다 위험**하다. 폴링은 Outbox 테이블 자체가 장기 버퍼 역할을 하기 때문에 디스크만 버텨주면 잃지 않는다.
 
-### 중복 처리 — 두 방식 모두 At-Least-Once
+### 중복 처리: 두 방식 모두 At-Least-Once
 
 - **폴링 Publisher**: Kafka에 발행하고 `published_at` UPDATE 커밋 직전에 죽으면 같은 이벤트를 다음 폴링에서 또 발행한다.
 - **Debezium CDC**: Kafka Connect의 offset commit이 비동기라서 마지막 커밋 이후 재시작되면 그 뒤 이벤트를 재전송한다. "Debezium은 정확히 한 번"이라는 흔한 오해는 틀렸다.
@@ -385,7 +385,7 @@ public void handle(ConsumerRecord<String, String> record) {
 
 이 순서로 가면 팀은 "복잡한 인프라부터 도입"하는 리스크 없이 Outbox 패턴의 이득을 조기에 가져가고, 필요해지는 시점에 CDC로 옮길 수 있다.
 
-### 선택 기준 요약 — 의사결정 체크리스트
+### 선택 기준 요약: 의사결정 체크리스트
 
 - [ ] 요구 지연이 1초 이상 허용되는가? → 예, 폴링 우선 검토
 - [ ] 애플리케이션 DB에 폴링 추가 부하를 얹을 수 있는가? → 아니오면 CDC 쪽으로 이동

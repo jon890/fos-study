@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# InnoDB Gap Lock & Next-Key Lock 심층 분석 — 구간 의미론부터 실무 디버깅까지
+# InnoDB Gap Lock & Next-Key Lock 심층 분석: 구간 의미론부터 실무 디버깅까지
 
 > 이 문서는 **락의 '의미론'** 에 집중한다. MVCC 일반론은 [InnoDB MVCC](./innodb-mvcc.md), 데드락 해결/재시도/컨슈머 운영은 [Deadlock Analysis](./deadlock-analysis.md)를 참고한다. 여기서는 "왜 이 범위가 잠기는가", "어떤 락이 어떤 락과 충돌하는가", "로그의 어떤 표현이 어떤 상태인가"를 끝까지 파고든다.
 
@@ -24,7 +24,7 @@ tags: [study]
 
 ---
 
-## 선수 지식 요약 — 락의 최소 어휘
+## 선수 지식 요약: 락의 최소 어휘
 
 세부는 각 장에서 다루고, 여기서는 단어만 맞추고 간다.
 
@@ -44,7 +44,7 @@ tags: [study]
 
 ---
 
-## 구간 표기법 — 먼저 표기부터 고정한다
+## 구간 표기법: 먼저 표기부터 고정한다
 
 InnoDB 락 로그를 읽으려면 반열린 구간 표기가 몸에 붙어야 한다. 이 문서는 아래 표기만 쓴다.
 
@@ -233,7 +233,7 @@ Gap 구조: ..., [80], (80, +∞)   ← supremum gap
 
 ---
 
-## 어떤 SQL이 어떤 락을 만드는가 — 패턴 지도
+## 어떤 SQL이 어떤 락을 만드는가: 패턴 지도
 
 RR 격리 수준, 인덱스 `idx_amount` 기준. 값이 `10, 30, 50, 80`이라 가정.
 
@@ -360,7 +360,7 @@ RC로 내리는 것은 만병통치약이 아니다. 팬텀을 정말 막아야 
 
 ---
 
-## 관측 도구 — 락을 '보는' 방법
+## 관측 도구: 락을 '보는' 방법
 
 ### `performance_schema.data_locks` (MySQL 8)
 
@@ -417,7 +417,7 @@ CREATE TABLE orders (
 INSERT INTO orders (amount) VALUES (10), (30), (50), (80);
 ```
 
-### 실습 1 — Next-Key Lock의 '한 칸 더'
+### 실습 1: Next-Key Lock의 '한 칸 더'
 
 세션 A:
 ```sql
@@ -438,7 +438,7 @@ WHERE OBJECT_NAME='orders';
 ```
 세션 A의 GRANTED 락으로 `idx_amount` 상에 `30`, `50`, `80`이 각기 `X` (Next-Key) 로 찍혀 있고, 세션 B는 `X,INSERT_INTENTION` WAITING. 상한을 60으로 썼지만 80까지 관여한 점을 확인한다.
 
-### 실습 2 — 존재하지 않는 키의 Gap Lock
+### 실습 2: 존재하지 않는 키의 Gap Lock
 
 세션 A:
 ```sql
@@ -454,7 +454,7 @@ INSERT INTO orders (amount) VALUES (85);  -- 이건 통과
 
 관측: A의 락은 `X,GAP` on `80`으로 표기됨("80 레코드의 앞 gap"). A가 커밋할 때까지 `(50, 80)` gap에 INSERT 불가.
 
-### 실습 3 — supremum gap
+### 실습 3: supremum gap
 
 세션 A:
 ```sql
@@ -469,7 +469,7 @@ INSERT INTO orders (amount) VALUES (999);  -- 대기
 
 관측: A의 `data_locks`에 `LOCK_DATA = 'supremum pseudo-record'` 표기. 결과 0건이지만 "앞으로 들어올 수 있는 모든 큰 값"이 잠겨 있음을 확인.
 
-### 실습 4 — PK 등치의 gap 생략
+### 실습 4: PK 등치의 gap 생략
 
 세션 A:
 ```sql
@@ -484,7 +484,7 @@ INSERT INTO orders (amount) VALUES (25);  -- 어디에도 안 걸림, 바로 성
 
 관측: A의 락이 `X,REC_NOT_GAP`. Gap 없음. PK + 존재 조건이 만드는 '평화로운 락'의 전형.
 
-### 실습 5 — 격리 수준 RC에서 Gap Lock 소멸
+### 실습 5: 격리 수준 RC에서 Gap Lock 소멸
 
 ```sql
 SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
@@ -494,7 +494,7 @@ SELECT * FROM orders WHERE amount BETWEEN 20 AND 60 FOR UPDATE;
 
 관측: `data_locks`에서 Gap Lock이 대부분 사라지고 `X,REC_NOT_GAP`만 잡힘. 세션 B의 임의 INSERT가 거의 다 통과. 동시성 증가 효과를 눈으로 확인한다.
 
-### 실습 6 — Insert Intention 데드락 재현
+### 실습 6: Insert Intention 데드락 재현
 
 6-3 시나리오를 그대로 실행해보고 `SHOW ENGINE INNODB STATUS`의 데드락 로그에서 `lock_mode X locks gap before rec insert intention waiting`이 양쪽에 찍히는 것을 확인한다. 이후 `ON DUPLICATE KEY UPDATE`로 바꾸면 사라지는 것까지 실습.
 

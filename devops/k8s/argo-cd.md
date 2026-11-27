@@ -4,7 +4,7 @@ series: "백엔드 개발자를 위한 쿠버네티스 기본기"
 seriesOrder: 7
 ---
 
-# Argo CD — git 을 정답으로 삼는 배포 컨트롤러
+# Argo CD: git 을 정답으로 삼는 배포 컨트롤러
 
 > [Helm](./helm.md)이 "어떤 YAML 을 만들까"를 맡았다면, ArgoCD 는 "그 YAML 을 언제 어떻게 클러스터에 반영할까"를 맡는다.
 
@@ -49,7 +49,7 @@ flowchart LR
 
 여기서 짚고 갈 게 하나 있다. **ArgoCD 가 이해하는 것은 최종 YAML 뿐이다.** Helm 차트든 Kustomize 든 Repository Server 에서 렌더를 거쳐 평범한 매니페스트가 된 다음에야 컨트롤러로 넘어간다. `helm install` 이 클러스터에서 실행되는 게 아니다.
 
-## Application — 배포하라는 선언
+## Application: 배포하라는 선언
 
 ArgoCD 를 설치하면 `Application` 이라는 새 리소스 타입이 생긴다. 쿠버네티스에 없던 타입을 추가하는 이 방식을 **CRD**(Custom Resource Definition) 라고 하고, 이게 ArgoCD 가 "도구"가 아니라 "컨트롤러"인 이유다.
 

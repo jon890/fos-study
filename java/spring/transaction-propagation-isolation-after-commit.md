@@ -32,7 +32,7 @@ tags: [study]
 - 애플리케이션 프로세스가 커밋 직전에 죽으면, DB는 롤백되지만 "내가 이 일을 하려 했다"는 의도는 사라진다.
 - 스레드풀에 다른 작업으로 넘긴 경우(`@Async`, `CompletableFuture.runAsync`) — 그 작업은 **호출자의 트랜잭션과 분리된다.**
 
-이 두 번째 목록이 Outbox 패턴과 AFTER_COMMIT 훅이 존재하는 이유 그 자체다. "DB에 커밋했다"와 "Kafka에 발행했다"를 어떻게 원자적으로 묶을 것인가 — 정답은 "완벽히 묶을 수 없으니, 한쪽을 DB에 위임하고 나머지를 커밋 이후로 미룬다"이다.
+이 두 번째 목록이 Outbox 패턴과 AFTER_COMMIT 훅이 존재하는 이유 그 자체다. "DB에 커밋했다"와 "Kafka에 발행했다"를 어떻게 원자적으로 묶을 것인가? 정답은 "완벽히 묶을 수 없으니, 한쪽을 DB에 위임하고 나머지를 커밋 이후로 미룬다"이다.
 
 ## 핵심 개념: 전파(Propagation)
 
@@ -51,7 +51,7 @@ public void placeOrder(OrderCommand cmd) {
 }
 ```
 
-여기서 `inventoryService.decrease`가 실패하면 `placeOrder` 전체가 롤백된다. 이것이 REQUIRED의 핵심이다 — **하나의 논리적 작업 단위.**
+여기서 `inventoryService.decrease`가 실패하면 `placeOrder` 전체가 롤백된다. 이것이 REQUIRED의 핵심이다: **하나의 논리적 작업 단위.**
 
 ### REQUIRES_NEW
 
@@ -88,7 +88,7 @@ JDBC `SAVEPOINT`를 사용한 중첩 트랜잭션. 내부가 롤백되면 savepo
 
 **면접 체감 빈도**: REQUIRED >> REQUIRES_NEW >> 나머지. NESTED는 "설명은 할 수 있지만 쓴 적 없다"가 정답에 가깝다.
 
-## 격리수준(Isolation Level) — MySQL/InnoDB 기준
+## 격리수준(Isolation Level): MySQL/InnoDB 기준
 
 격리수준은 **동시에 실행되는 다른 트랜잭션의 변경을 내 트랜잭션이 얼마나 볼 수 있는지**를 결정한다. 표준 SQL은 4단계를 정의하고 InnoDB는 모두 지원하지만, 동작 방식이 교과서와 살짝 다르다.
 
@@ -106,7 +106,7 @@ JDBC `SAVEPOINT`를 사용한 중첩 트랜잭션. 내부가 롤백되면 savepo
 ### SERIALIZABLE
 모든 SELECT에 암묵적 공유 락. 사실상 순차 실행. 처리량 급감. 실무에서 전 구간에 쓰는 경우는 거의 없고, 특정 크리티컬 트랜잭션에만 한정 적용.
 
-### 이상 현상 3종 — Spring + MySQL 예시로
+### 이상 현상 3종: Spring + MySQL 예시로
 
 **Dirty read**: READ UNCOMMITTED에서만. 실무에서 안 만난다.
 
@@ -129,7 +129,7 @@ REPEATABLE READ라면 a1, a2 모두 10000으로 읽힌다.
 - 일부 팀은 READ COMMITTED로 전역 설정한다 (gap lock 감소, 락 경합 완화, PostgreSQL과 동일한 모델). 이 선택은 **애플리케이션 레벨에서 낙관적/비관적 락을 어떻게 설계하느냐와 트레이드오프**다.
 - 격리수준만으로 race condition을 해결하려 하지 말고, `SELECT ... FOR UPDATE`(비관적 락), `@Version`(낙관적 락), Redis 분산락 같은 명시적 동시성 제어를 병행하라.
 
-## AFTER_COMMIT — 커밋 이후로 일을 미루는 기술
+## AFTER_COMMIT: 커밋 이후로 일을 미루는 기술
 
 ### 왜 필요한가
 
@@ -200,7 +200,7 @@ public class OrderEventHandler {
 
 이제 Kafka 발행은 **DB 커밋이 성공한 뒤에만** 실행된다. 커밋 실패 시 이벤트는 발행되지 않는다. 이 패턴 하나로 "유령 이벤트" 버그의 상당수가 사라진다.
 
-### AFTER_COMMIT의 안전성 경계 — 여기가 함정이다
+### AFTER_COMMIT의 안전성 경계: 여기가 함정이다
 
 `@TransactionalEventListener(AFTER_COMMIT)`는 **DB 커밋이 완료된 후** 같은 스레드에서 실행된다. 주의할 점:
 
@@ -219,7 +219,7 @@ public void onOrderCreated(OrderCreatedEvent event) {
 
 이 예시가 중요한 이유는 다음 섹션에서 드러난다.
 
-## Outbox 패턴 — DB와 Kafka를 "정렬"하는 방법
+## Outbox 패턴: DB와 Kafka를 "정렬"하는 방법
 
 AFTER_COMMIT만으로는 부족한 이유: **커밋 직후, Kafka 발행 직전에 프로세스가 죽으면?** 이벤트는 영영 나가지 않는다. AFTER_COMMIT은 "커밋되지 않은 이벤트가 나가는 것"은 막지만, "커밋된 이벤트가 누락되는 것"은 막지 못한다.
 
@@ -380,7 +380,7 @@ SELECT balance FROM account WHERE id = 1; -- 여전히 원래 값 (REPEATABLE RE
 COMMIT;
 ```
 
-그 다음 세션 A를 `SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;`로 바꾸고 같은 시나리오를 돌리면 두 번째 SELECT 결과가 바뀐다 — non-repeatable read의 실체.
+그 다음 세션 A를 `SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;`로 바꾸고 같은 시나리오를 돌리면 두 번째 SELECT 결과가 바뀐다. 이것이 non-repeatable read의 실체다.
 
 Spring Boot 샘플 프로젝트에서는 `application.yml`에:
 ```yaml
@@ -405,7 +405,7 @@ logging:
 >
 > 둘째, 전파는 REQUIRED가 기본입니다. 대부분의 서비스 메서드는 하나의 논리적 작업 단위로 묶이는 게 맞으니까요. REQUIRES_NEW는 감사 로그나 실패 이력처럼 바깥이 롤백돼도 반드시 남겨야 하는 기록에만 씁니다. 남용하면 한 요청이 여러 커넥션을 잡아 풀이 고갈됩니다.
 >
-> 셋째, 격리수준은 InnoDB 기본 REPEATABLE READ를 유지합니다. MVCC로 non-repeatable read와 phantom read 대부분이 막히지만, gap lock이 교착의 원인이 될 수 있어 테이블/쿼리마다 락 범위를 확인합니다. 진짜 race condition — 예를 들어 쿠폰 차감, 재고 감소 — 은 격리수준이 아니라 `SELECT ... FOR UPDATE` 비관적 락이나 `@Version` 낙관적 락으로 설계합니다.
+> 셋째, 격리수준은 InnoDB 기본 REPEATABLE READ를 유지합니다. MVCC로 non-repeatable read와 phantom read 대부분이 막히지만, gap lock이 교착의 원인이 될 수 있어 테이블/쿼리마다 락 범위를 확인합니다. 진짜 race condition(예를 들어 쿠폰 차감, 재고 감소)은 격리수준이 아니라 `SELECT ... FOR UPDATE` 비관적 락이나 `@Version` 낙관적 락으로 설계합니다.
 >
 > 넷째, AFTER_COMMIT 훅은 '커밋되지 않은 이벤트 누출'을 막는 장치, Outbox는 '커밋된 이벤트 유실'을 막는 장치로 역할이 다릅니다. 둘은 보완적이고, 컨슈머 멱등성이 전제돼야 전체가 안전해집니다."
 

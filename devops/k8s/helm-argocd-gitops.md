@@ -5,7 +5,7 @@ thumbnail: ./images/helm-argocd-gitops-thumbnail.jpg
 tags: [study]
 ---
 
-# Helm과 ArgoCD로 GitOps 하기 — chart, Application, 그리고 새 컴포넌트 추가 흐름
+# Helm과 ArgoCD로 GitOps 하기: chart, Application, 그리고 새 컴포넌트 추가 흐름
 
 쿠버네티스에 새 컴포넌트(ingress controller 하나)를 추가하는 작업을 맡고 나서야, 그동안 "어딘가에서 알아서 배포되던" 그 과정의 구조를 처음 들여다봤다. Helm 차트가 뭐고, ArgoCD가 뭘 하고, Application이라는 게 왜 또 따로 있는지. 막상 정리해보니 큰 그림은 단순했다. 그 구조와, 실제로 새 컴포넌트를 추가하려면 어디서부터 손대야 하는지를 정리한다.
 
@@ -19,7 +19,7 @@ tags: [study]
 
 이 두 종류의 문제를 각각 푸는 게 **Helm**(중복·템플릿 문제)과 **ArgoCD**(추적·동기화 문제)다. 둘은 역할이 다르고, 같이 쓴다.
 
-## Helm — 쿠버네티스 YAML의 템플릿 엔진
+## Helm: 쿠버네티스 YAML의 템플릿 엔진
 
 Helm은 **템플릿에 값을 채워 최종 YAML**을 만들어주는 도구다. 매번 YAML을 직접 쓰는 대신, 빈칸(`{{ }}`)이 뚫린 템플릿을 만들어두고 값만 갈아끼운다.
 
@@ -41,7 +41,7 @@ my-component/
 - **`{stage}-values.yaml`** — 환경별로 **덮어쓸 값**. Helm은 `-f values.yaml -f alpha-values.yaml`처럼 여러 값 파일을 주면 **뒤가 앞을 덮어쓴다.** 그래서 공통값은 `values.yaml`에 두고, 환경마다 다른 부분만 `{stage}-values.yaml`에 둔다.
 - **`charts/`** — 의존하는 외부 차트를 압축 파일로 담아둔다(vendoring). 인터넷에서 매번 받아오는 대신 레포에 박아두는 방식이다.
 
-### 두 가지 차트 패턴 — 이 차이가 핵심
+### 두 가지 차트 패턴: 이 차이가 핵심
 
 차트를 만드는 방식에는 두 갈래가 있다. 둘 다 실무에서 쓴다.
 
@@ -55,7 +55,7 @@ my-component/
 
 `templates/` 안의 파일이 바로 `{{ .Values.foo }}` 빈칸이 뚫린 YAML이고, 거기에 values를 끼워 최종 매니페스트가 만들어진다. 이 렌더링 결과를 미리 확인하는 명령이 `helm template`인데, 이게 배포 전 검증의 핵심이다(뒤에서 다시 나온다).
 
-## ArgoCD — git을 정답으로 삼는 GitOps
+## ArgoCD: git을 정답으로 삼는 GitOps
 
 Helm이 YAML을 만들어준다면, ArgoCD는 그 YAML을 **언제 어떻게 클러스터에 반영할지**를 맡는다. 핵심 사상은 GitOps다.
 
@@ -64,7 +64,7 @@ Helm이 YAML을 만들어준다면, ArgoCD는 그 YAML을 **언제 어떻게 클
 - git이 **single source of truth**가 된다. 클러스터를 `kubectl`로 직접 고치는 게 아니라, **git을 고치고 sync**한다. 모든 변경이 git 커밋으로 남으니 추적이 된다.
 - sync 정책은 두 가지다. **auto-sync**는 git이 바뀌면 자동 반영하고, **manual sync**는 사람이 sync 버튼을 눌러야 반영한다. 중요한 인프라는 manual로 두는 경우가 많다. git에 머지됐다고 바로 배포되는 게 아니라, 사람이 한 번 더 확인하고 누르는 안전장치인 셈이다.
 
-## ArgoCD Application — "이 차트를 배포해라"는 선언
+## ArgoCD Application: "이 차트를 배포해라"는 선언
 
 ArgoCD에게 **어느 git의 / 어느 경로 차트를 / 어느 값으로 / 어느 클러스터·namespace에 배포할지**를 알려주는 리소스가 **Application**이다. 대략 이렇게 생겼다.
 
@@ -103,7 +103,7 @@ argocd/templates/
 
 그래서 **Application 만드는 일까지 ArgoCD에게 시킨다.** 직접 만드는 건 최상위 하나뿐이고, 나머지는 git에 파일을 추가하면 생긴다.
 
-#### 대가 — 2단계 sync
+#### 대가: 2단계 sync
 
 공짜는 아니다. 이 패턴을 쓰면 **sync가 두 단계**가 된다.
 
@@ -118,7 +118,7 @@ Application의 *정의*를 바꿨다면 상위 app-of-apps를 먼저 sync해야 
 
 한 가지 더. ArgoCD는 git을 주기적으로 폴링하므로 **머지 직후에는 아직 옛 커밋 기준**일 수 있다. 이때도 화면은 `Synced`다. 리비전이 새 커밋인지 확인하고, 아니면 Refresh를 먼저 눌러야 한다.
 
-#### ApplicationSet — 요즘의 대안
+#### ApplicationSet: 요즘의 대안
 
 Application을 Helm 템플릿으로 하나씩 쓰는 대신, **생성기**(generator)로 만들어내는 `ApplicationSet`이 있다. "git의 이 디렉터리 하위 폴더마다 Application 하나씩" 같은 규칙을 주면 알아서 생성한다.
 
@@ -149,7 +149,7 @@ flowchart TB
 
 두 갈래만 기억하면 된다. **배포할 내용(차트)은 `applications/`에, 배포하라는 선언(Application)은 `argocd/templates/`에.** 둘 다 있어야 한 컴포넌트가 동작한다.
 
-## 새 컴포넌트를 추가한다면 — 어디서 시작하나
+## 새 컴포넌트를 추가한다면: 어디서 시작하나
 
 내가 실제로 ingress controller를 하나 추가하며 밟은 단계를 정리하면, 비슷한 컴포넌트를 추가할 때 이대로 따라가면 된다.
 
@@ -165,7 +165,7 @@ flowchart TB
 - `path`(차트 위치), `namespace`(배포 대상), `valueFiles`를 지정한다.
 - 리소스 생성 순서가 중요하면 `sync-wave`로 순서를 제어한다.
 
-**로컬 렌더 검증 — 배포 전 필수**
+**로컬 렌더 검증: 배포 전 필수**
 - `helm template {name} . -f values.yaml -f alpha-values.yaml`로 렌더해서, **실제로 어떤 YAML이 나오는지 눈으로 확인**한다.
 - 나는 이 단계에서 의도대로 리소스가 분리되는지를 확인했다. 이 단계를 건너뛰면, 잘못된 YAML이 클러스터에 가서야 문제가 드러난다. 미리 보는 비용이 훨씬 싸다.
 

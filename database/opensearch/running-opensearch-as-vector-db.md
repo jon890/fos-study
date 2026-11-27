@@ -3,7 +3,7 @@ categories: [AI]
 tags: [study]
 ---
 
-# OpenSearch를 벡터 DB로 굴리며 알게 된 것 — 벡터는 heap이 아니라 native에 산다
+# OpenSearch를 벡터 DB로 굴리며 알게 된 것: 벡터는 heap이 아니라 native에 산다
 
 벡터 검색용 OpenSearch 클러스터의 모니터링 대시보드를 만들다가 이상한 걸 봤다.
 JVM heap 사용량이 12%밖에 안 됐다.
@@ -15,9 +15,9 @@ JVM heap 사용량이 12%밖에 안 됐다.
 - 메모리는 `circuit_breaker`로 관리되는데, 이게 한도를 넘으면 검색이 느려진다. heap의 GC가 아니라 별도 장치다.
 - 벡터 DB 운영에서 진짜 봐야 할 메모리 지표는 heap이 아니라 **k-NN graph memory와 circuit breaker 사용률**이다.
 
-벡터 검색 자체의 사용법은 [벡터 검색 알고리즘 — kNN에서 HNSW까지](../../AI/RAG/vector-search-algorithms.md)에 정리해뒀고, 이 글은 **운영하면서 메모리·샤드가 어떻게 움직이는지**에 집중한다.
+벡터 검색 자체의 사용법은 [벡터 검색 알고리즘: kNN에서 HNSW까지](../../AI/RAG/vector-search-algorithms.md)에 정리해뒀고, 이 글은 **운영하면서 메모리·샤드가 어떻게 움직이는지**에 집중한다.
 
-## 발단 — heap이 톱니처럼 오르내리는데 12%밖에 안 쓴다
+## 발단: heap이 톱니처럼 오르내리는데 12%밖에 안 쓴다
 
 대시보드의 Memory Usage 패널(JVM heap)은 두 가지가 눈에 띄었다.
 
@@ -28,7 +28,7 @@ JVM heap 사용량이 12%밖에 안 됐다.
 
 문제는 두 번째였다. 벡터 검색은 HNSW 그래프를 메모리에 올려두고 탐색하는 방식이라, 메모리에 벡터가 상주해야 한다. 그런데 heap이 12%라니. 벡터는 어디 있는 걸까.
 
-## 핵심 — HNSW 그래프는 JVM 밖(native)에 로드된다
+## 핵심: HNSW 그래프는 JVM 밖(native)에 로드된다
 
 답은 간단했다. **벡터 그래프는 JVM heap이 아니라 off-heap native memory에 있다.**
 
@@ -44,7 +44,7 @@ k-NN의 HNSW는 OpenSearch가 Java로 짠 게 아니라 Faiss·nmslib 같은 C/C
 
 즉 native에 있는 건 "C++ 구현이라 어쩔 수 없이"이면서 동시에 "GC를 피하려고 일부러"이기도 하다. 둘 다 같은 방향을 가리킨다.
 
-## circuit breaker — 이름은 익숙한데 MSA의 그것과 다르다
+## circuit breaker: 이름은 익숙한데 MSA의 그것과 다르다
 
 heap은 GC가 알아서 비워주지만, native 벡터 메모리는 GC가 없다. 그래서 circuit breaker라는 별도 장치로 한도를 관리한다.
 
@@ -65,13 +65,13 @@ MSA가 "고장난 장비로 가는 전원을 한동안 내려두는 차단기"�
 
 아래는 k-NN circuit breaker 기준 설명이다.
 
-`circuit_breaker_limit`은 기본 50%다. 공식은 `k-NN 사용 가능 메모리 = (전체 RAM − JVM heap) × circuit_breaker_limit`이다. OpenSearch는 보통 시스템 RAM의 절반을 heap에 쓰므로, k-NN이 실제 쓸 수 있는 메모리는 **RAM의 절반(heap 제외 나머지)의 50%**다 — 두 번의 절반이 곱해져 결과적으로 전체 RAM의 1/4 수준이 된다. RAM 32GiB(heap 16GiB) 인스턴스라면 나머지 16GiB의 50%인 대략 그래프 8GiB까지 담을 수 있다는 계산이 나온다.
+`circuit_breaker_limit`은 기본 50%다. 공식은 `k-NN 사용 가능 메모리 = (전체 RAM − JVM heap) × circuit_breaker_limit`이다. OpenSearch는 보통 시스템 RAM의 절반을 heap에 쓰므로, k-NN이 실제 쓸 수 있는 메모리는 **RAM의 절반(heap 제외 나머지)의 50%**다. 두 번의 절반이 곱해져 결과적으로 전체 RAM의 1/4 수준이 된다. RAM 32GiB(heap 16GiB) 인스턴스라면 나머지 16GiB의 50%인 대략 그래프 8GiB까지 담을 수 있다는 계산이 나온다.
 
 이 한도를 넘으면 어떻게 되나. 새 그래프를 로드할 때 기존 그래프를 메모리에서 밀어낸다(evict). 밀려난 그래프는 다음 검색 때 디스크에서 다시 로드되니 **검색 지연**이 생긴다. 즉 circuit breaker 사용률은 "벡터 검색이 느려지기 직전인가"를 보는 지표다.
 
 한 가지 함정도 있다. 내부적으로 쓰는 Guava 캐시는 evict해도 메모리를 즉시 반환하지 않아, native 사용량이 한도를 잠깐 넘기는 경우가 보고돼 있다. 그래서 사용률이 한도(50%) 근처면 이미 여유가 빠듯하다고 봐야 한다.
 
-## 실측 — heap 4GB 뒤에 벡터 13GB가 숨어 있었다
+## 실측: heap 4GB 뒤에 벡터 13GB가 숨어 있었다
 
 내가 본 운영 클러스터(데이터 노드 12대)의 한 노드를 실측하니 이렇게 갈렸다.
 
@@ -87,7 +87,7 @@ MSA가 "고장난 장비로 가는 전원을 한동안 내려두는 차단기"�
 
 여기서 운영 교훈 하나가 나온다. **JVM heap만 보는 모니터링은 벡터 DB에선 위험하다.** heap이 한가해 보여도 벡터 메모리는 터지기 직전일 수 있다. k-NN을 쓴다면 `graph_memory_usage`와 `graph_memory_usage_percentage`를 노드별로 반드시 봐야 한다. 흔히 쓰는 `elasticsearch_exporter`는 이 메트릭을 기본 제공하지 않아서, `_plugins/_knn/stats`를 따로 긁는 수집 경로가 필요하다.
 
-## 샤드 — 어쩌다 active 3000개가 됐나
+## 샤드: 어쩌다 active 3000개가 됐나
 
 메모리를 보다가 샤드 수도 눈에 들어왔다. active shard가 3000개를 넘었다(primary 약 1600 + replica). 노드 12대에 노드당 270개꼴. 왜 이렇게 많을까 파보니 두 원인이 겹쳐 있었다.
 
@@ -118,7 +118,7 @@ security audit log를 켜두면 OpenSearch가 `security-auditlog-YYYY.MM.dd` 인
 - **감사 로그 같은 일별 인덱스에 ISM 정책을 건다.** 정리 없이 두면 샤드가 무한 누적된다.
 - **모니터링 대시보드에 k-NN 메모리 패널을 넣는다.** 기본 exporter엔 없으니 `_plugins/_knn/stats`를 긁어야 한다.
 
-heap이 한가하다고 안심하지 말 것 — 벡터는 그 뒤 native에 따로 살고 있다. 이 한 문장이 이번에 가장 크게 남은 교훈이다.
+heap이 한가하다고 안심하지 말 것. 벡터는 그 뒤 native에 따로 살고 있다. 이 한 문장이 이번에 가장 크게 남은 교훈이다.
 
 ## 참고
 
