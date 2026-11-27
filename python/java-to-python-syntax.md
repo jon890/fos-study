@@ -24,7 +24,7 @@ def greet(name):
 
 스페이스 4개가 표준. 탭과 스페이스를 섞으면 `IndentationError` 가 난다. 자바에서는 `if` 한 줄 뒤 `{}` 빠뜨려도 컴파일은 되지만 Python 에서는 들여쓰기 어긋나면 그대로 에러다.
 
-## 변수와 타입 — 동적 타이핑
+## 변수와 타입: 동적 타이핑
 
 자바는 정적 타이핑이다. `int n = 42;` 하면 `n` 은 영원히 `int`.
 
@@ -70,7 +70,7 @@ if x == None:        # 동작하긴 하지만 비권장. PEP 8 위반.
 
 `None` 은 싱글톤이라 `is None` 이 안전하고 빠르다. 자바 개발자가 흔히 `x == null` 식으로 쓰면 동작은 하지만 코드 리뷰에서 지적받는다.
 
-## 컬렉션 — list, dict, set, tuple
+## 컬렉션: list, dict, set, tuple
 
 자바 컬렉션과 1:1로 짝지어 보면 빠르다.
 
@@ -103,7 +103,7 @@ def add_item(item, items=None):
     return items
 ```
 
-## 함수 — 일급 객체, 가변 인자, 키워드 인자
+## 함수: 일급 객체, 가변 인자, 키워드 인자
 
 함수가 일급 객체라 변수에 담고 전달할 수 있다. 자바 8 람다/메서드 레퍼런스와 비슷한 감각.
 
@@ -133,7 +133,7 @@ call_api("http://x", "a", "b", timeout=10, retry=True, auth=("u","p"))
 
 FastAPI, requests, paddleocr 같은 라이브러리는 옵션을 모두 키워드 인자로 받는 게 일반적이다.
 
-## 문자열 — f-string
+## 문자열: f-string
 
 자바는 `String.format("hi %s", name)` 또는 `"hi " + name` 이다. Python 3.6+ 에서는 **f-string** 이 사실상 표준.
 
@@ -146,7 +146,7 @@ msg = f"hi {name}, count={n}, double={n * 2}"
 
 `f"..."` 안에 `{}` 로 표현식을 넣는다. 표현식이라 함수 호출·연산 모두 OK. 자바 14+ 의 text block (`"""..."""`) 같은 멀티라인 문자열도 Python 은 `"""..."""` 트리플 쿼트로 같다.
 
-## for 문 — iterator 가 표준
+## for 문: iterator 가 표준
 
 자바의 enhanced for 와 사실상 같지만 더 폭넓다.
 
@@ -167,7 +167,7 @@ for key, value in config.items():
 
 `range(n)` 은 자바의 `IntStream.range(0, n)` 같은 감각.
 
-## List comprehension — 자바 Stream 의 압축형
+## List comprehension: 자바 Stream 의 압축형
 
 자바 8 Stream 의 `filter().map().collect()` 패턴이 Python 에서는 한 줄 표현식이다.
 
@@ -191,7 +191,7 @@ lower = {k.lower(): v for k, v in config.items()}
 
 자바보다 짧다는 게 장점이자 단점. 한 줄에 욱여넣으면 가독성이 무너지므로, 조건이 둘 이상 끼면 보통 `for` 루프로 푼다.
 
-## 클래스 — 가볍게만 짚고 다음 글에서 심화
+## 클래스: 가볍게만 짚고 다음 글에서 심화
 
 자바 클래스와 비슷하지만 몇 가지 큰 차이.
 
@@ -216,7 +216,7 @@ w.start()
 
 `__init__` 처럼 양쪽 언더스코어 두 개로 둘러싼 메서드는 **dunder method** (double underscore) 라 부르며 자바의 `equals/hashCode/toString` 같은 특수 메서드에 해당한다.
 
-## 예외 처리 — finally 는 거의 `with`
+## 예외 처리: finally 는 거의 `with`
 
 자바의 `try/catch/finally` 는 Python 의 `try/except/finally` 다. 자바와 다른 키워드 두 개:
 
@@ -241,7 +241,7 @@ with open("file.txt") as f:
 
 `AutoCloseable` 이 구현된 자원이라면 `with` 로 묶는 게 관용구다. 우리가 분석 중인 코드에서 임시 파일 처리 시 `with` 누락이 문제로 자주 발견됐다.
 
-## import 와 패키지 — 클래스가 아니라 모듈이 단위
+## import 와 패키지: 클래스가 아니라 모듈이 단위
 
 자바는 파일 하나에 (보통) 클래스 하나, 패키지가 디렉터리. Python 도 디렉터리=패키지지만 **import 단위는 모듈(=`.py` 파일) 자체**다.
 
@@ -260,7 +260,7 @@ from .util import helper
 
 자바의 `import com.foo.Bar;` 한 줄에 클래스 하나 가져오는 것과 달리, Python 은 모듈 단위로 가져온 뒤 점 표기로 함수·클래스에 접근하는 게 일반적. `import numpy as np` 가 그 예.
 
-## Truthy / Falsy — 자바보다 헐겁다
+## Truthy / Falsy: 자바보다 헐겁다
 
 자바에서 `if (list)` 는 컴파일 에러다. `if (list != null && !list.isEmpty())` 처럼 풀어 써야 한다. Python 은 그냥 `if list:` 가 동작한다.
 
@@ -274,7 +274,7 @@ if name:            # None, "", 0 모두 False
 
 자바 코드를 옮길 때 `if not None and not empty` 검사를 Pythonic 하게 `if x:` 한 줄로 쓰는 경우가 흔하다. 다만 **0 과 빈 문자열도 False** 라는 점은 주의. 진짜로 `None` 만 제외하고 싶다면 `if x is not None:` 으로 명시한다.
 
-## 마무리 — 다음 글로 넘기는 것들
+## 마무리: 다음 글로 넘기는 것들
 
 이 글은 코드를 "읽기" 위한 최소한이다. 본격적으로 **쓰려면** 다음을 추가로 알아야 한다.
 

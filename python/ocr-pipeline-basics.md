@@ -4,13 +4,13 @@ series: "AI 서빙 인프라: GPU부터 문서 파싱까지"
 seriesOrder: 7
 ---
 
-# OCR 동작 원리 — Layout · Text · Post-process 3단계
+# OCR 동작 원리: Layout · Text · Post-process 3단계
 
 자바 백엔드만 다뤄오다가 OCR (Optical Character Recognition) 서비스를 분석할 일이 생겼다. "이미지에서 글자를 뽑는다" 라는 한 줄 요약은 알았지만, 실제 코드를 열어보면 모델이 둘이상이고, 여러 단계가 직렬·병렬로 엮여 있고, "왜 이 단계가 따로 있지" 같은 의문이 계속 생긴다.
 
 이 글은 OCR 파이프라인의 표준 구조를 정리하고, 자바 백엔드 관점에서 ETL 파이프라인과 1:1 로 비유한다. 내가 직접 분석한 ML 서비스의 흐름을 일반화해서 예시로 든다.
 
-## 큰 그림 — Layout → Text → Post-process
+## 큰 그림: Layout → Text → Post-process
 
 OCR 시스템은 보통 다음 3단계로 나뉜다.
 
@@ -34,7 +34,7 @@ OCR 시스템은 보통 다음 3단계로 나뉜다.
 
 각 단계가 별도 모델 또는 라이브러리로 구현되어 있고, 자바 Spring Batch 의 `Reader → Processor → Writer` 와 같은 분리 패턴을 따른다.
 
-## 1단계 — Layout Detection
+## 1단계: Layout Detection
 
 목적: **이미지 안의 어디에 무엇이 있는지** 박스로 잡아낸다. 다음과 같은 구조 요소를 검출한다.
 
@@ -64,7 +64,7 @@ OCR 시스템은 보통 다음 3단계로 나뉜다.
 
 이 단계가 빠질 수도 있다. 단순히 "이 이미지의 모든 글자를 뽑아줘" 라면 Layout 없이 Text Recognition 으로 바로 갈 수 있다. 그러나 문서 구조 (표·헤더·본문 분리) 가 필요하면 Layout 이 선행돼야 한다.
 
-## 2단계 — Text Recognition
+## 2단계: Text Recognition
 
 목적: **잘린 박스 안의 픽셀을 글자 시퀀스로** 변환. OCR 의 핵심.
 
@@ -111,7 +111,7 @@ class LocalOcr(OcrEngine):
 
 [Post 2 의 Protocol 패턴](./java-to-python-oop-decorator.md) 이 그대로 적용된다.
 
-## 3단계 — Post-processing
+## 3단계: Post-processing
 
 목적: 박스별 인식 결과를 **사람이 읽을 수 있는 글로** 재조합. 페이지의 reading order 결정, 표 구조 복원, markdown 변환, 신뢰도 필터링.
 
@@ -144,7 +144,7 @@ PDF 에 텍스트 레이어가 있으면 OCR 없이도 글자 추출 가능 (PyP
 
 분석한 서비스의 Docling 라이브러리가 이 PDF rendering + OCR 통합을 담당한다. PDF backend 선택, page batch size, image scale 같은 옵션이 성능에 직결되는 부분.
 
-## 성능 함정 — OCR 단계가 외부 API 직렬 호출일 때
+## 성능 함정: OCR 단계가 외부 API 직렬 호출일 때
 
 OCR 단계가 클라우드 API 호출이면 latency 의 지배 요인이 GPU 가 아니라 네트워크가 된다. 우리 분석에서 가장 큰 병목으로 잡힌 패턴.
 
@@ -182,7 +182,7 @@ OCR 모델은 각 문자·박스에 0.0 - 1.0 사이의 신뢰도를 부여한�
 
 > OCR 은 Layout (어디에 글이 있나) → Recognition (어떤 글자인가) → Post-process (어떻게 묶나) 의 3단계 파이프라인이다. 각 단계는 독립 ML 모델 또는 외부 API 로 구현되며, 자바 ETL 파이프라인의 Extract/Transform/Load 와 같은 분리 원칙을 따른다.
 
-다음 글은 이 시리즈의 마무리 — 자바 백엔드 개발자 시각에서 ML 서비스 성능 분석 워크플로를 정리한다. 분석한 실제 사례 (이슈 17개 등록) 를 자바 백엔드 트러블슈팅과 비교한다.
+다음 글은 이 시리즈의 마무리로, 자바 백엔드 개발자 시각에서 ML 서비스 성능 분석 워크플로를 정리한다. 분석한 실제 사례 (이슈 17개 등록) 를 자바 백엔드 트러블슈팅과 비교한다.
 
 ## 참고
 

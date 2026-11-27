@@ -4,7 +4,7 @@ series: "GPU 로 LLM 서빙하기"
 seriesOrder: 3
 ---
 
-# GPU 컨테이너의 CUDA 버전 호환성 — nvidia-smi부터 이미지 다이어트까지
+# GPU 컨테이너의 CUDA 버전 호환성: nvidia-smi부터 이미지 다이어트까지
 
 **이전 글** [Python CUDA 버전 생태계](./cuda-version-ecosystem.md) · **다음 글** [한 GPU를 여러 프로세스가 나눠 쓰기](./multi-process-gpu-mps.md) · [시리즈 목차](README.md)
 
@@ -48,7 +48,7 @@ NVIDIA-SMI 535.154.05   Driver Version: 535.154.05   CUDA Version: 12.2
 
 위에서 생략한 실제 출력의 Processes 표에서는 python 프로세스 다섯 개가 GPU를 나눠 쓰고 있었는데, 이게 나중에 중요한 단서가 된다.
 
-## 드라이버, CUDA 런타임, cuDNN — 누가 어디에 사는가
+## 드라이버, CUDA 런타임, cuDNN: 누가 어디에 사는가
 
 버전 호환성을 이해하려면 세 가지가 각각 어디에 사는지를 먼저 그려야 한다.
 
@@ -68,7 +68,7 @@ NVIDIA-SMI 535.154.05   Driver Version: 535.154.05   CUDA Version: 12.2
 이 구조 때문에 컨테이너 안 CUDA를 무작정 최신으로 올릴 수가 없다.
 호스트 드라이버가 그만큼 못 받아주면 GPU 초기화 단계에서 깨진다.
 
-## minor version compatibility — 규칙에 난 구멍
+## minor version compatibility: 규칙에 난 구멍
 
 기본 원칙이 "드라이버 ≥ 런타임"이라면, 드라이버 535(12.2 상한)에서 CUDA 12.6으로 빌드한 라이브러리는 못 도는 게 맞아야 한다.
 그런데 현실은 더 너그럽다.
@@ -128,7 +128,7 @@ NVIDIA가 배포하는 CUDA 베이스 이미지에는 `NVIDIA_REQUIRE_CUDA`라�
 
 GPU를 여러 프로세스로 나눠 쓰는 워커 풀 구성은 [Java 개발자가 본 Python 멀티프로세스 GPU 워커 풀](./java-to-python-multiprocess-gpu-worker-pool.md)에 따로 정리해두었다.
 
-## 30GB는 어디서 왔나 — pull 없이 레이어를 뜯어보기
+## 30GB는 어디서 왔나: pull 없이 레이어를 뜯어보기
 
 방향을 잡았으니 실제로 이미지를 뜯어봐야 했다.
 그런데 문제의 이미지가 30GB다. 받아서 `docker history`로 보기엔 너무 무겁다.
@@ -150,7 +150,7 @@ manifest의 레이어 크기와 config의 history를 순서대로 맞물리면, 
 세 벌의 CUDA가 한 이미지에 쌓여 있었다.
 게다가 PyTorch는 자기 CUDA 12.6 번들을 쓰니, 베이스 이미지가 품고 있는 cudnn8은 PyTorch 입장에서 죽은 무게였다.
 
-## 다이어트 레버 — MLOps 관점에서 무엇을 먼저 자르나
+## 다이어트 레버: MLOps 관점에서 무엇을 먼저 자르나
 
 레이어 분석이 끝나니 자를 곳의 우선순위가 정리됐다.
 GPU 추론 이미지를 줄일 때 일반적으로 적용되는 레버들이다.

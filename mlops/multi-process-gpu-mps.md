@@ -4,7 +4,7 @@ series: "GPU 로 LLM 서빙하기"
 seriesOrder: 4
 ---
 
-# 한 GPU 를 여러 프로세스가 나눠 쓰기 — Time-Slicing 과 MPS
+# 한 GPU 를 여러 프로세스가 나눠 쓰기: Time-Slicing 과 MPS
 
 **이전 글** [GPU 컨테이너의 CUDA 버전 호환성](./gpu-container-cuda-driver-compatibility.md) · **다음 글** [Multi-process GPU 워크로드](./java-to-python-multiprocess-gpu-worker-pool.md) · [시리즈 목차](README.md)
 
@@ -14,7 +14,7 @@ seriesOrder: 4
 
 여러 워커 프로세스가 각자 추론을 하는 서버를 떠올리면 된다. 메인 프로세스가 요청을 받고, 실제 모델 추론은 자식 워커 프로세스 풀에 넘긴다. 워커가 3개면 GPU 하나에 추론 프로세스가 3개 붙는다. 이때 GPU 를 나눠 쓰는 방식이 곧 성능과 안정성을 좌우한다.
 
-## 기본 동작 — Time-Slicing
+## 기본 동작: Time-Slicing
 
 아무 설정도 안 하면 GPU 는 **time-slicing** 으로 동작한다. 여러 프로세스가 보낸 커널(GPU 연산 단위)을 **순서대로 돌아가며** 실행한다. 한 순간엔 한 프로세스의 커널만 GPU 전체를 쓰고, 시간이 지나면 다음 프로세스로 넘어간다. 시분할 방식의 OS 스케줄러가 CPU 를 프로세스에 번갈아 주는 것과 같은 그림이다.
 
@@ -25,7 +25,7 @@ seriesOrder: 4
 
 특히 짧고 자잘한 커널이 많은 워크로드일수록 전환 비용과 유휴가 누적돼 GPU 활용도가 떨어진다. 추론 서비스는 요청마다 작은 커널이 쏟아지는 패턴이라 이 약점에 정확히 걸린다.
 
-## MPS — 공간으로 나눠 쓰기
+## MPS: 공간으로 나눠 쓰기
 
 **MPS**(Multi-Process Service)는 같은 문제를 시간이 아니라 **공간**으로 푼다.
 
@@ -43,7 +43,7 @@ MPS 를 켜면 **MPS control 데몬**(`nvidia-cuda-mps-control`)이 뜬다. 이 
 
 MPS 서버는 한 클라이언트가 쓸 수 있는 자원에 상한을 걸 수 있다. 대표적으로 **active thread percentage** 로 "각 클라이언트는 GPU 스레드의 최대 N% 까지" 를 지정한다. 예를 들어 50% 로 두면 한 프로세스가 GPU 를 독식하지 못하고 절반 안에서만 돈다. 최신 아키텍처에서는 SM 을 **chunk** 단위(Hopper 기준 8 SM)로 떼어 정적으로 나누는 모드도 있다. 워커 수와 워크로드에 맞춰 분할 정책을 조절하는 셈이다.
 
-## 공짜는 아니다 — 격리가 약해진다
+## 공짜는 아니다: 격리가 약해진다
 
 MPS 가 좋아 보이지만 트레이드오프가 분명하다. 가장 중요한 건 **에러 격리(fault isolation)가 약하다**는 점이다.
 

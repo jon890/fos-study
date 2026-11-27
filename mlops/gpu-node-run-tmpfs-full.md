@@ -71,7 +71,7 @@ tmpfs            45G  1.2M   45G   1% /dev/shm
 
 여기서 tmpfs와 `/run`에 대해 짚고 넘어가자.
 
-### tmpfs — RAM 위의 파일시스템
+### tmpfs: RAM 위의 파일시스템
 
 **tmpfs**(temporary filesystem)는 디스크가 아니라 **RAM 위에 존재하는 파일시스템**이다.
 일반 파일시스템처럼 파일을 읽고 쓸 수 있지만, 모든 데이터가 메모리에 저장되기 때문에 디스크 I/O가 없어 매우 빠르다.
@@ -81,7 +81,7 @@ Linux 커널 문서에 따르면 tmpfs의 기본 크기는 **물리 RAM의 50%**
 다만 `/run`은 systemd가 부팅 시 별도로 마운트하며, 배포판마다 기본 크기가 다르다.
 이 GPU 노드에서는 약 90G RAM의 10%인 8.9G로 설정되어 있었다.
 
-### /run — 런타임 임시 데이터의 표준 경로
+### /run: 런타임 임시 데이터의 표준 경로
 
 `/run`은 Linux FHS(Filesystem Hierarchy Standard)에서 정의한 **런타임 데이터 전용 디렉터리**다.
 부팅 후 프로세스들이 실행 중에 필요한 임시 파일을 저장하는 곳이다.
@@ -99,7 +99,7 @@ Linux 커널 문서에 따르면 tmpfs의 기본 크기는 **물리 RAM의 50%**
 핵심은 `/run`이 tmpfs라는 점이다.
 디스크가 아니라 RAM에서 할당된 제한된 공간이므로, 여기에 저장되는 데이터가 많아지면 루트 디스크와 무관하게 공간 부족이 발생한다.
 
-## containerd 아키텍처 — 컨테이너가 실행되기까지
+## containerd 아키텍처: 컨테이너가 실행되기까지
 
 containerd가 `/run`을 왜 쓰는지 이해하려면 컨테이너가 실행되는 전체 흐름을 알아야 한다.
 
@@ -285,7 +285,7 @@ $ sudo ls /run/containerd/io.containerd.runtime.v2.task/k8s.io/ | wc -l
 
 ## 해결
 
-### 즉시 조치 — tmpfs 크기 확장
+### 즉시 조치: tmpfs 크기 확장
 
 ```bash
 sudo mount -o remount,size=16G /run
@@ -303,7 +303,7 @@ tmpfs  16G  8.9G  7.2G  56%  /run
 
 GPU 노드 2대 모두 동일한 증상이었고, 양쪽 다 같은 조치로 해결했다.
 
-### 영구 적용 — /etc/fstab
+### 영구 적용: /etc/fstab
 
 `mount -o remount`는 런타임 변경이라 **재부팅하면 원래 크기로 돌아간다**.
 영구 적용하려면 `/etc/fstab`에 한 줄을 추가한다.

@@ -4,7 +4,7 @@ series: "GPU 로 LLM 서빙하기"
 seriesOrder: 1
 ---
 
-# GPU·CUDA·MPS 기초 — 자바 백엔드 개발자가 처음 만나는 그림
+# GPU·CUDA·MPS 기초: 자바 백엔드 개발자가 처음 만나는 그림
 
 **다음 글** [Python CUDA 버전 생태계](./cuda-version-ecosystem.md) · [시리즈 목차](README.md)
 
@@ -25,7 +25,7 @@ GPU 는 수천 개의 단순한 코어로 같은 연산을 데이터 다발에 �
 
 자바로 비유하면 CPU 는 "복잡한 비즈니스 로직 한 트랜잭션", GPU 는 "Hadoop/Spark 가 데이터를 일괄 처리하듯 SIMD (Single Instruction Multiple Data) 방식의 병렬 처리" 라고 보면 가깝다.
 
-## CUDA — NVIDIA GPU 의 프로그래밍 인터페이스
+## CUDA: NVIDIA GPU 의 프로그래밍 인터페이스
 
 CUDA 는 NVIDIA 가 만든 GPU 컴퓨팅 플랫폼이자 API 다. 자바의 JVM 자리에 NVIDIA 의 CUDA 런타임이 들어가고, PyTorch·TensorFlow 같은 라이브러리가 그 위에서 동작한다.
 
@@ -54,7 +54,7 @@ FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 
 호스트의 NVIDIA driver 가 컨테이너 안의 CUDA Runtime 보다 같거나 높아야 하고, PyTorch 가 빌드된 CUDA 버전과도 맞아야 한다. 자바에서 JDK 호환 표를 신경 쓰는 것과 비슷하지만 한 단계 더 깐깐하다.
 
-## VRAM — GPU 전용 메모리
+## VRAM: GPU 전용 메모리
 
 VRAM 은 GPU 카드 위에 붙은 메모리다. **시스템 RAM 과 물리적으로 분리**된다. 우리 운영 환경의 Tesla T4 는 VRAM 이 16GB (실측 가용 15GB) 이고, 호스트의 시스템 RAM 32GB 와는 별도다.
 
@@ -89,7 +89,7 @@ def clear_cuda_memory():
 
 자바의 `System.gc()` 와 비슷한 위치인데, ML 워크로드에서는 호출 빈도가 훨씬 잦다.
 
-## nvidia-smi — GPU 의 jstat·jmap
+## nvidia-smi: GPU 의 jstat·jmap
 
 자바에서 JVM 상태를 보려고 `jstat`, `jmap`, `jstack`, JConsole 을 쓴다. GPU 는 `nvidia-smi` 한 명령으로 거의 모든 게 보인다.
 
@@ -155,7 +155,7 @@ Mac M-series 에서 PyTorch 가 자동으로 Apple GPU 를 활용한다. 우리�
 
 그래서 한 PyTorch 코드 안에서 CUDA 와 Apple MPS 를 함께 다루기도 한다. `torch.cuda.*` 를 쓸 수 없을 때 `torch.backends.mps.*` 로 분기하는 패턴을 자주 본다.
 
-## JVM heap 과의 비교 — 명시적 자원 관리
+## JVM heap 과의 비교: 명시적 자원 관리
 
 자바 백엔드를 운영할 때 가장 신경 쓰는 게 JVM heap 튜닝 (`-Xmx`, `-Xms`, GC 알고리즘 선택) 이었다. GPU 워크로드는 그와 비슷하지만 차이가 있다.
 

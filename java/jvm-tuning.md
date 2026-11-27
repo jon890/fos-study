@@ -135,7 +135,7 @@ G1 로그 예시 한 줄:
 
 **Allocation rate**. `(GC 전 힙 사용량 - 직전 GC 후 힙 사용량) / 경과 시간`. 초당 몇 MB의 객체가 새로 할당되는가. 갑자기 올라가면 메모리 누수 or 불필요한 객체 생성이 의심된다.
 
-로그 분석 도구: **GCViewer**, **GCEasy**(https://gceasy.io — 사내망 제약이 있으면 GCViewer 로컬 실행).
+로그 분석 도구: **GCViewer**, **GCEasy**(https://gceasy.io, 사내망 제약이 있으면 GCViewer 로컬 실행).
 
 ## OOM 유형과 대응
 
@@ -149,7 +149,7 @@ G1 로그 예시 한 줄:
 
 **`java.lang.OutOfMemoryError: unable to create new native thread`**. Heap 문제가 아니라 OS limit(ulimit -u) 또는 Thread stack 합계가 시스템 메모리를 초과. 스레드 수를 줄이거나 `-Xss`를 줄인다(단, StackOverflowError 위험).
 
-## 실전 사례: 슬롯 시뮬레이터 OOM — 임시 대응 vs 근본 해결
+## 실전 사례: 슬롯 시뮬레이터 OOM, 임시 대응 vs 근본 해결
 
 앞 섹션의 `Java heap space` 카테고리에 정확히 들어맞는 실제 사례를 앞서 다룬 개념들로 매핑해본다. 이 케이스는 **"힙을 늘려서 끄기"와 "구조를 바꾸기"의 경계가 어디인지**를 분명하게 보여주는 교과서적 예시다. 참고: [슬롯 시뮬레이터 OOM](../task/nsc-slot/slot-simulator-oom.md).
 
@@ -178,7 +178,7 @@ public class AccumulateData {
 
 이는 앞서 본 Heap OOM 원인 중 "대용량 데이터 한 번에 로딩 / 무제한 누적" 패턴과 정확히 같은 계열이다. `findAll()`로 수백만 건을 올리는 예시와 구조적으로 동일하다.
 
-### 1단계 — 임시 대응: 힙 확장
+### 1단계: 임시 대응으로 힙 확장
 
 당장 서비스가 돌아야 하니 다음과 같이 대응했다.
 
@@ -203,7 +203,7 @@ export JAVA_OPTS="-Xmx12g -Xms12g"
 
 여기까지 오면 "이 리스트가 왜 존재해야 하는가"로 자연스럽게 질문이 올라간다. 시니어의 진단은 여기서 멈추지 않고 **"이 객체가 원래 필요했는가"**를 묻는 단계로 간다.
 
-### 2단계 — 근본 해결: 공간 복잡도 O(N) → O(1)
+### 2단계: 근본 해결로 공간 복잡도 O(N) → O(1)
 
 분산을 구하기 위해 **모든 값을 저장할 필요가 없다**는 것이 핵심이다. Welford's Online Algorithm은 `count`, `mean`, `m2` 세 개의 스칼라만 유지하면서 단일 패스로 평균과 분산을 갱신한다.
 
@@ -263,7 +263,7 @@ public static WelfordOnlineCalculator merge(WelfordOnlineCalculator a, WelfordOn
 
 Welford's는 `double` 누적에 기반하므로 전체 데이터를 모은 뒤 한 번에 계산하는 방식과 수치적으로 완전히 일치하지 않는다. 두 방식의 결과를 비교해 오차를 실측했고, **변동성 지수 용도에는 충분히 허용 가능한 범위**였다.
 
-시니어 관점에서 중요한 건 "알고리즘 교체로 발생한 오차를 감으로 처리하지 않고 측정했다"는 점이다 — **"얼마나 빨라졌는가"보다 "어디까지 적용했는가, 어떤 수치로 판단했는가"**를 같이 말할 수 있어야 시니어다.
+시니어 관점에서 중요한 건 "알고리즘 교체로 발생한 오차를 감으로 처리하지 않고 측정했다"는 점이다. **"얼마나 빨라졌는가"보다 "어디까지 적용했는가, 어떤 수치로 판단했는가"**를 같이 말할 수 있어야 시니어다.
 
 ### 적용 방식: 기존 경로 무력화하지 않기
 
@@ -293,7 +293,7 @@ public static AccumulateData initWithWelfordOnlineCalculator() {
 
 ### 인터뷰 활용 framing
 
-> "시뮬레이터에서 Heap OOM이 나서 `-Xmx`를 12GB로 늘린 것이 임시 대응이었습니다. 이 대응이 원인을 해결하는 게 아니라 'GC 로그와 힙 덤프를 뜰 시간을 버는 행위'라는 걸 전제로 했습니다. 진짜 원인은 1억 건의 당첨금을 분산 계산을 위해 `List<Long>`으로 쌓고 있다는 것이었고, retained heap 상위에 `winmoneyList`가 올라오는 걸로 확인했습니다. 분산은 모든 값을 저장하지 않아도 Welford's Online Algorithm으로 단일 패스 계산이 가능했기 때문에, 공간 복잡도를 O(N)에서 O(1)로 바꿔 스레드당 메모리를 20바이트로 줄였습니다. 부동소수점 누적 오차가 생긴다는 걸 알고 있었기 때문에 실제 오차를 측정했고, 변동성 지수 용도에는 허용 가능한 수준이었습니다. 이 경험에서 얻은 건 세 가지입니다 — `-Xmx`는 원인을 가리는 수단이지 해결이 아니라는 것, 멀티스레드에서 스레드당 상태 크기가 입력에 선형으로 커지는 설계는 위험하다는 것, 그리고 알고리즘 교체로 인한 트레이드오프는 감이 아니라 측정으로 정당화해야 한다는 것입니다."
+> "시뮬레이터에서 Heap OOM이 나서 `-Xmx`를 12GB로 늘린 것이 임시 대응이었습니다. 이 대응이 원인을 해결하는 게 아니라 'GC 로그와 힙 덤프를 뜰 시간을 버는 행위'라는 걸 전제로 했습니다. 진짜 원인은 1억 건의 당첨금을 분산 계산을 위해 `List<Long>`으로 쌓고 있다는 것이었고, retained heap 상위에 `winmoneyList`가 올라오는 걸로 확인했습니다. 분산은 모든 값을 저장하지 않아도 Welford's Online Algorithm으로 단일 패스 계산이 가능했기 때문에, 공간 복잡도를 O(N)에서 O(1)로 바꿔 스레드당 메모리를 20바이트로 줄였습니다. 부동소수점 누적 오차가 생긴다는 걸 알고 있었기 때문에 실제 오차를 측정했고, 변동성 지수 용도에는 허용 가능한 수준이었습니다. 이 경험에서 얻은 건 세 가지입니다. `-Xmx`는 원인을 가리는 수단이지 해결이 아니라는 것, 멀티스레드에서 스레드당 상태 크기가 입력에 선형으로 커지는 설계는 위험하다는 것, 그리고 알고리즘 교체로 인한 트레이드오프는 감이 아니라 측정으로 정당화해야 한다는 것입니다."
 
 이 답변은 본 문서의 OOM 섹션, 프로파일링 루틴을 한 번에 끌어와 사용한다. 면접관은 "이 사람은 JVM을 플래그가 아니라 **인과 구조**로 이해하고 있다"고 받아들인다.
 
@@ -330,7 +330,7 @@ jstat -gcutil <pid> 1000
 
 **MAT**(Eclipse Memory Analyzer). heap dump 분석 표준. **Leak Suspects**, **Dominator Tree**, **GC Roots까지의 경로** 이 세 기능만 쓸 줄 알면 대부분의 누수를 잡는다.
 
-분석 루틴 예시 — "OOM이 떴다"면:
+분석 루틴 예시("OOM이 떴다"면):
 1. `-HeapDumpOnOutOfMemoryError`로 생성된 `.hprof`를 MAT에 로딩
 2. Leak Suspects Report 먼저 열기
 3. Dominator Tree에서 Retained Heap 큰 순서대로 상위 20개
@@ -521,7 +521,7 @@ private final List<Long> winmoneyList = new ArrayList<>(); // 1억 건 누적
 for (long i = 0; i < 100_000_000; i++) winmoneyList.add(spin());
 double variance = computeVariance(winmoneyList); // O(N) 메모리
 ```
-**개선**: Welford's Online Algorithm — O(1) 메모리
+**개선**: O(1) 메모리로 계산하는 Welford's Online Algorithm
 ```java
 var calc = WelfordOnlineCalculator.init();
 for (long i = 0; i < 100_000_000; i++) calc.addWinMoney(spin(), bet);
@@ -579,15 +579,15 @@ STAR 구조로 정리한 모범 답변 뼈대:
 **Task / Approach**. "먼저 원인 후보를 세 가지로 좁힙니다. (1) 외부 의존성 지연, (2) DB 슬로우 쿼리, (3) JVM 자체 문제(GC/메모리/스레드). 첫 2분 안에 세 가설을 병렬 확인합니다."
 
 **Action**.
-"1단계 — GC 지표 확인. `jstat -gcutil <pid> 1000`으로 YGC/FGC 빈도와 Old 사용률을 봅니다. Full GC가 분당 수 회로 튀었는지, Old가 90%를 넘어서 안 내려오는지 확인합니다. 동시에 `-Xlog:gc*` 로그를 GCViewer로 열어서 pause time 분포와 throughput을 봅니다. Throughput이 90% 아래로 떨어졌으면 GC가 범인일 가능성이 큽니다.
+"1단계: GC 지표 확인. `jstat -gcutil <pid> 1000`으로 YGC/FGC 빈도와 Old 사용률을 봅니다. Full GC가 분당 수 회로 튀었는지, Old가 90%를 넘어서 안 내려오는지 확인합니다. 동시에 `-Xlog:gc*` 로그를 GCViewer로 열어서 pause time 분포와 throughput을 봅니다. Throughput이 90% 아래로 떨어졌으면 GC가 범인일 가능성이 큽니다.
 
-2단계 — GC가 원인이면, Young이 작아서 Minor가 너무 잦은지 vs Old가 꽉 차서 Mixed/Full이 자주 도는지 구분합니다. 전자는 힙/Young 비율 조정으로 해결되고, 후자는 **메모리 누수**거나 **승격률**이 비정상적으로 높은 경우입니다.
+2단계: GC가 원인이면, Young이 작아서 Minor가 너무 잦은지 vs Old가 꽉 차서 Mixed/Full이 자주 도는지 구분합니다. 전자는 힙/Young 비율 조정으로 해결되고, 후자는 **메모리 누수**거나 **승격률**이 비정상적으로 높은 경우입니다.
 
-3단계 — 누수가 의심되면 `jcmd <pid> GC.heap_dump`로 덤프 받아 MAT의 Leak Suspects로 돌립니다. 우리가 실제로 겪었던 사례 중 하나는 `ThreadLocal`에 요청 스코프 객체를 넣고 제거를 안 해서 Tomcat 스레드 풀이 계속 참조를 쥐고 있던 케이스였습니다.
+3단계: 누수가 의심되면 `jcmd <pid> GC.heap_dump`로 덤프 받아 MAT의 Leak Suspects로 돌립니다. 우리가 실제로 겪었던 사례 중 하나는 `ThreadLocal`에 요청 스코프 객체를 넣고 제거를 안 해서 Tomcat 스레드 풀이 계속 참조를 쥐고 있던 케이스였습니다.
 
-4단계 — 누수가 아니라 **설계상의 대용량 누적**이면, retained heap 상위 객체의 **존재 이유 자체를 의심**합니다. 슬롯 시뮬레이터 OOM 케이스에서는 분산 계산을 위해 1억 개 당첨금을 리스트로 들고 있던 구조가 retained heap top이었고, 온라인 알고리즘으로 바꿔 O(N) → O(1)로 제거했습니다. 이 단계가 'JVM 튜닝'과 '설계 변경'의 경계입니다.
+4단계: 누수가 아니라 **설계상의 대용량 누적**이면, retained heap 상위 객체의 **존재 이유 자체를 의심**합니다. 슬롯 시뮬레이터 OOM 케이스에서는 분산 계산을 위해 1억 개 당첨금을 리스트로 들고 있던 구조가 retained heap top이었고, 온라인 알고리즘으로 바꿔 O(N) → O(1)로 제거했습니다. 이 단계가 'JVM 튜닝'과 '설계 변경'의 경계입니다.
 
-5단계 — GC가 아니면 async-profiler로 CPU flame graph를 뜹니다. 블로킹 호출이 특정 메서드에 집중되는지, lock contention(`-e lock`)이 있는지 확인합니다."
+5단계: GC가 아니면 async-profiler로 CPU flame graph를 뜹니다. 블로킹 호출이 특정 메서드에 집중되는지, lock contention(`-e lock`)이 있는지 확인합니다."
 
 **Result framing**. "최종적으로 원인이 GC인지 아닌지 **두 개 이하의 지표**로 판단할 수 있어야 한다고 생각합니다. 저는 보통 `jstat`의 GCT 증가율과 GC 로그의 throughput, 이 두 개로 결정합니다. GC가 아니라는 걸 2\~3분 안에 배제할 수 있으면 나머지 시간을 실제 원인에 쓸 수 있습니다. 그리고 GC가 맞다고 판단되면, 플래그 튜닝이 먼저인지 구조 변경이 먼저인지를 **임시 대응인지 근본 해결인지** 축으로 판단합니다."
 

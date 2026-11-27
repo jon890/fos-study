@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# 로그에 traceId 남기기 — MDC 부터 OpenTelemetry 까지
+# 로그에 traceId 남기기: MDC 부터 OpenTelemetry 까지
 
 로그를 보다가 "이 로그와 저 로그가 같은 요청인가"를 알 수 없으면 장애 추적이 멈춘다.
 그 연결고리를 만드는 것이 `traceId`이고, 로그에 그 값을 붙이는 도구가 MDC다.

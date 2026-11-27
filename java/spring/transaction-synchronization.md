@@ -6,7 +6,7 @@ tags: [study]
 
 ## 왜 이 주제가 중요한가
 
-백엔드에서 가장 자주 발생하는 데이터 정합성 사고 중 하나는 **"DB 트랜잭션은 롤백됐는데 외부 알림은 이미 발송된" 상황**이다. 사용자에게 "주문이 접수됐습니다"라는 알림톡은 이미 갔는데, 정작 주문 테이블에는 데이터가 없다. 반대로 "DB에는 저장됐는데 알림이 안 나간" 사고도 흔하다. 두 사고 모두 원인은 같다 — **트랜잭션 경계와 외부 시스템 호출의 경계가 어긋나 있기 때문**이다.
+백엔드에서 가장 자주 발생하는 데이터 정합성 사고 중 하나는 **"DB 트랜잭션은 롤백됐는데 외부 알림은 이미 발송된" 상황**이다. 사용자에게 "주문이 접수됐습니다"라는 알림톡은 이미 갔는데, 정작 주문 테이블에는 데이터가 없다. 반대로 "DB에는 저장됐는데 알림이 안 나간" 사고도 흔하다. 두 사고 모두 원인은 같다. **트랜잭션 경계와 외부 시스템 호출의 경계가 어긋나 있기 때문**이다.
 
 레거시 시스템을 보면 `@Transactional` 메서드 안에서 곧장 알림톡 API를 호출하거나, Kafka producer.send()를 호출하거나, HTTP 웹훅을 쏘는 코드가 흔하게 있다. 평상시에는 잘 동작하는 것처럼 보이지만, DB 제약 위반 한 건, deadlock 한 건, 후속 처리에서 던진 `RuntimeException` 한 건만 있어도 곧바로 정합성이 깨진다. 외부 호출은 본질적으로 **롤백 불가능한 부수 효과**이기 때문이다.
 
@@ -14,7 +14,7 @@ Spring은 이 문제를 정면으로 풀기 위한 훅 시스템을 제공한다
 
 시니어 백엔드 면접에서 "트랜잭션과 외부 호출을 어떻게 묶으시나요?"는 거의 항상 물어보는 질문이다. 답을 모호하게 하면 주니어로 분류되고, 이 메커니즘과 한계를 함께 말할 수 있으면 시스템 설계 감각이 있는 사람으로 분류된다.
 
-## TransactionSynchronization 메커니즘 — ThreadLocal 기반 훅 시스템
+## TransactionSynchronization 메커니즘: ThreadLocal 기반 훅 시스템
 
 Spring의 트랜잭션 추상화(`PlatformTransactionManager`)는 트랜잭션이 시작되면 현재 스레드에 대해 `TransactionSynchronizationManager`라는 정적 매니저를 활성화한다. 이 매니저는 내부적으로 여러 ThreadLocal을 들고 있으며, 그중 하나가 등록된 `TransactionSynchronization` 콜백 리스트다.
 
@@ -44,7 +44,7 @@ ThreadLocal 기반이라는 사실은 두 가지를 함의한다.
 
 이 표를 외워두면 면접에서 "왜 afterCommit 안에서 추가 트랜잭션을 다시 열어야 하나요?"라는 질문에 즉답할 수 있다. **afterCommit 시점은 이미 원래 트랜잭션이 끝난 직후라 현재 스레드에 활성 트랜잭션이 없다.** 그 안에서 JPA save를 호출해도 자동 flush되지 않거나, EntityManager가 닫혀 LazyInitializationException을 만나게 된다. 그래서 afterCommit 안에서 DB 작업이 필요하면 `Propagation.REQUIRES_NEW` 로 새 트랜잭션을 명시적으로 열어야 한다.
 
-또 하나 중요한 사실 — `afterCommit`에서 던진 예외는 **이미 커밋된 원본 트랜잭션을 되돌리지 않는다.** 그래서 afterCommit 안의 외부 호출 실패는 별도 보상 로직(재시도 큐, Outbox 등)으로 처리해야지, 예외 전파만으로 해결되지 않는다.
+또 하나 중요한 사실: `afterCommit`에서 던진 예외는 **이미 커밋된 원본 트랜잭션을 되돌리지 않는다.** 그래서 afterCommit 안의 외부 호출 실패는 별도 보상 로직(재시도 큐, Outbox 등)으로 처리해야지, 예외 전파만으로 해결되지 않는다.
 
 ## @TransactionalEventListener의 내부 동작과 한계
 
@@ -63,7 +63,7 @@ Spring 4.2부터 도입된 `@TransactionalEventListener(phase = AFTER_COMMIT)` �
 
 ## 안티패턴 vs 개선된 패턴
 
-### 안티패턴 — @Transactional 안에서 직접 외부 호출
+### 안티패턴: @Transactional 안에서 직접 외부 호출
 
 ```java
 @Service
@@ -91,7 +91,7 @@ public class OrderServiceBad {
 - `applyPostProcessing()` 에서 예외가 발생하면 트랜잭션은 롤백되지만 알림톡은 이미 발송된 상태다. 사용자는 "주문 접수" 알림을 받았지만 시스템에는 주문이 없다.
 - `alimtalkClient.send()` 가 외부 API 지연으로 5초 걸리면 트랜잭션이 5초간 열려있고, DB 커넥션 풀과 row lock이 그동안 점유된다. TPS가 폭락한다.
 
-### 개선된 패턴 — afterCommit 훅 + REQUIRES_NEW로 실패 보존
+### 개선된 패턴: afterCommit 훅 + REQUIRES_NEW로 실패 보존
 
 ```java
 @Service
@@ -203,7 +203,7 @@ afterCommit 패턴이 만능은 아니다. 다음 시퀀스를 보자.
 
 afterCommit 훅은 빠르고 단순한 케이스에 적합하고, 정합성이 진짜로 중요한 도메인(결제, 주문, 회계)에는 Outbox로 한 단계 더 강화한다. 면접에서는 이 두 가지를 같이 설명할 수 있어야 한다.
 
-## 레거시 현대화 관점 — 어떤 직결 호출을 감싸는가
+## 레거시 현대화 관점: 어떤 직결 호출을 감싸는가
 
 레거시 코드를 마이그레이션할 때 가장 자주 만나는 패턴은 다음과 같다.
 
@@ -269,7 +269,7 @@ CREATE TABLE failed_notifications (
 ) ENGINE=InnoDB;
 ```
 
-## 실행 가능한 풀 예제 — 알림 발행 + 실패 저장 + 스케줄러 재전송
+## 실행 가능한 풀 예제: 알림 발행 + 실패 저장 + 스케줄러 재전송
 
 도메인 이벤트:
 

@@ -4,7 +4,7 @@ series: "자바 백엔드 개발자를 위한 Python 입문"
 seriesOrder: 5
 ---
 
-# Python async/await — CompletableFuture·Reactor 와 다른 점, 그리고 blocking I/O 함정
+# Python async/await: CompletableFuture·Reactor 와 다른 점, 그리고 blocking I/O 함정
 
 자바에서 비동기를 다루는 방법은 시대마다 달랐다. `Future.get()` 의 블로킹 시절, `CompletableFuture` 의 콜백 체인, Reactor·RxJava 의 스트림. 모두 **별도 스레드**에서 작업을 돌리고 결과를 받아오는 모델이다.
 
@@ -41,13 +41,13 @@ asyncio.run(main())
 
 자바 `CompletableFuture.allOf(...)` 와 결과는 비슷하지만 내부 메커니즘이 다르다. 자바는 풀의 여러 스레드가 동시에 돈다. Python 은 한 스레드가 빠르게 왔다 갔다 한다.
 
-## 왜 Python 은 단일 스레드를 골랐나 — GIL
+## 왜 Python 은 단일 스레드를 골랐나: GIL
 
 이 모델을 이해하려면 **GIL** (Global Interpreter Lock) 을 짚어야 한다. CPython 은 한 번에 하나의 스레드만 바이트코드를 실행하도록 인터프리터에 락을 박았다. 멀티스레드를 만들어도 CPU 작업은 직렬화된다.
 
 자바라면 `synchronized` 로 일부 임계 구역만 직렬화하는데, Python 은 인터프리터 자체가 큰 모니터 락 하나로 묶여 있는 셈. 결과적으로 **Python 멀티스레드는 CPU bound 작업에서 자바 멀티스레드만큼 빨라지지 않는다**.
 
-I/O 작업은 다르다. 시스템 콜을 기다리는 동안 GIL 을 놓는다. 그래서 자바 multithreaded I/O 와 비슷한 동시성이 나온다. 다만 비동기 모델이 더 가볍다 — OS 스레드 1만 개는 메모리만 수 GB 인데, 코루틴 1만 개는 메가바이트 수준.
+I/O 작업은 다르다. 시스템 콜을 기다리는 동안 GIL 을 놓는다. 그래서 자바 multithreaded I/O 와 비슷한 동시성이 나온다. 다만 비동기 모델이 더 가볍다. OS 스레드 1만 개는 메모리만 수 GB 인데, 코루틴 1만 개는 메가바이트 수준.
 
 ML 워크로드처럼 CPU/GPU 가 무거운 작업은 **multiprocessing** (각 프로세스마다 독립 인터프리터·독립 GIL) 으로 풀어야 한다. 우리 프로젝트가 워커를 `ProcessPoolExecutor` 로 띄우는 이유가 정확히 이것. 자바라면 그냥 ThreadPool 로 충분했을 일이다. 이 주제는 다음 글에서 깊게 본다.
 
@@ -67,7 +67,7 @@ Reactor 와 async/await 의 공통점:
 
 자바에서 `CompletableFuture` 든 Reactor 든 **이 작업이 어떤 스레드에서 도는가** 가 항상 명시적 또는 암묵적으로 추적된다. Python async 는 "**이 작업이 이벤트 루프를 양보하는가**" 가 중심 질문이 된다.
 
-## 결정적 함정 — async 안의 blocking I/O
+## 결정적 함정: async 안의 blocking I/O
 
 이 글의 핵심이다. `async def` 함수 안에서 동기 I/O 호출 (네트워크·파일) 을 직접 부르면 **이벤트 루프 전체가 멈춘다**. 동시에 들어온 다른 요청도 같이 멈춘다.
 
@@ -155,7 +155,7 @@ def parse_url(req: ParseRequest):       # async 가 아니라 그냥 def
 
 worker 3개 환경에서 이 패턴들이 누적되어 동시성이 거의 의미를 잃은 상태였다. 단일 요청 응답시간은 같더라도 5요청 동시 처리 시 p95 가 폭증한다. GitHub 이슈로 따로 등록해 둔 부분.
 
-## 정리 — 자바 개발자가 기억할 한 가지
+## 정리: 자바 개발자가 기억할 한 가지
 
 자바 비동기는 "어느 스레드에서 도는가" 를 묻는다. Python 비동기는 "이벤트 루프를 양보하는가" 를 묻는다. `await` 키워드가 양보 신호다.
 
@@ -165,7 +165,7 @@ worker 3개 환경에서 이 패턴들이 누적되어 동시성이 거의 의�
 
 > 동기 라이브러리를 어쩔 수 없이 써야 하면 `run_in_executor` 또는 핸들러를 `def` (동기) 로.
 
-다음 글은 이 모델이 ML 워크로드를 만났을 때의 한계 — GIL 과 multiprocessing, worker pool 패턴 — 을 자바 ThreadPool 과 비교해 정리한다.
+다음 글은 이 모델이 ML 워크로드를 만났을 때의 한계(GIL 과 multiprocessing, worker pool 패턴)를 자바 ThreadPool 과 비교해 정리한다.
 
 ## 참고
 

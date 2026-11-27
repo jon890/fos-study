@@ -4,7 +4,7 @@ series: "자바 백엔드 개발자를 위한 Python 입문"
 seriesOrder: 4
 ---
 
-# FastAPI 기초 — Spring Boot 사용자가 빠르게 익히는 법
+# FastAPI 기초: Spring Boot 사용자가 빠르게 익히는 법
 
 Python ML 서비스를 분석하면서 가장 빨리 익숙해진 것이 FastAPI 였다. Spring Boot 를 써 본 사람이라면 손에 익기까지 한두 시간이면 충분하다. "어노테이션으로 라우팅 매핑하고, 클래스로 DTO 정의하고, 의존성 주입 받는다" 라는 큰 틀이 거의 그대로 옮겨온다.
 
@@ -32,7 +32,7 @@ Spring 진영과 짝지어 보면 이렇다.
 
 큰 차이는 두 가지: **클래스가 아니라 함수**가 핸들러의 단위라는 점, 그리고 **타입 힌트가 단순 메타데이터가 아니라 실제 검증 기준**이 된다는 점.
 
-## Hello World — 라우팅·핸들러
+## Hello World: 라우팅·핸들러
 
 자바 Spring 의 컨트롤러:
 
@@ -68,7 +68,7 @@ def hello(name: str, times: int = 1) -> Greeting:
 
 자바라면 `@PathVariable`, `@RequestParam` 을 일일이 붙여야 했던 일이 사라진다. 이는 다음에 볼 Pydantic 과 합쳐져 큰 위력을 발휘한다.
 
-## Pydantic — Bean Validation 의 강화판
+## Pydantic: Bean Validation 의 강화판
 
 자바 Bean Validation 은 `@NotNull`, `@Size(min=1, max=100)` 같은 어노테이션을 필드에 박고, 컨트롤러에서 `@Valid` 로 활성화한다.
 
@@ -103,7 +103,7 @@ def parse_url(request: ParseRequest):
 
 우리가 분석한 코드의 `URLRequest` (`app.py`) 도 거의 같은 형태였다. URL 다운로드 핸들러가 `request: URLRequest` 한 줄만 받고, 나머지 옵션 (`do_ocr`, `ja_doc`, `prior` 등) 은 다 Pydantic 이 검증.
 
-## 의존성 주입 — Spring DI 와 결이 다르다
+## 의존성 주입: Spring DI 와 결이 다르다
 
 Spring DI 는 컨테이너가 빈을 관리하고 어노테이션으로 주입한다. FastAPI 는 컨테이너가 없고, **`Depends(...)` 함수**가 의존성을 표현한다.
 
@@ -158,7 +158,7 @@ async def async_handler():
 
 FastAPI 는 `def` 핸들러를 스레드 풀에서 실행해 이벤트 루프 block 을 피하지만, `async def` 안에서 `requests.get(...)` 같은 동기 호출을 하면 그대로 루프가 멈춘다. 우리 프로젝트의 `/parse/url` 가 `async def` 인데 내부에서 동기 `requests.get` 을 호출해 동시성을 깎는 문제가 분석에서 잡혔다. 이 함정은 별도 글에서 자세히 본다.
 
-## 응답 모델 — 직렬화 + 문서화
+## 응답 모델: 직렬화 + 문서화
 
 리턴 타입 힌트에 BaseModel 을 적으면 자동으로 직렬화 + OpenAPI 스키마에 반영된다.
 
@@ -203,7 +203,7 @@ app = FastAPI(lifespan=lifespan)
 
 우리 프로젝트의 워커 풀 초기화·해체가 같은 패턴으로 들어가 있다. PaddleOCR·Docling converter 워밍업이 startup 단계에서 일어나고, shutdown 단계에서 워커 풀이 정리된다.
 
-## OpenAPI 자동 문서 — SpringDoc 없이도
+## OpenAPI 자동 문서: SpringDoc 없이도
 
 FastAPI 는 서버를 띄우자마자 두 개의 문서 페이지를 자동 제공한다.
 

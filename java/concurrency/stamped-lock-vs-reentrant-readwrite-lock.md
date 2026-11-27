@@ -6,7 +6,7 @@ tags: [study]
 
 ## 왜 이 주제가 중요한가
 
-백엔드 서비스에서 동시성 제어는 성능과 정확성을 동시에 결정하는 핵심 축이다. 읽기와 쓰기가 섞이는 상황 — 예를 들어 인메모리 캐시, 설정 스냅샷, 메타데이터 테이블, 통계 집계 버퍼 — 에서 적절한 락 선택은 처리량을 수 배에서 수십 배까지 바꿀 수 있다. `synchronized`와 `ReentrantLock`은 직관적이지만 읽기 비중이 압도적인 워크로드에서는 낭비가 크다. 그래서 JDK 5부터 `ReentrantReadWriteLock`이, JDK 8부터 `StampedLock`이 도입되었다.
+백엔드 서비스에서 동시성 제어는 성능과 정확성을 동시에 결정하는 핵심 축이다. 읽기와 쓰기가 섞이는 상황(예를 들어 인메모리 캐시, 설정 스냅샷, 메타데이터 테이블, 통계 집계 버퍼)에서 적절한 락 선택은 처리량을 수 배에서 수십 배까지 바꿀 수 있다. `synchronized`와 `ReentrantLock`은 직관적이지만 읽기 비중이 압도적인 워크로드에서는 낭비가 크다. 그래서 JDK 5부터 `ReentrantReadWriteLock`이, JDK 8부터 `StampedLock`이 도입되었다.
 
 시니어 백엔드 면접에서 "읽기가 많은 캐시를 어떻게 보호하겠는가"라는 질문은 단골이다. 여기서 `ReentrantReadWriteLock`을 답하면 1차 통과, `StampedLock`의 낙관적 읽기(optimistic read)를 언급하면 한 단계 더 올라간다. 그리고 "그런데 StampedLock의 함정은 무엇이냐"까지 답할 수 있으면 실전 경험이 있는 사람으로 읽힌다. 이 문서는 그 세 레벨을 모두 채우는 것을 목표로 한다.
 
@@ -61,7 +61,7 @@ Spring Boot 애플리케이션이 기동 시 로드하는 기능 플래그 맵, 
 
 ## 나쁜 예와 개선된 예
 
-### 예제 1 — 단순 읽기 많음, ReentrantReadWriteLock도 비효율인 경우
+### 예제 1: 단순 읽기 많음, ReentrantReadWriteLock도 비효율인 경우
 
 **Bad: synchronized로 읽기까지 직렬화**
 
@@ -144,7 +144,7 @@ public class RateCache {
 
 여기서 반드시 주의해야 할 점: 낙관적 읽기 구간에서 읽는 자료 구조가 **쓰는 도중에도 JVM 관점에서 안전해야** 한다. 위 예제는 실제로는 **위험하다**. `HashMap.get`은 재해시(rehash) 도중에 무한 루프에 빠지거나 `NullPointerException`이 터질 수 있다. 낙관적 읽기는 "충돌이 있었는지 사후 검증"할 뿐이므로, 읽는 동안 자료 구조가 일관되지 않아도 검증 전에는 절대 `throw`가 일어나지 않도록 방어해야 한다.
 
-### 예제 2 — 낙관적 읽기의 올바른 패턴
+### 예제 2: 낙관적 읽기의 올바른 패턴
 
 ```java
 public class Point {
@@ -184,7 +184,7 @@ public class Point {
 1. `validate` 전에는 읽은 값이 **불일치**(inconsistent) 할 수 있다고 가정한다.
 2. `validate` 이후에야 계산에 사용한다. 실패 시 비관적 읽기 락으로 fallback한다.
 
-### 예제 3 — 재진입 함정
+### 예제 3: 재진입 함정
 
 ```java
 public class Counter {
@@ -216,7 +216,7 @@ public class Counter {
 
 `ReentrantReadWriteLock`에서는 동일한 코드가 정상 동작한다. 재진입이 필요한 설계 전에 이 제약을 의식적으로 확인해야 한다.
 
-### 예제 4 — 업그레이드 실패 사례
+### 예제 4: 업그레이드 실패 사례
 
 ```java
 // ReentrantReadWriteLock 에서 흔히 하는 실수

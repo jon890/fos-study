@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# Node 백엔드 운영 패턴 — Streams 백프레셔, pipe/pipeline, 멱등성 vs 분산 락
+# Node 백엔드 운영 패턴: Streams 백프레셔, pipe/pipeline, 멱등성 vs 분산 락
 
 기존 javascript/ 문서들이 다루지 않는 Node 백엔드 실전 패턴 두 가지를 묶어 정리한다.
 
@@ -14,11 +14,11 @@ tags: [study]
 
 ## 대용량 파일은 `readFileSync` 대신 Streams
 
-### 문제 — `fs.readFileSync`
+### 문제: `fs.readFileSync`
 
 `fs.readFileSync`는 파일 전체를 한 번에 읽어 Node 프로세스 힙에 Buffer / String 으로 올린다. 파일이 커지면 메모리 사용량과 GC 부담이 비례해서 늘고, 처리 완료 전까지 메모리 해제가 불가능하다. CSV 한 건이 수백 MB 단위로 커질 가능성이 있는 운영 환경이라면 그대로 OOM 으로 이어진다.
 
-### 해결 — `fs.createReadStream`
+### 해결: `fs.createReadStream`
 
 파일을 작은 chunk 단위로 읽고, 읽자마자 처리하고, 처리가 끝나면 버린다. 메모리에는 chunkSize 수준만 올라가 GC 부담이 적고, CSV 처럼 줄 단위로 처리 가능한 포맷에 잘 맞는다.
 
@@ -38,7 +38,7 @@ for await (const line of rl) {
 
 ---
 
-## Streams Backpressure — 생산 속도 > 소비 속도일 때 무엇이 일어나는가
+## Streams Backpressure: 생산 속도 > 소비 속도일 때 무엇이 일어나는가
 
 ### 정의
 
@@ -86,7 +86,7 @@ await pipeline(
 
 ---
 
-## 멱등성 키(Idempotency Key) vs 분산 락 — 역할 분리
+## 멱등성 키(Idempotency Key) vs 분산 락: 역할 분리
 
 POS / 결제처럼 네트워크 지연이나 timeout 이 흔한 환경에서는 **두 메커니즘을 혼동하지 말고 역할을 분리해야** 한다.
 
@@ -104,7 +104,7 @@ POS / 결제처럼 네트워크 지연이나 timeout 이 흔한 환경에서는 
 - **상황**: 같은 유저 계정 / 같은 자원에 대해 동시에 여러 원자적 요청이 들어올 때.
 - **저장소**: Redis 기반 SET NX, Redisson, Redlock 등.
 
-### 결합 — 둘 다 필요한 경우
+### 결합: 둘 다 필요한 경우
 
 - 멱등성 키만 있고 분산 락이 없으면: 같은 키의 동시 요청 두 건이 모두 "신규" 로 판정되어 중복 처리될 수 있다.
 - 분산 락만 있고 멱등성 키가 없으면: 클라이언트가 응답 누락으로 재시도했을 때 락은 풀려 있고, 결과 캐시도 없어 서버는 다시 처리해버린다.

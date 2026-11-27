@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# Java 동시성 락 정리 — 커머스 메뉴/프로모션 정책 캐시 갱신 관점
+# Java 동시성 락 정리: 커머스 메뉴/프로모션 정책 캐시 갱신 관점
 
 ## 왜 지금 이 주제인가
 
@@ -43,7 +43,7 @@ JVM 내장 모니터 락. 진입/이탈이 자동이고 구현이 간단하지�
 - 쓰기 락은 단독 보유, 진입 시 모든 활성 read와 write가 끝나기를 기다린다.
 - write 보유 중이면 read도 막힌다.
 
-`HashMap` 같은 공유 자료구조를 캐시로 두고 갱신할 때 가장 직관적인 도구다. 다만 읽기 락도 락이다. 매 read마다 락 객체의 내부 카운터를 CAS로 증가시키고 메모리 배리어가 발생한다. 초당 수만 read 환경에서는 이 비용이 무시 못 할 수준이 된다. 그리고 writer starvation 문제도 있다 — 끊임없이 읽기가 들어오면 쓰기가 영영 잡히지 않을 수 있어, 공정성 옵션을 켜면 throughput이 또 떨어진다.
+`HashMap` 같은 공유 자료구조를 캐시로 두고 갱신할 때 가장 직관적인 도구다. 다만 읽기 락도 락이다. 매 read마다 락 객체의 내부 카운터를 CAS로 증가시키고 메모리 배리어가 발생한다. 초당 수만 read 환경에서는 이 비용이 무시 못 할 수준이 된다. 그리고 writer starvation 문제도 있다. 끊임없이 읽기가 들어오면 쓰기가 영영 잡히지 않을 수 있어, 공정성 옵션을 켜면 throughput이 또 떨어진다.
 
 ### StampedLock과 optimistic read
 
@@ -64,9 +64,9 @@ Java 8에서 도입된 StampedLock의 장점은 **optimistic read**다.
 - 캐시 객체 자체를 `volatile` 또는 `AtomicReference`로 들고 있다가, 갱신 시 새로운 불변 캐시 객체를 통째로 만들어서 참조만 바꿔치기(swap)한다.
 - 조회 스레드는 락 없이 참조를 한 번 읽고, 그 시점의 스냅샷을 끝까지 사용한다.
 
-이 패턴은 메뉴 캐시, 프로모션 정책 캐시처럼 "1\~5분에 한 번 전체를 다시 빌드해도 되는" 경우에 가장 깔끔하다. 단점은 부분 갱신이 안 된다는 것 — 메뉴 한 줄을 바꾸려고 전체 캐시를 다시 만든다. 그러나 외식 커머스의 마스터 데이터는 보통 수백\~수천 건 수준이라 전체 재빌드 비용이 크지 않다.
+이 패턴은 메뉴 캐시, 프로모션 정책 캐시처럼 "1\~5분에 한 번 전체를 다시 빌드해도 되는" 경우에 가장 깔끔하다. 단점은 부분 갱신이 안 된다는 것이다. 메뉴 한 줄을 바꾸려고 전체 캐시를 다시 만든다. 그러나 외식 커머스의 마스터 데이터는 보통 수백\~수천 건 수준이라 전체 재빌드 비용이 크지 않다.
 
-## 백엔드 실전 사용 — 메뉴/프로모션 캐시 갱신
+## 백엔드 실전 사용: 메뉴/프로모션 캐시 갱신
 
 읽기 비중이 큰 정적 마스터 데이터 캐시는 어느 도메인에서나 같은 구조의 문제다. 정적 마스터 데이터(설정 테이블, 정책 값)는 운영자가 가끔 바꾸고, 처리 스레드는 매 요청마다 읽는다. 외식 커머스로 옮기면 다음으로 매핑된다.
 
@@ -85,7 +85,7 @@ Java 8에서 도입된 StampedLock의 장점은 **optimistic read**다.
 
 ## bad vs improved 예제
 
-### 예제 1 — synchronized로 메뉴 캐시를 막은 안티패턴
+### 예제 1: synchronized로 메뉴 캐시를 막은 안티패턴
 
 ```java
 public class BadMenuCache {
@@ -108,7 +108,7 @@ public class BadMenuCache {
 - reload 중에는 `clear()` 직후의 빈 맵을 다른 스레드가 보지 못하긴 하지만, 어쨌든 모든 read가 멈춘다.
 - 메뉴 1건 변경에도 전체 reload를 호출하면 전체 트래픽이 일시 정지한다.
 
-### 개선 1 — AtomicReference로 통째 교체
+### 개선 1: AtomicReference로 통째 교체
 
 ```java
 public final class MenuSnapshot {
@@ -139,7 +139,7 @@ public class MenuCache {
 - reload 중에도 read는 직전 스냅샷을 본다. tearing이 일어나지 않는다.
 - 부분 수정은 reload 한 번을 다시 호출해서 처리한다.
 
-### 예제 2 — RWLock으로 조회 중 갱신 처리
+### 예제 2: RWLock으로 조회 중 갱신 처리
 
 부분 변경이 실제로 잦아서 매번 전체 reload가 부담스러울 때.
 
@@ -164,7 +164,7 @@ public class RwLockMenuCache {
 
 read 동시성은 확보되지만 매 read마다 락 카운터를 만진다는 비용은 남는다.
 
-### 개선 2 — StampedLock optimistic read
+### 개선 2: StampedLock optimistic read
 
 ```java
 public class StampedMenuCache {

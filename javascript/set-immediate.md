@@ -95,7 +95,7 @@ timeout
 - poll 끝 -> check -> setImmediate
 - 다음 루프 -> timers -> setTimeout
 
-### 메인 모듈 — 여기서는 "항상"이 아니다
+### 메인 모듈: 여기서는 "항상"이 아니다
 
 같은 코드를 I/O 콜백 밖, 즉 메인 모듈에 두면 순서가 보장되지 않는다.
 

@@ -4,7 +4,7 @@ series: "GPU 로 LLM 서빙하기"
 seriesOrder: 7
 ---
 
-# 배칭과 GPU 활용률 — batch 1이 GPU를 놀리는 이유부터 continuous batching까지
+# 배칭과 GPU 활용률: batch 1이 GPU를 놀리는 이유부터 continuous batching까지
 
 **이전 글** [GPU로 LLM을 서빙한다는 것](./gpu-llm-serving-basics.md) · **다음 글** [vLLM 서버 옵션 지도](./vllm-serving-options.md) · [시리즈 목차](../README.md)
 

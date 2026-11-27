@@ -3,7 +3,7 @@ tags: [심화, study]
 thumbnail: ./images/forwarded-headers-and-remote-ip-thumbnail.jpg
 ---
 
-# 쿠버네티스에 올렸더니 X-Forwarded-For 가 사라졌다 — forward-headers-strategy 와 RemoteIpValve
+# 쿠버네티스에 올렸더니 X-Forwarded-For 가 사라졌다: forward-headers-strategy 와 RemoteIpValve
 
 프록시 뒤에서 클라이언트 IP 를 확인하는 인터셉터를 만들었다. `X-Forwarded-For` 와 `X-Real-IP` 를 읽어 내부 요청인지 판정하는 코드였다. 로컬에서는 잘 돌았는데 쿠버네티스에 올리니 **정상 내부 호출이 전부 차단**됐다.
 
@@ -24,7 +24,7 @@ allHeaders=[host, x-request-id, x-real-ip, x-forwarded-host,
 - **쿠버네티스에 배포하면 `server.forward-headers-strategy` 가 아무 설정 없이 `NATIVE` 로 켜진다.** 로컬과 동작이 달라지는 지점이다.
 - `NATIVE` 는 Tomcat 의 `RemoteIpValve` 를 쓰는데, 이 밸브는 `X-Forwarded-For` 를 **읽고 나서 지운다.** 애플리케이션이 그 헤더를 직접 읽으려 하면 이미 없다.
 
-## 왜 켜졌나 — 클라우드 플랫폼 자동 감지
+## 왜 켜졌나: 클라우드 플랫폼 자동 감지
 
 Spring Boot 문서에 명시돼 있다.
 
