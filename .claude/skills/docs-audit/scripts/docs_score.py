@@ -4,6 +4,7 @@
 import argparse
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 from urllib.parse import unquote
@@ -27,8 +28,32 @@ def is_excluded(path: Path) -> bool:
     return any(part in EXCLUDE_DIR_PARTS for part in path.parts)
 
 
+def git_visible_markdown(root: Path) -> list[Path] | None:
+    """git 이 무시하지 않는 .md 를 낸다. git 저장소가 아니면 None 이다.
+
+    .orch, .omc 같은 작업 폴더는 .gitignore 나 .git/info/exclude 로 빠져 있어
+    폴더 이름을 하나씩 등록하지 않아도 공개 문서만 남는다.
+    """
+    try:
+        output = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-z", "--cached", "--others",
+             "--exclude-standard", "--", "*.md"],
+            capture_output=True, check=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    paths = {root / name for name in output.decode("utf-8").split("\0") if name}
+    return sorted(path for path in paths if path.is_file())
+
+
 def markdown_files(root: Path) -> list[Path]:
-    return [path for path in root.rglob("*.md") if not is_excluded(path)]
+    candidates = git_visible_markdown(root)
+    if candidates is None:
+        candidates = root.rglob("*.md")
+    return [
+        path for path in candidates
+        if not is_excluded(path.relative_to(root))
+    ]
 
 
 def visible_links(path: Path):
