@@ -56,8 +56,8 @@ flowchart TB
 | 7 | 남은 로더 함수를 `src/parse/loader.py`에 흡수, `document_parser.py` 완전 삭제 |
 
 마지막 7단계에서 파일을 지우고 나니 여기저기서 더는 쓰이지 않는 import가 38건 남았다.
-이건 손으로 하나씩 찾지 않고 `ruff --select F401`로 일괄 정리했다.
-리팩토링을 반복하다 보니 미사용 변수, `except:`로 다 잡아버리는 예외 처리 같은 문제가 리뷰에서만 걸러지던 것도 있어서, 이 김에 ruff의 unused import/variable(F)와 bare except(E722) 규칙까지 pre-commit·PR CI에 걸어 커밋 단계에서부터 자동 차단되게 했다.
+이건 수동으로 하나씩 찾지 않고 `ruff --select F401`로 일괄 정리했다.
+리팩토링을 반복하다 보니 미사용 변수, `except:`로 다 잡아버리는 예외 처리 같은 문제가 리뷰에서만 잡히던 것도 있어서, 이 김에 ruff의 unused import/variable(F)와 bare except(E722) 규칙까지 pre-commit·PR CI에 걸어 커밋 단계에서부터 자동 차단되게 했다.
 
 ## 리팩토링 뒤에 테스트가 없었다
 

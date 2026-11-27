@@ -170,7 +170,7 @@ Job 흐름은 `RepositoryItemReader` → `ItemProcessor` → `RepositoryItemWrit
 2. processor 에서 `filePath` 의 마지막 `/` 뒤를 잘라 blob 이름을 얻고 Azure Blob Storage 의 파일을 삭제한다
 3. writer 에서 `KycDetail` 레코드를 삭제한다
 
-Blob 삭제와 DB 삭제가 한 트랜잭션으로 묶이지 않으므로 순서가 결과를 가른다.
+Blob 삭제와 DB 삭제가 한 트랜잭션으로 묶이지 않으므로 순서가 결과를 좌우한다.
 Blob 을 먼저 지우고 DB 를 지우면, 중간에 실패해도 DB 레코드가 남아 다음 회차에 다시 조회된다.
 
 **보존 기간 6개월의 근거는 확인하지 못했다.** 코드와 커밋 메시지에 남은 값은 6개월뿐이고,
