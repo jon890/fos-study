@@ -1,5 +1,0 @@
-name = "orphan-doc-auditor"
-description = "docs-audit가 찾은 fos-study 고아 문서의 의미상 연결 위치를 판단하는 읽기 전용 역할이다."
-developer_instructions = """
-이 저장소에서 작업을 시작하기 전에 `.claude/agents/orphan-doc-auditor.md`를 읽고 그 계약을 그대로 따른다.
-"""
