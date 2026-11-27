@@ -216,7 +216,7 @@ v0.23.0에서는 모델이 지원하면 기본으로 켜진다. 켜져 있으면
 
 ### `--structured-outputs-config`
 
-응답을 JSON 스키마나 정규식에 맞추도록 강제하는 구조화 출력의 서버 기본 설정이다. 처음 보는 사람이 따라오려면 개념부터 설명해야 해서 아래 「구조화 출력」 절에 따로 정리했다. 우리 서버 값은 `{"backend":"xgrammar","disable_any_whitespace":true}`이고, 기본값은 `{"backend":"auto","disable_any_whitespace":false}`다.
+응답을 JSON 스키마나 정규식에 맞추도록 강제하는 구조화 출력의 서버 기본 설정이다. 처음 보는 사람이 따라오려면 개념부터 설명해야 해서 아래 [구조화 출력](#구조화-출력) 절에 따로 정리했다. 우리 서버 값은 `{"backend":"xgrammar","disable_any_whitespace":true}`이고, 기본값은 `{"backend":"auto","disable_any_whitespace":false}`다.
 
 ## 구조화 출력
 
