@@ -15,7 +15,7 @@ ML 서비스를 다루기 시작하면 그림이 한 층 더 생긴다. **GPU** 
 이 글은 자바 백엔드 개발자가 ML 서비스를 운영·분석할 때 알아둬야 할 GPU 관련 기초 개념을 정리한다. 예시는 우리 프로젝트 환경이다.
 운영 서버는 Tesla T4 GPU 1장을 쓰고, 여러 프로세스가 GPU 를 나눠 쓰게 하는 NVIDIA MPS 는 꺼 두었다.
 로컬 개발용 Mac 은 Apple GPU 가속 프레임워크(Apple MPS)로 PyTorch 를 돌린다.
-두 MPS 는 이름만 같고 전혀 다른 기능이다. 아래 「MPS: 같은 약어, 다른 두 가지 의미」 에서 나눠 설명한다.
+두 MPS 는 이름만 같고 전혀 다른 기능이다. 아래 [MPS: 같은 약어, 다른 두 가지 의미](#mps-같은-약어-다른-두-가지-의미) 에서 나눠 설명한다.
 
 ## GPU 는 CPU 와 어떻게 다른가
 
@@ -36,7 +36,17 @@ CUDA 는 NVIDIA 가 만든 GPU 컴퓨팅 플랫폼이자 API 다. 자바의 JVM 
 | 자바 라이브러리 (예: Netty) | cuDNN, cuBLAS, cuFFT |
 | 애플리케이션 (Spring Boot) | PyTorch, TensorFlow |
 
-표의 각 층 버전이 서로 호환되어야 동작한다. 우리 프로젝트의 Dockerfile 첫 줄 `FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04` 가 그 의미다.
+표의 각 층 버전이 서로 호환되어야 동작한다.
+
+GPU 서비스를 컨테이너로 배포하면 이 중 CUDA Runtime 과 cuDNN 의 버전은 베이스 이미지가 정한다.
+자바 서비스가 `FROM eclipse-temurin:17-jre` 로 JVM 버전을 고르는 것과 같은 자리다.
+NVIDIA 가 배포하는 `nvidia/cuda` 이미지는 태그 이름에 버전을 담는다. 예를 들어 Dockerfile 이 아래처럼 시작하면,
+
+```dockerfile
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+```
+
+태그의 각 부분은 이런 뜻이다.
 
 - `cuda:11.8.0` — CUDA Runtime 버전. PyTorch 빌드가 요구하는 버전과 맞아야 한다.
 - `cudnn8` — cuDNN 버전. 딥러닝 연산 (특히 합성곱) 가속 라이브러리.
