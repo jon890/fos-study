@@ -10,9 +10,9 @@ seriesOrder: 3
 
 자바 record·Lombok·annotation·`AutoCloseable`·`Iterator` 와 1:1 로 비교해 가며 차이만 짚는다.
 
-## dunder method: 자바의 `equals/hashCode/toString` 자리
+## dunder method: 자바의 `equals/hashCode/toString` 역할
 
-Post 1 에서 양 옆에 언더스코어 두 개가 박힌 메서드를 dunder 라 부른다고 짚었다. 자바의 `Object` 가 가지고 있는 핵심 메서드 자리에 Python 은 dunder 가 들어간다.
+Post 1 에서 양 옆에 언더스코어 두 개가 박힌 메서드를 dunder 라 부른다고 짚었다. 자바의 `Object` 가 가지고 있는 핵심 메서드 역할을 Python 은 dunder 가 맡는다.
 
 | 자바 | Python | 호출되는 시점 |
 |---|---|---|
@@ -41,7 +41,7 @@ class Money:
 
 `__eq__` 만 구현하고 `__hash__` 빠뜨리면 `set` 에 넣을 때 자바와 비슷한 사고가 난다. 자바에서 `equals` 만 오버라이드하고 `hashCode` 안 만지면 `HashSet` 동작이 깨지는 것과 같다.
 
-## `@property`: getter/setter 자리
+## `@property`: getter/setter 역할
 
 자바는 `getName() / setName(name)` 패턴이 관용구다. Lombok 의 `@Getter/@Setter` 도 결국 같은 메서드를 만든다.
 
@@ -71,7 +71,7 @@ w.max_tasks = 100    # setter 호출. 검증 들어감.
 
 Python 에는 자바의 `private/protected/public` 같은 접근 제어자가 **없다**. 관행적으로 `_name` (한 개) 은 내부용, `__name` (두 개) 은 강한 내부용으로 본다. 강제는 아니다.
 
-## dataclass: Java record/Lombok 자리
+## dataclass: Java record/Lombok 역할
 
 자바 14+ 의 `record` 또는 Lombok `@Data` 가 하는 일을 Python 은 표준 라이브러리 `dataclasses` 가 한다.
 
@@ -115,11 +115,11 @@ class C(A, B):
 C().hello()   # A — 먼저 적힌 부모 우선 (MRO)
 ```
 
-같은 메서드가 부모 양쪽에 있으면 **MRO**(Method Resolution Order) 라는 규칙으로 결정된다. `C.__mro__` 으로 순서 확인 가능. 실무에서 다중상속은 mixin (보조 기능 한정) 형태 외에는 거의 안 쓴다. Spring 의 `@Aspect` 나 자바 default method 가 채워주던 자리에 mixin 이 들어간다고 보면 비슷.
+같은 메서드가 부모 양쪽에 있으면 **MRO**(Method Resolution Order) 라는 규칙으로 결정된다. `C.__mro__` 으로 순서 확인 가능. 실무에서 다중상속은 mixin (보조 기능 한정) 형태 외에는 거의 안 쓴다. Spring 의 `@Aspect` 나 자바 default method 가 맡던 역할을 mixin 이 맡는다고 보면 비슷.
 
 `super().method()` 호출은 자바와 거의 같다. 다만 `super()` 한 번에 MRO 가 알아서 다음 클래스를 찾아준다.
 
-## 추상 클래스·Protocol: 자바 interface 자리
+## 추상 클래스·Protocol: 자바 interface 역할
 
 자바 interface 와 가장 가까운 건 `abc.ABC` 또는 `typing.Protocol`.
 
@@ -196,7 +196,7 @@ def list_users():
 
 자주 보는 표준 데코레이터 몇 개:
 
-- `@classmethod` / `@staticmethod` — 자바의 static 메서드 자리. `cls` 또는 `self` 가 들어오는지가 차이
+- `@classmethod` / `@staticmethod` — 자바의 static 메서드에 해당한다. `cls` 또는 `self` 가 들어오는지가 차이
 - `@functools.lru_cache(maxsize=128)` — 자바의 `@Cacheable` 비슷. 결과 메모이제이션
 - `@property` — 위에서 본 getter
 - `@dataclass` — 위에서 본 record

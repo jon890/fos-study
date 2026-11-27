@@ -35,7 +35,7 @@ pip install requests         # 이제 .venv 안에 설치됨
 
 ## pip 와 uv: 자바의 mvn/gradle 같은 명령들
 
-`pip` 는 Python 의 기본 패키지 인스톨러다. Maven 의 `mvn install` 자리에 가깝다. 단 **pip 는 가상환경 자체를 만들지는 않는다**. `venv` 모듈이 환경을 만들고, `pip` 는 그 안에 패키지를 설치한다. 둘이 분리되어 있다.
+`pip` 는 Python 의 기본 패키지 인스톨러다. Maven 의 `mvn install` 에 가깝다. 단 **pip 는 가상환경 자체를 만들지는 않는다**. `venv` 모듈이 환경을 만들고, `pip` 는 그 안에 패키지를 설치한다. 둘이 분리되어 있다.
 
 ```bash
 python -m venv .venv
@@ -60,7 +60,7 @@ uv 의 진짜 강점은 **하나의 도구가 여러 역할을 흡수**한다는
 
 `pyenv` + `venv` + `pip` + `pip-tools` 네 도구가 하던 일을 uv 한 명령이 한다. 자바 개발자가 Maven 하나로 의존성·빌드·라이프사이클을 처리하던 감각과 비슷해진다.
 
-## requirements.txt vs pyproject.toml: pom.xml 의 자리
+## requirements.txt vs pyproject.toml: pom.xml 역할을 하는 파일
 
 자바에서 `pom.xml` 은 두 역할을 한 파일에서 한다. 의존성 선언과 프로젝트 메타데이터. Python 은 둘이 분리되어 왔다.
 

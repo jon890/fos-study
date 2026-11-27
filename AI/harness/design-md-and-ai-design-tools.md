@@ -45,7 +45,7 @@ spacing:
 
 ## 비주얼 테마 — Markdown prose
 무드, 밀도, 설계 철학을 사람이 읽기 좋은 산문으로 풀어 쓴다.
-"왜 이 값을 골랐는지" rationale이 들어가는 자리.
+"왜 이 값을 골랐는지" rationale도 이 절에 적는다.
 
 ## 색상 팔레트
 의미론적 명칭 + HEX + 기능 역할.
@@ -63,7 +63,7 @@ spacing:
 - **프로젝트 root에 `DESIGN.md`로 두면 자동 발견** — Stitch뿐 아니라 Claude·Cursor 같은 다른 코딩 에이전트도 컨벤션상 이 위치를 본다.
 - **YAML 토큰 + Markdown 산문 결합** — JSON 스키마 단독이라면 LLM이 토큰의 의도를 추론하기 어렵고, Markdown 단독이라면 기계 추출이 어렵다. 둘을 한 파일에 묶어 양쪽을 모두 만족시킨다.
 
-이 결정은 [AGENTS.md 포맷](./agents-md-format.md)과 결이 같다. 코딩 에이전트의 동작 지침서가 마크다운 한 파일로 수렴했듯이, 디자인 에이전트의 일관성 지침서도 같은 자리로 수렴하고 있다.
+이 결정은 [AGENTS.md 포맷](./agents-md-format.md)과 결이 같다. 코딩 에이전트의 동작 지침서가 마크다운 한 파일로 수렴했듯이, 디자인 에이전트의 일관성 지침서도 같은 형태로 수렴하고 있다.
 
 ### awesome-design-md: 71개 브랜드 컬렉션
 
@@ -163,7 +163,7 @@ Claude Design 도입 자체는 부분 성공이다. 정착한 것과 안 정착�
 
 ## AGENTS.md와의 비교: 에이전트 지침서의 두 축
 
-[AGENTS.md 포맷 글](./agents-md-format.md)에서 정리한 대로, AGENTS.md는 **AI 코딩 에이전트의 동작 지침서**다. 같은 자리(프로젝트 root, 마크다운 한 파일, 자동 발견)에 DESIGN.md가 들어왔다.
+[AGENTS.md 포맷 글](./agents-md-format.md)에서 정리한 대로, AGENTS.md는 **AI 코딩 에이전트의 동작 지침서**다. 같은 방식(프로젝트 root, 마크다운 한 파일, 자동 발견)으로 DESIGN.md가 들어왔다.
 
 | | AGENTS.md | DESIGN.md |
 |---|---|---|

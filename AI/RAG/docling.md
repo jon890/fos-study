@@ -35,7 +35,7 @@ LangChain·LlamaIndex 와도 곧바로 연결된다.
 | `marker` | PDF → markdown, 학술 문서 강점 | markdown |
 | LlamaParse | LlamaIndex 의 클라우드 서비스 | markdown, JSON |
 
-오픈소스, 로컬 실행, 다포맷, 구조 인식을 한꺼번에 만족하는 것이 Docling 의 자리다.
+오픈소스, 로컬 실행, 다포맷, 구조 인식을 한꺼번에 만족하는 것이 Docling 의 강점이다.
 RAG 파이프라인의 전처리 단계를 표준화하는 것이 이 프로젝트의 목표다.
 
 ## 두 가지 아키텍처 패러다임

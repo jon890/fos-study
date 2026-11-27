@@ -43,7 +43,7 @@ GPU 작업도 비슷한 영향을 받는다. PyTorch 가 CUDA kernel 을 호출�
 
 ## ProcessPoolExecutor 의 동작
 
-자바의 `ExecutorService` 자리에 `concurrent.futures.ProcessPoolExecutor` 가 들어간다.
+자바의 `ExecutorService` 역할은 `concurrent.futures.ProcessPoolExecutor` 가 맡는다.
 
 ```python
 from concurrent.futures import ProcessPoolExecutor
@@ -66,7 +66,7 @@ future = executor.submit(process_document, "/tmp/file.pdf")
 result = future.result(timeout=1200)
 ```
 
-`initializer` 는 자바로 치면 `ThreadFactory.newThread` 에서 스레드를 만들며 초기화하는 자리에 해당한다. `ThreadPoolExecutor.beforeExecute` 는 작업마다 불리는 hook 이라 이 자리와 다르다. `initializer` 는 **각 워커 프로세스가 시작될 때 한 번 호출**되어 무거운 모델을 미리 로드한다. 우리 코드의 `init_worker_process` 함수가 이 자리에서 PaddleOCR + Docling converter 를 워커마다 캐싱한다.
+`initializer` 는 자바로 치면 `ThreadFactory.newThread` 에서 스레드를 만들며 초기화하는 단계에 해당한다. `ThreadPoolExecutor.beforeExecute` 는 작업마다 불리는 hook 이라 이 단계와 다르다. `initializer` 는 **각 워커 프로세스가 시작될 때 한 번 호출**되어 무거운 모델을 미리 로드한다. 우리 코드의 `init_worker_process` 함수가 이 단계에서 PaddleOCR + Docling converter 를 워커마다 캐싱한다.
 
 `max_tasks_per_child` 는 자바에 없는 옵션이다. 워커 한 명이 N 개 task 를 처리하면 자동으로 죽고 새 워커가 spawn 된다. 메모리 누수 방어용으로 도입된 패턴인데, 우리 분석에서는 이 값이 너무 작게 (`3`) 설정되어 throughput 손해가 큰 것으로 드러났다.
 

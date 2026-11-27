@@ -180,7 +180,7 @@ public class OrderService {
 - Controller에 `@Transactional`이 붙어 HTTP/트랜잭션 라이프사이클이 섞임.
 - 비즈니스 규칙(쿠폰 사용 가능 여부, 음수 총액 보정, 합계 계산)이 Service 절차 코드 안에 흩어져 있어 단위 테스트하려면 JPA 엔티티와 Repository를 모두 mock해야 함.
 - `paymentClient.charge()`와 `kafka.send()`가 DB 트랜잭션 안에서 일어나, 트랜잭션 롤백 시 외부 부수효과를 되돌릴 수 없음.
-- `OrderEntity`가 JPA 매핑이자 비즈니스 규칙이 들어있는 자리. 후에 검색용 Elasticsearch 모델, 채널별 응답 모델을 도입할 때 갈라치기 어려움.
+- `OrderEntity`가 JPA 매핑이면서 비즈니스 규칙도 담고 있음. 후에 검색용 Elasticsearch 모델, 채널별 응답 모델을 도입할 때 갈라치기 어려움.
 
 ### Improved: UseCase + Port + Domain
 
@@ -470,7 +470,7 @@ Spring 컨텍스트 없이 돌아간다는 사실이 핵심이다. 실행 시간
 - [ ] UseCase 구현에 `@Transactional`이 있고, 외부 시스템 호출은 트랜잭션 밖 또는 AFTER_COMMIT/outbox로 미뤄져 있다
 - [ ] Web DTO와 Command 객체가 분리되어 있다
 - [ ] 도메인 단위 테스트가 Spring 컨텍스트 없이 ms 단위로 돈다
-- [ ] 같은 외부 자원에 대해 다중 구현(예: 다중 Provider)이 필요할 때, 그 자리는 하나의 포트 + 다중 어댑터로 풀린다
+- [ ] 같은 외부 자원에 대해 다중 구현(예: 다중 Provider)이 필요할 때, 그 요구는 하나의 포트 + 다중 어댑터로 풀린다
 - [ ] ArchUnit 또는 모듈 시스템으로 의존 방향이 강제된다
 - [ ] 새 유스케이스부터 점진 도입할 진입점이 정해져 있다 (모든 레거시를 한 번에 바꾸려 하지 않는다)
 - [ ] "이건 왜 이렇게 했나"를 단계 0/1/2 기준으로 trade-off까지 설명할 수 있다

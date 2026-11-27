@@ -40,7 +40,7 @@ with torch.inference_mode():
     output = model(input_tensor)
 ```
 
-## device: 자바의 Executor 자리
+## device: 자바의 Executor 역할
 
 자바에서 `ExecutorService` 가 작업을 어디서 실행할지 결정하듯, PyTorch 에서는 텐서·모델의 `device` 가 어디서 연산이 일어날지 결정한다.
 
@@ -139,9 +139,9 @@ torch.cuda.synchronize()
 
 부팅 시점에는 모델 파일 다운로드 (HuggingFace) 까지 포함되어 16.5s 가 걸린다. 그 이후 respawn 은 디스크 캐시 덕에 5.7s 수준. 우리 분석에서 "모델 다시 로딩하는 비용이 워밍업 시간 차이를 만든다" 가 핵심 결론.
 
-## HuggingFace 캐시: 자바 Maven local repo 자리
+## HuggingFace 캐시: 자바 Maven local repo 역할
 
-`transformers`, `docling-ibm-models` 같은 라이브러리는 모델을 처음 요청할 때 HuggingFace Hub 에서 자동 다운로드한 뒤 `~/.cache/huggingface/` 에 저장한다. 자바의 `~/.m2/repository` 와 같은 자리.
+`transformers`, `docling-ibm-models` 같은 라이브러리는 모델을 처음 요청할 때 HuggingFace Hub 에서 자동 다운로드한 뒤 `~/.cache/huggingface/` 에 저장한다. 자바의 `~/.m2/repository` 와 같은 역할이다.
 
 Docker 환경에서는 이 캐시가 컨테이너 안에 있으면 컨테이너 재시작 시 사라진다. 그래서 우리 Dockerfile 은 빌드 시점에 `huggingface-cli download` 로 모델을 미리 받아 이미지에 박는다. 자바에서 `mvn dependency:go-offline` 으로 의존성을 박는 것과 같은 패턴.
 

@@ -27,7 +27,7 @@ GPU 는 수천 개의 단순한 코어로 같은 연산을 데이터 다발에 �
 
 ## CUDA: NVIDIA GPU 의 프로그래밍 인터페이스
 
-CUDA 는 NVIDIA 가 만든 GPU 컴퓨팅 플랫폼이자 API 다. 자바의 JVM 자리에 NVIDIA 의 CUDA 런타임이 들어가고, PyTorch·TensorFlow 같은 라이브러리가 그 위에서 동작한다.
+CUDA 는 NVIDIA 가 만든 GPU 컴퓨팅 플랫폼이자 API 다. 자바의 JVM 에 해당하는 것이 NVIDIA 의 CUDA 런타임이고, PyTorch·TensorFlow 같은 라이브러리가 그 위에서 동작한다.
 
 | 자바 | CUDA |
 |---|---|
@@ -39,7 +39,7 @@ CUDA 는 NVIDIA 가 만든 GPU 컴퓨팅 플랫폼이자 API 다. 자바의 JVM 
 표의 각 층 버전이 서로 호환되어야 동작한다.
 
 GPU 서비스를 컨테이너로 배포하면 이 중 CUDA Runtime 과 cuDNN 의 버전은 베이스 이미지가 정한다.
-자바 서비스가 `FROM eclipse-temurin:17-jre` 로 JVM 버전을 고르는 것과 같은 자리다.
+자바 서비스가 `FROM eclipse-temurin:17-jre` 로 JVM 버전을 고르는 것과 같은 방식이다.
 NVIDIA 가 배포하는 `nvidia/cuda` 이미지는 태그 이름에 버전을 담는다. 예를 들어 Dockerfile 이 아래처럼 시작하면,
 
 ```dockerfile
@@ -173,7 +173,7 @@ Mac M-series 에서 PyTorch 가 자동으로 Apple GPU 를 활용한다. 우리�
 
 자바 백엔드에서 ML 서비스로 넘어올 때 알아둘 한 줄.
 
-> CPU + 시스템 RAM 만 있던 그림에 GPU + VRAM 이라는 별도 컴퓨팅 평면이 추가된다. nvidia-smi 가 jstat 자리, `.to("cuda")` 가 데이터 전송, `clear_cuda_memory()` 가 수동 GC.
+> CPU + 시스템 RAM 만 있던 그림에 GPU + VRAM 이라는 별도 컴퓨팅 평면이 추가된다. nvidia-smi 는 jstat, `.to("cuda")` 는 데이터 전송, `clear_cuda_memory()` 는 수동 GC 에 해당한다.
 
 이걸 머릿속에 두면 PyTorch 모델 로딩 비용을 다룬 [PyTorch 기초](../python/java-to-python-pytorch-tensor-model-loading.md)와 multi-process GPU 워커 패턴을 다룬 [Multi-process GPU 워크로드](./java-to-python-multiprocess-gpu-worker-pool.md)가 자연스럽게 이어진다.
 
