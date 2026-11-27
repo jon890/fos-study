@@ -16,7 +16,7 @@ Redis를 실무에서 쓰다 보면, 하나의 장애가 **여러 패턴에 걸�
 - 분산 락으로 보호한다고 믿었던 재고 차감 → GC stall + 락 만료 + oversell이 연쇄로 발생한다.
 - Redis 단독 구성을 Cluster로 옮긴 뒤 → 기존 Lua/MULTI가 `CROSSSLOT` 에러로 한 번에 깨진다.
 
-이런 문제들은 한 문서로는 설명되지 않는다. `cache-aside`, `distributed-lock`, `lua-script`, `operations`가 **함께** 읽혀야 판단이 선다. 이 허브는 그 연결 지점을 정리한다.
+이런 문제들은 한 문서로는 설명되지 않는다. `cache-aside`, `distributed-lock`, `lua-script`, `operations`가 **함께** 읽혀야 판단할 수 있다. 이 허브는 그 연결 지점을 정리한다.
 
 ---
 
@@ -154,7 +154,7 @@ MSET {user:1}:name Alice {user:1}:email alice@x.com
 
 ### Hot Key (단일 키 트래픽 집중)
 
-**증상:** 해당 슬롯의 CPU 100%, P99 지연 스파이크. 전체 서버는 한가한데 특정 노드만 과부하.
+**증상:** 해당 슬롯의 CPU 100%, P99 지연 급증. 전체 서버는 한가한데 특정 노드만 과부하.
 
 **대응 계층:**
 

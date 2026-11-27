@@ -234,7 +234,7 @@ trace에서 `transformations_to_nested_joins`를 보면 변환 결과를 확인�
 
 ### ICP (Index Condition Pushdown)
 
-복합 인덱스 `(a, b)`가 있을 때 `WHERE a = ? AND b LIKE 'X%'` 같은 쿼리에서 `b` 조건을 **인덱스 레벨에서 미리 거른다**.
+복합 인덱스 `(a, b)`가 있을 때 `WHERE a = ? AND b LIKE 'X%'` 같은 쿼리에서 `b` 조건을 **인덱스 레벨에서 미리 필터링한다**.
 테이블 본문으로 가는 랜덤 I/O를 줄인다.
 
 EXPLAIN의 `Extra: Using index condition`이 그 표시다.

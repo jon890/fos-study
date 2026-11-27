@@ -209,7 +209,7 @@ PostgreSQL 테이블은 행을 들어온 순서대로 쌓는 **heap** 구조다.
 인덱스 항목에는 키와 그 행의 heap 위치(`ctid`)가 들어 있고, 인덱스 스캔은 항목마다 heap을 찾아가 나머지 칼럼을 읽는다.
 
 **커버링 인덱스**는 쿼리에 필요한 칼럼을 인덱스에 모두 넣어 heap을 읽지 않게 만든 인덱스다.
-PostgreSQL 11부터 `INCLUDE` 절로 탐색 키가 아닌 칼럼을 인덱스에 실을 수 있다(출처: Index-Only Scans and Covering Indexes).
+PostgreSQL 11부터 `INCLUDE` 절로 탐색 키가 아닌 칼럼을 인덱스에 포함할 수 있다(출처: Index-Only Scans and Covering Indexes).
 `INCLUDE` 칼럼은 탐색에 쓰이지 않고 값만 저장된다. 표현식은 넣을 수 없고 B-Tree, GiST, SP-GiST만 지원한다(출처: 같은 문서).
 
 PostgreSQL은 인덱스에 필요한 칼럼이 다 있어도 바로 heap을 건너뛰지 못한다.

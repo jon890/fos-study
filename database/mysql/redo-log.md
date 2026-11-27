@@ -126,7 +126,7 @@ Checkpoint Age = 현재 LSN - 마지막 checkpoint LSN
 
 LSN(Log Sequence Number)은 Redo Log 위치를 나타내는 단조증가 숫자다.
 
-Checkpoint Age가 Redo Log 전체 크기의 약 75~80%에 도달하면 **Async checkpoint**, 90% 이상이면 **Sharp checkpoint**가 강제 발생한다. 이 시점에 대량의 dirty page flush가 일어나 I/O 스파이크와 쿼리 지연이 생긴다.
+Checkpoint Age가 Redo Log 전체 크기의 약 75~80%에 도달하면 **Async checkpoint**, 90% 이상이면 **Sharp checkpoint**가 강제 발생한다. 이 시점에 대량의 dirty page flush가 일어나 I/O 급증과 쿼리 지연이 생긴다.
 
 ```
 Redo Log 크기가 너무 작으면:
@@ -263,7 +263,7 @@ Roll-Forward 단계에서 Redo Log는 **모든 변경(커밋 여부 불문)을 �
 
 하나의 트랜잭션에서 수십만 건을 처리하면 Redo Log와 Undo Log가 동시에 빠르게 차오른다.
 
-- **Redo 쪽**: Checkpoint Age가 임계치에 달하면 강제 checkpoint로 I/O 스파이크 발생.
+- **Redo 쪽**: Checkpoint Age가 임계치에 달하면 강제 checkpoint로 I/O 급증 발생.
 - **Undo 쪽**: 트랜잭션이 커밋될 때까지 Undo 레코드가 정리되지 않는다. 롤백이 필요해지면 전부 역재생해야 한다.
 
 ```java
@@ -397,7 +397,7 @@ mysql_global_status_innodb_buffer_pool_pages_dirty
 
 ### Q4. 장기 트랜잭션이 시스템에 미치는 영향을 로그 관점에서 설명해주세요.
 
-> Redo 관점에서는 직접적 비대화는 아니지만, 커밋이 늦어지는 동안 대용량 변경이 축적되면 롤백 시 Undo를 대량 역재생하면서 Redo Log 쪽 I/O 스파이크를 만듭니다. Undo 관점의 영향이 더 치명적입니다. 장기 트랜잭션은 Read View를 오래 유지하기 때문에 Purge Thread가 Update Undo를 정리하지 못합니다. Undo Tablespace가 비대해지고 버전 체인이 길어져 SELECT의 일관 읽기 성능까지 함께 떨어집니다. `information_schema.INNODB_TRX`와 `SHOW ENGINE INNODB STATUS`의 History List Length로 모니터링하고, 애플리케이션에서는 트랜잭션 경계를 짧게 유지하고 외부 I/O를 트랜잭션 밖으로 빼는 설계가 필수입니다.
+> Redo 관점에서는 직접적 비대화는 아니지만, 커밋이 늦어지는 동안 대용량 변경이 축적되면 롤백 시 Undo를 대량 역재생하면서 Redo Log 쪽 I/O 급증을 만듭니다. Undo 관점의 영향이 더 치명적입니다. 장기 트랜잭션은 Read View를 오래 유지하기 때문에 Purge Thread가 Update Undo를 정리하지 못합니다. Undo Tablespace가 비대해지고 버전 체인이 길어져 SELECT의 일관 읽기 성능까지 함께 떨어집니다. `information_schema.INNODB_TRX`와 `SHOW ENGINE INNODB STATUS`의 History List Length로 모니터링하고, 애플리케이션에서는 트랜잭션 경계를 짧게 유지하고 외부 I/O를 트랜잭션 밖으로 빼는 설계가 필수입니다.
 
 ---
 

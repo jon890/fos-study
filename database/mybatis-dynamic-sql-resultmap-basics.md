@@ -79,7 +79,7 @@ MyBatis는 SQL을 직접 적되, 파라미터 바인딩과 결과 매핑을 자�
 </select>
 ```
 
-이 패턴은 JPA의 fetch join과 같은 효과를 낸다. JPA보다 좋은 점은 SQL이 그대로 보이기 때문에 인덱스 적합성, JOIN 순서를 직접 통제할 수 있고, EXPLAIN으로 바로 검증 가능하다는 것이다. 단점은 컬럼명을 손으로 맞춰야 하므로 스키마 변경에 대한 회귀 비용이 JPA보다 크다.
+이 패턴은 JPA의 fetch join과 같은 효과를 낸다. JPA보다 좋은 점은 SQL이 그대로 보이기 때문에 인덱스 적합성, JOIN 순서를 직접 통제할 수 있고, EXPLAIN으로 바로 검증 가능하다는 것이다. 단점은 컬럼명을 수동으로 맞춰야 하므로 스키마 변경에 대한 회귀 비용이 JPA보다 크다.
 
 ## parameterType과 바인딩 규칙
 
@@ -290,7 +290,7 @@ Spring Boot 의존성: `mybatis-spring-boot-starter`, `mysql-connector-j`. `appl
 - LIMIT/OFFSET을 `${}`로 받은 코드. 숫자 검증 없이 들어오면 인젝션 가능.
 - 동적 ORDER BY를 `${sort}`로 직접 받은 코드. 화이트리스트 분기로 바꿔야 한다.
 
-## 정리 — JPA와 MyBatis를 가르는 기준
+## 정리 — JPA와 MyBatis를 고르는 기준
 
 JPA와 MyBatis 중 무엇을 쓰느냐는 정답이 정해진 선택이 아니라 트레이드오프 판단이다. 다음 골격으로 정리할 수 있다.
 

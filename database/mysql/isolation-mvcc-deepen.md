@@ -4,7 +4,7 @@ tags: [study]
 
 # MySQL 격리수준과 MVCC 심화 — 표준을 벗어난 경계 케이스와 운영 선택의 기준
 
-> 이 문서는 "Dirty Read / Non-Repeatable Read / Phantom Read" 3원소 매트릭스를 외운 다음 단계를 다룬다. MVCC 일반론은 [InnoDB MVCC](./innodb-mvcc.md), 락 의미론은 [Gap Lock & Next-Key Lock](./innodb-gap-next-key-lock.md), 데드락 분석은 [Deadlock Analysis](./deadlock-analysis.md)를 함께 본다. 여기서는 **MVCC와 락이 충돌하는 경계**, **표준 SQL과 InnoDB가 일치하지 않는 지점**, **격리수준 변경이 실제로 무엇을 바꾸는가**를 끝까지 파고든다.
+> 이 문서는 "Dirty Read / Non-Repeatable Read / Phantom Read" 3원소 표를 외운 다음 단계를 다룬다. MVCC 일반론은 [InnoDB MVCC](./innodb-mvcc.md), 락 의미론은 [Gap Lock & Next-Key Lock](./innodb-gap-next-key-lock.md), 데드락 분석은 [Deadlock Analysis](./deadlock-analysis.md)를 함께 본다. 여기서는 **MVCC와 락이 충돌하는 경계**, **표준 SQL과 InnoDB가 일치하지 않는 지점**, **격리수준 변경이 실제로 무엇을 바꾸는가**를 끝까지 파고든다.
 
 ---
 
@@ -24,7 +24,7 @@ tags: [study]
 
 ---
 
-## 표준 SQL vs InnoDB의 실제 매트릭스
+## 표준 SQL vs InnoDB의 실제 동작 표
 
 ### 표준 SQL의 4가지 격리수준
 
@@ -417,7 +417,7 @@ WHERE 조건이 인덱스를 타지 못하면 클러스터드 인덱스 전 범�
 
 ## 격리수준 선택 의사결정 트리
 
-### 도메인별 추천 매트릭스
+### 도메인별 추천 표
 
 | 도메인 | 추천 격리수준 | 이유 |
 |---|---|---|

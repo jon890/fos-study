@@ -133,7 +133,7 @@ public class Money {
 }
 ```
 
-VO로 감싸는 이점은 **무결성을 타입으로 보장**한다는 점이다. 메서드 시그니처가 `cancel(BigDecimal refund, String currency)`가 아니라 `cancel(Money refund)`가 되면 파라미터 순서 실수가 원천 차단된다.
+VO로 감싸는 이점은 **무결성을 타입으로 보장**한다는 점이다. 메서드 시그니처가 `cancel(BigDecimal refund, String currency)`가 아니라 `cancel(Money refund)`가 되면 파라미터 순서 실수가 아예 차단된다.
 
 ### Aggregate / Aggregate Root
 

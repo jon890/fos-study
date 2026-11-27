@@ -65,7 +65,7 @@ RDBMS의 B+Tree 인덱스는 "컬럼 값 → 행 위치"로 정렬되지만, 역
 
 대규모 이커머스 도메인에서 OpenSearch를 얹는 방식은 보통 이렇게 자리 잡는다.
 
-- 원장(System of Record)은 RDBMS. 주문, 결제, 정산은 RDBMS가 진실의 원천.
+- 원장(System of Record)은 RDBMS. 주문, 결제, 정산은 RDBMS가 source of truth.
 - 검색 인덱스는 **복제본 성격**. 상품, 카탈로그, 브랜드, 리뷰 같은 읽기 많은 데이터의 검색/집계용 사본.
 - 반영 경로는 CDC(Debezium 등) + Kafka, 또는 애플리케이션이 도메인 이벤트 발행 → 소비자 서비스가 색인 업데이트.
 - 동기식 더블라이트(MySQL 저장 직후 바로 OpenSearch 호출)는 실패 시 일관성 복구가 어려워서 되도록 피한다.

@@ -23,7 +23,7 @@ tags: [study]
 - **Spring Batch는 시간이 트리거다.** Cron이든 사용자 호출이든, "지금 이 순간부터 어디까지의 데이터를 처리하라"는 윈도우가 명시적으로 정해진다.
 - **Event-Driven은 이벤트가 트리거다.** 어떤 도메인 사실이 일어났다는 정보가 broker로 흘러가는 순간이 처리 시작점이다.
 
-이 차이가 거의 모든 후속 결정에 영향을 준다. Spring Batch에서 "마지막으로 처리한 ID 이후"라는 cursor가 진실의 원천이라면, Event-Driven에서는 broker offset이 진실의 원천이다.
+이 차이가 거의 모든 후속 결정에 영향을 준다. Spring Batch에서 "마지막으로 처리한 ID 이후"라는 cursor가 source of truth라면, Event-Driven에서는 broker offset이 source of truth다.
 
 ### 처리 단위 관점
 

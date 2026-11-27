@@ -340,7 +340,7 @@ CDC는 운영 구성 요소가 최소 세 개다. (1) MySQL 소스(binlog 활성
 - **폴링 Publisher**: Kafka에 발행하고 `published_at` UPDATE 커밋 직전에 죽으면 같은 이벤트를 다음 폴링에서 또 발행한다.
 - **Debezium CDC**: Kafka Connect의 offset commit이 비동기라서 마지막 커밋 이후 재시작되면 그 뒤 이벤트를 재전송한다. "Debezium은 정확히 한 번"이라는 흔한 오해는 틀렸다.
 
-두 방식 다 **At-Least-Once**가 실전 전제이고, **소비자 멱등성**은 선택이 아니라 필수다. 이벤트에 `eventId`(예: Outbox row PK + 서비스명)를 실어서 소비자가 중복 여부를 검증한다.
+두 방식 다 **At-Least-Once**가 실전 전제이고, **소비자 멱등성**은 선택이 아니라 필수다. 이벤트에 `eventId`(예: Outbox row PK + 서비스명)를 넣어서 소비자가 중복 여부를 검증한다.
 
 ```java
 @KafkaListener(topics = "order-events")
