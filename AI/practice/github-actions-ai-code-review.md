@@ -25,7 +25,7 @@ PR 이 열리면 AI 가 먼저 리뷰를 달아 주는 워크플로는 만들기
 ### 트리거
 
 - `pull_request: [opened]` 로 PR 을 열 때 자동으로 리뷰한다.
-- `issue_comment: [created]` 로 PR 댓글에 `/review` 가 달리면 다시 리뷰한다. `issue_comment` 는 일반 이슈 댓글에도 발생하므로 `github.event.issue.pull_request != null` 로 PR 댓글만 걸러야 한다.
+- `issue_comment: [created]` 로 PR 댓글에 `/review` 가 달리면 다시 리뷰한다. `issue_comment` 는 일반 이슈 댓글에도 발생하므로 `github.event.issue.pull_request != null` 로 PR 댓글만 필터링해야 한다.
 
 ### 봇과 중복 실행 제어
 
