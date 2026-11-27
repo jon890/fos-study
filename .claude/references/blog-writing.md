@@ -66,9 +66,4 @@
 
 ## 작성 후 검사
 
-문서를 고친 뒤 다음 검사를 실행한다.
-
-```bash
-node /Users/nhn/personal/fos-skills/export-only-skills/korean-check/scripts/korean-style-check.ts <파일.md>
-node /Users/nhn/personal/fos-skills/export-only-skills/korean-check/scripts/check-readability.ts <파일.md>
-```
+검사와 미리보기는 [blog-post-writer](../skills/blog-post-writer/SKILL.md)의 4단계와 5단계를 따른다.

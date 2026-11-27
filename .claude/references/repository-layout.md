@@ -2,31 +2,10 @@
 
 새 문서를 만들거나 위치, 카테고리, Frontmatter와 역할 태그를 바꿀 때 읽는다.
 
-## 폴더 구조
-
-```text
-fos-study/
-├── task/               # 회사 업무 기록
-├── resume/             # 이력서, 경력기술서와 포트폴리오
-├── architecture/       # 언어와 기술에 독립적인 설계 개념
-│   ├── patterns/
-│   ├── distributed-systems/
-│   ├── evolution/
-│   └── domain/
-├── database/           # 데이터 스토어 전반
-│   ├── mysql/
-│   ├── opensearch/
-│   └── redis/
-├── java/               # Java 언어와 Spring 생태계
-├── devops/             # 인프라와 배포
-├── observability/      # 지표, 로그, 추적과 장애 탐지
-├── kafka/              # 메시지 브로커
-├── network/            # HTTP와 인터넷 프로토콜
-├── algorithm/
-└── AI/
-```
-
 ## 배치 기준
+
+폴더 목록은 저장소 루트와 각 폴더의 `README.md`에서 확인한다.
+아래는 폴더 이름만으로 위치를 정하기 어려운 경우의 기준이다.
 
 - `database/`에는 데이터를 저장하고 검색하는 스토어를 둔다. MySQL, OpenSearch와 Redis가 해당한다.
 - Kafka는 메시지 브로커이므로 `database/`가 아닌 최상위 `kafka/`에 둔다.
@@ -60,19 +39,8 @@ categories: [devops, database]
 
 ## 썸네일
 
-대표 썸네일이 있으면 Markdown 파일 기준 상대 경로를 `thumbnail`에 지정한다.
-이미지는 글과 같은 디렉터리의 `images/` 아래에 두고 문서와 함께 커밋한다.
-
-```yaml
----
-thumbnail: ./images/<파일명>-thumbnail.jpg
----
-```
-
-- 권장 비율은 16:9다.
-- 작은 카드에서도 주제가 드러나는 단순한 구도를 사용한다.
-- 이미지에 제목, 로고와 워터마크를 넣지 않는다.
-- 파일이 없거나 읽지 못하면 블로그 기본 이미지를 사용한다.
+대표 썸네일의 위치, 구도와 검증은 [썸네일 생성](../skills/blog-post-writer/references/thumbnail-generation.md)이 정한다.
+이미지는 문서와 함께 커밋한다.
 
 ## 역할 태그
 

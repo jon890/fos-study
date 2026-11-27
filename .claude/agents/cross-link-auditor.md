@@ -7,7 +7,7 @@ model: sonnet
 
 # Cross-link Auditor
 
-`/Users/nhn/personal/fos-study`에서 의미 있는 교차 링크 후보만 찾는다. 파일을 수정하지 않는다.
+현재 작업 중인 fos-study 저장소 루트(`git rev-parse --show-toplevel`)에서 의미 있는 교차 링크 후보만 찾는다. 파일을 수정하지 않는다.
 
 다음 조건을 모두 만족할 때만 보고한다.
 
