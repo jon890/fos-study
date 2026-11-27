@@ -2,9 +2,9 @@
 tags: [study]
 ---
 
-# Outbox / Inbox Pattern 심화 — 분산 메시징의 정합성 문제를 DB 트랜잭션으로 풀어내기
+# Outbox / Inbox Pattern 심화: 분산 메시징의 정합성 문제를 DB 트랜잭션으로 풀어내기
 
-> 관련 문서: [분산 트랜잭션과 Outbox 패턴 — 왜 2PC를 피하고 어떻게 대신할 것인가](./distributed-transaction-outbox-pattern.md). 이 문서는 Outbox·Inbox 한 짝의 동작 메커니즘과 transaction boundary, polling/CDC 변형, ordering 등 심화 주제에 집중하고, 위 문서는 분산 트랜잭션 맥락에서 "왜 2PC가 아닌 Outbox인가"라는 의사결정 축을 다룬다.
+> 관련 문서: [분산 트랜잭션과 Outbox 패턴: 왜 2PC를 피하고 어떻게 대신할 것인가](./distributed-transaction-outbox-pattern.md). 이 문서는 Outbox·Inbox 한 짝의 동작 메커니즘과 transaction boundary, polling/CDC 변형, ordering 등 심화 주제에 집중하고, 위 문서는 분산 트랜잭션 맥락에서 "왜 2PC가 아닌 Outbox인가"라는 의사결정 축을 다룬다.
 
 ## 왜 중요한가
 
@@ -14,7 +14,7 @@ Outbox/Inbox 패턴은 이 본질적인 문제를 "메시지 발행을 DB 트랜
 
 면접에서 "메시지 누락은 어떻게 막느냐", "consumer가 같은 메시지를 두 번 받으면 어떻게 하느냐", "분산 트랜잭션 안 쓰고 어떻게 정합성 맞추느냐" 같은 질문이 나오면 결국 이 패턴 또는 그 변형으로 수렴한다. 시니어 백엔드 면접에서는 패턴 이름을 외운 수준이 아니라, transaction boundary, polling 전략, ordering, replay, 모니터링, broker별 차이까지 자기 언어로 설명할 수 있는지를 본다.
 
-## 핵심 개념 — Dual Write 문제부터 다시 본다
+## 핵심 개념: Dual Write 문제부터 다시 본다
 
 가장 단순한(그리고 잘못된) 코드는 이렇게 생겼다.
 
@@ -65,7 +65,7 @@ sequenceDiagram
 
 받는 쪽도 대칭이다. 메시지를 받자마자 비즈니스 로직을 실행하면 중복 처리 위험이 있으므로, 같은 트랜잭션 안에서 `inbox_event(message_id)`에 INSERT를 시도하고, unique constraint 위반이면 이미 처리된 메시지로 보고 skip한다. 이 INSERT가 idempotency key 역할을 한다.
 
-## Transaction Boundary — 어디까지가 한 트랜잭션인가
+## Transaction Boundary: 어디까지가 한 트랜잭션인가
 
 이 패턴을 처음 도입할 때 가장 많이 틀리는 부분이 트랜잭션 경계다. 정확히 다음 두 트랜잭션만 같이 커밋되어야 한다.
 
@@ -105,7 +105,7 @@ public class OrderService {
 
 여기서 의도적으로 `kafkaTemplate.send`를 호출하지 않는다. publish는 별도 워커가 책임진다. 트랜잭션 동기화 콜백(`TransactionSynchronization.afterCommit`) 안에서 직접 publish 하는 변형도 있지만, 프로세스가 afterCommit 직후 죽으면 메시지가 유실되므로 outbox 테이블을 source of truth로 유지하는 편이 안전하다.
 
-## 발행 전략 — Polling Publisher vs Transaction Log Tailing
+## 발행 전략: Polling Publisher vs Transaction Log Tailing
 
 outbox 행을 broker로 내보내는 방식은 크게 두 갈래다.
 
@@ -126,7 +126,7 @@ FOR UPDATE SKIP LOCKED;
 
 면접 답변 톤으로 정리하면 이렇다. "트래픽이 크지 않거나 DBA 협조가 어려우면 polling, 트래픽이 크고 운영팀이 Debezium에 익숙하면 CDC를 우선 검토합니다. 어느 쪽이든 outbox INSERT를 비즈니스 트랜잭션과 같이 커밋한다는 본질은 같습니다."
 
-## Duplicate Handling — Idempotent Consumer와 Inbox 테이블
+## Duplicate Handling: Idempotent Consumer와 Inbox 테이블
 
 at-least-once 브로커(Kafka, SQS 모두 기본은 at-least-once)에서는 같은 메시지를 두 번 받는 일이 정상이다. retry, rebalance, ack 유실 등 이유는 다양하다. 따라서 consumer는 **반드시 idempotent**해야 한다.
 
@@ -159,7 +159,7 @@ unique constraint 위반이 발생하면 이미 처리한 메시지이므로 비
 
 비즈니스 자체가 자연스럽게 idempotent한 경우(예: `UPDATE order SET status='SHIPPED' WHERE id=? AND status='PAID'`)에는 inbox 테이블을 생략하기도 한다. 다만 외부 API 호출처럼 부수효과가 있는 경우는 inbox로 명시적으로 막는 편이 안전하다.
 
-## Ordering — 순서가 정말 필요한가부터 묻는다
+## Ordering: 순서가 정말 필요한가부터 묻는다
 
 면접에서 자주 나오는 함정이 "Outbox 쓰면 순서 보장됩니까?"다. 정답은 "**파티션 단위로만 보장한다.**" outbox 테이블을 PK 순으로 polling해도, broker가 멀티 파티션이면 consumer 간 처리 순서는 뒤섞인다.
 
@@ -173,7 +173,7 @@ kafkaTemplate.send("order-events", event.aggregateId(), event.payload());
 
 전체 글로벌 순서가 정말 필요하다는 요구가 들어오면 보통 요구가 잘못된 경우가 많다. "사용자별 알림 순서가 어긋나면 안 된다" 같은 요구는 user 단위 ordering이면 충분하고, 거기서 얻는 처리량이 글로벌 ordering보다 압도적으로 크다.
 
-## Replay — 운영의 마지막 안전망
+## Replay: 운영의 마지막 안전망
 
 outbox를 source of truth로 유지하면, 운영 사고 발생 시 특정 기간의 이벤트를 다시 발행할 수 있다.
 
@@ -188,7 +188,7 @@ published_at을 NULL로 되돌리면 polling publisher가 다시 집어 든다. 
 
 CDC 방식에서는 Kafka의 retention과 consumer offset reset(`--to-datetime`)으로 동일한 효과를 낸다. 어느 쪽이든 "사고 시 재발행할 수 있는가"는 분산 메시징 인프라의 성숙도 지표다.
 
-## Monitoring — 무엇을 보는가
+## Monitoring: 무엇을 보는가
 
 운영 중 outbox/inbox 패턴이 건강한지 보려면 다음 지표가 필요하다.
 
@@ -201,7 +201,7 @@ CDC 방식에서는 Kafka의 retention과 consumer offset reset(`--to-datetime`)
 
 알람은 보통 outbox lag 상한선과 publish failure rate에 건다. lag이 일정 시간 이상 누적되면 publisher 워커 문제이거나 broker 다운이고, publish failure rate가 튀면 broker auth/네트워크/스키마 문제일 가능성이 높다.
 
-## Kafka vs SQS — Broker별 적용 차이
+## Kafka vs SQS: Broker별 적용 차이
 
 같은 패턴이라도 broker 특성이 달라서 구현 디테일이 갈린다.
 

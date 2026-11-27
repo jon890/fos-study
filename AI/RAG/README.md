@@ -5,8 +5,8 @@ RAG 파이프라인 구성 요소 학습 기록. 임베딩·벡터 검색·알�
 ## 개념
 
 - [Embedding](./embedding.md) — 임베딩의 의미, 학습 방식(contrastive), Matryoshka, 모델 선택
-- [벡터 검색 알고리즘 — kNN에서 HNSW까지](./vector-search-algorithms.md) — 거리 계산, brute force 한계, ANN, HNSW 구조·파라미터·약점
-- [HNSW 심화 — 파라미터 튜닝과 구현체별 성능 차이](./hnsw-deep-dive.md) — M·ef_construction·ef_search 상호작용, 코사인=정규화 내적, 구현체별 차이, 필터 충돌·한계
+- [벡터 검색 알고리즘: kNN에서 HNSW까지](./vector-search-algorithms.md) — 거리 계산, brute force 한계, ANN, HNSW 구조·파라미터·약점
+- [HNSW 심화: 파라미터 튜닝과 구현체별 성능 차이](./hnsw-deep-dive.md) — M·ef_construction·ef_search 상호작용, 코사인=정규화 내적, 구현체별 차이, 필터 충돌·한계
 - [임베딩 모델을 바꾸면 벡터 색인 운영도 함께 바뀐다](./embedding-version-and-vector-index-lifecycle.md) — 벡터 버전 추적, 모델과 색인의 동시 전환, 대량 조회 부하 검증
 
 ## 검색 구조

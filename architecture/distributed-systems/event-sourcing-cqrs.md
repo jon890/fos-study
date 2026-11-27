@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# Event Sourcing과 CQRS — 상태가 아니라 변화를 저장한다는 발상
+# Event Sourcing과 CQRS: 상태가 아니라 변화를 저장한다는 발상
 
 이 문서의 목표는 두 가지다.
 하나, "현재 상태를 덮어쓰는" 일반적인 CRUD 모델과 "일어난 사건을 append-only로 쌓는" Event Sourcing이 어떻게 다른지 감을 잡는 것.
@@ -27,7 +27,7 @@ UPDATE orders SET status = 'SHIPPED', updated_at = NOW() WHERE id = 1001;
 
 물론 별도 history 테이블이나 audit 로그를 두면 이력을 보존할 수 있다.
 하지만 그건 "본 모델 옆에 이력을 따로 또 관리한다"는 뜻이고, 본 상태와 이력이 어긋날 위험을 항상 안고 간다.
-Event Sourcing의 출발점은 이 질문이다 — **이력이 그렇게 중요하다면, 이력을 본 모델 자체로 삼으면 어떨까?**
+Event Sourcing의 출발점은 이 질문이다. **이력이 그렇게 중요하다면, 이력을 본 모델 자체로 삼으면 어떨까?**
 
 ## Event Sourcing의 핵심 발상
 
@@ -80,12 +80,12 @@ flowchart LR
 ```
 
 스냅샷은 최적화일 뿐 source of truth가 아니다.
-스냅샷을 통째로 날려도 이벤트 스트림만 살아 있으면 언제든 다시 만들 수 있어야 한다 — 이 불변식이 깨지면 Event Sourcing의 장점이 무너진다.
+스냅샷을 통째로 날려도 이벤트 스트림만 살아 있으면 언제든 다시 만들 수 있어야 한다. 이 불변식이 깨지면 Event Sourcing의 장점이 무너진다.
 
-## CQRS — 읽기 모델과 쓰기 모델의 분리
+## CQRS: 읽기 모델과 쓰기 모델의 분리
 
 CQRS는 **Command Query Responsibility Segregation**의 약자다.
-이름이 길지만 핵심은 단순하다 — **상태를 바꾸는 경로**(Command)와 **상태를 읽는 경로**(Query)를 서로 다른 모델로 분리한다.
+이름이 길지만 핵심은 단순하다. **상태를 바꾸는 경로**(Command)와 **상태를 읽는 경로**(Query)를 서로 다른 모델로 분리한다.
 
 흔한 오해부터 정리하면, **CQRS는 Event Sourcing을 요구하지 않는다.**
 둘은 독립 패턴이다. CQRS는 단지 "쓰기용 모델과 읽기용 모델을 같은 스키마로 강제하지 말자"는 주장이다.
@@ -131,7 +131,7 @@ flowchart TB
 `OrderShipped` 이벤트가 나올 때마다 `shipping_orders` 읽기 테이블에 행을 넣고, `OrderDelivered`가 나오면 빼는 식이다.
 쓰기 모델(이벤트 스트림)과 읽기 모델(projection)이 자연히 갈라지므로, ES를 쓰면 CQRS는 거의 필연적으로 따라온다.
 
-반대 방향은 성립하지 않는다 — CQRS만 쓰고 쓰기 측은 평범한 RDB `UPDATE`로 처리해도 전혀 문제없다.
+반대 방향은 성립하지 않는다. CQRS만 쓰고 쓰기 측은 평범한 RDB `UPDATE`로 처리해도 전혀 문제없다.
 
 ## 자주 빠지는 함정
 
@@ -208,7 +208,7 @@ function rehydrate(events: OrderEvent[]): OrderState {
 ```
 
 여기서 `apply`는 순수 함수다.
-같은 이벤트 목록이면 항상 같은 상태가 나온다 — 이 결정성(determinism)이 재생·스냅샷·projection 재구축을 모두 가능하게 하는 토대다.
+같은 이벤트 목록이면 항상 같은 상태가 나온다. 이 결정성(determinism)이 재생·스냅샷·projection 재구축을 모두 가능하게 하는 토대다.
 
 ## 스스로 점검하는 질문
 

@@ -2,7 +2,7 @@
 tags: [study]
 ---
 
-# Decorator & Chain of Responsibility — 행동을 체인으로 조립하는 두 가지 방식
+# Decorator & Chain of Responsibility: 행동을 체인으로 조립하는 두 가지 방식
 
 ---
 
@@ -153,7 +153,7 @@ Spring Security의 `FilterChain`, Servlet `Filter`, OkHttp `Interceptor`가 대�
 - 반환값이 **변환된 같은 타입의 객체**일 때
 - 단위 테스트가 순수 함수 스타일로 쉬운 경우
 
-대표 사례 — Java IO Stream (`BufferedReader → InputStreamReader → FileInputStream`), 할인 계산 체인, 슬롯 당첨 금액의 단계별 배수 적용.
+대표 사례: Java IO Stream (`BufferedReader → InputStreamReader → FileInputStream`), 할인 계산 체인, 슬롯 당첨 금액의 단계별 배수 적용.
 
 ## 언제 Chain of Responsibility가 더 적합한가
 
@@ -162,7 +162,7 @@ Spring Security의 `FilterChain`, Servlet `Filter`, OkHttp `Interceptor`가 대�
 - **횡단 관심사**(logging, auth, rate limiting)를 체인으로 조립할 때
 - 요청이 어떤 핸들러에도 매칭되지 않아 **전체 통과 실패**가 유효한 결과일 때
 
-대표 사례 — 웹 프레임워크 Filter/Interceptor, 인증 미들웨어 체인, Approval 워크플로우(1차 승인 → 2차 승인 → ...).
+대표 사례: 웹 프레임워크 Filter/Interceptor, 인증 미들웨어 체인, Approval 워크플로우(1차 승인 → 2차 승인 → ...).
 
 ---
 
@@ -182,9 +182,9 @@ Spring Security의 `FilterChain`, Servlet `Filter`, OkHttp `Interceptor`가 대�
 
 ---
 
-## 실제 사례 — 슬롯 당첨 계산 데코레이터 체인
+## 실제 사례: 슬롯 당첨 계산 데코레이터 체인
 
-Decorator Pattern이 도메인 로직에 깔끔하게 맞는 사례 하나를 언어·도메인 독립적으로 정리했다: [슬롯 당첨 계산 — Decorator 체인 + 우선순위 정렬](../../task/nsc-slot/slot-win-decorator-chain.md).
+Decorator Pattern이 도메인 로직에 깔끔하게 맞는 사례 하나를 언어·도메인 독립적으로 정리했다: [슬롯 당첨 계산: Decorator 체인 + 우선순위 정렬](../../task/nsc-slot/slot-win-decorator-chain.md).
 
 요점만 옮기면 이렇다.
 

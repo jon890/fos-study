@@ -556,7 +556,7 @@ ArchUnit 1.4.1 소스의 `ClassesThat` Javadoc은 `areMetaAnnotatedWith`가 직�
 Spotless와 Checkstyle, 기존 위반 동결은 도입 전이다.
 도입하고 나면 빈 줄 없이 붙은 메서드와 40줄 넘는 메서드 수가 어떻게 바뀌는지 다시 점검할 계획이다.
 
-에이전트 지침 파일의 형식은 [agents.md](../harness/agents-md-format.md)에, 에이전트 주변 구조를 코드 규칙으로 옮기는 흐름은 [하네스 엔지니어링 — 오래 실행되는 AI 에이전트를 위한 설계](../harness/harness-engineering.md)에 정리했다.
+에이전트 지침 파일의 형식은 [agents.md](../harness/agents-md-format.md)에, 에이전트 주변 구조를 코드 규칙으로 옮기는 흐름은 [하네스 엔지니어링: 오래 실행되는 AI 에이전트를 위한 설계](../harness/harness-engineering.md)에 정리했다.
 
 ## 참고 자료
 

@@ -258,7 +258,7 @@ public class Coupon {
 }
 ```
 
-## Repository 인터페이스의 위치 — 의존성 역전
+## Repository 인터페이스의 위치: 의존성 역전
 
 전형적인 3-layer 아키텍처에서는 Service → Repository → DB로 흐른다. DDD/헥사고날에서는 **Repository 인터페이스를 도메인 레이어에 두고 구현체를 인프라 레이어에 둔다**.
 
@@ -310,7 +310,7 @@ public class CancelOrderApplicationService {
 
 ## Domain Event 발행
 
-### 방법 1 — Spring Data의 @DomainEvents
+### 방법 1: Spring Data의 @DomainEvents
 
 ```java
 public class Order extends AbstractAggregateRoot<Order> {
@@ -323,7 +323,7 @@ public class Order extends AbstractAggregateRoot<Order> {
 
 `AbstractAggregateRoot`를 상속하면 `save()` 시점에 등록된 이벤트가 자동 발행된다. 편하지만 Spring Data JPA에 종속된다.
 
-### 방법 2 — ApplicationEventPublisher + @TransactionalEventListener
+### 방법 2: ApplicationEventPublisher + @TransactionalEventListener
 
 ```java
 @Component

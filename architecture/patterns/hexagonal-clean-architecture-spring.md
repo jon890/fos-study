@@ -454,7 +454,7 @@ Spring 컨텍스트 없이 돌아간다는 사실이 핵심이다. 실행 시간
 
 > 결과 분석은 분석 템플릿(설정 템플릿)이라는 도메인 개념이 중심이고, 분석기는 그 템플릿이 정한 규칙을 적용해 한 건의 결과를 산출하는 책임이다. 외부에서 보면 '결과 분석'이라는 하나의 유스케이스이고, 안에서는 템플릿 조회와 결과 산출이라는 도메인 협력이다. 이걸 포트-어댑터로 다시 보면, Inbound Port는 `AnalyzeResultUseCase` 같은 형태가 되고, Outbound Port는 분석 템플릿 조회를 위한 `TemplateRepositoryPort`와 외부 Provider별 결과 조회를 위한 `ResultProviderPort`로 분리된다. Provider별로 응답 포맷이 다르면 전략 패턴으로 구현하는데, 그게 곧 한 Outbound Port에 대한 다중 어댑터(ProviderA Adapter / ProviderB Adapter)다. 도메인은 어느 Provider를 쓰는지 모르고, 어댑터 선택은 Application Service나 팩토리가 책임진다. 그래서 새 Provider가 붙어도 도메인과 UseCase는 변경 없이 어댑터만 추가하면 된다.
 
-이 정리에는 핵심 키워드가 자연스럽게 들어간다 — 책임 분리, Port/Adapter, 전략 패턴의 역할, OCP, 변경 영향 범위.
+이 정리에는 핵심 키워드가 자연스럽게 들어간다: 책임 분리, Port/Adapter, 전략 패턴의 역할, OCP, 변경 영향 범위.
 
 자주 이어지는 후속 질문 정리:
 - "JPA 엔티티와 도메인을 분리하는가?" → 단계 1/2 기준 그대로다. 규칙이 자라는 도메인은 분리하고, CRUD에 가까운 부분은 엔티티 재사용으로 둔다. 분리 기준은 영속성 라이프사이클이 도메인 표현력을 망치기 시작하는 시점이다.

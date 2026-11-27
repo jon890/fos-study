@@ -3,15 +3,15 @@ thumbnail: ./images/design-md-and-ai-design-tools-thumbnail.jpg
 tags: [study]
 ---
 
-# AI 에이전트와 디자인의 새 컨벤션 — DESIGN.md, Google Stitch, Claude Design
+# AI 에이전트와 디자인의 새 컨벤션: DESIGN.md, Google Stitch, Claude Design
 
 1년 안에 디자인-개발 경계에서 셋이 동시에 등장했다. 2025년 5월 구글 I/O에서 **Stitch**가 발표됐고, 2026년 3월 그 안에서 **DESIGN.md** 포맷이 따로 오픈소스로 떨어졌고, 같은 해 4월에 Anthropic Labs가 **Claude Design**을 띄웠다. 같은 달에 VoltAgent의 [awesome-design-md](https://github.com/VoltAgent/awesome-design-md) 같은 71개 브랜드 DESIGN.md 컬렉션이 등장했다.
 
-이 글에서는 셋이 같은 문제를 다른 각도로 풀고 있다는 시각을 정리한다. 그리고 fos-blog(이 블로그를 돌리는 Next.js 프로젝트)에 Claude Design을 6주간 도입하면서 발견한 것 — 그중 흥미로웠던 건 **DESIGN.md 표준 자체는 도입하지 않았는데도 도입 이득이 적지 않더라**는 점이었다.
+이 글에서는 셋이 같은 문제를 다른 각도로 풀고 있다는 시각을 정리한다. 그리고 fos-blog(이 블로그를 돌리는 Next.js 프로젝트)에 Claude Design을 6주간 도입하면서 발견한 것도 정리한다. 그중 흥미로웠던 건 **DESIGN.md 표준 자체는 도입하지 않았는데도 도입 이득이 적지 않더라**는 점이었다.
 
 ---
 
-## 큰 그림 — AI가 만드는 화면이 일관되지 않은 문제
+## 큰 그림: AI가 만드는 화면이 일관되지 않은 문제
 
 코드 생성 단계에서 AI 에이전트는 이미 충분히 쓸 만하다. 다음 병목은 화면이다. "버튼을 추가해 줘" 한 번에는 잘 만들지만, 같은 프로젝트의 다른 페이지에서 같은 지시를 또 내리면 **색이 한 톤 어긋나고, 간격이 4px 다르고, hover 동작이 다르게 잡힌다**. 한 번 마무리한 화면을 다시 손대면 처음과 다른 디자인 결정이 들어온다.
 
@@ -25,7 +25,7 @@ tags: [study]
 
 ---
 
-## DESIGN.md — 디자인 시스템을 마크다운으로
+## DESIGN.md: 디자인 시스템을 마크다운으로
 
 Stitch 팀이 도입한 포맷이다. 2026년 3월 19일 Google Labs가 [드래프트 스펙을 오픈소스](https://blog.google/innovation-and-ai/models-and-research/google-labs/stitch-design-md/)로 풀어 다른 도구가 채택할 수 있게 했다.
 
@@ -65,7 +65,7 @@ spacing:
 
 이 결정은 [AGENTS.md 포맷](./agents-md-format.md)과 결이 같다. 코딩 에이전트의 동작 지침서가 마크다운 한 파일로 수렴했듯이, 디자인 에이전트의 일관성 지침서도 같은 자리로 수렴하고 있다.
 
-### awesome-design-md — 71개 브랜드 컬렉션
+### awesome-design-md: 71개 브랜드 컬렉션
 
 [VoltAgent의 awesome-design-md](https://github.com/VoltAgent/awesome-design-md) 저장소는 Apple, Stripe, Vercel, Nike, Spotify, Linear, Notion 등 71개 유명 브랜드의 DESIGN.md를 모아 둔다. 각 항목은 `DESIGN.md` + `preview.html` + `preview-dark.html` 세 파일로 구성된다.
 
@@ -75,13 +75,13 @@ spacing:
 2. 자기 프로젝트 root에 drop
 3. 에이전트에게 "이 디자인과 일치하는 UI를 만들어 줘"
 
-빠른 출발점으로는 강력하다. 단점은 **brand 종속**이다 — Stripe DESIGN.md를 그대로 쓰면 Stripe 톤이 그대로 들어온다. 자기 브랜드를 만들고 싶다면 결국 자체 작성으로 넘어가야 한다.
+빠른 출발점으로는 강력하다. 단점은 **brand 종속**이다. Stripe DESIGN.md를 그대로 쓰면 Stripe 톤이 그대로 들어온다. 자기 브랜드를 만들고 싶다면 결국 자체 작성으로 넘어가야 한다.
 
 [getdesign.md](https://getdesign.md/), [designmd.app](https://designmd.app/en/) 같은 별도 컬렉션 사이트도 등장했다. 454개 디자인 시스템을 정리한 곳도 있다.
 
 ---
 
-## Google Stitch — 자연어로 멀티 스크린
+## Google Stitch: 자연어로 멀티 스크린
 
 Stitch는 2025년 초 Google이 [Galileo AI](https://www.fastcompany.com/91528198/anthropic-claude-design-ai-design-tool)를 인수해 Gemini와 통합한 뒤 Google Labs 실험으로 띄운 도구다. 2025년 5월 I/O에서 발표됐다. 2026년 3월 19일 큰 업데이트로 정식 디자인 플랫폼 형태로 진화했다.
 
@@ -96,7 +96,7 @@ DESIGN.md는 이 도구 안에서 "디자인 시스템을 외부로 내보내는
 
 ---
 
-## Claude Design — codebase를 읽고 시각을 만든다
+## Claude Design: codebase를 읽고 시각을 만든다
 
 Anthropic Labs가 [2026년 4월 17일 출시한 research preview](https://www.anthropic.com/news/claude-design-anthropic-labs)다. Claude Pro / Max / Team / Enterprise 구독자가 사용할 수 있다. 가장 강력한 vision model인 Opus 4.7이 엔진이다.
 
@@ -144,7 +144,7 @@ PM이 기능 흐름을 스케치해 Claude Code에 넘기거나, 창업자가 �
 
 ### DESIGN.md를 안 쓴 이유
 
-검토는 했다. 다만 도입하지 않은 결론에 도달한 이유가 명확했다 — **Claude Design이 codebase를 읽고 알아서 design system을 구성하기 때문**이다. 별도 DESIGN.md를 두면 토큰 정의가 두 곳(`globals.css`와 `DESIGN.md`)에 살게 되고, 두 진실 소스가 동기화되지 않을 위험이 생긴다. fos-blog의 토큰은 `globals.css`의 `@theme` 블록 한 곳에 있고, rationale은 ADR-017과 design-inspiration.md에 분산되어 있다. Claude Design은 이 셋을 모두 읽는다.
+검토는 했다. 다만 도입하지 않은 결론에 도달한 이유가 명확했다. **Claude Design이 codebase를 읽고 알아서 design system을 구성하기 때문**이다. 별도 DESIGN.md를 두면 토큰 정의가 두 곳(`globals.css`와 `DESIGN.md`)에 살게 되고, 두 진실 소스가 동기화되지 않을 위험이 생긴다. fos-blog의 토큰은 `globals.css`의 `@theme` 블록 한 곳에 있고, rationale은 ADR-017과 design-inspiration.md에 분산되어 있다. Claude Design은 이 셋을 모두 읽는다.
 
 DESIGN.md의 강점인 "다른 도구에 휴대 가능"은 fos-blog 컨텍스트에서 큰 이득이 아니었다. fos-blog는 Claude Code 한 도구로 일관되게 작업하므로, DESIGN.md를 별도로 만들어 다른 도구로 옮길 일이 거의 없다. 이득이 작은 추상화는 두지 않는다는 결정.
 
@@ -161,7 +161,7 @@ Claude Design 도입 자체는 부분 성공이다. 정착한 것과 안 정착�
 
 ---
 
-## AGENTS.md와의 비교 — 에이전트 지침서의 두 축
+## AGENTS.md와의 비교: 에이전트 지침서의 두 축
 
 [AGENTS.md 포맷 글](./agents-md-format.md)에서 정리한 대로, AGENTS.md는 **AI 코딩 에이전트의 동작 지침서**다. 같은 자리(프로젝트 root, 마크다운 한 파일, 자동 발견)에 DESIGN.md가 들어왔다.
 
@@ -177,7 +177,7 @@ Claude Design 도입 자체는 부분 성공이다. 정착한 것과 안 정착�
 
 ---
 
-## 의의 — 디자인 시스템의 위치 이동
+## 의의: 디자인 시스템의 위치 이동
 
 이전 워크플로우는 이렇게 굴러갔다.
 
@@ -213,7 +213,7 @@ DESIGN.md는 그 진실 소스를 텍스트 표준으로 명시한다. Claude De
 
 내 fos-blog 경험으로는 1인 코드 위주 프로젝트는 Claude Design + ADR + plan/phase 조합이 더 자연스러웠고, DESIGN.md는 보류했다. 다른 컨텍스트(디자이너가 따로 있는 팀, 여러 코딩 에이전트를 동시에 쓰는 환경)라면 결정이 달라질 것이다.
 
-[Claude Code 사용기 2탄](../claude-code/claude-code-usage-reflection-2.md)에서 정리했듯이 운용 시스템은 사고 한 번에 룰 한 줄씩 박혀 진화한다. 이 글의 비교 결과도 그 진화의 한 시점이다 — 6개월 뒤 다시 보면 어느 쪽이 표준으로 굳었는지 명확해질 것이다.
+[Claude Code 사용기 2탄](../claude-code/claude-code-usage-reflection-2.md)에서 정리했듯이 운용 시스템은 사고 한 번에 룰 한 줄씩 박혀 진화한다. 이 글의 비교 결과도 그 진화의 한 시점이다. 6개월 뒤 다시 보면 어느 쪽이 표준으로 굳었는지 명확해질 것이다.
 
 ---
 
