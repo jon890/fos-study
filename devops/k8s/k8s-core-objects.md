@@ -5,11 +5,11 @@ thumbnail: ./images/k8s-core-objects-thumbnail.jpg
 tags: [study]
 ---
 
-# 쿠버네티스 핵심 객체 4종 — Pod, Service, Ingress, Namespace의 관계
+# 쿠버네티스 핵심 객체 4종: Pod, Service, Ingress, Namespace의 관계
 
 쿠버네티스에서 외부 노출 작업을 하다가, Pod니 Service니 Ingress니 하는 단어들이 머릿속에서 자꾸 섞였다. 각각 뉘앙스는 알겠는데 "그래서 이것들이 서로 어떤 관계냐"가 안 잡혔다. 그래서 이 네 가지를 한 번에 정리하기로 했다. 이 네 개의 관계만 잡으면 쿠버네티스의 절반은 이해한 거라고 봐도 된다.
 
-한 문장으로 시작하면 빠르다 — **Pod는 변수(Variable)고, Service는 상수(Constants)다.** 자주 바뀌는 Pod를 변하지 않는 Service가 감싸고, 그 앞을 Ingress가 외부로 연다. Service와 Ingress가 "그 서버로 가는 길을 뚫어주는 것(Networking)"이라면, Pod는 그 길 끝에서 실제로 일하는 단위다. 이 글은 네 객체를 **관계 중심**으로 묶어서 본다.
+한 문장으로 시작하면 빠르다: **Pod는 변수(Variable)고, Service는 상수(Constants)다.** 자주 바뀌는 Pod를 변하지 않는 Service가 감싸고, 그 앞을 Ingress가 외부로 연다. Service와 Ingress가 "그 서버로 가는 길을 뚫어주는 것(Networking)"이라면, Pod는 그 길 끝에서 실제로 일하는 단위다. 이 글은 네 객체를 **관계 중심**으로 묶어서 본다.
 
 ## 한 장으로 보는 관계
 
@@ -30,7 +30,7 @@ flowchart TB
 
 핵심은 두 가지다. 하나, **위로 갈수록 안정적이고 추상적이며, 아래로 갈수록 불안정하고 구체적**이다. 둘, **Service가 label로 Pod를 골라서 둘을 잇는다.** 이 두 가지만 기억하면 나머지는 따라온다.
 
-## Pod — 실제 앱이 도는 가장 작은 단위
+## Pod: 실제 앱이 도는 가장 작은 단위
 
 Pod는 컨테이너 한 개 이상을 묶은, 쿠버네티스가 배포하고 실행하는 가장 작은 단위다. 보통 컨테이너 하나(내 앱)지만, 사이드카 패턴이면 여러 개가 한 Pod에 들어가기도 한다. 같은 Pod 안 컨테이너끼리는 `localhost`와 스토리지를 공유한다.
 
@@ -40,7 +40,7 @@ Pod의 가장 중요한 성질은 **일회용**이라는 점이다. 배포할 �
 
 IP가 계속 바뀌니까, **누구도 Pod IP를 직접 부를 수 없다.** 프론트엔드나 다른 서비스가 매번 바뀌는 IP를 쫓아다닐 수는 없으니까. 여기서 Service가 등장한다.
 
-## Service — 변하지 않는 진입점 (L4)
+## Service: 변하지 않는 진입점 (L4)
 
 Service는 Pod 묶음 앞에 세우는 **고정된 IP와 고정된 DNS 이름**이다. 네트워크 계층으로 보면 IP·포트 기반으로 트래픽을 넘기는 **L4**(전송 계층) 로드밸런서다. Pod가 아무리 죽고 새로 떠도 이 IP는 변하지 않는다. 비유하면 Pod는 자주 자리를 옮기는 직원이고, Service는 바뀌지 않는 부서 대표번호다.
 
@@ -59,7 +59,7 @@ spec:
 
 타입 `ClusterIP`는 **클러스터 내부 전용**이다. 외부에서는 못 닿는다. 외부 노출은 LoadBalancer 타입이나 Ingress가 필요한데, 그 얘기는 [외부 트래픽이 Pod까지 닿는 경로](./external-traffic-path.md)에 정리해뒀다.
 
-## Ingress — 외부에서 Service로 가는 라우팅 규칙 (L7)
+## Ingress: 외부에서 Service로 가는 라우팅 규칙 (L7)
 
 Ingress는 **어느 도메인의 어느 경로를 어느 Service로 보낼지**를 적은 HTTP 라우팅 규칙이다. Service가 L4라면 Ingress는 HTTP의 호스트·경로를 보고 분기하는 **L7**(응용 계층) 이다. `/api`로 온 요청은 `api-service`로, `/admin`으로 온 요청은 `admin-service`로 보내는 식이다.
 
@@ -67,9 +67,9 @@ Ingress는 **어느 도메인의 어느 경로를 어느 Service로 보낼지**�
 
 그리고 Ingress는 백엔드로 **Pod가 아니라 Service를 이름으로** 가리킨다. Pod는 불안정하니 당연히 안정적인 Service를 가리키는 거다. 여기서도 "불안정한 건 안정적인 것 뒤에 숨긴다"는 패턴이 반복된다.
 
-## Namespace — 리소스를 담는 논리적 구획
+## Namespace: 리소스를 담는 논리적 구획
 
-Namespace는 클러스터를 논리적으로 나누는 **가상 구획**이다. 일종의 폴더라고 보면 된다. 한 클러스터 안에서 용도별로 리소스를 나눠 담는다 — 앱은 `app` 네임스페이스, 모니터링은 `monitoring`, ingress controller는 `ingress-nginx` 같은 식이다.
+Namespace는 클러스터를 논리적으로 나누는 **가상 구획**이다. 일종의 폴더라고 보면 된다. 한 클러스터 안에서 용도별로 리소스를 나눠 담는다. 앱은 `app` 네임스페이스, 모니터링은 `monitoring`, ingress controller는 `ingress-nginx` 같은 식이다.
 
 Namespace가 주는 것:
 
@@ -77,7 +77,7 @@ Namespace가 주는 것:
 - **권한 경계**(RBAC) — "이 팀은 이 namespace에만 접근" 같은 권한을 namespace 단위로 건다.
 - **자원 할당 경계**(ResourceQuota) — "이 namespace는 CPU 몇 개까지" 같은 제한을 건다.
 
-## namespaced vs cluster-scoped — 모든 리소스가 namespace에 속하진 않는다
+## namespaced vs cluster-scoped: 모든 리소스가 namespace에 속하진 않는다
 
 여기서 중요한 구분이 하나 있다. 쿠버네티스 리소스는 두 종류로 나뉜다.
 

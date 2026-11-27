@@ -2,11 +2,11 @@
 tags: [study]
 ---
 
-# RabbitMQ Basics — 실전 백엔드 관점에서 정리하는 메시지 브로커 기본기
+# RabbitMQ Basics: 실전 백엔드 관점에서 정리하는 메시지 브로커 기본기
 
 ## 왜 RabbitMQ를 다시 공부하는가
 
-실무에서 메시지 브로커를 써본 경험이 있더라도, 면접에서 "왜 Kafka가 아니라 RabbitMQ를 썼나요?", "Exchange와 Queue의 차이는 뭔가요?", "메시지 유실을 어떻게 막았나요?" 같은 질문이 들어오면 의외로 말이 막힌다. 평소에는 라이브러리가 알아서 처리해주는 부분 — Exchange 타입, Binding, Ack 모드, Prefetch, DLQ, Publisher Confirm — 이 모두 질문의 단골 소재다.
+실무에서 메시지 브로커를 써본 경험이 있더라도, 면접에서 "왜 Kafka가 아니라 RabbitMQ를 썼나요?", "Exchange와 Queue의 차이는 뭔가요?", "메시지 유실을 어떻게 막았나요?" 같은 질문이 들어오면 의외로 말이 막힌다. 평소에는 라이브러리가 알아서 처리해주는 부분(Exchange 타입, Binding, Ack 모드, Prefetch, DLQ, Publisher Confirm)이 모두 질문의 단골 소재다.
 
 RabbitMQ는 AMQP 0-9-1 프로토콜을 기반으로 한 "범용 메시지 브로커"다. Kafka가 로그 기반 스트리밍에 최적화되어 있다면, RabbitMQ는 **작업 분배(task queue), 요청/응답, 비동기 이벤트 팬아웃** 같은 전통적인 엔터프라이즈 메시징 패턴에 강점이 있다. 백엔드 엔지니어가 "비동기로 돌려야 하는데 트래픽이 아주 크진 않고, 메시지 단위의 라우팅이 필요하다"는 상황에서 가장 먼저 떠올리게 되는 후보다.
 
@@ -47,7 +47,7 @@ Routing Key 대신 메시지 헤더(key-value 쌍)를 기준으로 라우팅한�
 - **auto-delete**: 마지막 컨슈머가 끊기면 자동 삭제.
 - **arguments**: `x-message-ttl`, `x-max-length`, `x-dead-letter-exchange` 같은 고급 옵션.
 
-Queue가 durable이어도 **메시지가 persistent로 발행되지 않으면** 재시작 시 유실된다. durable Queue + persistent Message + Publisher Confirm + Consumer Ack — 이 네 가지가 메시지 유실 방지의 기본 세트다.
+Queue가 durable이어도 **메시지가 persistent로 발행되지 않으면** 재시작 시 유실된다. durable Queue + persistent Message + Publisher Confirm + Consumer Ack, 이 네 가지가 메시지 유실 방지의 기본 세트다.
 
 ## Kafka와의 차이, 그리고 언제 RabbitMQ를 선택하는가
 

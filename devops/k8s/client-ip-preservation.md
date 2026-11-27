@@ -5,7 +5,7 @@ seriesOrder: 6
 thumbnail: ./images/client-ip-preservation-thumbnail.jpg
 ---
 
-# IP whitelist가 조용히 뚫려 있었다 — 클라이언트 IP는 어디서 사라지는가
+# IP whitelist가 조용히 뚫려 있었다: 클라이언트 IP는 어디서 사라지는가
 
 > [외부 트래픽은 어떻게 Pod까지 닿는가](./external-traffic-path.md)와 [ingress-nginx 운영에서 부딪힌 디테일들](./ingress-nginx-operations.md)을 먼저 읽으면 좋다. 이 글은 그 다음 단계로, 그때 걸어둔 whitelist가 실제로는 아무도 막지 못하고 있었다는 이야기다.
 
@@ -15,7 +15,7 @@ thumbnail: ./images/client-ip-preservation-thumbnail.jpg
 
 가져갈 결론부터 적으면 이렇다. **IP 기반 접근 제어를 걸었다면, 반드시 허용 목록에 없는 곳에서 차단되는지 확인해야 한다.** 설정 존재 확인(`kubectl get`)은 검증이 아니다.
 
-## 증상 — 같은 요청인데 포트에 따라 결과가 갈렸다
+## 증상: 같은 요청인데 포트에 따라 결과가 갈렸다
 
 처음엔 whitelist가 통째로 안 먹는 줄 알았다. 그런데 포트를 바꿔보니 결과가 달랐다.
 
@@ -33,7 +33,7 @@ curl -s -o /dev/null -w "%{http_code}\n" \
 
 같은 클라이언트, 같은 경로, 같은 Ingress 리소스인데 포트만 다르다. whitelist가 "동작은 하는데 443에서만 안 먹는" 상태였다.
 
-## 진단 — nginx 액세스 로그에 찍힌 source IP를 본다
+## 진단: nginx 액세스 로그에 찍힌 source IP를 본다
 
 원인을 찾는 가장 빠른 방법은 **nginx가 실제로 무슨 IP를 봤는지** 확인하는 것이다. ingress controller의 로그에 그대로 남는다.
 
@@ -66,7 +66,7 @@ nginx.ingress.kubernetes.io/whitelist-source-range: 10.150.202.0/24,10.100.0.0/1
 
 내부 통신을 허용하려고 넣어둔 사설 대역이, 외부 트래픽의 **위장 주소**가 되어버린 것이다. 외부에서 오든 내부에서 오든 전부 노드 IP로 바뀌니 whitelist는 항상 통과다.
 
-## 왜 IP가 바뀌었나 — 두 계층이 겹쳤다
+## 왜 IP가 바뀌었나: 두 계층이 겹쳤다
 
 원인은 하나가 아니라 두 개가 겹친 거였다. 하나만 있었으면 문제가 안 됐을 수도 있다.
 
@@ -84,7 +84,7 @@ flowchart LR
     N2 --> P
 ```
 
-### 원인 1 — L4 리스너는 헤더를 붙일 수 없다
+### 원인 1: L4 리스너는 헤더를 붙일 수 없다
 
 TLS를 nginx에서 직접 끝내기로 하면서 LB의 443 리스너를 HTTP에서 **TCP 패스스루**로 바꿨다. 인증서를 LB가 아니라 nginx에서 관리하려는 결정이었다.
 
@@ -107,7 +107,7 @@ real-ip-header: "X-Forwarded-For"
 
 이 설정은 **XFF 헤더가 있을 때만 의미가 있다.** 443에는 그 헤더 자체가 없었으니 설정이 켜져 있어도 할 일이 없었다.
 
-### 원인 2 — externalTrafficPolicy 기본값이 IP를 덮어쓴다
+### 원인 2: externalTrafficPolicy 기본값이 IP를 덮어쓴다
 
 XFF가 없으면 TCP 연결의 출발지 IP라도 남아 있어야 하는데, 그것마저 사라졌다. Service의 `externalTrafficPolicy` 때문이다.
 
@@ -133,7 +133,7 @@ kubectl -n <ns> get svc -o custom-columns=\
 
 Java 백엔드로 치면 프록시 클래스가 호출자 정보를 지우고 자기 이름으로 다시 호출하는 것과 비슷하다. 호출은 성공하는데 스택 추적에서 원래 호출자가 안 보인다.
 
-## 왜 위험한가 — 내부 대역 허용이 백도어가 된다
+## 왜 위험한가: 내부 대역 허용이 백도어가 된다
 
 이 사건에서 가장 위험했던 건 IP가 바뀐 것 자체가 아니다. **바뀐 그 주소가 마침 허용 목록에 있었다는 것**이다.
 
@@ -146,7 +146,7 @@ whitelist에 `10.150.202.0/24`(노드 대역)와 `10.100.0.0/16`(Pod CIDR)을 �
 
 둘 다 성립하면 접근 제어는 **설정만 남고 기능은 사라진다.** 로그에도 정상처럼 200이 찍혀서 눈치채기 어렵다.
 
-## 어떻게 고치나 — 선택지 세 개
+## 어떻게 고치나: 선택지 세 개
 
 ### externalTrafficPolicy를 Local로
 

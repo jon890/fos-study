@@ -5,7 +5,7 @@
 - **기본기 시리즈** — 개념을 순서대로 쌓는다. 처음 보는 사람은 1편부터.
 - **실전 연재** — API Gateway 를 제거하고 공인 LoadBalancer 로 직접 노출한 작업 기록. 기본기 3편(핵심 객체)까지 읽고 오면 따라가기 쉽다.
 
-## 시리즈 1 — 백엔드 개발자를 위한 쿠버네티스 기본기
+## 시리즈 1: 백엔드 개발자를 위한 쿠버네티스 기본기
 
 | # | 글 | 다루는 것 |
 |---|---|---|
@@ -18,7 +18,7 @@
 | 7 | [Argo CD](./argo-cd.md) | GitOps, Application, sync wave, 무한 sync |
 | 8 | [Helm 과 ArgoCD 로 GitOps 하기](./helm-argocd-gitops.md) | 새 컴포넌트 추가 전체 흐름 |
 
-## 시리즈 2 — API Gateway 를 제거하고 쿠버네티스로 직접 노출하기
+## 시리즈 2: API Gateway 를 제거하고 쿠버네티스로 직접 노출하기
 
 | # | 글 | 다루는 것 |
 |---|---|---|
@@ -30,7 +30,7 @@
 | 6 | [IP whitelist가 조용히 뚫려 있었다](./client-ip-preservation.md) | L4 패스스루와 SNAT 로 클라이언트 IP 가 사라지는 구간 |
 | 7 | [파드가 서비스 이름을 못 푸는 이유](./pod-dns-policy-and-ndots.md) | dnsPolicy 4종, ndots 와 search 도메인 전개 |
 
-## 운영 기록 — 시리즈에 속하지 않는 글
+## 운영 기록: 시리즈에 속하지 않는 글
 
 | 글 | 다루는 것 |
 |---|---|

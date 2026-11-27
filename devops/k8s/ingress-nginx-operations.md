@@ -5,7 +5,7 @@ thumbnail: ./images/ingress-nginx-operations-thumbnail.jpg
 tags: [study]
 ---
 
-# ingress-nginx 운영에서 부딪힌 디테일들 — webhook, whitelist, affinity, 리소스 사양
+# ingress-nginx 운영에서 부딪힌 디테일들: webhook, whitelist, affinity, 리소스 사양
 
 ingress controller를 하나 추가하는 작업은 "차트 만들고 배포하면 끝"일 줄 알았다. 그런데 실제로는 그 과정에서 처음 보는 개념들에 계속 걸렸다. annotation으로 설정을 관리하는 방식, admission webhook이 만드는 self-lock 위험, whitelist, Pod 분산 배치, 그리고 리소스 사양까지. 하나하나는 작지만, 모르고 지나가면 운영에서 사고가 나는 것들이라 정리해둔다.
 
@@ -32,7 +32,7 @@ metadata:
 
 이렇게 한 이유는 쿠버네티스가 **벤더 중립**을 지키려고 그런 거다. "Ingress"라는 표준 개념은 공통으로 두되, 각 controller의 고유 기능은 표준을 건드리지 않고 annotation으로 확장하게 했다. 다만 이 방식이 깔끔하지 않다는 불만이 쌓여서, 요즘은 **Gateway API**라는 차세대 표준이 이런 설정을 정식 필드로 흡수하려는 흐름도 있다. 아직은 ingress-nginx와 annotation 조합이 현업 주류지만.
 
-## admission webhook — 격리가 안 되는 검문소
+## admission webhook: 격리가 안 되는 검문소
 
 이게 이번 작업에서 가장 직관에 어긋났던 부분이다.
 
@@ -43,7 +43,7 @@ metadata:
 - controller는 `--ingress-class`로 자기 class(`nginx` 또는 `nginx-external`)만 본다. 깔끔하게 격리된다.
 - 그런데 webhook은 cluster-scoped 리소스라서, **class로도 namespace로도 격리되지 않고 클러스터 전체의 Ingress 요청을 가로챈다.**
 
-(이 "cluster-scoped"라는 성질은 [쿠버네티스 핵심 객체 4종](./k8s-core-objects.md#namespaced-vs-cluster-scoped--모든-리소스가-namespace에-속하진-않는다)에서 다룬, namespace에 속하지 않는 전역 리소스 얘기와 같은 맥락이다.)
+(이 "cluster-scoped"라는 성질은 [쿠버네티스 핵심 객체 4종](./k8s-core-objects.md#namespaced-vs-cluster-scoped-모든-리소스가-namespace에-속하진-않는다)에서 다룬, namespace에 속하지 않는 전역 리소스 얘기와 같은 맥락이다.)
 
 그래서 외부용 controller를 추가하면 webhook도 하나 더 생기는데, 이 새 webhook은 "외부 class만"이 아니라 **모든 Ingress**(내부 것 포함)를 검문한다. 여기서 사고 시나리오가 나온다.
 
@@ -57,7 +57,7 @@ metadata:
 
 > controller는 자기 구역만 배달하는 우편배달부고, webhook은 우체국 전체의 검열대다. 검열대를 하나 더 만들면, 그게 고장 났을 때 다른 구역 편지까지 전부 막힌다.
 
-## whitelist-source-range — 공인인데 평문일 때의 보호막
+## whitelist-source-range: 공인인데 평문일 때의 보호막
 
 외부용 Ingress에는 출발지 IP를 제한하는 annotation을 걸었다.
 
@@ -69,9 +69,9 @@ nginx.ingress.kubernetes.io/whitelist-source-range: 10.0.0.0/8,203.0.113.5
 
 그래서 공인 진입은 켜되, 실제로 닿을 수 있는 범위를 사내 IP로 제한했다. nginx가 요청의 출발지 IP를 보고, 목록에 없으면 403으로 거부한다. 지금 검증할 건 "공인 IP로 들어온 요청이 경로를 타고 앱까지 닿는가"뿐이라, 사내에서 호출해 확인하면 충분하다. 정식으로 외부에 공개할 때(TLS와 도메인이 준비되면) 이 제한을 조정하면 된다.
 
-> **나중에 안 것** — 이 설명에는 큰 전제가 빠져 있다. **nginx가 보는 출발지 IP가 진짜 클라이언트 IP일 때만** 이 방어가 성립한다. 나중에 TLS를 붙이면서 443을 TCP 패스스루로 바꿨더니 `X-Forwarded-For`가 사라졌고, 거기에 `externalTrafficPolicy: Cluster`의 SNAT가 겹쳐 출발지가 노드 IP로 둔갑했다. 그 노드 대역이 마침 위 허용 목록에 들어 있어서 **whitelist가 통째로 무력화됐다.** 어떻게 발견했고 왜 그런지는 [IP whitelist가 조용히 뚫려 있었다](./client-ip-preservation.md)에 정리했다.
+> **나중에 안 것**: 이 설명에는 큰 전제가 빠져 있다. **nginx가 보는 출발지 IP가 진짜 클라이언트 IP일 때만** 이 방어가 성립한다. 나중에 TLS를 붙이면서 443을 TCP 패스스루로 바꿨더니 `X-Forwarded-For`가 사라졌고, 거기에 `externalTrafficPolicy: Cluster`의 SNAT가 겹쳐 출발지가 노드 IP로 둔갑했다. 그 노드 대역이 마침 위 허용 목록에 들어 있어서 **whitelist가 통째로 무력화됐다.** 어떻게 발견했고 왜 그런지는 [IP whitelist가 조용히 뚫려 있었다](./client-ip-preservation.md)에 정리했다.
 
-## podAntiAffinity — replica를 다른 노드에 흩뿌리기
+## podAntiAffinity: replica를 다른 노드에 흩뿌리기
 
 controller values에 이런 블록이 있었다.
 
@@ -99,7 +99,7 @@ controller를 2개 띄우는데 둘이 **같은 노드**에 몰려 있으면, �
 
 > 당직 두 명을 가능하면 다른 건물에 배치하는 것과 같다. 한 건물에 불나도 한 명은 살아있게. 단 건물이 하나뿐이면 같은 건물이라도 배치한다(필수는 아니니까).
 
-## 리소스 사양 — 추측 말고 측정
+## 리소스 사양: 추측 말고 측정
 
 controller에 잡아둔 리소스가 충분한지 궁금했는데, 답은 추측이 아니라 측정에서 나왔다. `kubectl top`으로 실제 사용량을 보면 된다.
 

@@ -4,13 +4,13 @@ series: "백엔드 개발자를 위한 쿠버네티스 기본기"
 seriesOrder: 4
 ---
 
-# Deployment · ReplicaSet · Pod — 배포가 굴러가는 3층 구조
+# Deployment · ReplicaSet · Pod: 배포가 굴러가는 3층 구조
 
 > [핵심 객체 4종](./k8s-core-objects.md)에서 Pod 를 "불안정한 실체"로 소개하고 넘어갔다. 이 글은 그 Pod 를 실제로 만들고 유지하는 위쪽 두 층을 본다.
 
 ArgoCD 화면을 처음 봤을 때 이해가 안 됐던 게 있다. 내가 만든 건 Deployment 하나인데, 화면에는 `api-deployment-7d4b9c` 같은 중간 이름이 하나 더 있고 그 밑에 Pod 들이 달려 있었다. 왜 두 단계가 아니라 세 단계인가.
 
-답은 [앞 글](./declarative-api-reconcile-loop.md)의 원리에 있다. **각 층이 서로 다른 하나의 책임만 맞추는 루프**이기 때문이다. 한 문장으로 정리하면 이렇다 — **Deployment 는 버전과 전환 방식을, ReplicaSet 은 개수를, Pod 는 실행을 책임진다.**
+답은 [앞 글](./declarative-api-reconcile-loop.md)의 원리에 있다. **각 층이 서로 다른 하나의 책임만 맞추는 루프**이기 때문이다. 한 문장으로 정리하면 이렇다: **Deployment 는 버전과 전환 방식을, ReplicaSet 은 개수를, Pod 는 실행을 책임진다.**
 
 백엔드 감각으로 옮기면 이 정도다.
 
@@ -20,7 +20,7 @@ ArgoCD 화면을 처음 봤을 때 이해가 안 됐던 게 있다. 내가 만�
 | **ReplicaSet** | 특정 버전을 정확히 N개 유지 | 인스턴스 개수 유지 장치 |
 | **Pod** | 실제로 도는 프로세스 | 실행 중인 Spring Boot 인스턴스 |
 
-## Pod — 쿠버네티스가 다루는 가장 작은 단위
+## Pod: 쿠버네티스가 다루는 가장 작은 단위
 
 쿠버네티스는 컨테이너를 직접 관리하지 않는다. **Pod** 를 관리하고, 컨테이너는 그 안에 담긴다.
 
@@ -32,7 +32,7 @@ ArgoCD 화면을 처음 봤을 때 이해가 안 됐던 게 있다. 내가 만�
 
 그래서 Pod 를 직접 만드는 일은 거의 없다. 직접 만든 Pod 는 **죽으면 그걸로 끝**이고 아무도 다시 만들어주지 않는다. 개수를 보장해 줄 누군가가 필요하다.
 
-## ReplicaSet — 개수만 맞추는 단순한 루프
+## ReplicaSet: 개수만 맞추는 단순한 루프
 
 **ReplicaSet** 의 책임은 하나다. 자기 라벨 셀렉터에 맞는 Pod 가 정확히 N개 있게 한다.
 
@@ -44,7 +44,7 @@ ArgoCD 화면을 처음 봤을 때 이해가 안 됐던 게 있다. 내가 만�
 
 ReplicaSet 을 직접 만들 일도 거의 없다. Deployment 가 알아서 만든다.
 
-## Deployment — 버전 전환을 지휘하는 층
+## Deployment: 버전 전환을 지휘하는 층
 
 우리가 실제로 쓰는 YAML 의 대부분이 Deployment 다. 이 층의 책임은 **버전이 바뀔 때 이전 ReplicaSet 에서 새 ReplicaSet 으로 트래픽을 어떻게 옮길지**다.
 
@@ -177,7 +177,7 @@ JVM 을 올릴 때 특히 주의할 게 있다. 예전 JVM 은 컨테이너 메�
 - `livenessProbe` 에 외부 의존성을 넣지 않는다. 재시작 폭풍의 원인이 된다.
 - 종료 쪽도 챙긴다. `SIGTERM` 처리와 `terminationGracePeriodSeconds` 가 맞물려야 배포 중 요청이 안 끊긴다.
 
-다음 글에서는 지금까지 계속 나온 "API 서버가 거부한다"는 지점 — [admission](./admission-control.md) — 을 본다.
+다음 글에서는 지금까지 계속 나온 "API 서버가 거부한다"는 지점인 [admission](./admission-control.md)을 본다.
 
 ## 참고 링크
 
