@@ -231,7 +231,7 @@ ocr-llm 외에도 calico, csi-cinder, neuvector, argo-redis, nvidia-device-plugi
 각각이 shim task 디렉터리와 overlay 마운트 포인트를 `/run`에 만든다.
 
 application 노드는 이미지 레이어가 적고(Java JAR 기반으로 3\~7개), tmpfs 크기 대비 여유가 충분했다.
-GPU 노드는 50레이어짜리 LLM 이미지 + 29개 task 조합이 8.9G를 전부 소진한 것이다.
+GPU 노드는 50레이어짜리 LLM 이미지와 29개 task가 겹쳐 8.9G를 전부 소진한 것이다.
 
 ## 진단 과정
 

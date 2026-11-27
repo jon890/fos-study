@@ -85,7 +85,7 @@ PyTorch 휠 안에 묶여 들어온 CUDA 런타임 버전이다.
 - conda의 `cudatoolkit` — 마찬가지로 런타임 라이브러리 중심. conda 환경 안에 CUDA 런타임을 넣어준다. `pytorch-cuda` 메타패키지는 conda solver가 맞는 PyTorch 빌드를 고르도록 돕는 역할이다.
 - NVIDIA가 배포하는 full CUDA Toolkit — 런타임 + 개발 도구 전부. `nvcc`, `cuda-gdb`, `cuda-memcheck`까지 들어 있다.
 
-여기서 갈린다.
+무엇을 깔아야 하는지는 GPU 코드를 어떻게 쓰는지에 따라 갈린다.
 PyTorch나 PaddlePaddle로 추론/학습만 한다면 full toolkit이 필요 없다.
 런타임 라이브러리만 있으면 되고, 그건 pip/conda가 프레임워크와 함께 넣어준다.
 full toolkit이 필요한 건 직접 CUDA 커널(`.cu` 파일)을 작성해서 `nvcc`로 컴파일할 때다.
@@ -140,7 +140,7 @@ pip list | grep -i nvidia
 
 이 넷이 다 다른 숫자를 말해도 보통 정상이다.
 
-- nvidia-smi 숫자 ≥ torch.version.cuda 의 메이저 호환이면 GPU가 돈다
+- 드라이버(nvidia-smi 숫자)가 torch.version.cuda 의 메이저 버전을 받아 주면 GPU가 돈다
 - nvcc가 없거나 다른 버전이어도 PyTorch 추론에는 영향이 없다
 - `torch.cuda.is_available()`이 True면 실제로 GPU를 잡은 것이다
 

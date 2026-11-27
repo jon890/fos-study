@@ -8,7 +8,7 @@ seriesOrder: 15
 
 **이전 글** [모델을 골라주는 계층이 대신 가져오는 제약](./router-constraints.md) · **다음 글** [첫 토큰이 나간 뒤에는 재시도할 수 없다](./streaming-retry-boundary.md) · [시리즈 목차](../README.md)
 
-> 이 글은 아래 계층, 즉 자체 호스팅 모델이 여러 대일 때 어느 인스턴스로 보낼지를 다룬다.
+> 이 글은 [Model Router 란 무엇인가](./what-is-model-router.md)에서 나눈 두 계층 가운데 아래 계층(Gateway 계층), 즉 자체 호스팅 모델이 여러 대일 때 어느 인스턴스로 보낼지를 다룬다.
 > 서빙 자체의 원리는 [GPU로 LLM을 서빙한다는 것](../llm-serving/gpu-llm-serving-basics.md)이 다룬다.
 
 자체 호스팅 vLLM 을 세 대 띄우고 앞에 로드 밸런서를 두면 요청이 고르게 분산된다.
